@@ -1,0 +1,70 @@
+[tool.poetry]
+name = "poetry-core"
+version = "1.0.0a0"
+description = "Core utilities for Poetry"
+authors = ["Sébastien Eustace <sebastien@eustace.io>"]
+
+license = "MIT"
+
+readme = "README.md"
+
+homepage = "https://github.com/python-poetry/core"
+repository = "https://github.com/python-poetry/core"
+
+keywords = ["packaging", "dependency", "poetry"]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+packages = [
+    {include = "poetry_core"},
+    {include = "tests", format = "sdist"},
+]
+
+[tool.poetry.dependencies]
+python = "~2.7 || ^3.4"
+
+jsonschema = "^3.2.0"
+packaging = "^20.1"
+pkginfo = "^1.5.0"
+pyparsing = "^2.4.6"
+tomlkit = "^0.5.8"
+
+# Use glob2 for Python 2.7 and 3.4
+glob2 = { version = "^0.6", python = "~2.7 || ~3.4" }
+# Use pathlib2 for Python 2.7 and 3.4
+pathlib2 = { version = "^2.3", python = "~2.7 || ~3.4" }
+# The typing module is not in the stdlib in Python 2.7 and 3.4
+typing = { version = "^3.6", python = "~2.7 || ~3.4" }
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^1.10"
+pytest = "^4.6"
+pytest-cov = "^2.8.1"
+pytest-mock = "^2.0.0"
+tox = "^3.0"
+
+[tool.intreehooks]
+build-backend = "poetry_core.masonry.api"
+
+[tool.isort]
+line_length = 88
+force_single_line = true
+atomic = true
+include_trailing_comma = true
+lines_after_imports = 2
+lines_between_types = 1
+multi_line_output = 3
+use_parentheses = true
+not_skip = "__init__.py"
+skip_glob = ["*/setup.py"]
+filter_files = true
+
+known_first_party = "poetry_core"
+known_third_party = []
+
+[build-system]
+requires = ["intreehooks"]
+build-backend = "intreehooks:loader"
