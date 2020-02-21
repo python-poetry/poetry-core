@@ -12,8 +12,8 @@ pattern_formats = {
     "user": r"[a-zA-Z0-9_.-]+",
     "resource": r"[a-zA-Z0-9_.-]+",
     "port": r"\d+",
-    "path": r"[\w\-/\\]+",
-    "name": r"[\w\-]+",
+    "path": r"[\w~.\-/\\]+",
+    "name": r"[\w~.\-]+",
     "rev": r"[^@#]+",
 }
 
@@ -229,7 +229,7 @@ class Git:
                 folder.as_posix(),
             ]
 
-        args += ["rev-parse", rev]
+        args += ["rev-parse", rev + "^{commit}"]
 
         return self.run(*args)
 
