@@ -6,7 +6,7 @@ from .utils._compat import Path
 from .utils.toml_file import TomlFile
 
 
-class Poetry:
+class Poetry(object):
     def __init__(
         self, file, local_config, package,
     ):  # type: (Path, dict, ProjectPackage) -> None

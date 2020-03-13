@@ -14,7 +14,7 @@ from .utils._compat import Path
 from .utils.toml_file import TomlFile
 
 
-class Factory:
+class Factory(object):
     """
     Factory class to create various elements needed by Poetry.
     """
