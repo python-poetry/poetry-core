@@ -740,7 +740,7 @@ description = "A command line tool, to simplify vendoring pure Python dependenci
 marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "vendoring"
 optional = false
-python-versions = "~= 3.8.0"
+python-versions = "~=3.8.0"
 version = "0.2.2"
 
 [package.dependencies]

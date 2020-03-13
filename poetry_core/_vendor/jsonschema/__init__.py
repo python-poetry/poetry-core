@@ -27,8 +27,5 @@ from poetry_core._vendor.jsonschema.validators import (
     RefResolver,
     validate,
 )
-try:
-    from importlib import metadata
-except ImportError: # for Python<3.8
-    import importlib_metadata as metadata
-__version__ = metadata.version("jsonschema")
+
+__version__ = "3.2.0"

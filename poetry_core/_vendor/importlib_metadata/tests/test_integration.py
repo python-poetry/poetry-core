@@ -3,10 +3,7 @@ import packaging.requirements
 import packaging.version
 
 from . import fixtures
-from .. import (
-    _compat,
-    version,
-    )
+from .. import version
 
 
 class IntegrationTests(fixtures.DistInfoPkg, unittest.TestCase):
@@ -23,20 +20,3 @@ class IntegrationTests(fixtures.DistInfoPkg, unittest.TestCase):
         assert is_installed('distinfo-pkg==1.0')
         assert is_installed('distinfo-pkg>=1.0,<2.0')
         assert not is_installed('distinfo-pkg<1.0')
-
-
-class FinderTests(fixtures.Fixtures, unittest.TestCase):
-
-    def test_finder_without_module(self):
-        class ModuleFreeFinder(fixtures.NullFinder):
-            """
-            A finder without an __module__ attribute
-            """
-            def __getattribute__(self, name):
-                if name == '__module__':
-                    raise AttributeError(name)
-                return super().__getattribute__(name)
-
-        self.fixtures.enter_context(
-            fixtures.install_finder(ModuleFreeFinder()))
-        _compat.disable_stdlib_finder()
