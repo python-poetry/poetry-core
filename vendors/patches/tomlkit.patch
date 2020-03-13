@@ -1,0 +1,38 @@
+diff --git a/poetry_core/_vendor/tomlkit/_compat.py b/poetry_core/_vendor/tomlkit/_compat.py
+--- a/poetry_core/_vendor/tomlkit/_compat.py
++++ b/poetry_core/_vendor/tomlkit/_compat.py
+@@ -143,11 +143,15 @@
+     unicode = unicode
+     chr = unichr
+     long = long
++
++    from poetry_core._vendor.enum import Enum
+ else:
+     unicode = str
+     chr = chr
+     long = int
+
++    from enum import Enum
++
+
+ def decode(string, encodings=None):
+     if not PY2 and not isinstance(string, bytes):
+diff --git a/poetry_core/_vendor/tomlkit/items.py b/poetry_core/_vendor/tomlkit/items.py
+--- a/poetry_core/_vendor/tomlkit/items.py
++++ b/poetry_core/_vendor/tomlkit/items.py
+@@ -6,7 +6,6 @@
+ from datetime import date
+ from datetime import datetime
+ from datetime import time
+-from poetry_core._vendor.enum import Enum
+ from poetry_core.utils._typing import Any
+ from poetry_core.utils._typing import Dict
+ from poetry_core.utils._typing import Generator
+@@ -15,6 +14,7 @@
+ from poetry_core.utils._typing import Union
+
+
++from ._compat import Enum
+ from ._compat import PY2
+ from ._compat import PY38
+ from ._compat import decode

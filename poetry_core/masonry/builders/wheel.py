@@ -14,7 +14,8 @@ import zipfile
 from base64 import urlsafe_b64encode
 from io import StringIO
 
-from packaging.tags import sys_tags
+from poetry_core._vendor.packaging.tags import sys_tags
+
 from poetry_core import __version__
 from poetry_core.semver import parse_constraint
 from poetry_core.utils._compat import decode

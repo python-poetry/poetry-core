@@ -1,4 +1,4 @@
-from typing import List
+from poetry_core.utils._typing import List
 
 from .empty_constraint import EmptyConstraint
 from .version_constraint import VersionConstraint

@@ -6,13 +6,13 @@ import tempfile
 
 from collections import defaultdict
 from contextlib import contextmanager
-from typing import Set
-from typing import Union
 
 from poetry_core.utils._compat import Path
 from poetry_core.utils._compat import glob
 from poetry_core.utils._compat import lru_cache
 from poetry_core.utils._compat import to_str
+from poetry_core.utils._typing import Set
+from poetry_core.utils._typing import Union
 from poetry_core.vcs import get_vcs
 
 from ..metadata import Metadata

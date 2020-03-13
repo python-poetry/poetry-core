@@ -8,17 +8,18 @@ from __future__ import print_function
 import re
 import string
 
+from poetry_core._vendor.pyparsing import Combine
+from poetry_core._vendor.pyparsing import Literal as L  # noqa
+from poetry_core._vendor.pyparsing import Optional
+from poetry_core._vendor.pyparsing import ParseException
+from poetry_core._vendor.pyparsing import Regex
+from poetry_core._vendor.pyparsing import Word
+from poetry_core._vendor.pyparsing import ZeroOrMore
+from poetry_core._vendor.pyparsing import originalTextFor
+from poetry_core._vendor.pyparsing import stringEnd
+from poetry_core._vendor.pyparsing import stringStart
+
 from poetry_core.semver import parse_constraint
-from pyparsing import Combine
-from pyparsing import Literal as L  # noqa
-from pyparsing import Optional
-from pyparsing import ParseException
-from pyparsing import Regex
-from pyparsing import Word
-from pyparsing import ZeroOrMore
-from pyparsing import originalTextFor
-from pyparsing import stringEnd
-from pyparsing import stringStart
 
 from .markers import MARKER_EXPR
 from .markers import parse_marker

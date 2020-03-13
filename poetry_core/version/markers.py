@@ -1,18 +1,18 @@
 import re
 
-from typing import Any
-from typing import Dict
-from typing import Iterator
-from typing import List
+from poetry_core._vendor.pyparsing import Forward
+from poetry_core._vendor.pyparsing import Group
+from poetry_core._vendor.pyparsing import Literal as L  # noqa
+from poetry_core._vendor.pyparsing import ParseResults
+from poetry_core._vendor.pyparsing import QuotedString
+from poetry_core._vendor.pyparsing import ZeroOrMore
+from poetry_core._vendor.pyparsing import stringEnd
+from poetry_core._vendor.pyparsing import stringStart
 
-from pyparsing import Forward
-from pyparsing import Group
-from pyparsing import Literal as L  # noqa
-from pyparsing import ParseResults
-from pyparsing import QuotedString
-from pyparsing import ZeroOrMore
-from pyparsing import stringEnd
-from pyparsing import stringStart
+from poetry_core.utils._typing import Any
+from poetry_core.utils._typing import Dict
+from poetry_core.utils._typing import Iterator
+from poetry_core.utils._typing import List
 
 
 class InvalidMarker(ValueError):

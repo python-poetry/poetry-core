@@ -3,24 +3,44 @@ repos:
     rev: stable
     hooks:
       - id: black
+        exclude: ^poetry_core/_vendor
 
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.7.8
     hooks:
       - id: flake8
+        exclude: |
+          (?x)(
+              ^poetry_core/utils/_typing.py$
+              | ^poetry_core/utils/_compat.py$
+              | ^poetry_core/_vendor
+          )
 
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v4.3.21
     hooks:
       - id: isort
         additional_dependencies: [toml]
-        exclude: ^.*/?setup\.py$
+        exclude: |
+          (?x)(
+              ^.*/?setup\.py$
+              | ^poetry_core/_vendor
+          )
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^tests/.*/fixtures/.*
+        exclude: |
+          (?x)(
+              ^tests/.*/fixtures/.*
+              | ^poetry_core/_vendor
+          )
       - id: end-of-file-fixer
-        exclude: ^tests/.*/fixtures/.*
+        exclude: |
+          (?x)(
+              ^tests/.*/fixtures/.*
+              | ^poetry_core/_vendor
+          )
       - id: debug-statements
+        exclude: ^poetry_core/_vendor

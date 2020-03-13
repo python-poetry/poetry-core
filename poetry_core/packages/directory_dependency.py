@@ -1,5 +1,6 @@
-from pkginfo.distribution import HEADER_ATTRS
-from pkginfo.distribution import HEADER_ATTRS_2_0
+from poetry_core._vendor.pkginfo.distribution import HEADER_ATTRS
+from poetry_core._vendor.pkginfo.distribution import HEADER_ATTRS_2_0
+
 from poetry_core.utils._compat import Path
 from poetry_core.utils.toml_file import TomlFile
 

@@ -1,6 +1,5 @@
-from typing import List
-
 from poetry_core.utils._compat import Path
+from poetry_core.utils._typing import List
 from poetry_core.utils.helpers import module_name
 
 from .include import Include

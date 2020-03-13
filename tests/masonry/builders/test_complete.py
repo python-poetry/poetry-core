@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import ast
 import os
+import platform
 import re
 import shutil
 import sys
@@ -38,8 +39,10 @@ def clear_samples_dist():
 
 
 @pytest.mark.skipif(
-    sys.platform == "win32" and sys.version_info <= (3, 6),
-    reason="Disable test on Windows for Python <=3.6",
+    sys.platform == "win32"
+    and sys.version_info <= (3, 6)
+    or platform.python_implementation().lower() == "pypy",
+    reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
 def test_wheel_c_extension():
     module_path = fixtures_dir / "extended"
@@ -93,8 +96,10 @@ $""".format(
 
 
 @pytest.mark.skipif(
-    sys.platform == "win32" and sys.version_info <= (3, 6),
-    reason="Disable test on Windows for Python <=3.6",
+    sys.platform == "win32"
+    and sys.version_info <= (3, 6)
+    or platform.python_implementation().lower() == "pypy",
+    reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
 def test_wheel_c_extension_src_layout():
     module_path = fixtures_dir / "src_extended"

@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "vendors"
+version = "1.0.0"
+description = "Vendors"
+authors = ["Sébastien Eustace <sebastien@eustace.io>"]
+
+license = "MIT"
+
+readme = "README.md"
+
+homepage = "https://github.com/python-poetry/core"
+repository = "https://github.com/python-poetry/core"
+
+keywords = ["packaging", "dependency", "poetry"]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.poetry.dependencies]
+python = "~2.7 || ^3.5"
+
+jsonschema = "^3.2.0"
+packaging = "^20.1"
+pkginfo = "^1.5.0"
+pyparsing = "^2.4.6"
+tomlkit = "^0.5.11"
+
+# Use glob2 for Python 2.7 and 3.4
+glob2 = { version = "^0.6", python = "~2.7" }
+# Use pathlib2 for Python 2.7 and 3.4
+pathlib2 = { version = "^2.3", python = "~2.7" }
+# The typing module is not in the stdlib in Python 2.7 and 3.4
+typing = { path = "wheels/typing-3.7.4.1-py2.py3-none-any.whl" }
+
+functools32 = { path = "wheels/functools32-3.2.3.post2-py2.py3-none-any.whl" }
+
+# enum34 is needed for Python 2.7
+enum34 = { version = "wheels/enum34-1.1.10-py2.py3-none-any.whl" }

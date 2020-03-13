@@ -1,8 +1,8 @@
 import re
 
-from typing import List
-from typing import Optional
-from typing import Union
+from poetry_core.utils._typing import List
+from poetry_core.utils._typing import Optional
+from poetry_core.utils._typing import Union
 
 from .empty_constraint import EmptyConstraint
 from .exceptions import ParseVersionError

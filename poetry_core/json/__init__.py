@@ -2,9 +2,9 @@ import json
 import os
 
 from io import open
-from typing import List
 
-import jsonschema
+from jsonschema import Draft7Validator
+from poetry_core.utils._typing import List
 
 
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "schemas")
@@ -24,7 +24,7 @@ def validate_object(obj, schema_name):  # type: (dict, str) -> List[str]
     with open(schema, encoding="utf-8") as f:
         schema = json.loads(f.read())
 
-    validator = jsonschema.Draft7Validator(schema)
+    validator = Draft7Validator(schema)
     validation_errors = sorted(validator.iter_errors(obj), key=lambda e: e.path)
 
     errors = []

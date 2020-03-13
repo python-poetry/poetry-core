@@ -5,9 +5,9 @@ import stat
 import tempfile
 
 from contextlib import contextmanager
-from typing import List
 
 from poetry_core.utils._compat import Path
+from poetry_core.utils._typing import List
 from poetry_core.version import Version
 
 

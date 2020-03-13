@@ -1,0 +1,80 @@
+"""Helpers for use with type annotation.
+
+Use the empty classes in this module when annotating the types of Pyrsistent
+objects, instead of using the actual collection class.
+
+For example,
+
+    from poetry_core._vendor.pyrsistent import pvector
+    from poetry_core._vendor.pyrsistent.typing import PVector
+
+    myvector: PVector[str] = pvector(['a', 'b', 'c'])
+
+"""
+from __future__ import absolute_import
+
+try:
+    from poetry_core.utils._typing import Container
+    from poetry_core.utils._typing import Hashable
+    from poetry_core.utils._typing import Generic
+    from poetry_core.utils._typing import Iterable
+    from poetry_core.utils._typing import Mapping
+    from poetry_core.utils._typing import Sequence
+    from poetry_core.utils._typing import Sized
+    from poetry_core.utils._typing import TypeVar
+
+    __all__ = [
+        'CheckedPMap',
+        'CheckedPSet',
+        'CheckedPVector',
+        'PBag',
+        'PDeque',
+        'PList',
+        'PMap',
+        'PSet',
+        'PVector',
+    ]
+
+    T = TypeVar('T')
+    KT = TypeVar('KT')
+    VT = TypeVar('VT')
+
+    class CheckedPMap(Mapping[KT, VT], Hashable):
+        pass
+
+    # PSet.add and PSet.discard have different type signatures than that of Set.
+    class CheckedPSet(Generic[T], Hashable):
+        pass
+
+    class CheckedPVector(Sequence[T], Hashable):
+        pass
+
+    class PBag(Container[T], Iterable[T], Sized, Hashable):
+        pass
+
+    class PDeque(Sequence[T], Hashable):
+        pass
+
+    class PList(Sequence[T], Hashable):
+        pass
+
+    class PMap(Mapping[KT, VT], Hashable):
+        pass
+
+    # PSet.add and PSet.discard have different type signatures than that of Set.
+    class PSet(Generic[T], Hashable):
+        pass
+
+    class PVector(Sequence[T], Hashable):
+        pass
+
+    class PVectorEvolver(Generic[T]):
+        pass
+
+    class PMapEvolver(Generic[KT, VT]):
+        pass
+
+    class PSetEvolver(Generic[T]):
+        pass
+except ImportError:
+    pass

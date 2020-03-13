@@ -2,23 +2,6 @@ import sys
 
 
 try:
-    from functools32 import lru_cache
-except ImportError:
-    from functools import lru_cache
-
-try:
-    from glob2 import glob
-except ImportError:
-    from glob import glob
-
-try:
-    from importlib import metadata
-    import zipfile as zipp
-except ImportError:
-    import importlib_metadata as metadata
-    import zipp
-
-try:
     import urllib.parse as urlparse
 except ImportError:
     import urlparse
@@ -49,6 +32,15 @@ else:
 
     shell_quote = shlex.quote
 
+if PY2:
+    from poetry_core._vendor.functools32 import lru_cache
+else:
+    from functools import lru_cache
+
+if not PY35:
+    from poetry_core._vendor.glob2 import glob
+else:
+    from glob import glob
 
 if PY35:
     from pathlib import Path

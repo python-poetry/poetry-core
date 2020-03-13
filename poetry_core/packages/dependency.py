@@ -1,5 +1,3 @@
-from typing import Optional
-
 import poetry_core.packages
 
 from poetry_core.semver import Version
@@ -7,6 +5,7 @@ from poetry_core.semver import VersionConstraint
 from poetry_core.semver import VersionRange
 from poetry_core.semver import VersionUnion
 from poetry_core.semver import parse_constraint
+from poetry_core.utils._typing import Optional
 from poetry_core.utils.helpers import canonicalize_name
 from poetry_core.version.markers import AnyMarker
 from poetry_core.version.markers import parse_marker

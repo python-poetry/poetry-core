@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from typing import Dict
-from typing import List
-from typing import Optional
+from poetry_core.utils._typing import Dict
+from poetry_core.utils._typing import List
+from poetry_core.utils._typing import Optional
 
 from .json import validate_object
 from .packages.dependency import Dependency
