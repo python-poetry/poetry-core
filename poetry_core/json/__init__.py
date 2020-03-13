@@ -3,7 +3,8 @@ import os
 
 from io import open
 
-from jsonschema import Draft7Validator
+from poetry_core._vendor.jsonschema import Draft7Validator
+
 from poetry_core.utils._typing import List
 
 

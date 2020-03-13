@@ -1,0 +1,42 @@
+diff --git a/poetry_core/_vendor/jsonschema/__init__.py b/poetry_core/_vendor/jsonschema/__init__.py
+index 7dd3598..c604eed 100644
+--- a/poetry_core/_vendor/jsonschema/__init__.py
++++ b/poetry_core/_vendor/jsonschema/__init__.py
+@@ -27,8 +27,5 @@ from poetry_core._vendor.jsonschema.validators import (
+     RefResolver,
+     validate,
+ )
+-try:
+-    from importlib import metadata
+-except ImportError: # for Python<3.8
+-    import importlib_metadata as metadata
+-__version__ = metadata.version("jsonschema")
++
++__version__ = "3.2.0"
+diff --git a/poetry_core/_vendor/jsonschema/_utils.py b/poetry_core/_vendor/jsonschema/_utils.py
+index 8fb8593..368474a 100644
+--- a/poetry_core/_vendor/jsonschema/_utils.py
++++ b/poetry_core/_vendor/jsonschema/_utils.py
+@@ -1,6 +1,6 @@
+ import itertools
+ import json
+-import pkgutil
++import os
+ import re
+
+ from poetry_core._vendor.jsonschema.compat import MutableMapping, str_types, urlsplit
+@@ -50,9 +50,12 @@ def load_schema(name):
+     """
+     Load a schema from ./schemas/``name``.json and return it.
+     """
++    with open(
++        os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name))
++    ) as f:
++        data = f.read()
+
+-    data = pkgutil.get_data("jsonschema", "schemas/{0}.json".format(name))
+-    return json.loads(data.decode("utf-8"))
++    return json.loads(data)
+
+
+ def indent(string, times=1):

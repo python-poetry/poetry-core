@@ -88,6 +88,7 @@ substitute = [
   { match='from typing ', replace="from poetry_core.utils._typing " },
 ]
 drop = [
+    "bin/",
     "*.so",
 ]
 
