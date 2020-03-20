@@ -17,7 +17,7 @@ from ._typing import MYPY_CHECK_RUNNING
 from .specifiers import Specifier, InvalidSpecifier
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import Any, Callable, Dict, List, Optional, Tuple, Union
+    from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
     Operator = Callable[[str, str], bool]
 

@@ -1,6 +1,6 @@
 import datetime as _datetime
 
-from poetry_core.utils._typing import Tuple
+from typing import Tuple
 
 from ._utils import parse_rfc3339
 from .container import Container

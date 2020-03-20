@@ -21,7 +21,7 @@ In packaging, all static-typing related imports should be guarded as follows:
     from poetry_core._vendor.packaging._typing import MYPY_CHECK_RUNNING
 
     if MYPY_CHECK_RUNNING:
-        from poetry_core.utils._typing import ...
+        from typing import ...
 
 Ref: https://github.com/python/mypy/issues/3216
 """
@@ -29,7 +29,7 @@ Ref: https://github.com/python/mypy/issues/3216
 MYPY_CHECK_RUNNING = False
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core._vendor import typing
+    import typing
 
     cast = typing.cast
 else:

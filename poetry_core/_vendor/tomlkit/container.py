@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 
 import copy
 
-from poetry_core.utils._typing import Any
-from poetry_core.utils._typing import Dict
-from poetry_core.utils._typing import Generator
-from poetry_core.utils._typing import List
-from poetry_core.utils._typing import Optional
-from poetry_core.utils._typing import Tuple
-from poetry_core.utils._typing import Union
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 from ._compat import decode
 from .exceptions import KeyAlreadyPresent

@@ -213,15 +213,11 @@ version = ">=3.6,<4.0"
 [[package]]
 category = "main"
 description = "Type Hints for Python"
+marker = "python_version >= \"2.7\" and python_version < \"2.8\" or python_version >= \"3.4\" and python_version < \"3.5\""
 name = "typing"
 optional = false
 python-versions = "*"
 version = "3.7.4.1"
-
-[package.source]
-reference = ""
-type = "file"
-url = "wheels/typing-3.7.4.1-py2.py3-none-any.whl"
 
 [[package]]
 category = "main"
@@ -242,7 +238,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "unittest2", "jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "4f6b084392cdf985a5cac2085387904fa32fc3bcc0c781417febc57ef6250d4e"
+content-hash = "059471da244d423a255329321967c01000704879d851a213d4f2182be27e984e"
 python-versions = "~2.7 || ^3.5"
 
 [metadata.files]
@@ -318,7 +314,9 @@ tomlkit = [
     {file = "tomlkit-0.5.11.tar.gz", hash = "sha256:f044eda25647882e5ef22b43a1688fb6ab12af2fc50e8456cdfc751c873101cf"},
 ]
 typing = [
-    {file = "typing-3.7.4.1-py2.py3-none-any.whl", hash = "sha256:c8cabb5ab8945cd2f54917be357d134db9cc1eb039e59d1606dc1e60cb1d9d36"},
+    {file = "typing-3.7.4.1-py2-none-any.whl", hash = "sha256:c8cabb5ab8945cd2f54917be357d134db9cc1eb039e59d1606dc1e60cb1d9d36"},
+    {file = "typing-3.7.4.1-py3-none-any.whl", hash = "sha256:f38d83c5a7a7086543a0f649564d661859c5146a85775ab90c0d2f93ffaa9714"},
+    {file = "typing-3.7.4.1.tar.gz", hash = "sha256:91dfe6f3f706ee8cc32d38edbbf304e9b7583fb37108fef38229617f8b3eba23"},
 ]
 zipp = [
     {file = "zipp-1.2.0-py2.py3-none-any.whl", hash = "sha256:e0d9e63797e483a30d27e09fffd308c59a700d365ec34e93cc100844168bf921"},

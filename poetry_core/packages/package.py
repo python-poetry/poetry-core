@@ -4,6 +4,7 @@ import logging
 import re
 
 from contextlib import contextmanager
+from typing import Union
 from warnings import warn
 
 from poetry_core.semver import Version
@@ -11,7 +12,6 @@ from poetry_core.semver import parse_constraint
 from poetry_core.spdx import License
 from poetry_core.spdx import license_by_id
 from poetry_core.utils._compat import Path
-from poetry_core.utils._typing import Union
 from poetry_core.utils.helpers import canonicalize_name
 from poetry_core.version.markers import AnyMarker
 from poetry_core.version.markers import parse_marker

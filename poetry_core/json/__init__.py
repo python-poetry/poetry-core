@@ -2,10 +2,9 @@ import json
 import os
 
 from io import open
+from typing import List
 
 from poetry_core._vendor.jsonschema import Draft7Validator
-
-from poetry_core.utils._typing import List
 
 
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "schemas")

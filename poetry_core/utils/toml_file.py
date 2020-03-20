@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from poetry_core._vendor.tomlkit.toml_file import TOMLFile as BaseTOMLFile
+from typing import Union
 
-from poetry_core.utils._typing import Union
+from poetry_core._vendor.tomlkit.toml_file import TOMLFile as BaseTOMLFile
 
 from ._compat import Path
 

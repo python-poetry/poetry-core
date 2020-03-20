@@ -13,7 +13,7 @@ from ._typing import MYPY_CHECK_RUNNING
 from .version import Version, LegacyVersion, parse
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import (
+    from typing import (
         List,
         Dict,
         Union,

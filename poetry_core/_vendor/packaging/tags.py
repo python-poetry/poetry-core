@@ -25,7 +25,7 @@ import warnings
 from ._typing import MYPY_CHECK_RUNNING, cast
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import (
+    from typing import (
         Dict,
         FrozenSet,
         IO,

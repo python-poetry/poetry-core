@@ -1,7 +1,7 @@
 import io
 
-from poetry_core.utils._typing import Any
-from poetry_core.utils._typing import Dict
+from typing import Any
+from typing import Dict
 
 from .api import loads
 from .toml_document import TOMLDocument

@@ -26,6 +26,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "~2.7 || ^3.5"
 
+typing = {version = "^3.7.4.1", python = "~2.7"}
+
 [tool.poetry.dev-dependencies]
 pre-commit = "^1.10"
 pytest = "^4.6"
@@ -69,7 +71,7 @@ lines_between_types = 1
 multi_line_output = 3
 use_parentheses = true
 not_skip = "__init__.py"
-skip_glob = ["*/setup.py", "poetry_core/_vendor/*"]
+skip_glob = ["*/setup.py", "*/poetry_core/_vendor/*"]
 filter_files = true
 
 known_first_party = "poetry_core"
@@ -85,11 +87,13 @@ patches-dir = "vendors/patches"
 
 [tool.vendoring.transformations]
 substitute = [
-  { match='from typing ', replace="from poetry_core.utils._typing " },
+  { match='poetry_core._vendor.typing ', replace="from typing " },
 ]
 drop = [
     "bin/",
     "*.so",
+    "typing.LICENSE",
+    "typing.py",
 ]
 
 [tool.vendoring.typing-stubs]

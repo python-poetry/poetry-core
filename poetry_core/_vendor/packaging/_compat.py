@@ -8,7 +8,7 @@ import sys
 from ._typing import MYPY_CHECK_RUNNING
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import Any, Dict, Tuple, Type
+    from typing import Any, Dict, Tuple, Type
 
 
 PY2 = sys.version_info[0] == 2

@@ -31,8 +31,6 @@ tomlkit = "^0.5.11"
 glob2 = { version = "^0.6", python = "~2.7" }
 # Use pathlib2 for Python 2.7 and 3.4
 pathlib2 = { version = "^2.3", python = "~2.7" }
-# The typing module is not in the stdlib in Python 2.7 and 3.4
-typing = { path = "wheels/typing-3.7.4.1-py2.py3-none-any.whl" }
 
 functools32 = { path = "wheels/functools32-3.2.3.post2-py2.py3-none-any.whl" }
 

@@ -15,7 +15,6 @@ from vendoring.configuration import load_configuration
 from vendoring.tasks.cleanup import cleanup_existing_vendored
 from vendoring.tasks.license import find_and_extract_license
 from vendoring.tasks.license import license_fallback
-from vendoring.tasks.stubs import generate_stubs
 from vendoring.tasks.vendor import vendor_libraries
 from vendoring.utils import remove_all
 from vendoring.utils import run
@@ -141,9 +140,8 @@ class VendorUpdateCommand(Command):
 
         config = load_configuration(Path(base))
         cleanup_existing_vendored(config)
-        libraries = vendor_libraries(config)
+        vendor_libraries(config)
         fetch_licenses(config)
-        generate_stubs(config, libraries)
 
 
 class VendorCommand(Command):

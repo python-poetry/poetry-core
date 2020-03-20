@@ -16,7 +16,7 @@ from .markers import MARKER_EXPR, Marker
 from .specifiers import LegacySpecifier, Specifier, SpecifierSet
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import List
+    from typing import List
 
 
 class InvalidRequirement(ValueError):

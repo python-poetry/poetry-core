@@ -14,14 +14,14 @@ For example,
 from __future__ import absolute_import
 
 try:
-    from poetry_core.utils._typing import Container
-    from poetry_core.utils._typing import Hashable
-    from poetry_core.utils._typing import Generic
-    from poetry_core.utils._typing import Iterable
-    from poetry_core.utils._typing import Mapping
-    from poetry_core.utils._typing import Sequence
-    from poetry_core.utils._typing import Sized
-    from poetry_core.utils._typing import TypeVar
+    from typing import Container
+    from typing import Hashable
+    from typing import Generic
+    from typing import Iterable
+    from typing import Mapping
+    from typing import Sequence
+    from typing import Sized
+    from typing import TypeVar
 
     __all__ = [
         'CheckedPMap',

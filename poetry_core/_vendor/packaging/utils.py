@@ -9,7 +9,7 @@ from ._typing import MYPY_CHECK_RUNNING
 from .version import InvalidVersion, Version
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import Union
+    from typing import Union
 
 _canonicalize_regex = re.compile(r"[-_.]+")
 

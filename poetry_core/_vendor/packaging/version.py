@@ -11,7 +11,7 @@ from ._structures import Infinity, NegativeInfinity
 from ._typing import MYPY_CHECK_RUNNING
 
 if MYPY_CHECK_RUNNING:  # pragma: no cover
-    from poetry_core.utils._typing import Callable, Iterator, List, Optional, SupportsInt, Tuple, Union
+    from typing import Callable, Iterator, List, Optional, SupportsInt, Tuple, Union
 
     from ._structures import InfinityType, NegativeInfinityType
 

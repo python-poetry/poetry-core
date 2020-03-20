@@ -1,4 +1,4 @@
-from poetry_core.utils._typing import Optional
+from typing import Optional
 
 
 class TOMLKitError(Exception):

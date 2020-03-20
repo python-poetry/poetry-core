@@ -1,6 +1,6 @@
 import operator
 
-from poetry_core.utils._typing import Union
+from typing import Union
 
 from .exceptions import InvalidVersion
 from .legacy_version import LegacyVersion
