@@ -1,7 +1,7 @@
-from poetry_core.packages.constraints.constraint import Constraint
-from poetry_core.packages.constraints.empty_constraint import EmptyConstraint
-from poetry_core.packages.constraints.multi_constraint import MultiConstraint
-from poetry_core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
+from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
 def test_allows():

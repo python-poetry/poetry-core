@@ -1,4 +1,4 @@
-from poetry_core.packages import dependency_from_pep_508
+from poetry.core.packages import dependency_from_pep_508
 
 
 def test_dependency_from_pep_508():

@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 packages = [
-    {include = "poetry_core"},
+    {include = "poetry"},
     {include = "tests", format = "sdist"},
 ]
 
@@ -40,7 +40,7 @@ vendoring = {version = "^0.2.2", python = "~3.8"}
 isort = "^4.3.21"
 
 [tool.intreehooks]
-build-backend = "poetry_core.masonry.api"
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
@@ -57,7 +57,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | poetry_core/_vendor/*
+  | poetry/core/_vendor/*
 )/
 '''
 
@@ -71,29 +71,29 @@ lines_between_types = 1
 multi_line_output = 3
 use_parentheses = true
 not_skip = "__init__.py"
-skip_glob = ["*/setup.py", "*/poetry_core/_vendor/*"]
+skip_glob = ["*/setup.py", "*/poetry/core/_vendor/*"]
 filter_files = true
 
-known_first_party = "poetry_core"
-known_third_party = ["poetry_core._vendor"]
+known_first_party = "poetry.core"
+known_third_party = ["poetry.core._vendor"]
 
 [tool.vendoring]
-destination = "poetry_core/_vendor/"
-requirements = "poetry_core/_vendor/vendor.txt"
-namespace = "poetry_core._vendor"
+destination = "poetry/core/_vendor/"
+requirements = "poetry/core/_vendor/vendor.txt"
+namespace = "poetry.core._vendor"
 
 protected-files = ["__init__.py", "README.md", "vendor.txt"]
 patches-dir = "vendors/patches"
 
 [tool.vendoring.transformations]
 substitute = [
-  { match='poetry_core._vendor.typing ', replace="from typing " },
+  { match='poetry.core._vendor.typing ', replace="from typing " },
 ]
 drop = [
     "bin/",
     "*.so",
-    "typing.LICENSE",
-    "typing.py",
+    "typing.*",
+    "jsonschema/tests/"
 ]
 
 [tool.vendoring.typing-stubs]

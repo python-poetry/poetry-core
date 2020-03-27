@@ -1,7 +1,7 @@
 import pytest
 
-from poetry_core.packages import FileDependency
-from poetry_core.utils._compat import Path
+from poetry.core.packages import FileDependency
+from poetry.core.utils._compat import Path
 
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"

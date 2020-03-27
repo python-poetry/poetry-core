@@ -1,10 +1,10 @@
 import pytest
 
-from poetry_core.packages.constraints import parse_constraint
-from poetry_core.packages.constraints.any_constraint import AnyConstraint
-from poetry_core.packages.constraints.constraint import Constraint
-from poetry_core.packages.constraints.multi_constraint import MultiConstraint
-from poetry_core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.packages.constraints import parse_constraint
+from poetry.core.packages.constraints.any_constraint import AnyConstraint
+from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
 @pytest.mark.parametrize(

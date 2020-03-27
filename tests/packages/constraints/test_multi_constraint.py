@@ -1,5 +1,5 @@
-from poetry_core.packages.constraints.constraint import Constraint
-from poetry_core.packages.constraints.multi_constraint import MultiConstraint
+from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.packages.constraints.multi_constraint import MultiConstraint
 
 
 def test_allows():

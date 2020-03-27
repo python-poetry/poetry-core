@@ -1,5 +1,5 @@
-from poetry_core.packages import Dependency
-from poetry_core.packages import Package
+from poetry.core.packages import Dependency
+from poetry.core.packages import Package
 
 
 def test_accepts():

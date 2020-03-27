@@ -7,11 +7,11 @@ import zipfile
 
 from contextlib import contextmanager
 
-from poetry_core import __version__
-from poetry_core.masonry import api
-from poetry_core.utils._compat import Path
-from poetry_core.utils._compat import decode
-from poetry_core.utils.helpers import temporary_directory
+from poetry.core import __version__
+from poetry.core.masonry import api
+from poetry.core.utils._compat import Path
+from poetry.core.utils._compat import decode
+from poetry.core.utils.helpers import temporary_directory
 
 
 @contextmanager

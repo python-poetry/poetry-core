@@ -13,11 +13,11 @@ import zipfile
 
 import pytest
 
-from poetry_core import __version__
-from poetry_core.factory import Factory
-from poetry_core.masonry.builders import CompleteBuilder
-from poetry_core.utils._compat import Path
-from poetry_core.utils._compat import decode
+from poetry.core import __version__
+from poetry.core.factory import Factory
+from poetry.core.masonry.builders import CompleteBuilder
+from poetry.core.utils._compat import Path
+from poetry.core.utils._compat import decode
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -390,7 +390,7 @@ def test_package_with_include(mocker):
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
-    p = mocker.patch("poetry_core.vcs.git.Git.get_ignored_files")
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = [
         str(
             Path(__file__).parent

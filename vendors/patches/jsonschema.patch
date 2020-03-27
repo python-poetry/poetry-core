@@ -1,7 +1,7 @@
-diff --git a/poetry_core/_vendor/jsonschema/__init__.py b/poetry_core/_vendor/jsonschema/__init__.py
+diff --git a/poetry/core/_vendor/jsonschema/__init__.py b/poetry/core/_vendor/jsonschema/__init__.py
 index 7dd3598..c604eed 100644
---- a/poetry_core/_vendor/jsonschema/__init__.py
-+++ b/poetry_core/_vendor/jsonschema/__init__.py
+--- a/poetry/core/_vendor/jsonschema/__init__.py
++++ b/poetry/core/_vendor/jsonschema/__init__.py
 @@ -27,8 +27,5 @@ from poetry_core._vendor.jsonschema.validators import (
      RefResolver,
      validate,
@@ -13,10 +13,10 @@ index 7dd3598..c604eed 100644
 -__version__ = metadata.version("jsonschema")
 +
 +__version__ = "3.2.0"
-diff --git a/poetry_core/_vendor/jsonschema/_utils.py b/poetry_core/_vendor/jsonschema/_utils.py
+diff --git a/poetry/core/_vendor/jsonschema/_utils.py b/poetry/core/_vendor/jsonschema/_utils.py
 index 8fb8593..368474a 100644
---- a/poetry_core/_vendor/jsonschema/_utils.py
-+++ b/poetry_core/_vendor/jsonschema/_utils.py
+--- a/poetry/core/_vendor/jsonschema/_utils.py
++++ b/poetry/core/_vendor/jsonschema/_utils.py
 @@ -1,6 +1,6 @@
  import itertools
  import json
@@ -24,7 +24,7 @@ index 8fb8593..368474a 100644
 +import os
  import re
 
- from poetry_core._vendor.jsonschema.compat import MutableMapping, str_types, urlsplit
+ from poetry.core._vendor.jsonschema.compat import MutableMapping, str_types, urlsplit
 @@ -50,9 +50,12 @@ def load_schema(name):
      """
      Load a schema from ./schemas/``name``.json and return it.

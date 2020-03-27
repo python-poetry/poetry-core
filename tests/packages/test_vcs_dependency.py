@@ -1,6 +1,6 @@
 import pytest
 
-from poetry_core.packages.vcs_dependency import VCSDependency
+from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 def test_to_pep_508():

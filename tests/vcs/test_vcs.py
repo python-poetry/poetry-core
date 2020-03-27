@@ -1,8 +1,8 @@
 import pytest
 
-from poetry_core.vcs.git import Git
-from poetry_core.vcs.git import GitUrl
-from poetry_core.vcs.git import ParsedUrl
+from poetry.core.vcs.git import Git
+from poetry.core.vcs.git import GitUrl
+from poetry.core.vcs.git import ParsedUrl
 
 
 @pytest.mark.parametrize(
