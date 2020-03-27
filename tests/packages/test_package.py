@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import pytest
 
-from poetry_core.packages import Package
+from poetry.core.packages import Package
 
 
 def test_package_authors():

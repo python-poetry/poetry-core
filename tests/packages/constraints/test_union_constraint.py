@@ -1,5 +1,5 @@
-from poetry_core.packages.constraints.constraint import Constraint
-from poetry_core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
 def test_allows():

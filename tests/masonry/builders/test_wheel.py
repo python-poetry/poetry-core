@@ -4,9 +4,9 @@ import zipfile
 
 import pytest
 
-from poetry_core.factory import Factory
-from poetry_core.masonry.builders.wheel import WheelBuilder
-from poetry_core.utils._compat import Path
+from poetry.core.factory import Factory
+from poetry.core.masonry.builders.wheel import WheelBuilder
+from poetry.core.utils._compat import Path
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"

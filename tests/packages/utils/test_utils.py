@@ -1,5 +1,5 @@
-from poetry_core.packages.utils.utils import convert_markers
-from poetry_core.version.markers import parse_marker
+from poetry.core.packages.utils.utils import convert_markers
+from poetry.core.version.markers import parse_marker
 
 
 def test_convert_markers():

@@ -7,14 +7,14 @@ from email.parser import Parser
 
 import pytest
 
-from poetry_core.factory import Factory
-from poetry_core.masonry.builders.sdist import SdistBuilder
-from poetry_core.masonry.utils.package_include import PackageInclude
-from poetry_core.packages import Package
-from poetry_core.packages.dependency import Dependency
-from poetry_core.packages.vcs_dependency import VCSDependency
-from poetry_core.utils._compat import Path
-from poetry_core.utils._compat import to_str
+from poetry.core.factory import Factory
+from poetry.core.masonry.builders.sdist import SdistBuilder
+from poetry.core.masonry.utils.package_include import PackageInclude
+from poetry.core.packages import Package
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.vcs_dependency import VCSDependency
+from poetry.core.utils._compat import Path
+from poetry.core.utils._compat import to_str
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -135,7 +135,7 @@ def test_make_setup():
 
 def test_make_pkg_info(mocker):
     get_metadata_content = mocker.patch(
-        "poetry_core.masonry.builders.builder.Builder.get_metadata_content"
+        "poetry.core.masonry.builders.builder.Builder.get_metadata_content"
     )
     poetry = Factory().create_poetry(project("complete"))
 
@@ -355,7 +355,7 @@ def test_with_src_module_dir():
 
 def test_default_with_excluded_data(mocker):
     # Patch git module to return specific excluded files
-    p = mocker.patch("poetry_core.vcs.git.Git.get_ignored_files")
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = [
         (
             (

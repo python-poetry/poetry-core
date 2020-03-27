@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from email.parser import Parser
 
-from poetry_core.factory import Factory
-from poetry_core.masonry.builders.builder import Builder
-from poetry_core.utils._compat import Path
+from poetry.core.factory import Factory
+from poetry.core.masonry.builders.builder import Builder
+from poetry.core.utils._compat import Path
 
 
 def test_builder_find_excluded_files(mocker):
-    p = mocker.patch("poetry_core.vcs.git.Git.get_ignored_files")
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
     builder = Builder(
@@ -18,7 +18,7 @@ def test_builder_find_excluded_files(mocker):
 
 
 def test_builder_find_case_sensitive_excluded_files(mocker):
-    p = mocker.patch("poetry_core.vcs.git.Git.get_ignored_files")
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
     builder = Builder(
@@ -39,7 +39,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker):
 
 
 def test_builder_find_invalid_case_sensitive_excluded_files(mocker):
-    p = mocker.patch("poetry_core.vcs.git.Git.get_ignored_files")
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
     builder = Builder(
