@@ -115,7 +115,18 @@ class Factory(object):
             package.build_config = build or {}
 
         if "include" in local_config:
-            package.include = local_config["include"]
+            package.include = []
+
+            for include in local_config["include"]:
+                if not isinstance(include, dict):
+                    include = {"path": include}
+
+                formats = include.get("format", [])
+                if formats and not isinstance(formats, list):
+                    formats = [formats]
+                include["format"] = formats
+
+                package.include.append(include)
 
         if "exclude" in local_config:
             package.exclude = local_config["exclude"]

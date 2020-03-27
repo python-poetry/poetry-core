@@ -161,7 +161,7 @@ def test_find_files_to_add():
     poetry = Factory().create_poetry(project("complete"))
 
     builder = SdistBuilder(poetry)
-    result = builder.find_files_to_add()
+    result = [f.relative_to_source_root() for f in builder.find_files_to_add()]
 
     assert sorted(result) == sorted(
         [
@@ -492,6 +492,44 @@ def test_proper_python_requires_if_three_digits_precision_version_specified():
     parsed = p.parsestr(to_str(pkg_info))
 
     assert parsed["Requires-Python"] == "==2.7.15"
+
+
+def test_includes():
+    poetry = Factory().create_poetry(project("with-include"))
+
+    builder = SdistBuilder(poetry)
+
+    builder.build()
+
+    sdist = fixtures_dir / "with-include" / "dist" / "with-include-1.2.3.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "with-include-1.2.3/extra_dir/vcs_excluded.txt" in tar.getnames()
+        assert "with-include-1.2.3/notes.txt" in tar.getnames()
+
+
+def test_includes_with_inline_table():
+    poetry = Factory().create_poetry(project("with_include_inline_table"))
+
+    builder = SdistBuilder(poetry)
+
+    builder.build()
+
+    sdist = (
+        fixtures_dir
+        / "with_include_inline_table"
+        / "dist"
+        / "with-include-1.2.3.tar.gz"
+    )
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "with-include-1.2.3/wheel_only.txt" not in tar.getnames()
+        assert "with-include-1.2.3/tests/__init__.py" in tar.getnames()
+        assert "with-include-1.2.3/tests/test_foo/test.py" in tar.getnames()
 
 
 def test_excluded_subpackage():

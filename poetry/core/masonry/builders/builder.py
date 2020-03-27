@@ -6,6 +6,7 @@ import tempfile
 
 from collections import defaultdict
 from contextlib import contextmanager
+from typing import Optional
 from typing import Set
 from typing import Union
 
@@ -60,12 +61,27 @@ class Builder(object):
 
             packages.append(p)
 
+        includes = []
+        for include in self._package.include:
+            formats = include.get("format", [])
+
+            if (
+                formats
+                and self.format
+                and self.format not in formats
+                and not ignore_packages_formats
+            ):
+                continue
+
+            includes.append(include)
+
         self._module = Module(
             self._package.name,
             self._path.as_posix(),
             packages=packages,
-            includes=self._package.include,
+            includes=includes,
         )
+
         self._meta = Metadata.from_package(self._package)
 
     def build(self):
@@ -113,23 +129,49 @@ class Builder(object):
 
         return False
 
-    def find_files_to_add(self, exclude_build=True):  # type: (bool) -> list
+    def find_files_to_add(
+        self, exclude_build=True
+    ):  # type: (bool) -> Set[BuildIncludeFile]
         """
         Finds all files to add to the tarball
         """
-        to_add = []
+        to_add = set()
 
         for include in self._module.includes:
+            include.refresh()
+            formats = include.formats or ["sdist"]
+
             for file in include.elements:
                 if "__pycache__" in str(file):
                     continue
 
                 if file.is_dir():
+                    if self.format in formats:
+                        for current_file in file.glob("**/*"):
+                            include_file = BuildIncludeFile(
+                                path=current_file, source_root=self._path
+                            )
+
+                            if not current_file.is_dir() and not self.is_excluded(
+                                include_file.relative_to_source_root()
+                            ):
+                                to_add.add(include_file)
                     continue
 
-                file = file.relative_to(self._path)
+                if (
+                    isinstance(include, PackageInclude)
+                    and include.source
+                    and self.format == "wheel"
+                ):
+                    source_root = include.base
+                else:
+                    source_root = self._path
 
-                if self.is_excluded(file) and isinstance(include, PackageInclude):
+                include_file = BuildIncludeFile(path=file, source_root=source_root)
+
+                if self.is_excluded(
+                    include_file.relative_to_source_root()
+                ) and isinstance(include, PackageInclude):
                     continue
 
                 if file.suffix == ".pyc":
@@ -140,31 +182,19 @@ class Builder(object):
                     continue
 
                 logger.debug(" - Adding: {}".format(str(file)))
-                to_add.append(file)
+                to_add.add(include_file)
 
-        # Include project files
-        logger.debug(" - Adding: pyproject.toml")
-        to_add.append(Path("pyproject.toml"))
-
-        # If a license file exists, add it
-        for license_file in self._path.glob("LICENSE*"):
-            logger.debug(" - Adding: {}".format(license_file.relative_to(self._path)))
-            to_add.append(license_file.relative_to(self._path))
-
-        # If a README is specified we need to include it
-        # to avoid errors
-        if "readme" in self._poetry.local_config:
-            readme = self._path / self._poetry.local_config["readme"]
-            if readme.exists():
-                logger.debug(" - Adding: {}".format(readme.relative_to(self._path)))
-                to_add.append(readme.relative_to(self._path))
-
-        # If a build script is specified and explicitely required
+        # If a build script is specified and explicitly required
         # we add it to the list of files
         if self._package.build_script and not exclude_build:
-            to_add.append(Path(self._package.build_script))
+            to_add.add(
+                BuildIncludeFile(
+                    path=self._path / self._package.build_script,
+                    source_root=self._path,
+                )
+            )
 
-        return sorted(to_add)
+        return to_add
 
     def get_metadata_content(self):  # type: () -> bytes
         content = METADATA_BASE.format(
@@ -268,3 +298,40 @@ class Builder(object):
             yield name
 
             shutil.rmtree(name)
+
+
+class BuildIncludeFile:
+    def __init__(
+        self,
+        path,  # type: Path
+        source_root=None,  # type: Optional[Path]
+    ):
+        """
+        :param path: a full path to the file to be included
+        :param source_root: the root path to resolve to
+        """
+        self.path = Path(path)
+        self.source_root = None if not source_root else Path(source_root).resolve()
+        if not self.path.is_absolute() and self.source_root:
+            self.path = (self.source_root / self.path).resolve()
+        else:
+            self.path = self.path.resolve()
+
+    def __eq__(self, other):  # type: (Union[BuildIncludeFile, Path]) -> bool
+        if hasattr(other, "path"):
+            return self.path == other.path
+        return self.path == other
+
+    def __ne__(self, other):  # type: (Union[BuildIncludeFile, Path]) -> bool
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.path)
+
+    def __repr__(self):  # type: () -> str
+        return str(self.path)
+
+    def relative_to_source_root(self):  # type(): -> Path
+        if self.source_root is not None:
+            return self.path.relative_to(self.source_root)
+        return self.path

@@ -22,7 +22,6 @@ from poetry.core.utils._compat import decode
 from ..utils.helpers import escape_name
 from ..utils.helpers import escape_version
 from ..utils.helpers import normalize_file_permissions
-from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .sdist import SdistBuilder
 
@@ -130,47 +129,13 @@ class WheelBuilder(Builder):
             [sys.executable, str(setup), "build", "-b", str(self._path / "build")]
         )
 
-    def _copy_module(self, wheel):
-
-        to_add = []
-
-        for include in self._module.includes:
-            if include.formats and "wheel" not in include.formats:
-                continue
-
-            include.refresh()
-
-            for file in include.elements:
-                if "__pycache__" in str(file):
-                    continue
-
-                if file.is_dir():
-                    continue
-
-                if isinstance(include, PackageInclude) and include.source:
-                    rel_file = file.relative_to(include.base)
-                else:
-                    rel_file = file.relative_to(self._path)
-
-                if self.is_excluded(rel_file.as_posix()) and isinstance(
-                    include, PackageInclude
-                ):
-                    continue
-
-                if file.suffix == ".pyc":
-                    continue
-
-                if (file, rel_file) in to_add:
-                    # Skip duplicates
-                    continue
-
-                logger.debug(" - Adding: {}".format(str(file)))
-                to_add.append((file, rel_file))
+    def _copy_module(self, wheel):  # type: (zipfile.ZipFile) -> None
+        to_add = self.find_files_to_add()
 
         # Walk the files and compress them,
         # sorting everything so the order is stable.
-        for full_path, rel_path in sorted(to_add, key=lambda x: x[1]):
-            self._add_file(wheel, full_path, rel_path)
+        for file in sorted(list(to_add), key=lambda x: x.path):
+            self._add_file(wheel, file.path, file.relative_to_source_root())
 
     def _write_metadata(self, wheel):
         if (
