@@ -16,8 +16,9 @@ class VCSDependency(Dependency):
         branch=None,
         tag=None,
         rev=None,
-        category="main",
         optional=False,
+        category="main",
+        subdirectory=None,
     ):
         self._vcs = vcs
         self._source = source
@@ -29,6 +30,7 @@ class VCSDependency(Dependency):
         self._branch = branch
         self._tag = tag
         self._rev = rev
+        self._subdirectory = subdirectory
 
         super(VCSDependency, self).__init__(
             name, "*", category=category, optional=optional, allows_prereleases=True
@@ -53,6 +55,10 @@ class VCSDependency(Dependency):
     @property
     def rev(self):
         return self._rev
+
+    @property
+    def subdirectory(self):
+        return self._subdirectory
 
     @property
     def reference(self):  # type: () -> str
@@ -86,6 +92,9 @@ class VCSDependency(Dependency):
             requirement += " @ {}+ssh://{}@{}".format(
                 self._vcs, parsed_url.format(), self.reference
             )
+
+        if self.subdirectory:
+            requirement += "#subdirectory={}".format(self.subdirectory)
 
         return requirement
 
