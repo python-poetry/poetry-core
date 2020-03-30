@@ -252,7 +252,9 @@ class Git:
                 folder.as_posix(),
             ]
 
-        args += ["rev-parse", rev]
+        # We need "^{commit}" to ensure that the commit SHA of the commit the
+        # tag points to is returned, even in the case of annotated tags.
+        args += ["rev-parse", rev + "^{commit}"]
 
         return self.run(*args)
 
