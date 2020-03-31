@@ -14,6 +14,7 @@ from poetry.core.packages import Package
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.utils._compat import Path
+from poetry.core.utils._compat import encode
 from poetry.core.utils._compat import to_str
 
 
@@ -245,6 +246,31 @@ def test_package():
 
     with tarfile.open(str(sdist), "r") as tar:
         assert "my-package-1.2.3/LICENSE" in tar.getnames()
+
+
+def test_setup_py_context():
+    poetry = Factory().create_poetry(project("complete"))
+
+    builder = SdistBuilder(poetry)
+
+    project_setup_py = poetry.file.parent / "setup.py"
+
+    assert not project_setup_py.exists()
+
+    try:
+        with builder.setup_py() as setup:
+            assert setup.exists()
+            assert project_setup_py == setup
+
+            with open(str(setup), "rb") as f:
+                # we convert to string  and replace line endings here for compatibility
+                data = to_str(encode(f.read())).replace("\r\n", "\n")
+                assert data == to_str(builder.build_setup())
+
+        assert not project_setup_py.exists()
+    finally:
+        if project_setup_py.exists():
+            project_setup_py.unlink()
 
 
 def test_module():

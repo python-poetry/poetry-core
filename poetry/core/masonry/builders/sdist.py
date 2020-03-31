@@ -6,13 +6,16 @@ import tarfile
 import time
 
 from collections import defaultdict
+from contextlib import contextmanager
 from copy import copy
 from gzip import GzipFile
 from io import BytesIO
 from posixpath import join as pjoin
 from pprint import pformat
+from typing import Iterator
 
 from poetry.core.utils._compat import Path
+from poetry.core.utils._compat import decode
 from poetry.core.utils._compat import encode
 from poetry.core.utils._compat import to_str
 
@@ -197,6 +200,24 @@ class SdistBuilder(Builder):
                 after="\n".join(after),
             )
         )
+
+    @contextmanager
+    def setup_py(self):  # type: () -> Iterator[Path]
+        setup = self._path / "setup.py"
+        has_setup = setup.exists()
+
+        if has_setup:
+            logger.info(
+                " - <warning>A setup.py file already exists. Using it.</warning>"
+            )
+        else:
+            with setup.open("w", encoding="utf-8") as f:
+                f.write(decode(self.build_setup()))
+
+        yield setup
+
+        if not has_setup:
+            setup.unlink()
 
     def build_pkg_info(self):
         return encode(self.get_metadata_content())
