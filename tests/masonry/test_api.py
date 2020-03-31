@@ -2,10 +2,14 @@
 from __future__ import unicode_literals
 
 import os
+import platform
+import sys
 import tarfile
 import zipfile
 
 from contextlib import contextmanager
+
+import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
@@ -49,6 +53,27 @@ def test_build_wheel():
             assert "my_package-1.2.3.dist-info/entry_points.txt" in namelist
             assert "my_package-1.2.3.dist-info/WHEEL" in namelist
             assert "my_package-1.2.3.dist-info/METADATA" in namelist
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32"
+    and sys.version_info <= (3, 6)
+    or platform.python_implementation().lower() == "pypy",
+    reason="Disable test on Windows for Python <=3.6 and for PyPy",
+)
+def test_build_wheel_extended():
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "extended")):
+        filename = api.build_wheel(tmp_dir)
+
+        whl = Path(tmp_dir) / filename
+        assert whl.exists()
+
+        with zipfile.ZipFile(str(os.path.join(tmp_dir, filename))) as zip:
+            namelist = zip.namelist()
+
+            assert "extended-0.1.dist-info/RECORD" in namelist
+            assert "extended-0.1.dist-info/WHEEL" in namelist
+            assert "extended-0.1.dist-info/METADATA" in namelist
 
 
 def test_build_sdist():

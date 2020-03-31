@@ -25,6 +25,7 @@ from ..utils.helpers import escape_version
 from ..utils.helpers import normalize_file_permissions
 from ..utils.package_include import PackageInclude
 from .builder import Builder
+from .sdist import SdistBuilder
 
 
 wheel_file_template = """\
@@ -92,39 +93,38 @@ class WheelBuilder(Builder):
 
     def _build(self, wheel):
         if self._package.build:
-            setup = self._path / "setup.py"
+            with SdistBuilder(poetry=self._poetry).setup_py() as setup:
+                # We need to place ourselves in the temporary
+                # directory in order to build the package
+                current_path = os.getcwd()
+                try:
+                    os.chdir(str(self._path))
+                    self._run_build_command(setup)
+                finally:
+                    os.chdir(current_path)
 
-            # We need to place ourselves in the temporary
-            # directory in order to build the package
-            current_path = os.getcwd()
-            try:
-                os.chdir(str(self._path))
-                self._run_build_command(setup)
-            finally:
-                os.chdir(current_path)
+                build_dir = self._path / "build"
+                lib = list(build_dir.glob("lib.*"))
+                if not lib:
+                    # The result of building the extensions
+                    # does not exist, this may due to conditional
+                    # builds, so we assume that it's okay
+                    return
 
-            build_dir = self._path / "build"
-            lib = list(build_dir.glob("lib.*"))
-            if not lib:
-                # The result of building the extensions
-                # does not exist, this may due to conditional
-                # builds, so we assume that it's okay
-                return
+                lib = lib[0]
 
-            lib = lib[0]
+                for pkg in lib.glob("**/*"):
+                    if pkg.is_dir() or self.is_excluded(pkg):
+                        continue
 
-            for pkg in lib.glob("**/*"):
-                if pkg.is_dir() or self.is_excluded(pkg):
-                    continue
+                    rel_path = str(pkg.relative_to(lib))
 
-                rel_path = str(pkg.relative_to(lib))
+                    if rel_path in wheel.namelist():
+                        continue
 
-                if rel_path in wheel.namelist():
-                    continue
+                    logger.debug(" - Adding: {}".format(rel_path))
 
-                logger.debug(" - Adding: {}".format(rel_path))
-
-                self._add_file(wheel, pkg, rel_path)
+                    self._add_file(wheel, pkg, rel_path)
 
     def _run_build_command(self, setup):
         subprocess.check_call(
