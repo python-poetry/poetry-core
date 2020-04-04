@@ -1,0 +1,12 @@
+# Ref: https://help.github.com/en/github/building-a-strong-community/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+blank_issues_enabled: false
+contact_links:
+- name: '✏️ Poetry Issue Tracker'
+  url: https://github.com/python-poetry/poetry/issues/new/choose
+  about: |
+    Submit your issues to the Poetry issue tracker. Bug reports and feature requests
+    will be tracked there.
+- name: '💬 Discord Server'
+  url: https://discordapp.com/invite/awxPgve
+  about: |
+    Chat with the community, ask questions and learn about best practices.
