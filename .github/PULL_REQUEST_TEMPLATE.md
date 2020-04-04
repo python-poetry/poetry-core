@@ -1,8 +1,6 @@
-# Pull Request Check List
+Resolves: python-poetry#<!-- add issue number/link here -->
 
 <!-- This is just a reminder about the most common mistakes. Please make sure that you tick all *appropriate* boxes. But please read our [contribution guide](https://python-poetry.org/docs/contributing/) at least once, it will save you unnecessary review cycles! -->
-
-Resolves: python-poetry#<!-- add issue number/link here -->
 
 - [ ] Added **tests** for changed code.
 - [ ] Updated **documentation** for changed code.
