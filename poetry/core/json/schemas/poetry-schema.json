@@ -173,6 +173,10 @@
                     "description": "The full url of the custom url."
                 }
             }
+        },
+        "publish-default": {
+            "type": "string",
+            "description": "Repository name that's used to override default repo when running publish without -r argument."
         }
     },
     "definitions": {

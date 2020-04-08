@@ -62,6 +62,7 @@ class Factory(object):
         package.license = license_
         package.keywords = local_config.get("keywords", [])
         package.classifiers = local_config.get("classifiers", [])
+        package.publish_default = local_config.get("publish-default")
 
         if "readme" in local_config:
             package.readme = Path(poetry_file.parent) / local_config["readme"]
