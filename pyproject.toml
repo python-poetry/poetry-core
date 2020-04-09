@@ -20,7 +20,6 @@ classifiers = [
 
 packages = [
     {include = "poetry"},
-    {include = "tests", format = "sdist"},
 ]
 
 [tool.poetry.dependencies]
