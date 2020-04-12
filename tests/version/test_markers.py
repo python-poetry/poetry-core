@@ -632,12 +632,16 @@ def test_union_of_a_single_marker_is_the_single_marker():
             'python_version <= "3.6" and implementation_name != "pypy"',
             'python_version > "3.6" or implementation_name == "pypy"',
         ),
+        (
+            'python_version ~= "3.6"',
+            'python_version < "3.6" or python_version >= "4.0"',
+        ),
     ],
 )
 def test_invert(marker, inverse):
     m = parse_marker(marker)
 
-    assert parse_marker(inverse) == m.inverse
+    assert parse_marker(inverse) == m.invert()
 
 
 @pytest.mark.parametrize(

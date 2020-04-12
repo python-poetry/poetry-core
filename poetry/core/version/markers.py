@@ -157,10 +157,6 @@ def _format_marker(marker, first=True):
 
 
 class BaseMarker(object):
-    @property
-    def inverse(self):  # type: () -> BaseMarker
-        raise NotImplementedError()
-
     def intersect(self, other):  # type: (BaseMarker) -> BaseMarker
         raise NotImplementedError()
 
@@ -185,15 +181,14 @@ class BaseMarker(object):
     def only(self, marker_name):  # type: (str) -> BaseMarker
         raise NotImplementedError()
 
+    def invert(self):  # type: () -> BaseMarker
+        raise NotImplementedError()
+
     def __repr__(self):
         return "<{} {}>".format(self.__class__.__name__, str(self))
 
 
 class AnyMarker(BaseMarker):
-    @property
-    def inverse(self):  # type: () -> EmptyMarker
-        return EmptyMarker()
-
     def intersect(self, other):
         return other
 
@@ -218,6 +213,9 @@ class AnyMarker(BaseMarker):
     def only(self, marker_name):  # type: (str) -> AnyMarker
         return self
 
+    def invert(self):  # type: () -> EmptyMarker
+        return EmptyMarker()
+
     def __str__(self):
         return ""
 
@@ -235,10 +233,6 @@ class AnyMarker(BaseMarker):
 
 
 class EmptyMarker(BaseMarker):
-    @property
-    def inverse(self):  # type: () -> AnyMarker
-        return AnyMarker()
-
     def intersect(self, other):
         return self
 
@@ -262,6 +256,9 @@ class EmptyMarker(BaseMarker):
 
     def only(self, marker_name):  # type: (str) -> EmptyMarker
         return self
+
+    def invert(self):  # type: () -> AnyMarker
+        return AnyMarker()
 
     def __str__(self):
         return "<empty>"
@@ -326,30 +323,6 @@ class SingleMarker(BaseMarker):
                 self._constraint = self._parser(self._constraint_string)
         else:
             self._constraint = self._parser(self._constraint_string)
-
-    @property
-    def inverse(self):  # type: () -> SingleMarker
-        if self._operator in ("===", "=="):
-            operator = "!="
-        elif self._operator == "!=":
-            operator = "=="
-        elif self._operator == ">":
-            operator = "<="
-        elif self._operator == ">=":
-            operator = "<"
-        elif self._operator == "<":
-            operator = ">="
-        elif self._operator == "<=":
-            operator = ">"
-        elif self._operator == "in":
-            operator = "not in"
-        elif self._operator == "not in":
-            operator = "in"
-        else:
-            # We should never go there
-            raise RuntimeError("Invalid marker operator '{}'".format(self._operator))
-
-        return parse_marker("{} {} '{}'".format(self._name, operator, self._value))
 
     @property
     def name(self):
@@ -428,6 +401,29 @@ class SingleMarker(BaseMarker):
             return EmptyMarker()
 
         return self
+
+    def invert(self):  # type: () -> BaseMarker
+        if self._operator in ("===", "=="):
+            operator = "!="
+        elif self._operator == "!=":
+            operator = "=="
+        elif self._operator == ">":
+            operator = "<="
+        elif self._operator == ">=":
+            operator = "<"
+        elif self._operator == "<":
+            operator = ">="
+        elif self._operator == "<=":
+            operator = ">"
+        elif self._operator == "in":
+            operator = "not in"
+        elif self._operator == "not in":
+            operator = "in"
+        else:
+            # We should never go there
+            raise RuntimeError("Invalid marker operator '{}'".format(self._operator))
+
+        return parse_marker("{} {} '{}'".format(self._name, operator, self._value))
 
     def __eq__(self, other):
         if not isinstance(other, SingleMarker):
@@ -515,12 +511,6 @@ class MultiMarker(BaseMarker):
     def markers(self):
         return self._markers
 
-    @property
-    def inverse(self):  # type: () -> MarkerUnion
-        markers = [marker.inverse for marker in self._markers]
-
-        return MarkerUnion.of(*markers)
-
     def intersect(self, other):
         if other.is_any():
             return self
@@ -578,6 +568,11 @@ class MultiMarker(BaseMarker):
 
         return self.of(*new_markers)
 
+    def invert(self):  # type: () -> MarkerUnion
+        markers = [marker.invert() for marker in self._markers]
+
+        return MarkerUnion.of(*markers)
+
     def __eq__(self, other):
         if not isinstance(other, MultiMarker):
             return False
@@ -611,12 +606,6 @@ class MarkerUnion(BaseMarker):
     @property
     def markers(self):
         return self._markers
-
-    @property
-    def inverse(self):  # type: () -> MultiMarker
-        markers = [marker.inverse for marker in self._markers]
-
-        return MultiMarker.of(*markers)
 
     @classmethod
     def of(cls, *markers):  # type: (BaseMarker) -> MarkerUnion
@@ -657,7 +646,7 @@ class MarkerUnion(BaseMarker):
         to_delete_indices = set()
         for i, marker in enumerate(markers):
             for j, m in enumerate(markers):
-                if m.inverse == marker:
+                if m.invert() == marker:
                     to_delete_indices.add(i)
                     to_delete_indices.add(j)
 
@@ -752,6 +741,11 @@ class MarkerUnion(BaseMarker):
                 new_markers.append(marker)
 
         return self.of(*new_markers)
+
+    def invert(self):  # type: () -> MultiMarker
+        markers = [marker.invert() for marker in self._markers]
+
+        return MultiMarker.of(*markers)
 
     def __eq__(self, other):
         if not isinstance(other, MarkerUnion):
