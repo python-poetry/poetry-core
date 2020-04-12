@@ -1,10 +1,10 @@
 import sys
 
+import poetry.core._vendor.six.moves.urllib.parse as urllib_parse
 
-try:
-    import urllib.parse as urlparse
-except ImportError:
-    import urlparse
+
+urlparse = urllib_parse
+
 
 try:  # Python 2
     long = long

@@ -1,7 +1,12 @@
 import os
 import re
 
+from typing import Optional
+from typing import Union
+
 from poetry.core.semver import Version
+from poetry.core.semver import parse_constraint
+from poetry.core.utils._compat import Path
 from poetry.core.utils.patterns import wheel_file_re
 from poetry.core.version.requirements import Requirement
 
@@ -19,10 +24,38 @@ from .utils.utils import is_installable_dir
 from .utils.utils import is_url
 from .utils.utils import path_to_url
 from .utils.utils import strip_extras
+from .utils.utils import url_to_path
 from .vcs_dependency import VCSDependency
 
 
-def dependency_from_pep_508(name):
+def _make_file_or_dir_dep(
+    name, path, base=None
+):  # type: (str, Path, Optional[Path]) -> Optional[Union[FileDependency, DirectoryDependency]]
+    """
+    Helper function to create a file or directoru dependency with the given arguments. If
+    path is not a file or directory that exists, `None` is returned.
+    """
+    _path = path
+    if not path.is_absolute() and base:
+        # a base path was specified, so we should respect that
+        _path = Path(base) / path
+
+    if _path.is_file():
+        return FileDependency(name, path, base=base)
+    elif _path.is_dir():
+        return DirectoryDependency(name, path, base=base)
+
+    return None
+
+
+def dependency_from_pep_508(
+    name, relative_to=None
+):  # type: (str, Optional[Path]) -> Dependency
+    """
+    Resolve a PEP-508 requirement string to a `Dependency` instance. If a `relative_to`
+    path is specified, this is used as the base directory if the identified dependency is
+    of file or directory type.
+    """
     from poetry.core.vcs.git import ParsedUrl
 
     # Removing comments
@@ -63,30 +96,53 @@ def dependency_from_pep_508(name):
 
     # it's a local file, dir, or url
     if link:
+        is_file_uri = link.scheme == "file"
+        is_relative_uri = is_file_uri and re.search(r"\.\./", link.url)
+
         # Handle relative file URLs
-        if link.scheme == "file" and re.search(r"\.\./", link.url):
-            link = Link(path_to_url(os.path.normpath(os.path.abspath(link.path))))
+        if is_file_uri and is_relative_uri:
+            path = Path(link.path)
+            if relative_to:
+                path = relative_to / path
+            link = Link(path_to_url(path))
+
         # wheel file
+        version = None
         if link.is_wheel:
             m = wheel_file_re.match(link.filename)
             if not m:
                 raise ValueError("Invalid wheel name: {}".format(link.filename))
-
             name = m.group("name")
             version = m.group("ver")
-            dep = Dependency(name, version)
-        else:
-            name = req.name or link.egg_fragment
 
-            if link.scheme.startswith("git+"):
-                url = ParsedUrl.parse(link.url)
-                dep = VCSDependency(name, "git", url.url, rev=url.rev)
-            elif link.scheme == "git":
-                dep = VCSDependency(name, "git", link.url_without_fragment)
-            elif link.scheme in ["http", "https"]:
-                dep = URLDependency(name, link.url_without_fragment)
-            else:
-                dep = Dependency(name, "*")
+        name = req.name or link.egg_fragment
+        dep = None
+
+        if link.scheme.startswith("git+"):
+            url = ParsedUrl.parse(link.url)
+            dep = VCSDependency(name, "git", url.url, rev=url.rev)
+        elif link.scheme == "git":
+            dep = VCSDependency(name, "git", link.url_without_fragment)
+        elif link.scheme in ["http", "https"]:
+            dep = URLDependency(name, link.url)
+        elif is_file_uri:
+            # handle RFC 8089 references
+            path = url_to_path(req.url)
+            dep = _make_file_or_dir_dep(name=name, path=path, base=relative_to)
+        else:
+            try:
+                # this is a local path not using the file URI scheme
+                dep = _make_file_or_dir_dep(
+                    name=name, path=Path(req.url), base=relative_to
+                )
+            except ValueError:
+                pass
+
+        if dep is None:
+            dep = Dependency(name, version or "*")
+
+        if version:
+            dep._constraint = parse_constraint(version)
     else:
         if req.pretty_constraint:
             constraint = req.constraint

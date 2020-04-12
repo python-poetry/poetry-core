@@ -79,3 +79,14 @@ class DirectoryDependency(Dependency):
 
     def is_directory(self):
         return True
+
+    @property
+    def base_pep_508_name(self):  # type: () -> str
+        requirement = self.pretty_name
+
+        if self.extras:
+            requirement += "[{}]".format(",".join(self.extras))
+
+        requirement += " @ {}".format(str(self.path))
+
+        return requirement

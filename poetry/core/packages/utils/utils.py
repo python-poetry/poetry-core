@@ -1,6 +1,13 @@
 import os
 import posixpath
 import re
+import sys
+
+from typing import Union
+
+from poetry.core._vendor.six.moves.urllib.parse import unquote  # noqa
+from poetry.core._vendor.six.moves.urllib.parse import urlsplit  # noqa
+from poetry.core._vendor.six.moves.urllib.request import url2pathname  # noqa
 
 from poetry.core.packages.constraints.constraint import Constraint
 from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -11,22 +18,11 @@ from poetry.core.semver import VersionConstraint
 from poetry.core.semver import VersionRange
 from poetry.core.semver import VersionUnion
 from poetry.core.semver import parse_constraint
+from poetry.core.utils._compat import Path
 from poetry.core.version.markers import BaseMarker
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
-
-
-try:
-    import urllib.parse as urlparse
-except ImportError:
-    import urlparse
-
-
-try:
-    import urllib.request as urllib2
-except ImportError:
-    import urllib2
 
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
@@ -52,14 +48,38 @@ except ImportError:
     pass
 
 
-def path_to_url(path):
+def path_to_url(path):  # type: (Union[str, Path]) -> str
     """
-    Convert a path to a file: URL.  The path will be made absolute and have
-    quoted path parts.
+    Convert a path to a file: URL.  The path will be made absolute unless otherwise
+    specified and have quoted path parts.
     """
-    path = os.path.normpath(os.path.abspath(path))
-    url = urlparse.urljoin("file:", urllib2.pathname2url(path))
-    return url
+    return Path(path).absolute().as_uri()
+
+
+def url_to_path(url):  # type: (str) -> Path
+    """
+    Convert an RFC8089 file URI to path.
+
+    The logic used here is borrowed from pip
+    https://github.com/pypa/pip/blob/4d1932fcdd1974c820ea60b3286984ebb0c3beaa/src/pip/_internal/utils/urls.py#L31
+    """
+    if not url.startswith("file:"):
+        raise ValueError("{} is not a valid file URI".format(url))
+
+    _, netloc, path, _, _ = urlsplit(url)
+
+    if not netloc or netloc == "localhost":
+        # According to RFC 8089, same as empty authority.
+        netloc = ""
+    elif netloc not in {".", ".."} and sys.platform == "win32":
+        # If we have a UNC path, prepend UNC share notation.
+        netloc = "\\\\" + netloc
+    else:
+        raise ValueError(
+            "non-local file URIs are not supported on this platform: {}".format(url)
+        )
+
+    return Path(url2pathname(netloc + unquote(path)))
 
 
 def is_url(name):
