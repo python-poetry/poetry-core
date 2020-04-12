@@ -4,6 +4,7 @@ import io
 from poetry.core._vendor.pkginfo.distribution import HEADER_ATTRS
 from poetry.core._vendor.pkginfo.distribution import HEADER_ATTRS_2_0
 
+from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.utils._compat import Path
 
 from .dependency import Dependency
@@ -59,3 +60,15 @@ class FileDependency(Dependency):
                 h.update(content)
 
         return h.hexdigest()
+
+    @property
+    def base_pep_508_name(self):  # type: () -> str
+        requirement = self.pretty_name
+
+        if self.extras:
+            requirement += "[{}]".format(",".join(self.extras))
+
+        path = path_to_url(self.path) if self.path.is_absolute() else self.path
+        requirement += " @ {}".format(path)
+
+        return requirement

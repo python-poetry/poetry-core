@@ -11,7 +11,7 @@ def test_builder_find_excluded_files(mocker):
     p.return_value = []
 
     builder = Builder(
-        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete"),
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
     )
 
     assert builder.find_excluded_files() == {"my_package/sub_pkg1/extra_file.xml"}
@@ -24,7 +24,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker):
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "case_sensitive_exclusions"
-        ),
+        )
     )
 
     assert builder.find_excluded_files() == {
@@ -45,7 +45,7 @@ def test_builder_find_invalid_case_sensitive_excluded_files(mocker):
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "invalid_case_sensitive_exclusions"
-        ),
+        )
     )
 
     assert {"my_package/Bar/foo/bar/Foo.py"} == builder.find_excluded_files()
@@ -53,7 +53,7 @@ def test_builder_find_invalid_case_sensitive_excluded_files(mocker):
 
 def test_get_metadata_content():
     builder = Builder(
-        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete"),
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
     )
 
     metadata = builder.get_metadata_content()
@@ -103,7 +103,7 @@ def test_get_metadata_content():
 
 def test_metadata_homepage_default():
     builder = Builder(
-        Factory().create_poetry(Path(__file__).parent / "fixtures" / "simple_version"),
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "simple_version")
     )
 
     metadata = Parser().parsestr(builder.get_metadata_content())
@@ -115,7 +115,7 @@ def test_metadata_with_vcs_dependencies():
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "with_vcs_dependency"
-        ),
+        )
     )
 
     metadata = Parser().parsestr(builder.get_metadata_content())
@@ -129,7 +129,7 @@ def test_metadata_with_url_dependencies():
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "with_url_dependency"
-        ),
+        )
     )
 
     metadata = Parser().parsestr(builder.get_metadata_content())
