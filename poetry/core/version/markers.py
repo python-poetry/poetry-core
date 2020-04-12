@@ -476,6 +476,9 @@ class MultiMarker(BaseMarker):
             if marker in new_markers:
                 continue
 
+            if marker.is_any():
+                continue
+
             if isinstance(marker, SingleMarker):
                 intersected = False
                 for i, mark in enumerate(new_markers):
@@ -649,6 +652,19 @@ class MarkerUnion(BaseMarker):
             markers.append(marker)
 
         if any(m.is_any() for m in markers):
+            return AnyMarker()
+
+        to_delete_indices = set()
+        for i, marker in enumerate(markers):
+            for j, m in enumerate(markers):
+                if m.inverse == marker:
+                    to_delete_indices.add(i)
+                    to_delete_indices.add(j)
+
+        for idx in reversed(sorted(to_delete_indices)):
+            del markers[idx]
+
+        if not markers:
             return AnyMarker()
 
         if len(markers) == 1:

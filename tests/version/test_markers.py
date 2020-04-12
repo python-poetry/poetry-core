@@ -638,3 +638,23 @@ def test_invert(marker, inverse):
     m = parse_marker(marker)
 
     assert parse_marker(inverse) == m.inverse
+
+
+@pytest.mark.parametrize(
+    "marker, expected",
+    [
+        ('python_version >= "3.6" or python_version < "3.6"', "*"),
+        (
+            'python_version >= "3.6" or implementation_name == "pypy" or python_version < "3.6"',
+            'implementation_name == "pypy"',
+        ),
+        (
+            'python_version >= "3.6" or python_version < "3.7" or python_version < "3.6"',
+            'python_version >= "3.6" or python_version < "3.7"',
+        ),
+    ],
+)
+def test_union_should_drop_markers_if_their_complement_is_present(marker, expected):
+    m = parse_marker(marker)
+
+    assert parse_marker(expected) == m
