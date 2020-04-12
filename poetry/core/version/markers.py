@@ -157,6 +157,10 @@ def _format_marker(marker, first=True):
 
 
 class BaseMarker(object):
+    @property
+    def inverse(self):  # type: () -> BaseMarker
+        raise NotImplementedError()
+
     def intersect(self, other):  # type: (BaseMarker) -> BaseMarker
         raise NotImplementedError()
 
@@ -186,6 +190,10 @@ class BaseMarker(object):
 
 
 class AnyMarker(BaseMarker):
+    @property
+    def inverse(self):  # type: () -> EmptyMarker
+        return EmptyMarker()
+
     def intersect(self, other):
         return other
 
@@ -227,6 +235,10 @@ class AnyMarker(BaseMarker):
 
 
 class EmptyMarker(BaseMarker):
+    @property
+    def inverse(self):  # type: () -> AnyMarker
+        return AnyMarker()
+
     def intersect(self, other):
         return self
 
@@ -269,7 +281,7 @@ class EmptyMarker(BaseMarker):
 
 class SingleMarker(BaseMarker):
 
-    _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?|in|not in)?\s*(.+)$")
+    _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     _VERSION_LIKE_MARKER_NAME = {"python_version", "platform_release"}
 
     def __init__(self, name, constraint):
@@ -314,6 +326,30 @@ class SingleMarker(BaseMarker):
                 self._constraint = self._parser(self._constraint_string)
         else:
             self._constraint = self._parser(self._constraint_string)
+
+    @property
+    def inverse(self):  # type: () -> SingleMarker
+        if self._operator in ("===", "=="):
+            operator = "!="
+        elif self._operator == "!=":
+            operator = "=="
+        elif self._operator == ">":
+            operator = "<="
+        elif self._operator == ">=":
+            operator = "<"
+        elif self._operator == "<":
+            operator = ">="
+        elif self._operator == "<=":
+            operator = ">"
+        elif self._operator == "in":
+            operator = "not in"
+        elif self._operator == "not in":
+            operator = "in"
+        else:
+            # We should never go there
+            raise RuntimeError("Invalid marker operator '{}'".format(self._operator))
+
+        return parse_marker("{} {} '{}'".format(self._name, operator, self._value))
 
     @property
     def name(self):
@@ -476,6 +512,12 @@ class MultiMarker(BaseMarker):
     def markers(self):
         return self._markers
 
+    @property
+    def inverse(self):  # type: () -> MarkerUnion
+        markers = [marker.inverse for marker in self._markers]
+
+        return MarkerUnion.of(*markers)
+
     def intersect(self, other):
         if other.is_any():
             return self
@@ -567,8 +609,14 @@ class MarkerUnion(BaseMarker):
     def markers(self):
         return self._markers
 
+    @property
+    def inverse(self):  # type: () -> MultiMarker
+        markers = [marker.inverse for marker in self._markers]
+
+        return MultiMarker.of(*markers)
+
     @classmethod
-    def of(cls, *markers):  # type: (tuple) -> MarkerUnion
+    def of(cls, *markers):  # type: (BaseMarker) -> MarkerUnion
         flattened_markers = _flatten_markers(markers, MarkerUnion)
 
         markers = []
@@ -602,6 +650,9 @@ class MarkerUnion(BaseMarker):
 
         if any(m.is_any() for m in markers):
             return AnyMarker()
+
+        if len(markers) == 1:
+            return markers[0]
 
         return MarkerUnion(*markers)
 
