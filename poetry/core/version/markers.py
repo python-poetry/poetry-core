@@ -181,6 +181,9 @@ class BaseMarker(object):
     def only(self, marker_name):  # type: (str) -> BaseMarker
         raise NotImplementedError()
 
+    def invert(self):  # type: () -> BaseMarker
+        raise NotImplementedError()
+
     def __repr__(self):
         return "<{} {}>".format(self.__class__.__name__, str(self))
 
@@ -209,6 +212,9 @@ class AnyMarker(BaseMarker):
 
     def only(self, marker_name):  # type: (str) -> AnyMarker
         return self
+
+    def invert(self):  # type: () -> EmptyMarker
+        return EmptyMarker()
 
     def __str__(self):
         return ""
@@ -251,6 +257,9 @@ class EmptyMarker(BaseMarker):
     def only(self, marker_name):  # type: (str) -> EmptyMarker
         return self
 
+    def invert(self):  # type: () -> AnyMarker
+        return AnyMarker()
+
     def __str__(self):
         return "<empty>"
 
@@ -269,7 +278,7 @@ class EmptyMarker(BaseMarker):
 
 class SingleMarker(BaseMarker):
 
-    _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?|in|not in)?\s*(.+)$")
+    _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     _VERSION_LIKE_MARKER_NAME = {"python_version", "platform_release"}
 
     def __init__(self, name, constraint):
@@ -393,6 +402,51 @@ class SingleMarker(BaseMarker):
 
         return self
 
+    def invert(self):  # type: () -> BaseMarker
+        if self._operator in ("===", "=="):
+            operator = "!="
+        elif self._operator == "!=":
+            operator = "=="
+        elif self._operator == ">":
+            operator = "<="
+        elif self._operator == ">=":
+            operator = "<"
+        elif self._operator == "<":
+            operator = ">="
+        elif self._operator == "<=":
+            operator = ">"
+        elif self._operator == "in":
+            operator = "not in"
+        elif self._operator == "not in":
+            operator = "in"
+        elif self._operator == "~=":
+            # This one is more tricky to handle
+            # since it's technically a multi marker
+            # so the inverse will be a union of inverse
+            from poetry.core.semver import VersionRange
+
+            if not isinstance(self._constraint, VersionRange):
+                # The constraint must be a version range, otherwise
+                # it's an internal error
+                raise RuntimeError(
+                    "The '~=' operator should only represent version ranges"
+                )
+
+            min_ = self._constraint.min
+            min_operator = ">=" if self._constraint.include_min else "<"
+            max_ = self._constraint.max
+            max_operator = "<=" if self._constraint.include_max else "<"
+
+            return MultiMarker.of(
+                SingleMarker(self._name, "{} {}".format(min_operator, min_)),
+                SingleMarker(self._name, "{} {}".format(max_operator, max_)),
+            ).invert()
+        else:
+            # We should never go there
+            raise RuntimeError("Invalid marker operator '{}'".format(self._operator))
+
+        return parse_marker("{} {} '{}'".format(self._name, operator, self._value))
+
     def __eq__(self, other):
         if not isinstance(other, SingleMarker):
             return False
@@ -438,6 +492,9 @@ class MultiMarker(BaseMarker):
 
         for marker in markers:
             if marker in new_markers:
+                continue
+
+            if marker.is_any():
                 continue
 
             if isinstance(marker, SingleMarker):
@@ -533,6 +590,11 @@ class MultiMarker(BaseMarker):
 
         return self.of(*new_markers)
 
+    def invert(self):  # type: () -> MarkerUnion
+        markers = [marker.invert() for marker in self._markers]
+
+        return MarkerUnion.of(*markers)
+
     def __eq__(self, other):
         if not isinstance(other, MultiMarker):
             return False
@@ -568,7 +630,7 @@ class MarkerUnion(BaseMarker):
         return self._markers
 
     @classmethod
-    def of(cls, *markers):  # type: (tuple) -> MarkerUnion
+    def of(cls, *markers):  # type: (BaseMarker) -> MarkerUnion
         flattened_markers = _flatten_markers(markers, MarkerUnion)
 
         markers = []
@@ -602,6 +664,22 @@ class MarkerUnion(BaseMarker):
 
         if any(m.is_any() for m in markers):
             return AnyMarker()
+
+        to_delete_indices = set()
+        for i, marker in enumerate(markers):
+            for j, m in enumerate(markers):
+                if m.invert() == marker:
+                    to_delete_indices.add(i)
+                    to_delete_indices.add(j)
+
+        for idx in reversed(sorted(to_delete_indices)):
+            del markers[idx]
+
+        if not markers:
+            return AnyMarker()
+
+        if len(markers) == 1:
+            return markers[0]
 
         return MarkerUnion(*markers)
 
@@ -685,6 +763,11 @@ class MarkerUnion(BaseMarker):
                 new_markers.append(marker)
 
         return self.of(*new_markers)
+
+    def invert(self):  # type: () -> MultiMarker
+        markers = [marker.invert() for marker in self._markers]
+
+        return MultiMarker.of(*markers)
 
     def __eq__(self, other):
         if not isinstance(other, MarkerUnion):
