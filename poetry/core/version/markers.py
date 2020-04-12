@@ -419,6 +419,28 @@ class SingleMarker(BaseMarker):
             operator = "not in"
         elif self._operator == "not in":
             operator = "in"
+        elif self._operator == "~=":
+            # This one is more tricky to handle
+            # since it's technically a multi marker
+            # so the inverse will be a union of inverse
+            from poetry.core.semver import VersionRange
+
+            if not isinstance(self._constraint, VersionRange):
+                # The constraint must be a version range, otherwise
+                # it's an internal error
+                raise RuntimeError(
+                    "The '~=' operator should only represent version ranges"
+                )
+
+            min_ = self._constraint.min
+            min_operator = ">=" if self._constraint.include_min else "<"
+            max_ = self._constraint.max
+            max_operator = "<=" if self._constraint.include_max else "<"
+
+            return MultiMarker.of(
+                SingleMarker(self._name, "{} {}".format(min_operator, min_)),
+                SingleMarker(self._name, "{} {}".format(max_operator, max_)),
+            ).invert()
         else:
             # We should never go there
             raise RuntimeError("Invalid marker operator '{}'".format(self._operator))

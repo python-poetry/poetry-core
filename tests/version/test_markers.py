@@ -636,6 +636,10 @@ def test_union_of_a_single_marker_is_the_single_marker():
             'python_version ~= "3.6"',
             'python_version < "3.6" or python_version >= "4.0"',
         ),
+        (
+            'python_version ~= "3.6.3"',
+            'python_version < "3.6.3" or python_version >= "3.7.0"',
+        ),
     ],
 )
 def test_invert(marker, inverse):
