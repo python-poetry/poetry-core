@@ -26,7 +26,7 @@ from .builder import Builder
 
 SETUP = """\
 # -*- coding: utf-8 -*-
-from setuptools import setup
+from distutils.core import setup
 
 {before}
 setup_kwargs = {{
