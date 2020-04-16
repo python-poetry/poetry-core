@@ -1,4 +1,4 @@
-from poetry.core._vendor.six import string_types
+from six import string_types
 
 
 # enum compat

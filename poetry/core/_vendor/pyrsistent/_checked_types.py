@@ -1,10 +1,10 @@
 from ._compat import Iterable
-from poetry.core._vendor import six
+import six
 
-from poetry.core._vendor.pyrsistent._compat import Enum, string_types
-from poetry.core._vendor.pyrsistent._pmap import PMap, pmap
-from poetry.core._vendor.pyrsistent._pset import PSet, pset
-from poetry.core._vendor.pyrsistent._pvector import PythonPVector, python_pvector
+from pyrsistent._compat import Enum, string_types
+from pyrsistent._pmap import PMap, pmap
+from pyrsistent._pset import PSet, pset
+from pyrsistent._pvector import PythonPVector, python_pvector
 
 
 class CheckedType(object):

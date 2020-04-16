@@ -1,6 +1,6 @@
 import sys
 
-import poetry.core._vendor.six.moves.urllib.parse as urllib_parse
+import six.moves.urllib.parse as urllib_parse
 
 
 urlparse = urllib_parse

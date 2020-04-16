@@ -1,9 +1,9 @@
-from poetry.core._vendor import six
-from poetry.core._vendor.pyrsistent._checked_types import (InvariantException, CheckedType, _restore_pickle, store_invariants)
-from poetry.core._vendor.pyrsistent._field_common import (
+import six
+from pyrsistent._checked_types import (InvariantException, CheckedType, _restore_pickle, store_invariants)
+from pyrsistent._field_common import (
     set_fields, check_type, is_field_ignore_extra_complaint, PFIELD_NO_INITIAL, serialize, check_global_invariants
 )
-from poetry.core._vendor.pyrsistent._transformations import transform
+from pyrsistent._transformations import transform
 
 
 def _is_pclass(bases):

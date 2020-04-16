@@ -21,6 +21,10 @@ classifiers = [
 packages = [
     {include = "poetry"},
 ]
+exclude = [
+    "**/*.pyc",
+    "**/*.pyi",
+]
 
 [tool.poetry.dependencies]
 python = "~2.7 || ^3.5"
@@ -87,7 +91,7 @@ known_third_party = ["poetry.core._vendor"]
 [tool.vendoring]
 destination = "poetry/core/_vendor/"
 requirements = "poetry/core/_vendor/vendor.txt"
-namespace = "poetry.core._vendor"
+namespace = ""
 
 protected-files = ["__init__.py", "README.md", "vendor.txt"]
 patches-dir = "vendors/patches"

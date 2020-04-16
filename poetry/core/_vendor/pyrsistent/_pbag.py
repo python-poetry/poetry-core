@@ -1,6 +1,6 @@
 from ._compat import Container, Iterable, Sized, Hashable
 from functools import reduce
-from poetry.core._vendor.pyrsistent._pmap import pmap
+from pyrsistent._pmap import pmap
 
 
 def _add_to_counters(counters, element):

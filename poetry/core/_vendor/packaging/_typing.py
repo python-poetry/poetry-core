@@ -18,7 +18,7 @@ curious maintainer can reach here to read this.
 
 In packaging, all static-typing related imports should be guarded as follows:
 
-    from poetry.core._vendor.packaging._typing import MYPY_CHECK_RUNNING
+    from packaging._typing import MYPY_CHECK_RUNNING
 
     if MYPY_CHECK_RUNNING:
         from typing import ...

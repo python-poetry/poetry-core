@@ -3,7 +3,7 @@ import json
 import os
 import re
 
-from poetry.core._vendor.jsonschema.compat import MutableMapping, str_types, urlsplit
+from jsonschema.compat import MutableMapping, str_types, urlsplit
 
 
 class URIDict(MutableMapping):

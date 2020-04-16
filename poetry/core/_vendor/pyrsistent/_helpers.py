@@ -1,8 +1,8 @@
 from functools import wraps
-from poetry.core._vendor import six
-from poetry.core._vendor.pyrsistent._pmap import PMap, pmap
-from poetry.core._vendor.pyrsistent._pset import PSet, pset
-from poetry.core._vendor.pyrsistent._pvector import PVector, pvector
+import six
+from pyrsistent._pmap import PMap, pmap
+from pyrsistent._pset import PSet, pset
+from pyrsistent._pvector import PVector, pvector
 
 
 def freeze(o):

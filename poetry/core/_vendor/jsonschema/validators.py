@@ -8,16 +8,16 @@ import contextlib
 import json
 import numbers
 
-from poetry.core._vendor.six import add_metaclass
+from six import add_metaclass
 
-from poetry.core._vendor.jsonschema import (
+from jsonschema import (
     _legacy_validators,
     _types,
     _utils,
     _validators,
     exceptions,
 )
-from poetry.core._vendor.jsonschema.compat import (
+from jsonschema.compat import (
     Sequence,
     int_types,
     iteritems,
@@ -33,7 +33,7 @@ from poetry.core._vendor.jsonschema.compat import (
 # Sigh. https://gitlab.com/pycqa/flake8/issues/280
 #       https://github.com/pyga/ebb-lint/issues/7
 # Imported for backwards compatibility.
-from poetry.core._vendor.jsonschema.exceptions import ErrorTree
+from jsonschema.exceptions import ErrorTree
 ErrorTree
 
 

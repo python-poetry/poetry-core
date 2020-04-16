@@ -5,10 +5,6 @@ import sys
 
 from typing import Union
 
-from poetry.core._vendor.six.moves.urllib.parse import unquote  # noqa
-from poetry.core._vendor.six.moves.urllib.parse import urlsplit  # noqa
-from poetry.core._vendor.six.moves.urllib.request import url2pathname  # noqa
-
 from poetry.core.packages.constraints.constraint import Constraint
 from poetry.core.packages.constraints.multi_constraint import MultiConstraint
 from poetry.core.packages.constraints.union_constraint import UnionConstraint
@@ -23,6 +19,9 @@ from poetry.core.version.markers import BaseMarker
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
+from six.moves.urllib.parse import unquote  # noqa
+from six.moves.urllib.parse import urlsplit  # noqa
+from six.moves.urllib.request import url2pathname  # noqa
 
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")

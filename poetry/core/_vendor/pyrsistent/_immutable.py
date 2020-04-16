@@ -1,6 +1,6 @@
 import sys
 
-from poetry.core._vendor import six
+import six
 
 
 def immutable(members='', name='Immutable', verbose=False):

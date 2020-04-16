@@ -1,7 +1,7 @@
 from ._compat import Sequence, Hashable
 from itertools import islice, chain
 from numbers import Integral
-from poetry.core._vendor.pyrsistent._plist import plist
+from pyrsistent._plist import plist
 
 
 class PDeque(object):
