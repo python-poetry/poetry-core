@@ -10,8 +10,6 @@ from typing import Set
 from typing import Union
 
 from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import glob
-from poetry.core.utils._compat import lru_cache
 from poetry.core.utils._compat import to_str
 from poetry.core.vcs import get_vcs
 
@@ -39,11 +37,12 @@ class Builder(object):
 
     def __init__(
         self, poetry, ignore_packages_formats=False
-    ):  # type: ("Poetry", "Env", "IO", bool) -> None
+    ):  # type: ("Poetry", bool) -> None
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
         self._original_path = self._path
+        self._excluded_files = None
 
         packages = []
         for p in self._package.packages:
@@ -72,34 +71,33 @@ class Builder(object):
     def build(self):
         raise NotImplementedError()
 
-    @lru_cache(maxsize=None)
     def find_excluded_files(self):  # type: () -> Set[str]
-        # Checking VCS
-        vcs = get_vcs(self._original_path)
-        if not vcs:
-            vcs_ignored_files = set()
-        else:
-            vcs_ignored_files = set(vcs.get_ignored_files())
+        if self._excluded_files is None:
+            # Checking VCS
+            vcs = get_vcs(self._original_path)
+            if not vcs:
+                vcs_ignored_files = set()
+            else:
+                vcs_ignored_files = set(vcs.get_ignored_files())
 
-        explicitely_excluded = set()
-        for excluded_glob in self._package.exclude:
+            explicitely_excluded = set()
+            for excluded_glob in self._package.exclude:
+                for excluded in self._path.glob(excluded_glob):
+                    explicitely_excluded.add(
+                        Path(excluded).relative_to(self._path).as_posix()
+                    )
 
-            for excluded in glob(
-                Path(self._path, excluded_glob).as_posix(), recursive=True
-            ):
-                explicitely_excluded.add(
-                    Path(excluded).relative_to(self._path).as_posix()
-                )
+            ignored = vcs_ignored_files | explicitely_excluded
+            result = set()
+            for file in ignored:
+                result.add(file)
 
-        ignored = vcs_ignored_files | explicitely_excluded
-        result = set()
-        for file in ignored:
-            result.add(file)
+            # The list of excluded files might be big and we will do a lot
+            # containment check (x in excluded).
+            # Returning a set make those tests much much faster.
+            self._excluded_files = result
 
-        # The list of excluded files might be big and we will do a lot
-        # containment check (x in excluded).
-        # Returning a set make those tests much much faster.
-        return result
+        return self._excluded_files
 
     def is_excluded(self, filepath):  # type: (Union[str, Path]) -> bool
         exclude_path = Path(filepath)

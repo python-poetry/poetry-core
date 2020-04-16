@@ -92,7 +92,7 @@ drop = [
     "bin/",
     "*.so",
     "typing.*",
-    "jsonschema/tests/"
+    "*/tests/"
 ]
 
 [tool.vendoring.typing-stubs]
