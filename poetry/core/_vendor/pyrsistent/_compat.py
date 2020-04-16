@@ -3,7 +3,7 @@ from poetry.core._vendor.six import string_types
 
 # enum compat
 try:
-    from poetry.core._vendor.enum import Enum
+    from enum import Enum
 except:
     class Enum(object): pass
     # no objects will be instances of this class

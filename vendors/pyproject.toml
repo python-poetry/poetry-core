@@ -25,6 +25,3 @@ jsonschema = "^3.2.0"
 packaging = "^20.1"
 pyparsing = "^2.4.6"
 tomlkit = "^0.5.11"
-
-# Use pathlib2 for Python 2.7 and 3.4
-pathlib2 = { version = "^2.3", python = "~2.7" }

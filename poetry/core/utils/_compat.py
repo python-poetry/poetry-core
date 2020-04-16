@@ -35,7 +35,7 @@ else:
 if PY35:
     from pathlib import Path
 else:
-    from poetry.core._vendor.pathlib2 import Path
+    from pathlib2 import Path
 
 if not PY36:
     from collections import OrderedDict

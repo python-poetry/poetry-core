@@ -1,11 +1,7 @@
 attrs==19.3.0
-vendors/wheels/enum34-1.1.10-py2.py3-none-any.whl
-vendors/wheels/functools32-3.2.3.post2-py2.py3-none-any.whl
 jsonschema==3.2.0
 packaging==20.3
-pathlib2==2.3.5
 pyparsing==2.4.6
 pyrsistent==0.16.0
-scandir==1.10.0
 six==1.14.0
 tomlkit==0.5.11

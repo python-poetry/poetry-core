@@ -39,7 +39,7 @@ else:
     int_types = int, long
     iteritems = operator.methodcaller("iteritems")
 
-    from poetry.core._vendor.functools32 import lru_cache
+    from functools32 import lru_cache
 
 
 def urldefrag(url):
