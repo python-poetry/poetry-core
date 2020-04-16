@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+import sys
+
 from email.parser import Parser
+
+import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
+from poetry.core.utils._compat import PY37
 from poetry.core.utils._compat import Path
 
 
@@ -17,6 +22,10 @@ def test_builder_find_excluded_files(mocker):
     assert builder.find_excluded_files() == {"my_package/sub_pkg1/extra_file.xml"}
 
 
+@pytest.mark.xfail(
+    sys.platform == "win32" and not PY37,
+    reason="Windows is case insensitive for the most part",
+)
 def test_builder_find_case_sensitive_excluded_files(mocker):
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
@@ -38,6 +47,10 @@ def test_builder_find_case_sensitive_excluded_files(mocker):
     }
 
 
+@pytest.mark.xfail(
+    sys.platform == "win32" and not PY37,
+    reason="Windows is case insensitive for the most part",
+)
 def test_builder_find_invalid_case_sensitive_excluded_files(mocker):
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
