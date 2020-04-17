@@ -87,11 +87,12 @@ class SdistBuilder(Builder):
                 else:
                     tar.addfile(tar_info)  # Symlinks & ?
 
-            setup = self.build_setup()
-            tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
-            tar_info.size = len(setup)
-            tar_info.mtime = time.time()
-            tar.addfile(tar_info, BytesIO(setup))
+            if not self._poetry.package.build_config.get("generate-setup-file", False):
+                setup = self.build_setup()
+                tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
+                tar_info.size = len(setup)
+                tar_info.mtime = time.time()
+                tar.addfile(tar_info, BytesIO(setup))
 
             pkg_info = self.build_pkg_info()
 
@@ -112,9 +113,9 @@ class SdistBuilder(Builder):
         package_dir = {}
 
         # If we have a build script, use it
-        if self._package.build:
+        if self._package.build_script:
             after += [
-                "from {} import *".format(self._package.build.split(".")[0]),
+                "from {} import *".format(self._package.build_script.split(".")[0]),
                 "build(setup_kwargs)",
             ]
 

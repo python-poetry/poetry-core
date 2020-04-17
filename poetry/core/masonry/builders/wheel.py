@@ -91,7 +91,7 @@ class WheelBuilder(Builder):
         logger.info(" - Built {}".format(self.wheel_filename))
 
     def _build(self, wheel):
-        if self._package.build:
+        if self._package.build_script:
             with SdistBuilder(poetry=self._poetry).setup_py() as setup:
                 # We need to place ourselves in the temporary
                 # directory in order to build the package
@@ -223,7 +223,7 @@ class WheelBuilder(Builder):
 
     @property
     def tag(self):
-        if self._package.build:
+        if self._package.build_script:
             tag = next(sys_tags())
             tag = (tag.interpreter, tag.abi, tag.platform)
         else:
@@ -305,7 +305,7 @@ class WheelBuilder(Builder):
         fp.write(
             wheel_file_template.format(
                 version=__version__,
-                pure_lib="true" if self._package.build is None else "false",
+                pure_lib="true" if self._package.build_script is None else "false",
                 tag=self.tag,
             )
         )

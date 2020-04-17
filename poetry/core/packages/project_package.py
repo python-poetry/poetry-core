@@ -1,3 +1,5 @@
+from typing import Optional
+
 from poetry.core.semver import VersionRange
 from poetry.core.semver import parse_constraint
 from poetry.core.version.markers import parse_marker
@@ -10,7 +12,7 @@ class ProjectPackage(Package):
     def __init__(self, name, version, pretty_version=None):
         super(ProjectPackage, self).__init__(name, version, pretty_version)
 
-        self.build = None
+        self.build_config = dict()
         self.packages = []
         self.include = []
         self.exclude = []
@@ -18,6 +20,10 @@ class ProjectPackage(Package):
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
+
+    @property
+    def build_script(self):  # type: () -> Optional[str]
+        return self.build_config.get("script")
 
     def is_root(self):
         return True

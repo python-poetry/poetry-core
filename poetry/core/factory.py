@@ -109,7 +109,10 @@ class Factory(object):
                         break
 
         if "build" in local_config:
-            package.build = local_config["build"]
+            build = local_config["build"]
+            if not isinstance(build, dict):
+                build = {"script": build}
+            package.build_config = build or {}
 
         if "include" in local_config:
             package.include = local_config["include"]
