@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from typing import Any
+
 from .packages import ProjectPackage
 from .utils._compat import Path
 from .utils.toml_file import TomlFile
@@ -25,3 +27,6 @@ class Poetry(object):
     @property
     def local_config(self):  # type: () -> dict
         return self._local_config
+
+    def get_project_config(self, config, default=None):  # type: (str, Any) -> Any
+        return self._local_config.get("config", {}).get(config, default)

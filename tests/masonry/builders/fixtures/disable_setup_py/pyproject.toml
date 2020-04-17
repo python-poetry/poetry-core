@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "Poetry Team <noreply@python-poetry.org>"
+]
+license = "MIT"
+
+readme = "README.rst"
+
+homepage = "https://python-poetry.org"
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs"
+
+keywords = ["packaging", "dependency", "poetry"]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.poetry.build]
+generate-setup-file = true
+
+# Requirements
+[tool.poetry.dependencies]
+python = "~2.7 || ^3.6"
+
+[tool.poetry.extras]
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+my-script = "my_package:main"

@@ -161,8 +161,8 @@ class Builder(object):
 
         # If a build script is specified and explicitely required
         # we add it to the list of files
-        if self._package.build and not exclude_build:
-            to_add.append(Path(self._package.build))
+        if self._package.build_script and not exclude_build:
+            to_add.append(Path(self._package.build_script))
 
         return sorted(to_add)
 

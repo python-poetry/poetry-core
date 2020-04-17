@@ -131,8 +131,7 @@
             }
         },
         "build": {
-            "type": "string",
-            "description": "The file used to build extensions."
+            "$ref": "#/definitions/build-section"
         },
         "source": {
             "type": "array",
@@ -526,6 +525,31 @@
                     "description": "Declare this repository as secondary, i.e. it will only be looked up last for packages."
                 }
             }
+        },
+        "build-script": {
+            "type": "string",
+            "description": "The python script file used to build extensions."
+        },
+        "build-config": {
+            "type": "object",
+            "description": "Build specific configurations.",
+            "additionalProperties": false,
+            "properties": {
+                "generate-setup-file": {
+                    "type": "boolean",
+                    "description": "Generate and include a setup.py file in sdist.",
+                    "default": true
+                },
+                "script": {
+                    "$ref": "#/definitions/build-script"
+                }
+            }
+        },
+        "build-section": {
+            "oneOf": [
+                {"$ref": "#/definitions/build-script"},
+                {"$ref": "#/definitions/build-config"}
+            ]
         }
     }
 }

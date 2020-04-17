@@ -298,7 +298,8 @@ def test_prelease():
     assert sdist.exists()
 
 
-def test_with_c_extensions():
+@pytest.mark.parametrize("directory", [("extended"), ("extended_legacy_config")])
+def test_with_c_extensions(directory):
     poetry = Factory().create_poetry(project("extended"))
 
     builder = SdistBuilder(poetry)
@@ -524,3 +525,23 @@ def test_sdist_package_pep_561_stub_only():
         assert "pep-561-stubs-0.1/pkg-stubs/__init__.pyi" in names
         assert "pep-561-stubs-0.1/pkg-stubs/module.pyi" in names
         assert "pep-561-stubs-0.1/pkg-stubs/subpkg/__init__.pyi" in names
+
+
+def test_sdist_disable_setup_py():
+    module_path = fixtures_dir / "disable_setup_py"
+    poetry = Factory().create_poetry(module_path)
+
+    builder = SdistBuilder(poetry)
+    builder.build()
+
+    sdist = module_path / "dist" / "my-package-1.2.3.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert set(tar.getnames()) == {
+            "my-package-1.2.3/README.rst",
+            "my-package-1.2.3/pyproject.toml",
+            "my-package-1.2.3/PKG-INFO",
+            "my-package-1.2.3/my_package/__init__.py",
+        }
