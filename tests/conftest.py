@@ -5,6 +5,23 @@ import pytest
 from poetry.core.utils._compat import Path
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--integration",
+        action="store_true",
+        dest="integration",
+        default=False,
+        help="enable integration tests",
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "integration: mark integration tests")
+
+    if not config.option.integration:
+        setattr(config.option, "markexpr", "not integration")
+
+
 def get_project_from_dir(base_directory):  # type: (Path) -> Callable[[str], Path]
     def get(name):  # type: (str) -> Path
         path = base_directory / name
