@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 
 from contextlib import contextmanager
 from typing import Any
@@ -50,3 +51,14 @@ def temporary_project_directory(
         data.update(toml_patch or __toml_build_backend_patch__)
         toml.write(data)
         yield str(dst)
+
+
+def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.CompletedProcess
+    """
+    Helper method to run a subprocess. Asserts for success.
+    """
+    result = subprocess.run(
+        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+    )
+    assert result.returncode == 0
+    return result
