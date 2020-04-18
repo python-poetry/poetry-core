@@ -3,6 +3,7 @@ from typing import Callable
 import pytest
 
 from poetry.core.utils._compat import Path
+from tests.utils import tempfile
 
 
 def pytest_addoption(parser):
@@ -32,23 +33,39 @@ def get_project_from_dir(base_directory):  # type: (Path) -> Callable[[str], Pat
     return get
 
 
-@pytest.fixture
-def common_fixtures_directory():  # type: () -> Path
-    return Path(__file__).parent / "fixtures"
+@pytest.fixture(scope="session")
+def project_source_root():  # type: () -> Path
+    return Path(__file__).parent.parent
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
+def project_source_test_root():  # type: () -> Path
+    return Path(__file__).parent
+
+
+@pytest.fixture(scope="session")
+def common_fixtures_directory(project_source_test_root):  # type: (Path) -> Path
+    return project_source_test_root / "fixtures"
+
+
+@pytest.fixture(scope="session")
 def common_project(common_fixtures_directory):  # type: (Path) -> Callable[[str], Path]
     return get_project_from_dir(common_fixtures_directory)
 
 
-@pytest.fixture
-def masonry_fixtures_directory():  # type: () -> Path
-    return Path(__file__).parent / "masonry" / "builders" / "fixtures"
+@pytest.fixture(scope="session")
+def masonry_fixtures_directory(project_source_test_root):  # type: (Path) -> Path
+    return project_source_test_root / "masonry" / "builders" / "fixtures"
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def masonry_project(
     masonry_fixtures_directory,
 ):  # type: (Path) -> Callable[[str], Path]
     return get_project_from_dir(masonry_fixtures_directory)
+
+
+@pytest.fixture
+def temporary_directory():  # type: () -> Path
+    with tempfile.TemporaryDirectory(prefix="poetry-core") as tmp:
+        yield Path(tmp)
