@@ -63,6 +63,8 @@ class Factory(object):
         package.keywords = local_config.get("keywords", [])
         package.classifiers = local_config.get("classifiers", [])
 
+        package.private = local_config.get("private", False)
+
         if "readme" in local_config:
             package.readme = Path(poetry_file.parent) / local_config["readme"]
 
@@ -94,6 +96,7 @@ class Factory(object):
                 package.add_dependency(name, constraint, category="dev")
 
         extras = local_config.get("extras", {})
+
         for extra_name, requirements in extras.items():
             package.extras[extra_name] = []
 
