@@ -1,2 +1,2 @@
-from poetry.core._vendor.jsonschema.cli import main
+from jsonschema.cli import main
 main()

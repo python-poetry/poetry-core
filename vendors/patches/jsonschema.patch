@@ -2,7 +2,7 @@ diff --git a/poetry/core/_vendor/jsonschema/__init__.py b/poetry/core/_vendor/js
 index 7dd3598..c604eed 100644
 --- a/poetry/core/_vendor/jsonschema/__init__.py
 +++ b/poetry/core/_vendor/jsonschema/__init__.py
-@@ -27,8 +27,5 @@ from poetry_core._vendor.jsonschema.validators import (
+@@ -27,8 +27,5 @@ from jsonschema.validators import (
      RefResolver,
      validate,
  )
@@ -24,7 +24,7 @@ index 8fb8593..368474a 100644
 +import os
  import re
 
- from poetry.core._vendor.jsonschema.compat import MutableMapping, str_types, urlsplit
+ from jsonschema.compat import MutableMapping, str_types, urlsplit
 @@ -50,9 +50,12 @@ def load_schema(name):
      """
      Load a schema from ./schemas/``name``.json and return it.

@@ -1,8 +1,8 @@
 from ._compat import Mapping, Hashable
 from itertools import chain
-from poetry.core._vendor import six
-from poetry.core._vendor.pyrsistent._pvector import pvector
-from poetry.core._vendor.pyrsistent._transformations import transform
+import six
+from pyrsistent._pvector import pvector
+from pyrsistent._transformations import transform
 
 
 class PMap(object):

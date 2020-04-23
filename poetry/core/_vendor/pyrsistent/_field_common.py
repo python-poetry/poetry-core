@@ -1,7 +1,7 @@
-from poetry.core._vendor import six
+import six
 import sys
 
-from poetry.core._vendor.pyrsistent._checked_types import (
+from pyrsistent._checked_types import (
     CheckedPMap,
     CheckedPSet,
     CheckedPVector,
@@ -12,8 +12,8 @@ from poetry.core._vendor.pyrsistent._checked_types import (
     maybe_parse_user_type,
     maybe_parse_many_user_types,
 )
-from poetry.core._vendor.pyrsistent._checked_types import optional as optional_type
-from poetry.core._vendor.pyrsistent._checked_types import wrap_invariant
+from pyrsistent._checked_types import optional as optional_type
+from pyrsistent._checked_types import wrap_invariant
 import inspect
 
 PY2 = sys.version_info[0] < 3

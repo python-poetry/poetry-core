@@ -1,5 +1,5 @@
 import re
-from poetry.core._vendor import six
+import six
 try:
     from inspect import Parameter, signature
 except ImportError:
@@ -121,7 +121,7 @@ else:
 
 
 def _update_structure(structure, kvs, path, command):
-    from poetry.core._vendor.pyrsistent._pmap import pmap
+    from pyrsistent._pmap import pmap
     e = structure.evolver()
     if not path and command is discard:
         # Do this in reverse to avoid index problems with vectors. See #92.

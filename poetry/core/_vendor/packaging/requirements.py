@@ -6,10 +6,10 @@ from __future__ import absolute_import, division, print_function
 import string
 import re
 
-from poetry.core._vendor.pyparsing import stringStart, stringEnd, originalTextFor, ParseException
-from poetry.core._vendor.pyparsing import ZeroOrMore, Word, Optional, Regex, Combine
-from poetry.core._vendor.pyparsing import Literal as L  # noqa
-from poetry.core._vendor.six.moves.urllib import parse as urlparse
+from pyparsing import stringStart, stringEnd, originalTextFor, ParseException
+from pyparsing import ZeroOrMore, Word, Optional, Regex, Combine
+from pyparsing import Literal as L  # noqa
+from six.moves.urllib import parse as urlparse
 
 from ._typing import MYPY_CHECK_RUNNING
 from .markers import MARKER_EXPR, Marker

@@ -1,6 +1,6 @@
 import sys
 
-import poetry.core._vendor.six.moves.urllib.parse as urllib_parse
+import six.moves.urllib.parse as urllib_parse
 
 
 urlparse = urllib_parse
@@ -20,6 +20,7 @@ PY2 = sys.version_info[0] == 2
 PY34 = sys.version_info >= (3, 4)
 PY35 = sys.version_info >= (3, 5)
 PY36 = sys.version_info >= (3, 6)
+PY37 = sys.version_info >= (3, 7)
 
 WINDOWS = sys.platform == "win32"
 
@@ -32,20 +33,10 @@ else:
 
     shell_quote = shlex.quote
 
-if PY2:
-    from poetry.core._vendor.functools32 import lru_cache
-else:
-    from functools import lru_cache
-
-if not PY35:
-    from poetry.core._vendor.glob2 import glob
-else:
-    from glob import glob
-
 if PY35:
     from pathlib import Path
 else:
-    from poetry.core._vendor.pathlib2 import Path
+    from pathlib2 import Path
 
 if not PY36:
     from collections import OrderedDict

@@ -5,8 +5,8 @@ objects, instead of using the actual collection class.
 
 For example,
 
-    from poetry.core._vendor.pyrsistent import pvector
-    from poetry.core._vendor.pyrsistent.typing import PVector
+    from pyrsistent import pvector
+    from pyrsistent.typing import PVector
 
     myvector: PVector[str] = pvector(['a', 'b', 'c'])
 

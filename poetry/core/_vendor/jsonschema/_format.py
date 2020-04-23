@@ -3,8 +3,8 @@ import re
 import socket
 import struct
 
-from poetry.core._vendor.jsonschema.compat import str_types
-from poetry.core._vendor.jsonschema.exceptions import FormatError
+from jsonschema.compat import str_types
+from jsonschema.exceptions import FormatError
 
 
 class FormatChecker(object):

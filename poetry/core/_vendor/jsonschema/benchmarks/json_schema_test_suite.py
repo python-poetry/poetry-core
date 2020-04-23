@@ -7,7 +7,7 @@ JSON-Schema-Test-Suite. It will take some time to complete.
 """
 from pyperf import Runner
 
-from poetry.core._vendor.jsonschema.tests._suite import Suite
+from jsonschema.tests._suite import Suite
 
 
 if __name__ == "__main__":

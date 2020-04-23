@@ -9,7 +9,7 @@ with Python's reflection capabilities.
 
 import sys
 
-from poetry.core._vendor.jsonschema.compat import PY3
+from jsonschema.compat import PY3
 
 
 class _NoModuleFound(Exception):

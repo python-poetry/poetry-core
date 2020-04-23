@@ -143,14 +143,10 @@ if PY2:
     unicode = unicode
     chr = unichr
     long = long
-
-    from poetry.core._vendor.enum import Enum
 else:
     unicode = str
     chr = chr
     long = int
-
-    from enum import Enum
 
 
 def decode(string, encodings=None):

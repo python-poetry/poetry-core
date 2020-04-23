@@ -1,6 +1,6 @@
-from poetry.core._vendor.jsonschema import _utils
-from poetry.core._vendor.jsonschema.compat import iteritems
-from poetry.core._vendor.jsonschema.exceptions import ValidationError
+from jsonschema import _utils
+from jsonschema.compat import iteritems
+from jsonschema.exceptions import ValidationError
 
 
 def dependencies_draft3(validator, dependencies, instance, schema):

@@ -1,6 +1,6 @@
 from ._compat import Set, Hashable
 import sys
-from poetry.core._vendor.pyrsistent._pmap import pmap
+from pyrsistent._pmap import pmap
 
 PY2 = sys.version_info[0] < 3
 

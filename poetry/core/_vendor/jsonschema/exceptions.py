@@ -6,10 +6,10 @@ import itertools
 import pprint
 import textwrap
 
-from poetry.core._vendor import attr
+import attr
 
-from poetry.core._vendor.jsonschema import _utils
-from poetry.core._vendor.jsonschema.compat import PY3, iteritems
+from jsonschema import _utils
+from jsonschema.compat import PY3, iteritems
 
 
 WEAK_MATCHES = frozenset(["anyOf", "oneOf"])

@@ -2,8 +2,8 @@ from abc import abstractmethod, ABCMeta
 from ._compat import Sequence, Hashable
 from numbers import Integral
 import operator
-from poetry.core._vendor import six
-from poetry.core._vendor.pyrsistent._transformations import transform
+import six
+from pyrsistent._transformations import transform
 
 
 def _bitcount(val):

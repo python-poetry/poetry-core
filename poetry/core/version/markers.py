@@ -5,14 +5,14 @@ from typing import Dict
 from typing import Iterator
 from typing import List
 
-from poetry.core._vendor.pyparsing import Forward
-from poetry.core._vendor.pyparsing import Group
-from poetry.core._vendor.pyparsing import Literal as L  # noqa
-from poetry.core._vendor.pyparsing import ParseResults
-from poetry.core._vendor.pyparsing import QuotedString
-from poetry.core._vendor.pyparsing import ZeroOrMore
-from poetry.core._vendor.pyparsing import stringEnd
-from poetry.core._vendor.pyparsing import stringStart
+from pyparsing import Forward
+from pyparsing import Group
+from pyparsing import Literal as L  # noqa
+from pyparsing import ParseResults
+from pyparsing import QuotedString
+from pyparsing import ZeroOrMore
+from pyparsing import stringEnd
+from pyparsing import stringStart
 
 
 class InvalidMarker(ValueError):

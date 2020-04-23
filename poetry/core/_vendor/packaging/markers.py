@@ -8,9 +8,9 @@ import os
 import platform
 import sys
 
-from poetry.core._vendor.pyparsing import ParseException, ParseResults, stringStart, stringEnd
-from poetry.core._vendor.pyparsing import ZeroOrMore, Group, Forward, QuotedString
-from poetry.core._vendor.pyparsing import Literal as L  # noqa
+from pyparsing import ParseException, ParseResults, stringStart, stringEnd
+from pyparsing import ZeroOrMore, Group, Forward, QuotedString
+from pyparsing import Literal as L  # noqa
 
 from ._compat import string_types
 from ._typing import MYPY_CHECK_RUNNING

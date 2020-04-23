@@ -1,6 +1,6 @@
 import re
 
-from poetry.core._vendor.jsonschema._utils import (
+from jsonschema._utils import (
     ensure_list,
     equal,
     extras_msg,
@@ -9,8 +9,8 @@ from poetry.core._vendor.jsonschema._utils import (
     unbool,
     uniq,
 )
-from poetry.core._vendor.jsonschema.exceptions import FormatError, ValidationError
-from poetry.core._vendor.jsonschema.compat import iteritems
+from jsonschema.exceptions import FormatError, ValidationError
+from jsonschema.compat import iteritems
 
 
 def patternProperties(validator, patternProperties, instance, schema):

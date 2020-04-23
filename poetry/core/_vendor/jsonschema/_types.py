@@ -1,10 +1,10 @@
 import numbers
 
-from poetry.core._vendor.pyrsistent import pmap
-from poetry.core._vendor import attr
+from pyrsistent import pmap
+import attr
 
-from poetry.core._vendor.jsonschema.compat import int_types, str_types
-from poetry.core._vendor.jsonschema.exceptions import UndefinedTypeCheck
+from jsonschema.compat import int_types, str_types
+from jsonschema.exceptions import UndefinedTypeCheck
 
 
 def is_array(checker, instance):
