@@ -7,7 +7,7 @@ except ImportError:
     # noinspection PyUnresolvedReferences
     from pathlib2 import Path
 
-__version__ = "1.0.0a5"
+__version__ = "1.0.0a6"
 
 __vendor_site__ = (Path(__file__).parent / "_vendor").as_posix()
 
