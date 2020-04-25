@@ -3,7 +3,7 @@ from typing import Callable
 import pytest
 
 from poetry.core.utils._compat import Path
-from tests.utils import tempfile
+from tests._helpers.utils import tempfile
 
 
 def pytest_addoption(parser):
