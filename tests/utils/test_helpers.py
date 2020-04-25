@@ -1,5 +1,3 @@
-import pytest
-
 from poetry.core.utils.helpers import parse_requires
 
 
