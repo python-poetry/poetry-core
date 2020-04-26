@@ -13,6 +13,7 @@ from io import BytesIO
 from posixpath import join as pjoin
 from pprint import pformat
 from typing import Iterator
+from typing import Set
 
 from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import decode
@@ -22,6 +23,7 @@ from poetry.core.utils._compat import to_str
 from ..utils.helpers import normalize_file_permissions
 from ..utils.package_include import PackageInclude
 from .builder import Builder
+from .builder import BuildIncludeFile
 
 
 SETUP = """\
@@ -74,15 +76,15 @@ class SdistBuilder(Builder):
 
             files_to_add = self.find_files_to_add(exclude_build=False)
 
-            for relpath in files_to_add:
-                path = self._path / relpath
+            for file in sorted(files_to_add, key=lambda x: x.relative_to_source_root()):
                 tar_info = tar.gettarinfo(
-                    str(path), arcname=pjoin(tar_dir, str(relpath))
+                    str(file.path),
+                    arcname=pjoin(tar_dir, str(file.relative_to_source_root())),
                 )
                 tar_info = self.clean_tarinfo(tar_info)
 
                 if tar_info.isreg():
-                    with path.open("rb") as f:
+                    with file.path.open("rb") as f:
                         tar.addfile(tar_info, f)
                 else:
                     tar.addfile(tar_info)  # Symlinks & ?
@@ -105,7 +107,6 @@ class SdistBuilder(Builder):
             gz.close()
 
         logger.info(" - Built <comment>{}</comment>".format(target.name))
-
         return target
 
     def build_setup(self):  # type: () -> bytes
@@ -301,6 +302,31 @@ class SdistBuilder(Builder):
         pkg_data = {k: sorted(v) for (k, v) in pkg_data.items() if v}
 
         return pkgdir, sorted(packages), pkg_data
+
+    def find_files_to_add(
+        self, exclude_build=False
+    ):  # type: (bool) -> Set[BuildIncludeFile]
+        to_add = super(SdistBuilder, self).find_files_to_add(exclude_build)
+
+        # add any additional files, starting with all LICENSE files
+        additional_files = {
+            license_file for license_file in self._path.glob("LICENSE*")
+        }
+
+        # Include project files
+        additional_files.add("pyproject.toml")
+
+        # add readme if it is specified
+        if "readme" in self._poetry.local_config:
+            additional_files.add(self._poetry.local_config["readme"])
+
+        for file in additional_files:
+            file = BuildIncludeFile(path=file, source_root=self._path)
+            if file.path.exists():
+                logger.debug(" - Adding: {}".format(file.relative_to_source_root()))
+                to_add.add(file)
+
+        return to_add
 
     @classmethod
     def convert_dependencies(cls, package, dependencies):

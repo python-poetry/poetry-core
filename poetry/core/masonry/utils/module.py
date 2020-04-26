@@ -74,7 +74,9 @@ class Module:
             )
 
         for include in includes:
-            self._includes.append(Include(self._path, include))
+            self._includes.append(
+                Include(self._path, include["path"], formats=include["format"])
+            )
 
     @property
     def name(self):  # type: () -> str

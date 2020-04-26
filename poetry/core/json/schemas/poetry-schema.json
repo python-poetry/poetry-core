@@ -73,26 +73,43 @@
                 ],
                 "properties": {
                     "include": {
-                        "type": "string",
-                        "description": "What to include in the package."
+                        "$ref": "#/definitions/include-path"
                     },
                     "from": {
                         "type": "string",
                         "description": "Where the source directory of the package resides."
                     },
                     "format": {
-                        "oneOf": [
-                            {"type": "string"},
-                            {"type":  "array", "items": {"type":  "string"}}
-                        ],
-                        "description": "The format(s) for which the package must be included."
+                        "$ref": "#/definitions/package-formats"
                     }
                 }
             }
         },
         "include": {
             "type": "array",
-            "description": "A list of files and folders to include."
+            "description": "A list of files and folders to include.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/include-path"
+                    },
+                    {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "path"
+                        ],
+                        "properties": {
+                            "path": {
+                                "$ref": "#/definitions/include-path"
+                            },
+                            "format": {
+                                "$ref": "#/definitions/package-formats"
+                            }
+                        }
+                    }
+                ]
+            }
         },
         "exclude": {
             "type": "array",
@@ -188,6 +205,22 @@
             "items": {
                 "type": "string"
             }
+        },
+        "include-path": {
+            "type": "string",
+            "description": "Path to file or directory to include."
+        },
+        "package-format": {
+            "type": "string",
+            "enum": ["sdist", "wheel"],
+            "description": "A Python packaging format."
+        },
+        "package-formats": {
+            "oneOf": [
+                {"$ref": "#/definitions/package-format"},
+                {"type": "array", "items": {"$ref": "#/definitions/package-format"}}
+            ],
+            "description": "The format(s) for which the package must be included."
         },
         "dependencies": {
             "type": "object",
