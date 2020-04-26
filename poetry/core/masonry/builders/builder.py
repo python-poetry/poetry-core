@@ -184,13 +184,11 @@ class Builder(object):
                 logger.debug(" - Adding: {}".format(str(file)))
                 to_add.add(include_file)
 
-        # If a build script is specified and explicitly required
-        # we add it to the list of files
+        # add build script if it is specified and explicitly required
         if self._package.build_script and not exclude_build:
             to_add.add(
                 BuildIncludeFile(
-                    path=self._path / self._package.build_script,
-                    source_root=self._path,
+                    path=self._package.build_script, source_root=self._path
                 )
             )
 
