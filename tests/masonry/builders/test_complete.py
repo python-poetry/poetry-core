@@ -266,7 +266,7 @@ def test_complete_no_vcs():
         "my_package-1.2.3.dist-info/METADATA",
         "my_package-1.2.3.dist-info/RECORD",
     ]
-    # import pdb; pdb.set_trace()
+
     assert sorted(zip.namelist()) == sorted(expected_name_list)
 
     try:
