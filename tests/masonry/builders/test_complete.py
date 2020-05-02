@@ -445,6 +445,8 @@ def test_package_with_include(mocker):
             "extra_dir",
             "extra_dir.sub_pkg",
             "package_with_include",
+            "pkg1",
+            "pkg2.sub",
             "src_package",
             "tests",
         ]

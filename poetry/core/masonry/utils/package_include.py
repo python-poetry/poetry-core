@@ -66,7 +66,7 @@ class PackageInclude(Include):
         else:
             if root.is_dir():
                 # If it's a directory, we include everything inside it
-                self._package = root.name
+                self._package = self._include.replace("/", ".")
                 self._elements = sorted(list(root.glob("**/*")))
 
                 if not self.is_stub_only() and not self.has_modules():

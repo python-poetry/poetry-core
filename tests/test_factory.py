@@ -136,6 +136,8 @@ def test_create_poetry_with_packages_and_includes():
         {"include": "package_with_include"},
         {"include": "tests", "format": "sdist"},
         {"include": "for_wheel_only", "format": ["wheel"]},
+        {"include": "pkg1", "from": "sub_packages"},
+        {"include": "pkg2/sub", "from": "sub_packages"},
         {"include": "src_package", "from": "src"},
     ]
 
