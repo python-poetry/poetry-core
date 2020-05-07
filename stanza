@@ -6,6 +6,7 @@ import zipfile
 
 from pathlib import Path
 from typing import Dict
+from typing import List
 
 from cleo import Application
 from cleo import Command
@@ -15,7 +16,10 @@ from vendoring.configuration import load_configuration
 from vendoring.tasks.cleanup import cleanup_existing_vendored
 from vendoring.tasks.license import find_and_extract_license
 from vendoring.tasks.license import license_fallback
-from vendoring.tasks.vendor import vendor_libraries
+from vendoring.tasks.vendor import apply_patches
+from vendoring.tasks.vendor import detect_vendored_libs
+from vendoring.tasks.vendor import download_libraries
+from vendoring.tasks.vendor import remove_unnecessary_items
 from vendoring.utils import remove_all
 from vendoring.utils import run
 
@@ -69,6 +73,24 @@ def fetch_licenses(config: Configuration) -> None:
         extract_license(destination, sdist, license_directories, license_fallback_urls)
 
     remove_all([tmp_dir])
+
+
+def vendor_libraries(config: Configuration) -> List[str]:
+    destination = config.destination
+
+    # Download the relevant libraries.
+    download_libraries(config.requirements, destination)
+
+    # Cleanup unnecessary directories/files created.
+    remove_unnecessary_items(destination, config.drop_paths)
+
+    # Detect what got downloaded.
+    vendored_libs = detect_vendored_libs(destination, config.protected_files)
+
+    # Apply user provided patches.
+    apply_patches(config.patches_dir, working_directory=config.base_directory)
+
+    return vendored_libs
 
 
 def download_sources(location: Path, requirements: Path) -> None:
@@ -130,8 +152,10 @@ class VendorUpdateCommand(Command):
                 if line.startswith("wheels/"):
                     line = "vendors/" + line
 
-                if line.startswith("enum34"):
-                    line = "vendors/wheels/enum34-1.1.10-py2.py3-none-any.whl"
+                if line.startswith(
+                    ("enum34", "functools32", "pathlib2", "typing", "scandir", "typing")
+                ):
+                    continue
 
                 lines.append(line.strip())
 
