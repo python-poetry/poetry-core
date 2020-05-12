@@ -96,7 +96,8 @@ def is_url(name):
         "hg",
         "bzr",
         "sftp",
-        "svn" "ssh",
+        "svn",
+        "ssh",
     ]
 
 
