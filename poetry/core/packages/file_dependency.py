@@ -34,6 +34,10 @@ class FileDependency(Dependency):
         )
 
     @property
+    def base(self):
+        return self._base
+
+    @property
     def path(self):
         return self._path
 
@@ -63,3 +67,14 @@ class FileDependency(Dependency):
         requirement += " @ {}".format(path)
 
         return requirement
+
+    def __str__(self):
+        if self.is_root:
+            return self._pretty_name
+
+        return "{} ({} {})".format(
+            self._pretty_name, self._pretty_constraint, self._path
+        )
+
+    def __hash__(self):
+        return hash((self._name, self._full_path))
