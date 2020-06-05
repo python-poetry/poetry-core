@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.0.0a7] - 2020-05-06
+
+### Added
+
+- Added support for format-specific includes via the `include` property ([#6](https://github.com/python-poetry/core/pull/6)).
+
+### Changed
+
+- Allow url dependencies in multiple constraints dependencies ([#32](https://github.com/python-poetry/core/pull/32)).
+
+### Fixed
+
+- Fixed PEP 508 representation and parsing of VCS dependencies ([#30](https://github.com/python-poetry/core/pull/30)).
+
+
 ## [1.0.0a6] - 2020-04-24
 
 
@@ -25,5 +40,6 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a6...master
+[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a7...master
+[1.0.0a7]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a7
 [1.0.0a6]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a6
