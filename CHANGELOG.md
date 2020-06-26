@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.0a8] - 2020-06-26
+
+### Fixed
+
+- Fixed errors in the way Python environment markers were parsed and generated ([#36](https://github.com/python-poetry/core/pull/36)).
+
+
 ## [1.0.0a7] - 2020-05-06
 
 ### Added
@@ -40,6 +47,7 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a7...master
+[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a8...master
+[1.0.0a8]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a8
 [1.0.0a7]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a7
 [1.0.0a6]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a6

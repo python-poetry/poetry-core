@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.0.0a7"
+version = "1.0.0a8"
 description = "Core utilities for Poetry"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
