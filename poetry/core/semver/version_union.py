@@ -79,7 +79,7 @@ class VersionUnion(VersionConstraint):
     def is_any(self):
         return False
 
-    def allows(self, version):  # type: ("Version") -> bool
+    def allows(self, version):  # type: (Version) -> bool
         return any([constraint.allows(version) for constraint in self._ranges])
 
     def allows_all(self, other):  # type: (VersionConstraint) -> bool

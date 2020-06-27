@@ -41,7 +41,7 @@ class Builder(object):
 
     def __init__(
         self, poetry, ignore_packages_formats=False
-    ):  # type: ("Poetry", bool) -> None
+    ):  # type: (Poetry, bool) -> None
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
