@@ -154,3 +154,28 @@ def test_metadata_with_url_dependencies():
         "demo @ https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
         == requires_dist
     )
+
+
+def test_missing_script_files_throws_error():
+    builder = Builder(
+        Factory().create_poetry(
+            Path(__file__).parent / "fixtures" / "missing_script_files"
+        )
+    )
+
+    with pytest.raises(RuntimeError) as err:
+        builder.convert_script_files()
+
+    assert "file-script is not found." in err.value.args[0]
+
+
+def test_invalid_script_files_definition():
+    with pytest.raises(RuntimeError) as err:
+        Builder(
+            Factory().create_poetry(
+                Path(__file__).parent / "fixtures" / "script_file_invalid_definition"
+            )
+        )
+
+    assert "configuration is invalid" in err.value.args[0]
+    assert "[scripts.invalid_definition]" in err.value.args[0]

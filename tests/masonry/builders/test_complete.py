@@ -223,6 +223,16 @@ def test_complete():
 
     try:
         assert "my_package/sub_pgk1/extra_file.xml" not in zip.namelist()
+        assert "my-package-1.2.3.data/scripts/script1.sh" in zip.namelist()
+        assert "my-package-1.2.3.data/scripts/script2.sh" in zip.namelist()
+        assert (
+            "Hello World"
+            in zip.read("my-package-1.2.3.data/scripts/script1.sh").decode()
+        )
+        assert (
+            "Hello World"
+            in zip.read("my-package-1.2.3.data/scripts/script2.sh").decode()
+        )
 
         entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
 
@@ -289,6 +299,29 @@ My Package
 
 """
         )
+        actual_records = zip.read("my_package-1.2.3.dist-info/RECORD").decode()
+
+        # For some reason, the ordering of the files and the SHA hashes
+        # vary per operating systems and Python versions.
+        # So instead of 1:1 assertion, let's do a bit clunkier one:
+
+        expected_records = [
+            "my_package/__init__.py",
+            "my_package/data1/test.json",
+            "my_package/sub_pkg1/__init__.py",
+            "my_package/sub_pkg2/__init__.py",
+            "my_package/sub_pkg2/data2/data.json",
+            "my-package-1.2.3.data/scripts/script1.sh",
+            "my-package-1.2.3.data/scripts/script2.sh",
+            "my_package-1.2.3.dist-info/entry_points.txt",
+            "my_package-1.2.3.dist-info/LICENSE",
+            "my_package-1.2.3.dist-info/WHEEL",
+            "my_package-1.2.3.dist-info/METADATA",
+        ]
+
+        for expected_record in expected_records:
+            assert expected_record in actual_records
+
     finally:
         zip.close()
 
@@ -317,6 +350,8 @@ def test_complete_no_vcs():
         "my_package/sub_pkg1/__init__.py",
         "my_package/sub_pkg2/__init__.py",
         "my_package/sub_pkg2/data2/data.json",
+        "my-package-1.2.3.data/scripts/script1.sh",
+        "my-package-1.2.3.data/scripts/script2.sh",
         "my_package/sub_pkg3/foo.py",
         "my_package-1.2.3.dist-info/entry_points.txt",
         "my_package-1.2.3.dist-info/LICENSE",

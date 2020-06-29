@@ -163,9 +163,7 @@
         "scripts": {
             "type": "object",
             "description": "A hash of scripts to be installed.",
-            "items": {
-                "type": "string"
-            }
+            "$ref": "#/definitions/scripts"
         },
         "plugins": {
             "type": "object",
@@ -513,6 +511,9 @@
                         },
                         {
                             "$ref": "#/definitions/extra-script"
+                        },
+                        {
+                            "$ref": "#/definitions/file-script"
                         }
                     ]
                 }
@@ -521,6 +522,27 @@
         "script": {
             "type": "string",
             "description": "A simple script pointing to a callable object."
+        },
+        "file-script": {
+            "type": "object",
+            "description": "A script file that'll be included in the distribution package.",
+            "additionalProperties": false,
+            "properties": {
+                "source": {
+                    "type": "string",
+                    "description": "The relative path of the script file."
+                },
+                "type": {
+                    "description": "This value can only be 'file' currently.",
+                    "type": "string",
+                    "enum": [
+                        "file"
+                    ]
+                }
+            },
+            "required": [
+                "source"
+            ]
         },
         "extra-script": {
             "type": "object",
