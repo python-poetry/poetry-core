@@ -170,6 +170,8 @@ def test_find_files_to_add():
         [
             Path("LICENSE"),
             Path("README.rst"),
+            Path("bin/script1.sh"),
+            Path("bin/script2.sh"),
             Path("my_package/__init__.py"),
             Path("my_package/data1/test.json"),
             Path("my_package/sub_pkg1/__init__.py"),

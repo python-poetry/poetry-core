@@ -188,6 +188,12 @@ class SdistBuilder(Builder):
             before.append("entry_points = \\\n{}\n".format(pformat(entry_points)))
             extra.append("'entry_points': entry_points,")
 
+        script_files = self.convert_script_files()
+        if script_files:
+            rel_paths = [str(p.relative_to(self._path)) for p in script_files]
+            before.append('scripts = \\\n["{}"]\n'.format('", "'.join(rel_paths)))
+            extra.append("'scripts': scripts,")
+
         if self._package.python_versions != "*":
             python_requires = self._meta.requires_python
 
@@ -313,6 +319,9 @@ class SdistBuilder(Builder):
         additional_files = {
             license_file for license_file in self._path.glob("LICENSE*")
         }
+
+        # add script files
+        additional_files.update(self.convert_script_files())
 
         # Include project files
         additional_files.add("pyproject.toml")

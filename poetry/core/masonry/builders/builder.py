@@ -287,6 +287,8 @@ class Builder(object):
         for name, ep in self._poetry.local_config.get("scripts", {}).items():
             extras = ""
             if isinstance(ep, dict):
+                if "source" in ep:
+                    continue
                 extras = "[{}]".format(", ".join(ep["extras"]))
                 ep = ep["callable"]
 
@@ -302,6 +304,29 @@ class Builder(object):
             result[groupname] = sorted(result[groupname])
 
         return dict(result)
+
+    def convert_script_files(self) -> List[Path]:
+        script_files: List[Path] = []
+
+        for _, ep in self._poetry.local_config.get("scripts", {}).items():
+            if isinstance(ep, dict) and "source" in ep:
+                source = ep["source"]
+
+                if Path(source).is_absolute():
+                    raise RuntimeError(
+                        "{} is an absolute path. Expected relative path.".format(source)
+                    )
+
+                abs_path = Path.joinpath(self._path, source)
+
+                if not abs_path.exists():
+                    raise RuntimeError("{} file-script is not found.".format(abs_path))
+                if not abs_path.is_file():
+                    raise RuntimeError("{} file-script is not a file.".format(abs_path))
+
+                script_files.append(abs_path)
+
+        return script_files
 
     @classmethod
     def convert_author(cls, author: str) -> Dict[str, str]:

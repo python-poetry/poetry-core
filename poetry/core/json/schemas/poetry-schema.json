@@ -163,8 +163,17 @@
     "scripts": {
       "type": "object",
       "description": "A hash of scripts to be installed.",
-      "items": {
-        "type": "string"
+      "patternProperties": {
+        "^[a-zA-Z-_.0-9]+$": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/script-legacy"
+            },
+            {
+              "$ref": "#/definitions/script-table"
+            }
+          ]
+        }
       }
     },
     "plugins": {
@@ -513,24 +522,41 @@
         ]
       }
     },
-    "scripts": {
+    "script-table": {
       "type": "object",
-      "patternProperties": {
-        "^[a-zA-Z-_.0-9]+$": {
-          "oneOf": [
-            {
-              "$ref": "#/definitions/script"
-            },
-            {
-              "$ref": "#/definitions/extra-script"
-            }
-          ]
+      "oneOf": [
+        {
+          "$ref": "#/definitions/extra-script"
+        },
+        {
+          "$ref": "#/definitions/file-script"
         }
-      }
+      ]
     },
-    "script": {
+    "script-legacy": {
       "type": "string",
       "description": "A simple script pointing to a callable object."
+    },
+    "file-script": {
+      "type": "object",
+      "description": "A script file that'll be included in the distribution package.",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "The relative path of the script file."
+        },
+        "type": {
+          "description": "This value can only be 'file' currently.",
+          "type": "string",
+          "enum": [
+            "file"
+          ]
+        }
+      },
+      "required": [
+        "source"
+      ]
     },
     "extra-script": {
       "type": "object",
@@ -538,7 +564,8 @@
       "additionalProperties": false,
       "properties": {
         "callable": {
-          "$ref": "#/definitions/script"
+          "$ref": "#/definitions/script",
+          "description": "The entry point of the script."
         },
         "extras": {
           "type": "array",

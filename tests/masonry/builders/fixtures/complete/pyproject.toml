@@ -49,6 +49,9 @@ time = ["pendulum"]
 my-script = "my_package:main"
 my-2nd-script = "my_package:main2"
 extra-script = {callable = "my_package.extra:main", extras = ["time"]}
+sh-script = {source = "bin/script1.sh", type = "file"}
+sh-script2 = {source = "bin/script2.sh" }
+
 
 [tool.poetry.urls]
 "Issue Tracker" = "https://github.com/python-poetry/poetry/issues"
