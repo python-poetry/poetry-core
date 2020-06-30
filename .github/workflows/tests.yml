@@ -26,6 +26,8 @@ jobs:
         os: [Ubuntu, MacOS, Windows]
         python-version: [2.7, 3.5, 3.6, 3.7, 3.8, pypy2, pypy3]
         exclude:
+          - os: Ubuntu
+            python-version: pypy2
           - os: MacOS
             python-version: pypy2
           - os: MacOS
