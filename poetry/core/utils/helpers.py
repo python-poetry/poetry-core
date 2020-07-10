@@ -41,10 +41,10 @@ def temporary_directory(*args, **kwargs):
             yield name
     except ImportError:
         name = tempfile.mkdtemp(*args, **kwargs)
-
-        yield name
-
-        shutil.rmtree(name)
+        try:
+            yield name
+        finally:
+            shutil.rmtree(name)
 
 
 def parse_requires(requires):  # type: (str) -> List[str]
