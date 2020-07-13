@@ -21,7 +21,7 @@ classifiers = [
 ]
 
 [tool.poetry.build]
-generate-setup-file = true
+generate-setup-file = false
 
 # Requirements
 [tool.poetry.dependencies]

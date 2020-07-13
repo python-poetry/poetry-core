@@ -89,7 +89,7 @@ class SdistBuilder(Builder):
                 else:
                     tar.addfile(tar_info)  # Symlinks & ?
 
-            if not self._poetry.package.build_config.get("generate-setup-file", False):
+            if self._poetry.package.build_config.get("generate-setup-file", True):
                 setup = self.build_setup()
                 tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
                 tar_info.size = len(setup)
