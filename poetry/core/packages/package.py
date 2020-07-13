@@ -32,7 +32,17 @@ logger = logging.getLogger(__name__)
 
 class Package(object):
 
-    AVAILABLE_PYTHONS = {"2", "2.7", "3", "3.4", "3.5", "3.6", "3.7", "3.8"}
+    AVAILABLE_PYTHONS = {
+        "2",
+        "2.7",
+        "3",
+        "3.4",
+        "3.5",
+        "3.6",
+        "3.7",
+        "3.8",
+        "3.9",
+    }
 
     def __init__(self, name, version, pretty_version=None):
         """

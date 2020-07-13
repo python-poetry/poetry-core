@@ -32,8 +32,6 @@ logger = logging.getLogger(__name__)
 
 
 class Builder(object):
-    AVAILABLE_PYTHONS = {"2", "2.7", "3", "3.4", "3.5", "3.6", "3.7"}
-
     format = None
 
     def __init__(
