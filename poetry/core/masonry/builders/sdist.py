@@ -26,6 +26,7 @@ from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .builder import BuildIncludeFile
 
+
 SETUP = """\
 # -*- coding: utf-8 -*-
 from setuptools import setup
