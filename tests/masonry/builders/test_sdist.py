@@ -565,6 +565,23 @@ def test_sdist_package_pep_561_stub_only():
         assert "pep-561-stubs-0.1/pkg-stubs/subpkg/__init__.pyi" in names
 
 
+def test_sdist_package_pep_561_types_inline():
+    root = fixtures_dir / "pep_561_types_inline"
+    poetry = Factory().create_poetry(root)
+
+    builder = SdistBuilder(poetry)
+    builder.build()
+
+    sdist = root / "dist" / "pep-561-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "pep-561-0.1/setup.py" in tar.getnames()
+        setup_file = tar.extractfile("pep-561-0.1/setup.py").read().decode("utf-8")
+    assert "package_data = \\\n{'': ['*'], 'pep_561': ['py.typed']}" in setup_file
+
+
 def test_sdist_disable_setup_py():
     module_path = fixtures_dir / "disable_setup_py"
     poetry = Factory().create_poetry(module_path)

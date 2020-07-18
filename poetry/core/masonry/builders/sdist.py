@@ -21,10 +21,10 @@ from poetry.core.utils._compat import encode
 from poetry.core.utils._compat import to_str
 
 from ..utils.helpers import normalize_file_permissions
+from ..utils.include import Include
 from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .builder import BuildIncludeFile
-
 
 SETUP = """\
 # -*- coding: utf-8 -*-
@@ -52,7 +52,6 @@ logger = logging.getLogger(__name__)
 
 
 class SdistBuilder(Builder):
-
     format = "sdist"
 
     def build(self, target_dir=None):  # type: (Path) -> Path
@@ -123,6 +122,7 @@ class SdistBuilder(Builder):
         modules = []
         packages = []
         package_data = {}
+        non_package_includes = []
         for include in self._module.includes:
             if include.formats and "sdist" not in include.formats:
                 continue
@@ -144,8 +144,12 @@ class SdistBuilder(Builder):
 
                     if module not in modules:
                         modules.append(module)
-            else:
-                pass
+            elif isinstance(include, Include):
+                non_package_includes.append(include)
+
+        self._package_data_from_non_package_includes(
+            package_data, packages, non_package_includes
+        )
 
         if package_dir:
             before.append("package_dir = \\\n{}\n".format(pformat(package_dir)))
@@ -327,6 +331,31 @@ class SdistBuilder(Builder):
                 to_add.add(file)
 
         return to_add
+
+    def _package_data_from_non_package_includes(
+        self, package_data, packages, non_package_includes
+    ):
+        """
+        From specified includes that are not packages, extracts additions to the package_data field.
+
+        "package_data" represents the output dict to which additional package_data elements are written.
+        "packages" is a list of package names that are included.
+        "non_package_includes" is a list of all Include-objects that were found.
+        """
+        if package_data is None:
+            return
+
+        for include in non_package_includes:
+            for element in include.elements:
+                rel_path = element.relative_to(include.base)
+                parts = rel_path.parts
+                for i in reversed(range(1, len(parts))):
+                    ancestor = ".".join(parts[:i])
+                    if ancestor in packages:
+                        if ancestor not in package_data:
+                            package_data[ancestor] = []
+                        package_data[ancestor].append("/".join(parts[i:]))
+                        break
 
     @classmethod
     def convert_dependencies(cls, package, dependencies):

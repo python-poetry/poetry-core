@@ -450,7 +450,7 @@ def test_package_with_include(mocker):
             "src_package",
             "tests",
         ]
-        assert ns["package_data"] == {"": ["*"]}
+        assert ns["package_data"] == {"": ["*"], "extra_dir": ["vcs_excluded.txt"]}
         assert ns["modules"] == ["my_module"]
 
     whl = module_path / "dist" / "with_include-1.2.3-py3-none-any.whl"

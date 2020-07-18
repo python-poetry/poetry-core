@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "pep-561"
+version = "0.1"
+description = "PEP 561 inline stubs with py.typed marker."
+authors = [
+    "Andreas Tollkötter <tollkoetter.andreas@gmail.com>"
+]
+license = "MIT"
+include = ["pep_561/py.typed"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
