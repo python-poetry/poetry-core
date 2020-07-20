@@ -1,6 +1,9 @@
+import sys
+
 from typing import Callable
 
 import pytest
+import virtualenv
 
 from poetry.core.utils._compat import Path
 from tests.testutils import tempfile
@@ -69,3 +72,23 @@ def masonry_project(
 def temporary_directory():  # type: () -> Path
     with tempfile.TemporaryDirectory(prefix="poetry-core") as tmp:
         yield Path(tmp)
+
+
+@pytest.fixture
+def venv(temporary_directory):  # type: (Path) -> Path
+    venv_dir = temporary_directory / ".venv"
+    virtualenv.cli_run(
+        [
+            "--no-download",
+            "--no-periodic-update",
+            "--python",
+            sys.executable,
+            venv_dir.as_posix(),
+        ]
+    )
+    return venv_dir
+
+
+@pytest.fixture
+def python(venv):  # type: (Path) -> str
+    return (venv / "bin" / "python").as_posix()

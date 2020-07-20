@@ -51,6 +51,7 @@ vendoring = {version = "^0.2.2", python = "~3.8"}
 isort = "^4.3.21"
 pep517 = "^0.8.2"
 "backports.tempfile" = {version = "^1.0", python = "~2.7"}
+virtualenv = "^20.0.27"
 
 [tool.intreehooks]
 build-backend = "poetry.core.masonry.api"

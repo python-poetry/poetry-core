@@ -1,10 +1,7 @@
-import sys
-
 import pytest
 
 from pep517.build import build
 from pep517.check import check
-from poetry.core.utils._compat import PY35
 from poetry.core.utils._compat import Path
 from tests.testutils import subprocess_run
 from tests.testutils import temporary_project_directory
@@ -59,22 +56,16 @@ def test_pip_wheel_build(temporary_directory, project_source_root):
     assert len(wheels) == 1
 
 
-@pytest.mark.skipif(not PY35, reason="This test uses the python built-in venv module.")
-def test_pip_install_no_binary(temporary_directory, project_source_root):
-    venv_dir = temporary_directory / ".venv"
-    venv_python = venv_dir / "bin" / "python"
-
-    subprocess_run(sys.executable, "-m", "venv", str(venv_dir))
-    subprocess_run(str(venv_python), "-m", "pip", "install", "--upgrade", "pip")
+def test_pip_install_no_binary(python, project_source_root):
     subprocess_run(
-        str(venv_python),
+        python,
         "-m",
         "pip",
         "install",
         "--no-binary",
         ":all:",
-        str(project_source_root),
+        project_source_root.as_posix(),
     )
 
-    pip_show = subprocess_run(str(venv_python), "-m", "pip", "show", "poetry-core")
+    pip_show = subprocess_run(python, "-m", "pip", "show", "poetry-core")
     assert "Name: poetry-core" in pip_show.stdout
