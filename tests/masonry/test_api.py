@@ -55,6 +55,18 @@ def test_build_wheel():
             assert "my_package-1.2.3.dist-info/METADATA" in namelist
 
 
+def test_build_wheel_with_include():
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
+        filename = api.build_wheel(tmp_dir)
+
+        with zipfile.ZipFile(str(os.path.join(tmp_dir, filename))) as zip:
+            namelist = zip.namelist()
+
+            assert "with_include-1.2.3.dist-info/entry_points.txt" in namelist
+            assert "with_include-1.2.3.dist-info/WHEEL" in namelist
+            assert "with_include-1.2.3.dist-info/METADATA" in namelist
+
+
 @pytest.mark.skipif(
     sys.platform == "win32"
     and sys.version_info <= (3, 6)
@@ -84,6 +96,16 @@ def test_build_sdist():
             namelist = tar.getnames()
 
             assert "my-package-1.2.3/LICENSE" in namelist
+
+
+def test_build_sdist_with_include():
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
+        filename = api.build_sdist(tmp_dir)
+
+        with tarfile.open(str(os.path.join(tmp_dir, filename))) as tar:
+            namelist = tar.getnames()
+
+            assert "with-include-1.2.3/LICENSE" in namelist
 
 
 def test_prepare_metadata_for_build_wheel():
