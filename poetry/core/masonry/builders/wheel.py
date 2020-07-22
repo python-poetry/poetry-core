@@ -77,7 +77,7 @@ class WheelBuilder(Builder):
         with zipfile.ZipFile(
             os.fdopen(fd, "w+b"), mode="w", compression=zipfile.ZIP_DEFLATED
         ) as zip_file:
-            if not self._poetry.package.build_config.get("generate-setup-file", True):
+            if not self._poetry.package.build_should_generate_setup():
                 self._build(zip_file)
                 self._copy_module(zip_file)
             else:
@@ -96,7 +96,7 @@ class WheelBuilder(Builder):
 
     def _build(self, wheel):
         if self._package.build_script:
-            if not self._poetry.package.build_config.get("generate-setup-file", True):
+            if not self._poetry.package.build_should_generate_setup():
                 # Since we have a build script but no setup.py generation is required,
                 # we assume that the build script will build and copy the files
                 # directly.
