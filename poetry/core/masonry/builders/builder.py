@@ -179,7 +179,7 @@ class Builder(object):
                     # Skip duplicates
                     continue
 
-                logger.debug(" - Adding: {}".format(str(file)))
+                logger.debug("Adding: {}".format(str(file)))
                 to_add.add(include_file)
 
         # add build script if it is specified and explicitly required

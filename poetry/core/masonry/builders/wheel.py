@@ -62,7 +62,7 @@ class WheelBuilder(Builder):
         cls.make_in(poetry)
 
     def build(self):
-        logger.info(" - Building wheel")
+        logger.info("Building wheel")
 
         dist_dir = self._target_dir
         if not dist_dir.exists():
@@ -92,7 +92,7 @@ class WheelBuilder(Builder):
             wheel_path.unlink()
         shutil.move(temp_path, str(wheel_path))
 
-        logger.info(" - Built {}".format(self.wheel_filename))
+        logger.info("Built {}".format(self.wheel_filename))
 
     def _build(self, wheel):
         if self._package.build_script:
@@ -137,7 +137,7 @@ class WheelBuilder(Builder):
                         if rel_path in wheel.namelist():
                             continue
 
-                        logger.debug(" - Adding: {}".format(rel_path))
+                        logger.debug("Adding: {}".format(rel_path))
 
                         self._add_file(wheel, pkg, rel_path)
 
@@ -147,6 +147,7 @@ class WheelBuilder(Builder):
         )
 
     def _run_build_script(self, build_script):
+        logger.debug("Executing build script: {}".format(build_script))
         subprocess.check_call([sys.executable, build_script])
 
     def _copy_module(self, wheel):  # type: (zipfile.ZipFile) -> None
