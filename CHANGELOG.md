@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.0.0a9] - 2020-07-24
+
+### Added
+
+- Added support for build scripts without `setup.py` generation ([#45](https://github.com/python-poetry/core/pull/45)).
+
+### Changed
+
+- Improved the parsing of requirements and environment markers ([#44](https://github.com/python-poetry/core/pull/44)).
+
+### Fixed
+
+- Fixed the default value used for the `build.generate-setup-file` settings ([#43](https://github.com/python-poetry/core/pull/43)).
+- Fixed error messages when the authors specified in the pyproject.toml file are invalid ([#49](https://github.com/python-poetry/core/pull/49)).
+- Fixed distributions build when using the PEP-517 backend for packages with includes ([#47](https://github.com/python-poetry/core/pull/47)).
+
+
 ## [1.0.0a8] - 2020-06-26
 
 ### Fixed
@@ -47,7 +64,8 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a8...master
+[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a9...master
+[1.0.0a9]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a9
 [1.0.0a8]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a8
 [1.0.0a7]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a7
 [1.0.0a6]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a6
