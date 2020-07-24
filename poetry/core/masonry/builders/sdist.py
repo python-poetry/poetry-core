@@ -56,7 +56,7 @@ class SdistBuilder(Builder):
     format = "sdist"
 
     def build(self, target_dir=None):  # type: (Path) -> Path
-        logger.info(" - Building <info>sdist</info>")
+        logger.info("Building <info>sdist</info>")
         if target_dir is None:
             target_dir = self._path / "dist"
 
@@ -106,7 +106,7 @@ class SdistBuilder(Builder):
             tar.close()
             gz.close()
 
-        logger.info(" - Built <comment>{}</comment>".format(target.name))
+        logger.info("Built <comment>{}</comment>".format(target.name))
         return target
 
     def build_setup(self):  # type: () -> bytes
@@ -209,9 +209,7 @@ class SdistBuilder(Builder):
         has_setup = setup.exists()
 
         if has_setup:
-            logger.info(
-                " - <warning>A setup.py file already exists. Using it.</warning>"
-            )
+            logger.warning("A setup.py file already exists. Using it.")
         else:
             with setup.open("w", encoding="utf-8") as f:
                 f.write(decode(self.build_setup()))
@@ -323,7 +321,7 @@ class SdistBuilder(Builder):
         for file in additional_files:
             file = BuildIncludeFile(path=file, source_root=self._path)
             if file.path.exists():
-                logger.debug(" - Adding: {}".format(file.relative_to_source_root()))
+                logger.debug("Adding: {}".format(file.relative_to_source_root()))
                 to_add.add(file)
 
         return to_add
