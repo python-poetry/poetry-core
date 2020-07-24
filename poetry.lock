@@ -42,7 +42,6 @@ tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.i
 [[package]]
 category = "dev"
 description = "Backport of functools.lru_cache"
-marker = "python_version < \"3.2\""
 name = "backports.functools-lru-cache"
 optional = false
 python-versions = ">=2.6"
@@ -55,7 +54,6 @@ testing = ["pytest (>=3.5,<3.7.3 || >3.7.3)", "pytest-checkdocs (>=1.2.3)", "pyt
 [[package]]
 category = "dev"
 description = "Backport of new features in Python's tempfile module"
-marker = "python_version >= \"2.7\" and python_version < \"2.8\""
 name = "backports.tempfile"
 optional = false
 python-versions = "*"
@@ -67,7 +65,6 @@ version = "1.0"
 [[package]]
 category = "dev"
 description = "Backport of new features in Python's weakref module"
-marker = "python_version >= \"2.7\" and python_version < \"2.8\""
 name = "backports.weakref"
 optional = false
 python-versions = "*"
@@ -76,7 +73,6 @@ version = "1.0.post1"
 [[package]]
 category = "dev"
 description = "Python package for providing Mozilla's CA Bundle."
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "certifi"
 optional = false
 python-versions = "*"
@@ -96,7 +92,6 @@ six = "*"
 [[package]]
 category = "dev"
 description = "Universal encoding detector for Python 2 and 3"
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "chardet"
 optional = false
 python-versions = "*"
@@ -108,15 +103,14 @@ description = "Cleo allows you to create beautiful and testable command-line int
 name = "cleo"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.7.6"
+version = "0.8.1"
 
 [package.dependencies]
-clikit = ">=0.4.0,<0.5.0"
+clikit = ">=0.6.0,<0.7.0"
 
 [[package]]
 category = "dev"
 description = "Composable command line interface toolkit"
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "click"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
@@ -128,37 +122,27 @@ description = "CliKit is a group of utilities to build beautiful and testable co
 name = "clikit"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.4.3"
+version = "0.6.2"
 
 [package.dependencies]
 pastel = ">=0.2.0,<0.3.0"
 pylev = ">=1.3,<2.0"
-
-[package.dependencies.enum34]
-python = ">=2.7,<2.8"
-version = ">=1.1,<2.0"
-
-[package.dependencies.typing]
-python = ">=2.7,<2.8 || >=3.4,<3.5"
-version = ">=3.6,<4.0"
-
-[package.dependencies.typing-extensions]
-python = ">=3.5.0,<3.5.4"
-version = ">=3.6,<4.0"
+crashtest = {version = ">=0.3.0,<0.4.0", markers = "python_version >= \"3.6\" and python_version < \"4.0\""}
+enum34 = {version = ">=1.1,<2.0", markers = "python_version >= \"2.7\" and python_version < \"2.8\""}
+typing = {version = ">=3.6,<4.0", markers = "python_version >= \"2.7\" and python_version < \"2.8\" or python_version >= \"3.4\" and python_version < \"3.5\""}
+typing-extensions = {version = ">=3.6,<4.0", markers = "python_version >= \"3.5\" and python_full_version < \"3.5.4\""}
 
 [[package]]
 category = "dev"
 description = "Cross-platform colored terminal text."
-marker = "sys_platform == \"win32\" and python_version != \"3.4\" or platform_system == \"Windows\""
 name = "colorama"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 version = "0.4.3"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Updated configparser from Python 3.7 for Python 2.6+."
-marker = "python_version < \"3\""
 name = "configparser"
 optional = false
 python-versions = ">=2.6"
@@ -169,9 +153,8 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=3.5,<3.7.3 || >3.7.3)", "pytest-checkdocs (>=1.2)", "pytest-flake8", "pytest-black-multipy"]
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Backports and enhancements for the contextlib module"
-marker = "python_version < \"3.4\""
 name = "contextlib2"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -190,6 +173,14 @@ toml = ["toml"]
 
 [[package]]
 category = "dev"
+description = "Manage Python errors with ease"
+name = "crashtest"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "0.3.0"
+
+[[package]]
+category = "dev"
 description = "Distribution utilities"
 name = "distlib"
 optional = false
@@ -199,7 +190,6 @@ version = "0.3.1"
 [[package]]
 category = "main"
 description = "Python 3.4 Enum backported to 3.3, 3.2, 3.1, 2.7, 2.6, 2.5, and 2.4"
-marker = "python_version >= \"2.7\" and python_version < \"2.8\""
 name = "enum34"
 optional = false
 python-versions = "*"
@@ -216,7 +206,6 @@ version = "3.0.12"
 [[package]]
 category = "dev"
 description = "Python function signatures from PEP362 for Python 2.6, 2.7 and 3.2+"
-marker = "python_version < \"3.0\""
 name = "funcsigs"
 optional = false
 python-versions = "*"
@@ -225,7 +214,6 @@ version = "1.0.2"
 [[package]]
 category = "main"
 description = "Backport of the functools module from Python 3.2.3 for use on 2.7 and PyPy."
-marker = "python_version >= \"2.7\" and python_version < \"2.8\""
 name = "functools32"
 optional = false
 python-versions = "*"
@@ -233,12 +221,11 @@ version = "3.2.3-2"
 
 [[package]]
 category = "dev"
-description = "Backport of the concurrent.futures package from Python 3"
-marker = "python_version < \"3.2\""
+description = "Backport of the concurrent.futures package from Python 3.2"
 name = "futures"
 optional = false
-python-versions = ">=2.6, <3"
-version = "3.3.0"
+python-versions = "*"
+version = "3.1.1"
 
 [[package]]
 category = "dev"
@@ -254,16 +241,14 @@ license = ["editdistance"]
 [[package]]
 category = "dev"
 description = "Internationalized Domain Names in Applications (IDNA)"
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "idna"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.10"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Read metadata from Python packages"
-marker = "python_version < \"3.8\""
 name = "importlib-metadata"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
@@ -271,18 +256,9 @@ version = "1.7.0"
 
 [package.dependencies]
 zipp = ">=0.5"
-
-[package.dependencies.configparser]
-python = "<3"
-version = ">=3.5"
-
-[package.dependencies.contextlib2]
-python = "<3"
-version = "*"
-
-[package.dependencies.pathlib2]
-python = "<3"
-version = "*"
+configparser = {version = ">=3.5", markers = "python_version < \"3\""}
+contextlib2 = {version = "*", markers = "python_version < \"3\""}
+pathlib2 = {version = "*", markers = "python_version < \"3\""}
 
 [package.extras]
 docs = ["sphinx", "rst.linker"]
@@ -291,32 +267,17 @@ testing = ["packaging", "pep517", "importlib-resources (>=1.3)"]
 [[package]]
 category = "dev"
 description = "Read resources from Python packages"
-marker = "python_version < \"3.7\""
 name = "importlib-resources"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 version = "3.0.0"
 
 [package.dependencies]
-[package.dependencies.contextlib2]
-python = "<3"
-version = "*"
-
-[package.dependencies.pathlib2]
-python = "<3"
-version = "*"
-
-[package.dependencies.singledispatch]
-python = "<3.4"
-version = "*"
-
-[package.dependencies.typing]
-python = "<3.5"
-version = "*"
-
-[package.dependencies.zipp]
-python = "<3.8"
-version = ">=0.4"
+contextlib2 = {version = "*", markers = "python_version < \"3\""}
+pathlib2 = {version = "*", markers = "python_version < \"3\""}
+singledispatch = {version = "*", markers = "python_version < \"3.4\""}
+typing = {version = "*", markers = "python_version < \"3.5\""}
+zipp = {version = ">=0.4", markers = "python_version < \"3.8\""}
 
 [package.extras]
 docs = ["sphinx", "rst.linker", "jaraco.packaging"]
@@ -330,13 +291,8 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "4.3.21"
 
 [package.dependencies]
-[package.dependencies."backports.functools-lru-cache"]
-python = "<3.2"
-version = "*"
-
-[package.dependencies.futures]
-python = "<3.2"
-version = "*"
+"backports.functools-lru-cache" = {version = "*", markers = "python_version < \"3.2\""}
+futures = {version = "*", markers = "python_version < \"3.2\""}
 
 [package.extras]
 pipfile = ["pipreqs", "requirementslib"]
@@ -347,7 +303,6 @@ xdg_home = ["appdirs (>=1.4.0)"]
 [[package]]
 category = "dev"
 description = "An implementation of JSON Schema validation for Python"
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "jsonschema"
 optional = false
 python-versions = "*"
@@ -356,7 +311,6 @@ version = "3.2.0"
 [package.dependencies]
 attrs = ">=17.4.0"
 pyrsistent = ">=0.14.0"
-setuptools = "*"
 six = ">=1.11.0"
 
 [package.extras]
@@ -366,7 +320,6 @@ format_nongpl = ["idna", "jsonpointer (>1.13)", "webcolors", "rfc3986-validator 
 [[package]]
 category = "dev"
 description = "Rolling backport of unittest.mock for all Pythons"
-marker = "python_version < \"3.0\""
 name = "mock"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -374,10 +327,7 @@ version = "3.0.5"
 
 [package.dependencies]
 six = "*"
-
-[package.dependencies.funcsigs]
-python = "<3.3"
-version = ">=1"
+funcsigs = {version = ">=1", markers = "python_version < \"3.3\""}
 
 [package.extras]
 build = ["twine", "wheel", "blurb"]
@@ -387,7 +337,6 @@ test = ["pytest", "pytest-cov"]
 [[package]]
 category = "dev"
 description = "More routines for operating on iterables, beyond itertools"
-marker = "python_version <= \"2.7\""
 name = "more-itertools"
 optional = false
 python-versions = "*"
@@ -395,15 +344,6 @@ version = "5.0.0"
 
 [package.dependencies]
 six = ">=1.0.0,<2.0.0"
-
-[[package]]
-category = "dev"
-description = "More routines for operating on iterables, beyond itertools"
-marker = "python_version > \"2.7\""
-name = "more-itertools"
-optional = false
-python-versions = ">=3.5"
-version = "8.4.0"
 
 [[package]]
 category = "dev"
@@ -436,7 +376,6 @@ version = "0.2.0"
 [[package]]
 category = "main"
 description = "Object-oriented filesystem paths"
-marker = "python_version < \"3.4\" and sys_platform != \"win32\" or python_version < \"3.6\" or python_version >= \"2.7\" and python_version < \"2.8\""
 name = "pathlib2"
 optional = false
 python-versions = "*"
@@ -444,10 +383,7 @@ version = "2.3.5"
 
 [package.dependencies]
 six = "*"
-
-[package.dependencies.scandir]
-python = "<3.5"
-version = "*"
+scandir = {version = "*", markers = "python_version < \"3.5\""}
 
 [[package]]
 category = "dev"
@@ -459,14 +395,8 @@ version = "0.8.2"
 
 [package.dependencies]
 toml = "*"
-
-[package.dependencies.importlib_metadata]
-python = "<3.8"
-version = "*"
-
-[package.dependencies.zipp]
-python = "<3.8"
-version = "*"
+importlib_metadata = {version = "*", markers = "python_version < \"3.8\""}
+zipp = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 category = "dev"
@@ -477,9 +407,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "0.13.1"
 
 [package.dependencies]
-[package.dependencies.importlib-metadata]
-python = "<3.8"
-version = ">=0.12"
+importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
 
 [package.extras]
 dev = ["pre-commit", "tox"]
@@ -501,18 +429,9 @@ pyyaml = "*"
 six = "*"
 toml = "*"
 virtualenv = ">=15.2"
-
-[package.dependencies.futures]
-python = "<3.2"
-version = "*"
-
-[package.dependencies.importlib-metadata]
-python = "<3.8"
-version = "*"
-
-[package.dependencies.importlib-resources]
-python = "<3.7"
-version = "*"
+futures = {version = "*", markers = "python_version < \"3.2\""}
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
+importlib-resources = {version = "*", markers = "python_version < \"3.7\""}
 
 [[package]]
 category = "dev"
@@ -541,7 +460,6 @@ version = "2.4.7"
 [[package]]
 category = "dev"
 description = "Persistent/Functional/Immutable data structures"
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "pyrsistent"
 optional = false
 python-versions = "*"
@@ -566,30 +484,18 @@ pluggy = ">=0.12,<1.0"
 py = ">=1.5.0"
 six = ">=1.10.0"
 wcwidth = "*"
+colorama = {version = "*", markers = "sys_platform == \"win32\" and python_version != \"3.4\""}
+funcsigs = {version = ">=1.0", markers = "python_version < \"3.0\""}
+importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
+pathlib2 = {version = ">=2.2.0", markers = "python_version < \"3.6\""}
 
 [[package.dependencies.more-itertools]]
-python = "<2.8"
+markers = "python_version <= \"2.7\""
 version = ">=4.0.0,<6.0.0"
 
 [[package.dependencies.more-itertools]]
-python = ">=2.8"
+markers = "python_version > \"2.7\""
 version = ">=4.0.0"
-
-[package.dependencies.colorama]
-python = "<3.4.0 || >=3.5.0"
-version = "*"
-
-[package.dependencies.funcsigs]
-python = "<3.0"
-version = ">=1.0"
-
-[package.dependencies.importlib-metadata]
-python = "<3.8"
-version = ">=0.12"
-
-[package.dependencies.pathlib2]
-python = "<3.6"
-version = ">=2.2.0"
 
 [package.extras]
 testing = ["argcomplete", "hypothesis (>=3.56)", "nose", "requests", "mock"]
@@ -619,10 +525,7 @@ version = "2.0.0"
 
 [package.dependencies]
 pytest = ">=2.7"
-
-[package.dependencies.mock]
-python = "<3.0"
-version = "*"
+mock = {version = "*", markers = "python_version < \"3.0\""}
 
 [package.extras]
 dev = ["pre-commit", "tox"]
@@ -638,7 +541,6 @@ version = "5.3.1"
 [[package]]
 category = "dev"
 description = "Python HTTP for Humans."
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "requests"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
@@ -657,7 +559,6 @@ socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
 [[package]]
 category = "main"
 description = "scandir, a better directory iterator and faster os.walk()"
-marker = "python_version < \"2.8\" and sys_platform != \"win32\" and python_version >= \"2.7\" or python_version >= \"2.7\" and python_version < \"2.8\""
 name = "scandir"
 optional = false
 python-versions = "*"
@@ -666,7 +567,6 @@ version = "1.10.0"
 [[package]]
 category = "dev"
 description = "This library brings functools.singledispatch from Python 3.4 to Python 2.6-3.3."
-marker = "python_version < \"3.4\""
 name = "singledispatch"
 optional = false
 python-versions = "*"
@@ -700,17 +600,9 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "0.5.11"
 
 [package.dependencies]
-[package.dependencies.enum34]
-python = ">=2.7,<2.8"
-version = ">=1.1,<2.0"
-
-[package.dependencies.functools32]
-python = ">=2.7,<2.8"
-version = ">=3.2.3,<4.0.0"
-
-[package.dependencies.typing]
-python = ">=2.7,<2.8 || >=3.4,<3.5"
-version = ">=3.6,<4.0"
+enum34 = {version = ">=1.1,<2.0", markers = "python_version >= \"2.7\" and python_version < \"2.8\""}
+functools32 = {version = ">=3.2.3,<4.0.0", markers = "python_version >= \"2.7\" and python_version < \"2.8\""}
+typing = {version = ">=3.6,<4.0", markers = "python_version >= \"2.7\" and python_version < \"2.8\" or python_version >= \"3.4\" and python_version < \"3.5\""}
 
 [[package]]
 category = "dev"
@@ -721,7 +613,6 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 version = "3.17.1"
 
 [package.dependencies]
-colorama = ">=0.4.1"
 filelock = ">=3.0.0"
 packaging = ">=14"
 pluggy = ">=0.12.0"
@@ -729,10 +620,8 @@ py = ">=1.4.17"
 six = ">=1.14.0"
 toml = ">=0.9.4"
 virtualenv = ">=16.0.0,<20.0.0 || >20.0.0,<20.0.1 || >20.0.1,<20.0.2 || >20.0.2,<20.0.3 || >20.0.3,<20.0.4 || >20.0.4,<20.0.5 || >20.0.5,<20.0.6 || >20.0.6,<20.0.7 || >20.0.7"
-
-[package.dependencies.importlib-metadata]
-python = "<3.8"
-version = ">=0.12,<2"
+colorama = {version = ">=0.4.1", markers = "platform_system == \"Windows\""}
+importlib-metadata = {version = ">=0.12,<2", markers = "python_version < \"3.8\""}
 
 [package.extras]
 docs = ["sphinx (>=2.0.0)", "towncrier (>=18.5.0)", "pygments-github-lexers (>=0.0.5)", "sphinxcontrib-autoprogram (>=0.1.5)"]
@@ -741,7 +630,6 @@ testing = ["freezegun (>=0.3.11)", "pathlib2 (>=2.3.3)", "pytest (>=4.0.0)", "py
 [[package]]
 category = "main"
 description = "Type Hints for Python"
-marker = "python_version >= \"2.7\" and python_version < \"2.8\" or python_version < \"3.5\" or python_version >= \"3.4\" and python_version < \"3.5\""
 name = "typing"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -750,7 +638,6 @@ version = "3.7.4.3"
 [[package]]
 category = "dev"
 description = "Backported and Experimental Type Hints for Python 3.5+"
-marker = "python_version >= \"3.5.0\" and python_version < \"3.5.4\""
 name = "typing-extensions"
 optional = false
 python-versions = "*"
@@ -759,7 +646,6 @@ version = "3.7.4.2"
 [[package]]
 category = "dev"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
@@ -773,7 +659,6 @@ socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 [[package]]
 category = "dev"
 description = "A command line tool, to simplify vendoring pure Python dependencies."
-marker = "python_version >= \"3.8\" and python_version < \"3.9\""
 name = "vendoring"
 optional = false
 python-versions = "~= 3.8.0"
@@ -798,18 +683,9 @@ appdirs = ">=1.4.3,<2"
 distlib = ">=0.3.1,<1"
 filelock = ">=3.0.0,<4"
 six = ">=1.9.0,<2"
-
-[package.dependencies.importlib-metadata]
-python = "<3.8"
-version = ">=0.12,<2"
-
-[package.dependencies.importlib-resources]
-python = "<3.7"
-version = ">=1.0"
-
-[package.dependencies.pathlib2]
-python = "<3.4"
-version = ">=2.3.3,<3"
+importlib-metadata = {version = ">=0.12,<2", markers = "python_version < \"3.8\""}
+importlib-resources = {version = ">=1.0", markers = "python_version < \"3.7\""}
+pathlib2 = {version = ">=2.3.3,<3", markers = "python_version < \"3.4\" and sys_platform != \"win32\""}
 
 [package.extras]
 docs = ["sphinx (>=3)", "sphinx-argparse (>=0.2.5)", "sphinx-rtd-theme (>=0.4.3)", "towncrier (>=19.9.0rc1)", "proselint (>=0.10.2)"]
@@ -824,30 +700,26 @@ python-versions = "*"
 version = "0.2.5"
 
 [package.dependencies]
-[package.dependencies."backports.functools-lru-cache"]
-python = "<3.2"
-version = ">=1.2.1"
+"backports.functools-lru-cache" = {version = ">=1.2.1", markers = "python_version < \"3.2\""}
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-marker = "python_version < \"3.8\""
 name = "zipp"
 optional = false
 python-versions = ">=2.7"
 version = "1.2.0"
 
 [package.dependencies]
-[package.dependencies.contextlib2]
-python = "<3.4"
-version = "*"
+contextlib2 = {version = "*", markers = "python_version < \"3.4\""}
 
 [package.extras]
 docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "unittest2", "jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "84d8293078aa84a1b4262a97eb085109da938103b72705f9cae8fa3d81f99cd9"
+content-hash = "101cc0df9d423447400dc91a0c7bc038dac1158c609a6da2c7db54b4fff75423"
+lock-version = "1.0"
 python-versions = "~2.7 || ^3.5"
 
 [metadata.files]
@@ -892,16 +764,16 @@ chardet = [
     {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
 ]
 cleo = [
-    {file = "cleo-0.7.6-py2.py3-none-any.whl", hash = "sha256:9443d67e5b2da79b32d820ae41758dd6a25618345cb10b9a022a695e26b291b9"},
-    {file = "cleo-0.7.6.tar.gz", hash = "sha256:99cf342406f3499cec43270fcfaf93c126c5164092eca201dfef0f623360b409"},
+    {file = "cleo-0.8.1-py2.py3-none-any.whl", hash = "sha256:141cda6dc94a92343be626bb87a0b6c86ae291dfc732a57bf04310d4b4201753"},
+    {file = "cleo-0.8.1.tar.gz", hash = "sha256:3d0e22d30117851b45970b6c14aca4ab0b18b1b53c8af57bed13208147e4069f"},
 ]
 click = [
     {file = "click-7.1.2-py2.py3-none-any.whl", hash = "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"},
     {file = "click-7.1.2.tar.gz", hash = "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a"},
 ]
 clikit = [
-    {file = "clikit-0.4.3-py2.py3-none-any.whl", hash = "sha256:71e321b7795a2a6c4888629f43365d52db071737e668ab16861121d7dd3ada09"},
-    {file = "clikit-0.4.3.tar.gz", hash = "sha256:6e2d7e115e7c7b35bceb0209109935ab2f9ab50910e9ff2293f7fa0b7abf973e"},
+    {file = "clikit-0.6.2-py2.py3-none-any.whl", hash = "sha256:71268e074e68082306e23d7369a7b99f824a0ef926e55ba2665e911f7208489e"},
+    {file = "clikit-0.6.2.tar.gz", hash = "sha256:442ee5db9a14120635c5990bcdbfe7c03ada5898291f0c802f77be71569ded59"},
 ]
 colorama = [
     {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
@@ -951,6 +823,10 @@ coverage = [
     {file = "coverage-5.2-cp39-cp39-win_amd64.whl", hash = "sha256:10f2a618a6e75adf64329f828a6a5b40244c1c50f5ef4ce4109e904e69c71bd2"},
     {file = "coverage-5.2.tar.gz", hash = "sha256:1874bdc943654ba46d28f179c1846f5710eda3aeb265ff029e0ac2b52daae404"},
 ]
+crashtest = [
+    {file = "crashtest-0.3.0-py3-none-any.whl", hash = "sha256:06069a9267c54be31c42b03574b72407bf780e13c82cb0238f24ea69cf25b6dd"},
+    {file = "crashtest-0.3.0.tar.gz", hash = "sha256:e9c06cc96400939ab5327123a3f699078eaad8a6283247d7b2ae0f6afffadf14"},
+]
 distlib = [
     {file = "distlib-0.3.1-py2.py3-none-any.whl", hash = "sha256:8c09de2c67b3e7deef7184574fc060ab8a793e7adbb183d942c389c8b13c52fb"},
     {file = "distlib-0.3.1.zip", hash = "sha256:edf6116872c863e1aa9d5bb7cb5e05a022c519a4594dc703843343a9ddd9bff1"},
@@ -973,8 +849,9 @@ functools32 = [
     {file = "functools32-3.2.3-2.zip", hash = "sha256:89d824aa6c358c421a234d7f9ee0bd75933a67c29588ce50aaa3acdf4d403fa0"},
 ]
 futures = [
-    {file = "futures-3.3.0-py2-none-any.whl", hash = "sha256:49b3f5b064b6e3afc3316421a3f25f66c137ae88f068abbf72830170033c5e16"},
-    {file = "futures-3.3.0.tar.gz", hash = "sha256:7e033af76a5e35f58e56da7a91e687706faf4e7bdfb2cbc3f2cca6b9bcda9794"},
+    {file = "futures-3.1.1-py2-none-any.whl", hash = "sha256:c4884a65654a7c45435063e14ae85280eb1f111d94e542396717ba9828c4337f"},
+    {file = "futures-3.1.1-py3-none-any.whl", hash = "sha256:3a44f286998ae64f0cc083682fcfec16c406134a81a589a5de445d7bb7c2751b"},
+    {file = "futures-3.1.1.tar.gz", hash = "sha256:51ecb45f0add83c806c68e4b06106f90db260585b25ef2abfcda0bd95c0132fd"},
 ]
 identify = [
     {file = "identify-1.4.24-py2.py3-none-any.whl", hash = "sha256:5519601b70c831011fb425ffd214101df7639ba3980f24dc283f7675b19127b3"},
@@ -1008,8 +885,6 @@ more-itertools = [
     {file = "more-itertools-5.0.0.tar.gz", hash = "sha256:38a936c0a6d98a38bcc2d03fdaaedaba9f412879461dd2ceff8d37564d6522e4"},
     {file = "more_itertools-5.0.0-py2-none-any.whl", hash = "sha256:c0a5785b1109a6bd7fac76d6837fd1feca158e54e521ccd2ae8bfe393cc9d4fc"},
     {file = "more_itertools-5.0.0-py3-none-any.whl", hash = "sha256:fe7a7cae1ccb57d33952113ff4fa1bc5f879963600ed74918f1236e212ee50b9"},
-    {file = "more-itertools-8.4.0.tar.gz", hash = "sha256:68c70cc7167bdf5c7c9d8f6954a7837089c6a36bf565383919bb595efb8a17e5"},
-    {file = "more_itertools-8.4.0-py3-none-any.whl", hash = "sha256:b78134b2063dd214000685165d81c154522c3ee0a1c0d4d113c80361c234c5a2"},
 ]
 nodeenv = [
     {file = "nodeenv-1.4.0-py2.py3-none-any.whl", hash = "sha256:4b0b77afa3ba9b54f4b6396e60b0c83f59eaeb2d63dc3cc7a70f7f4af96c82bc"},

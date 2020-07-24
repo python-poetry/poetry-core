@@ -651,11 +651,6 @@ def test_invert(marker, inverse):
 @pytest.mark.parametrize(
     "marker, expected",
     [
-        ('python_version >= "3.6" or python_version < "3.6"', "*"),
-        (
-            'python_version >= "3.6" or implementation_name == "pypy" or python_version < "3.6"',
-            'implementation_name == "pypy"',
-        ),
         (
             'python_version >= "3.6" or python_version < "3.7" or python_version < "3.6"',
             'python_version >= "3.6" or python_version < "3.7"',

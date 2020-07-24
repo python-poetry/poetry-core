@@ -5,23 +5,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import re
-import string
+import os
 
+from lark import Lark
+from lark import UnexpectedCharacters
+from lark import UnexpectedToken
 from poetry.core.semver import parse_constraint
-from pyparsing import Combine
-from pyparsing import Literal as L  # noqa
-from pyparsing import Optional
-from pyparsing import ParseException
-from pyparsing import Regex
-from pyparsing import Word
-from pyparsing import ZeroOrMore
-from pyparsing import originalTextFor
-from pyparsing import stringEnd
-from pyparsing import stringStart
+from poetry.core.semver.exceptions import ParseConstraintError
 
-from .markers import MARKER_EXPR
-from .markers import parse_marker
+from .markers import _compact_markers
 
 
 try:
@@ -30,172 +22,20 @@ except ImportError:
     import urlparse
 
 
-LEGACY_REGEX = r"""
-    (?P<operator>(==|!=|<=|>=|<|>))
-    \s*
-    (?P<version>
-        [^,;\s)]* # Since this is a "legacy" specifier, and the version
-                  # string can be just about anything, we match everything
-                  # except for whitespace, a semi-colon for marker support,
-                  # a closing paren since versions can be enclosed in
-                  # them, and a comma since it's a version separator.
-    )
-    """
-
-
-REGEX = r"""
-            (?P<operator>(~=|==|!=|<=|>=|<|>|===))
-            (?P<version>
-                (?:
-                    # The identity operators allow for an escape hatch that will
-                    # do an exact string match of the version you wish to install.
-                    # This will not be parsed by PEP 440 and we cannot determine
-                    # any semantic meaning from it. This operator is discouraged
-                    # but included entirely as an escape hatch.
-                    (?<====)  # Only match for the identity operator
-                    \s*
-                    [^\s]*    # We just match everything, except for whitespace
-                              # since we are only testing for strict identity.
-                )
-                |
-                (?:
-                    # The (non)equality operators allow for wild card and local
-                    # versions to be specified so we have to define these two
-                    # operators separately to enable that.
-                    (?<===|!=)            # Only match for equals and not equals
-
-                    \s*
-                    v?
-                    (?:[0-9]+!)?          # epoch
-                    [0-9]+(?:\.[0-9]+)*   # release
-                    (?:                   # pre release
-                        [-_\.]?
-                        (a|b|c|rc|alpha|beta|pre|preview)
-                        [-_\.]?
-                        [0-9]*
-                    )?
-                    (?:                   # post release
-                        (?:-[0-9]+)|(?:[-_\.]?(post|rev|r)[-_\.]?[0-9]*)
-                    )?
-
-                    # You cannot use a wild card and a dev or local version
-                    # together so group them with a | and make them optional.
-                    (?:
-                        (?:[-_\.]?dev[-_\.]?[0-9]*)?         # dev release
-                        (?:\+[a-z0-9]+(?:[-_\.][a-z0-9]+)*)? # local
-                        |
-                        \.\*  # Wild card syntax of .*
-                    )?
-                )
-                |
-                (?:
-                    # The compatible operator requires at least two digits in the
-                    # release segment.
-                    (?<=~=)               # Only match for the compatible operator
-
-                    \s*
-                    v?
-                    (?:[0-9]+!)?          # epoch
-                    [0-9]+(?:\.[0-9]+)+   # release  (We have a + instead of a *)
-                    (?:                   # pre release
-                        [-_\.]?
-                        (a|b|c|rc|alpha|beta|pre|preview)
-                        [-_\.]?
-                        [0-9]*
-                    )?
-                    (?:                                   # post release
-                        (?:-[0-9]+)|(?:[-_\.]?(post|rev|r)[-_\.]?[0-9]*)
-                    )?
-                    (?:[-_\.]?dev[-_\.]?[0-9]*)?          # dev release
-                )
-                |
-                (?:
-                    # All other operators only allow a sub set of what the
-                    # (non)equality operators do. Specifically they do not allow
-                    # local versions to be specified nor do they allow the prefix
-                    # matching wild cards.
-                    (?<!==|!=|~=)         # We have special cases for these
-                                          # operators so we want to make sure they
-                                          # don't match here.
-
-                    \s*
-                    v?
-                    (?:[0-9]+!)?          # epoch
-                    [0-9]+(?:\.[0-9]+)*   # release
-                    (?:                   # pre release
-                        [-_\.]?
-                        (a|b|c|rc|alpha|beta|pre|preview)
-                        [-_\.]?
-                        [0-9]*
-                    )?
-                    (?:                                   # post release
-                        (?:-[0-9]+)|(?:[-_\.]?(post|rev|r)[-_\.]?[0-9]*)
-                    )?
-                    (?:[-_\.]?dev[-_\.]?[0-9]*)?          # dev release
-                )
-            )
-"""
-
-
 class InvalidRequirement(ValueError):
     """
     An invalid requirement was found, users should refer to PEP 508.
     """
 
 
-ALPHANUM = Word(string.ascii_letters + string.digits)
-
-LBRACKET = L("[").suppress()
-RBRACKET = L("]").suppress()
-LPAREN = L("(").suppress()
-RPAREN = L(")").suppress()
-COMMA = L(",").suppress()
-SEMICOLON = L(";").suppress()
-AT = L("@").suppress()
-
-PUNCTUATION = Word("-_.")
-IDENTIFIER_END = ALPHANUM | (ZeroOrMore(PUNCTUATION) + ALPHANUM)
-IDENTIFIER = Combine(ALPHANUM + ZeroOrMore(IDENTIFIER_END))
-
-NAME = IDENTIFIER("name")
-EXTRA = IDENTIFIER
-
-URI = Regex(r"[^ ]+")("url")
-URL = AT + URI
-
-EXTRAS_LIST = EXTRA + ZeroOrMore(COMMA + EXTRA)
-EXTRAS = (LBRACKET + Optional(EXTRAS_LIST) + RBRACKET)("extras")
-
-VERSION_PEP440 = Regex(REGEX, re.VERBOSE | re.IGNORECASE)
-VERSION_LEGACY = Regex(LEGACY_REGEX, re.VERBOSE | re.IGNORECASE)
-
-VERSION_ONE = VERSION_PEP440 ^ VERSION_LEGACY
-VERSION_MANY = Combine(
-    VERSION_ONE + ZeroOrMore(COMMA + VERSION_ONE), joinString=",", adjacent=False
-)("_raw_spec")
-_VERSION_SPEC = Optional(((LPAREN + VERSION_MANY + RPAREN) | VERSION_MANY))
-_VERSION_SPEC.setParseAction(lambda s, l, t: t._raw_spec or "")
-
-VERSION_SPEC = originalTextFor(_VERSION_SPEC)("specifier")
-VERSION_SPEC.setParseAction(lambda s, l, t: t[1])
-
-MARKER_EXPR = originalTextFor(MARKER_EXPR())("marker")
-MARKER_EXPR.setParseAction(
-    lambda s, l, t: parse_marker(s[t._original_start : t._original_end])
+_parser = Lark.open(
+    os.path.join(os.path.dirname(__file__), "grammars", "pep508.lark"), parser="lalr"
 )
-MARKER_SEPARATOR = SEMICOLON
-MARKER = MARKER_SEPARATOR + MARKER_EXPR
-
-VERSION_AND_MARKER = VERSION_SPEC + Optional(MARKER)
-URL_AND_MARKER = URL + Optional(MARKER)
-
-NAMED_REQUIREMENT = NAME + Optional(EXTRAS) + (URL_AND_MARKER | VERSION_AND_MARKER)
-
-REQUIREMENT = stringStart + NAMED_REQUIREMENT + stringEnd
 
 
 class Requirement(object):
-    """Parse a requirement.
+    """
+    Parse a requirement.
 
     Parse a given requirement string into its parts, such as name, specifier,
     URL, and extras. Raises InvalidRequirement on a badly-formed requirement
@@ -204,38 +44,61 @@ class Requirement(object):
 
     def __init__(self, requirement_string):
         try:
-            req = REQUIREMENT.parseString(requirement_string)
-        except ParseException as e:
+            parsed = _parser.parse(requirement_string)
+        except (UnexpectedCharacters, UnexpectedToken) as e:
             raise InvalidRequirement(
-                'Invalid requirement, parse error at "{0!r}"'.format(
-                    requirement_string[e.loc : e.loc + 8]
+                "The requirement is invalid: Unexpected character at column {}\n\n{}".format(
+                    e.column, e.get_context(requirement_string)
                 )
             )
 
-        self.name = req.name
-        if req.url:
-            parsed_url = urlparse.urlparse(req.url)
+        self.name = next(parsed.scan_values(lambda t: t.type == "NAME")).value
+        url = next(parsed.scan_values(lambda t: t.type == "URI"), None)
+
+        if url:
+            url = url.value
+            parsed_url = urlparse.urlparse(url)
             if parsed_url.scheme == "file":
-                if urlparse.urlunparse(parsed_url) != req.url:
-                    raise InvalidRequirement("Invalid URL given")
+                if urlparse.urlunparse(parsed_url) != url:
+                    raise InvalidRequirement(
+                        'The requirement is invalid: invalid URL "{0}"'.format(url)
+                    )
             elif (
                 not (parsed_url.scheme and parsed_url.netloc)
                 or (not parsed_url.scheme and not parsed_url.netloc)
             ) and not parsed_url.path:
-                raise InvalidRequirement("Invalid URL: {0}".format(req.url))
-            self.url = req.url
+                raise InvalidRequirement(
+                    'The requirement is invalid: invalid URL "{0}"'.format(url)
+                )
+            self.url = url
         else:
             self.url = None
 
-        self.extras = set(req.extras.asList() if req.extras else [])
-        constraint = req.specifier
+        self.extras = [e.value for e in parsed.scan_values(lambda t: t.type == "EXTRA")]
+        constraint = next(parsed.find_data("version_specification"), None)
         if not constraint:
             constraint = "*"
+        else:
+            constraint = ",".join(constraint.children)
 
-        self.constraint = parse_constraint(constraint)
+        try:
+            self.constraint = parse_constraint(constraint)
+        except ParseConstraintError:
+            raise InvalidRequirement(
+                'The requirement is invalid: invalid version constraint "{}"'.format(
+                    constraint
+                )
+            )
+
         self.pretty_constraint = constraint
 
-        self.marker = req.marker if req.marker else None
+        marker = next(parsed.find_data("marker_spec"), None)
+        if marker:
+            marker = _compact_markers(
+                marker.children[0].children, tree_prefix="markers__"
+            )
+
+        self.marker = marker
 
     def __str__(self):
         parts = [self.name]
