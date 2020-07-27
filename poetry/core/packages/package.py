@@ -456,10 +456,33 @@ class Package(object):
         if not isinstance(other, Package):
             return NotImplemented
 
+        if self.source_type in ["file", "directory", "url", "git"]:
+            if self.source_type != other.source_type:
+                return False
+
+            if self.source_url or other.source_url:
+                if self.source_url != other.source_url:
+                    return False
+
+            if self.source_reference or other.source_reference:
+                # special handling for packages with references
+                if not self.source_reference or not other.source_reference:
+                    # case: one reference is defined and is non-empty, but other is not
+                    return False
+
+                if not (
+                    self.source_reference == other.source_reference
+                    or self.source_reference.startswith(other.source_reference)
+                    or other.source_reference.startswith(self.source_reference)
+                ):
+                    # case: both references defined, but one is not equal to or a short
+                    # representation of the other
+                    return False
+
         return self._name == other.name and self._version == other.version
 
     def __str__(self):
         return self.unique_name
 
     def __repr__(self):
-        return "<Package {}>".format(self.unique_name)
+        return "<Package {} {}>".format(self.name, self.full_pretty_version)
