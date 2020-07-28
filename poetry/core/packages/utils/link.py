@@ -155,6 +155,18 @@ class Link:
         return self.ext == ".whl"
 
     @property
+    def is_wininst(self):
+        return self.ext == ".exe"
+
+    @property
+    def is_egg(self):
+        return self.ext == ".egg"
+
+    @property
+    def is_sdist(self):
+        return self.ext in {".tar.bz2", ".tar.gz", ".zip"}
+
+    @property
     def is_artifact(self):
         """
         Determines if this points to an actual artifact (e.g. a tarball) or if
