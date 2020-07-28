@@ -40,6 +40,9 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
         ("name (==4)", {"name": "name", "constraint": "==4"}),
         ("name>=2,<3", {"name": "name", "constraint": ">=2,<3"}),
         ("name >=2, <3", {"name": "name", "constraint": ">=2,<3"}),
+        # PEP 440: https://www.python.org/dev/peps/pep-0440/#compatible-release
+        ("name (~=3.2)", {"name": "name", "constraint": ">=3.2.0,<4.0"}),
+        ("name (~=3.2.1)", {"name": "name", "constraint": ">=3.2.1,<3.3.0"}),
         # Extras
         ("foobar [quux,bar]", {"name": "foobar", "extras": ["quux", "bar"]}),
         ("foo[]", {"name": "foo"}),
