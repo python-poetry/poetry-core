@@ -11,6 +11,10 @@ from poetry.core.semver import parse_constraint
     [
         ("~=3.8", VersionRange(min=Version(3, 8), max=Version(4, 0), include_min=True)),
         (
+            "== 3.8.*",
+            VersionRange(min=Version(3, 8), max=Version(3, 9, 0), include_min=True),
+        ),
+        (
             "~= 3.8",
             VersionRange(min=Version(3, 8), max=Version(4, 0), include_min=True),
         ),
