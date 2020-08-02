@@ -165,7 +165,7 @@ def dependency_from_pep_508(
             ands = []
             for op, version in or_:
                 # Expand python version
-                if op == "==":
+                if op == "==" and "*" not in version:
                     version = "~" + version
                     op = ""
                 elif op == "!=":
