@@ -77,6 +77,7 @@ class Package(object):
 
         self.requires = []
         self.dev_requires = []
+        self.build_requires = []
         self.extras = {}
         self.requires_extras = []
 
@@ -164,7 +165,7 @@ class Package(object):
 
     @property
     def all_requires(self):
-        return self.requires + self.dev_requires
+        return self.requires + self.dev_requires + self.build_requires
 
     def _get_author(self):  # type: () -> dict
         if not self._authors:
@@ -404,6 +405,8 @@ class Package(object):
 
         if category == "dev":
             self.dev_requires.append(dependency)
+        elif category == "build":
+            self.build_requires.append(dependency)
         else:
             self.requires.append(dependency)
 
@@ -446,6 +449,9 @@ class Package(object):
 
         for dep in self.dev_requires:
             clone.dev_requires.append(dep)
+
+        for dep in self.build_requires:
+            clone.build_requires.append(dep)
 
         return clone
 

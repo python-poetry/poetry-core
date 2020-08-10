@@ -199,3 +199,22 @@ The Poetry configuration is invalid:
   - 'description' is a required property
 """
     assert expected == str(e.value)
+
+
+def test_create_poetry_with_build_system_requires():
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_build_system_requires"
+    )
+    package = poetry.package
+
+    assert package.name == "poetry-cython-example"
+    assert package.version.text == "0.1.0"
+
+    assert not package.dev_requires
+    assert not package.requires
+
+    assert len(package.build_requires) == 1
+
+    dependency = package.build_requires[0]
+    assert dependency.category == "build"
+    assert dependency.to_pep_508() == "cython (>=0.29.6,<0.30.0)"

@@ -6,12 +6,16 @@ from typing import List
 from typing import Optional
 
 from .json import validate_object
+from .packages import DirectoryDependency
+from .packages import FileDependency
+from .packages import dependency_from_pep_508
 from .packages.dependency import Dependency
 from .packages.project_package import ProjectPackage
 from .poetry import Poetry
 from .pyproject import PyProjectTOML
 from .spdx import license_by_id
 from .utils._compat import Path
+from .utils.helpers import canonicalize_name
 
 
 class Factory(object):
@@ -21,7 +25,10 @@ class Factory(object):
 
     def create_poetry(self, cwd=None):  # type: (Optional[Path]) -> Poetry
         poetry_file = self.locate(cwd)
-        local_config = PyProjectTOML(path=poetry_file).poetry_config
+
+        pyproject = PyProjectTOML(path=poetry_file)
+        local_config = pyproject.poetry_config
+        build_system = pyproject.build_system
 
         # Checking validity
         check_result = self.validate(local_config)
@@ -86,6 +93,36 @@ class Factory(object):
                     continue
 
                 package.add_dependency(name, constraint, category="dev")
+
+        for requirement in build_system.requires:
+            dependency = None
+            try:
+                dependency = dependency_from_pep_508(requirement)
+            except ValueError:
+                # PEP 517 requires can be path if not PEP 508
+                path = Path(requirement)
+                try:
+                    if path.is_file():
+                        dependency = FileDependency(
+                            name=canonicalize_name(path.name), path=path
+                        )
+                    elif path.is_dir():
+                        dependency = DirectoryDependency(
+                            name=canonicalize_name(path.name), path=path
+                        )
+                except OSError:
+                    # compatibility Python < 3.8
+                    # https://docs.python.org/3/library/pathlib.html#methods
+                    pass
+
+            if dependency is None:
+                # skip since we could not determine requirement
+                continue
+
+            if dependency.name not in {"poetry", "poetry-core"}:
+                package.add_dependency(
+                    dependency.name, dependency.constraint, category="build"
+                )
 
         extras = local_config.get("extras", {})
         for extra_name, requirements in extras.items():
