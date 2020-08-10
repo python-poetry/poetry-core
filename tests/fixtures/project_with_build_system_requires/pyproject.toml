@@ -1,0 +1,22 @@
+[build-system]
+requires = [
+  "poetry-core",
+  "Cython~=0.29.6",
+]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "poetry-cython-example"
+version = "0.1.0"
+description = ""
+authors = []
+include = [{ path = "project/**/*.so", format = "wheel" }]
+
+[tool.poetry.build]
+generate-setup-file = false
+script = "build.py"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
