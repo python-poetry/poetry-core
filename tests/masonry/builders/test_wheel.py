@@ -201,7 +201,7 @@ def test_wheel_package_pep_561_stub_only_includes_typed_marker():
 
 def test_wheel_includes_licenses_in_correct_paths():
     root = fixtures_dir / "licenses_and_copying"
-    WheelBuilder.make(Factory().create_poetry(root), NullEnv(), NullIO())
+    WheelBuilder.make(Factory().create_poetry(root))
 
     whl = root / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
