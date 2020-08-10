@@ -38,12 +38,18 @@ class CompleteBuilder(Builder):
 
                 with self.unpacked_tarball(sdist_file) as tmpdir:
                     WheelBuilder.make_in(
-                        Factory().create_poetry(tmpdir), dist_dir, original=self._poetry
+                        Factory().create_poetry(tmpdir),
+                        dist_dir,
+                        original=self._poetry,
+                        executable=self.executable,
                     )
         else:
             with self.unpacked_tarball(sdist_file) as tmpdir:
                 WheelBuilder.make_in(
-                    Factory().create_poetry(tmpdir), dist_dir, original=self._poetry
+                    Factory().create_poetry(tmpdir),
+                    dist_dir,
+                    original=self._poetry,
+                    executable=self.executable,
                 )
 
     @classmethod

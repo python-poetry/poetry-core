@@ -8,7 +8,6 @@ import os
 import shutil
 import stat
 import subprocess
-import sys
 import tempfile
 import zipfile
 
@@ -43,8 +42,8 @@ logger = logging.getLogger(__name__)
 class WheelBuilder(Builder):
     format = "wheel"
 
-    def __init__(self, poetry, target_dir=None, original=None):
-        super(WheelBuilder, self).__init__(poetry)
+    def __init__(self, poetry, target_dir=None, original=None, executable=None):
+        super(WheelBuilder, self).__init__(poetry, executable=executable)
 
         self._records = []
         self._original_path = self._path
@@ -53,16 +52,18 @@ class WheelBuilder(Builder):
             self._original_path = original.file.parent
 
     @classmethod
-    def make_in(cls, poetry, directory=None, original=None):
-        wb = WheelBuilder(poetry, target_dir=directory, original=original)
+    def make_in(cls, poetry, directory=None, original=None, executable=None):
+        wb = WheelBuilder(
+            poetry, target_dir=directory, original=original, executable=executable
+        )
         wb.build()
 
         return wb.wheel_filename
 
     @classmethod
-    def make(cls, poetry):
+    def make(cls, poetry, executable=None):
         """Build a wheel in the dist/ directory, and optionally upload it."""
-        cls.make_in(poetry)
+        cls.make_in(poetry, executable=executable)
 
     def build(self):
         logger.info("Building wheel")
@@ -146,12 +147,18 @@ class WheelBuilder(Builder):
 
     def _run_build_command(self, setup):
         subprocess.check_call(
-            [sys.executable, str(setup), "build", "-b", str(self._path / "build")]
+            [
+                self.executable.as_posix(),
+                str(setup),
+                "build",
+                "-b",
+                str(self._path / "build"),
+            ]
         )
 
     def _run_build_script(self, build_script):
         logger.debug("Executing build script: {}".format(build_script))
-        subprocess.check_call([sys.executable, build_script])
+        subprocess.check_call([self.executable.as_posix(), build_script])
 
     def _copy_module(self, wheel):  # type: (zipfile.ZipFile) -> None
         to_add = self.find_files_to_add()
