@@ -199,6 +199,7 @@ def test_wheel_package_pep_561_stub_only_includes_typed_marker():
     with zipfile.ZipFile(str(whl)) as z:
         assert "pkg-stubs/py.typed" in z.namelist()
 
+
 def test_wheel_includes_licenses_in_correct_paths():
     root = fixtures_dir / "licenses_and_copying"
     WheelBuilder.make(Factory().create_poetry(root))
