@@ -2,6 +2,7 @@
 import logging
 import re
 import shutil
+import sys
 import tempfile
 
 from collections import defaultdict
@@ -40,13 +41,14 @@ class Builder(object):
     format = None
 
     def __init__(
-        self, poetry, ignore_packages_formats=False
-    ):  # type: ("Poetry", bool) -> None
+        self, poetry, ignore_packages_formats=False, executable=None
+    ):  # type: ("Poetry", bool, Optional[Union[Path, str]]) -> None
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
         self._original_path = self._path
         self._excluded_files = None
+        self._executable = Path(executable or sys.executable)  # type: Path
 
         packages = []
         for p in self._package.packages:
@@ -86,6 +88,10 @@ class Builder(object):
         )
 
         self._meta = Metadata.from_package(self._package)
+
+    @property
+    def executable(self):  # type: () -> Path
+        return self._executable
 
     def build(self):
         raise NotImplementedError()
