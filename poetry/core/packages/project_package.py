@@ -58,3 +58,6 @@ class ProjectPackage(Package):
         urls.update(self.custom_urls)
 
         return urls
+
+    def build_should_generate_setup(self):  # type: () -> bool
+        return self.build_config.get("generate-setup-file", True)

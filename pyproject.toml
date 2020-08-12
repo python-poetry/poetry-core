@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.0.0a8"
+version = "1.0.0a9"
 description = "Core utilities for Poetry"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -30,6 +30,7 @@ exclude = [
 python = "~2.7 || ^3.5"
 
 # required for compatibility
+importlib-metadata = {version = "^1.7.0", python = "~2.7 || >=3.5, <3.8"}
 pathlib2 = {version = "^2.3.5", python = "~2.7"}
 typing = {version = "^3.7.4.1", python = "~2.7"}
 
@@ -45,12 +46,13 @@ pytest = "^4.6"
 pytest-cov = "^2.8.1"
 pytest-mock = "^2.0.0"
 tox = "^3.0"
-cleo = "^0.7.6"
+cleo = "^0.8.1"
 tomlkit = "^0.5.8"
 vendoring = {version = "^0.2.2", python = "~3.8"}
 isort = "^4.3.21"
 pep517 = "^0.8.2"
 "backports.tempfile" = {version = "^1.0", python = "~2.7"}
+virtualenv = "^20.0.27"
 
 [tool.intreehooks]
 build-backend = "poetry.core.masonry.api"

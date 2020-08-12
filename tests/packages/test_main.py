@@ -236,3 +236,21 @@ def test_dependency_from_pep_508_with_python_full_version():
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_full_version >= "3.4" and python_full_version < "3.5.4"'
     )
+
+
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix():
+    name = 'pathlib2 ; python_version == "3.4.*" or python_version < "3"'
+    dep = dependency_from_pep_508(name)
+
+    assert dep.name == "pathlib2"
+    assert str(dep.constraint) == "*"
+    assert dep.python_versions == "==3.4.* || <3"
+
+
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde():
+    name = 'pathlib2 ; python_version ~= "3.4" or python_version < "3"'
+    dep = dependency_from_pep_508(name)
+
+    assert dep.name == "pathlib2"
+    assert str(dep.constraint) == "*"
+    assert dep.python_versions == "~=3.4 || <3"

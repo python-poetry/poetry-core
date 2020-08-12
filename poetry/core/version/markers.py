@@ -1,3 +1,4 @@
+import os
 import re
 
 from typing import Any
@@ -5,14 +6,9 @@ from typing import Dict
 from typing import Iterator
 from typing import List
 
-from pyparsing import Forward
-from pyparsing import Group
-from pyparsing import Literal as L  # noqa
-from pyparsing import ParseResults
-from pyparsing import QuotedString
-from pyparsing import ZeroOrMore
-from pyparsing import stringEnd
-from pyparsing import stringStart
+from lark import Lark
+from lark import Token
+from lark import Tree
 
 
 class InvalidMarker(ValueError):
@@ -34,55 +30,6 @@ class UndefinedEnvironmentName(ValueError):
     """
 
 
-class Node(object):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return "<{0}({1!r})>".format(self.__class__.__name__, str(self))
-
-    def serialize(self):
-        raise NotImplementedError
-
-
-class Variable(Node):
-    def serialize(self):
-        return str(self)
-
-
-class Value(Node):
-    def serialize(self):
-        return '"{0}"'.format(self)
-
-
-class Op(Node):
-    def serialize(self):
-        return str(self)
-
-
-VARIABLE = (
-    L("implementation_version")
-    | L("platform_python_implementation")
-    | L("implementation_name")
-    | L("python_full_version")
-    | L("platform_release")
-    | L("platform_version")
-    | L("platform_machine")
-    | L("platform_system")
-    | L("python_version")
-    | L("sys_platform")
-    | L("os_name")
-    | L("os.name")
-    | L("sys.platform")  # PEP-345
-    | L("platform.version")  # PEP-345
-    | L("platform.machine")  # PEP-345
-    | L("platform.python_implementation")  # PEP-345
-    | L("python_implementation")  # PEP-345
-    | L("extra")  # undocumented setuptools legacy
-)
 ALIASES = {
     "os.name": "os_name",
     "sys.platform": "sys_platform",
@@ -91,69 +38,9 @@ ALIASES = {
     "platform.python_implementation": "platform_python_implementation",
     "python_implementation": "platform_python_implementation",
 }
-VARIABLE.setParseAction(lambda s, l, t: Variable(ALIASES.get(t[0], t[0])))
-
-VERSION_CMP = (
-    L("===") | L("==") | L(">=") | L("<=") | L("!=") | L("~=") | L(">") | L("<")
+_parser = Lark.open(
+    os.path.join(os.path.dirname(__file__), "grammars", "markers.lark"), parser="lalr"
 )
-
-MARKER_OP = VERSION_CMP | L("not in") | L("in")
-MARKER_OP.setParseAction(lambda s, l, t: Op(t[0]))
-
-MARKER_VALUE = QuotedString("'") | QuotedString('"')
-MARKER_VALUE.setParseAction(lambda s, l, t: Value(t[0]))
-
-BOOLOP = L("and") | L("or")
-
-MARKER_VAR = VARIABLE | MARKER_VALUE
-
-MARKER_ITEM = Group(MARKER_VAR + MARKER_OP + MARKER_VAR)
-MARKER_ITEM.setParseAction(lambda s, l, t: tuple(t[0]))
-
-LPAREN = L("(").suppress()
-RPAREN = L(")").suppress()
-
-MARKER_EXPR = Forward()
-MARKER_ATOM = MARKER_ITEM | Group(LPAREN + MARKER_EXPR + RPAREN)
-MARKER_EXPR << MARKER_ATOM + ZeroOrMore(BOOLOP + MARKER_EXPR)
-
-MARKER = stringStart + MARKER_EXPR + stringEnd
-
-
-_undefined = object()
-
-
-def _coerce_parse_result(results):
-    if isinstance(results, ParseResults):
-        return [_coerce_parse_result(i) for i in results]
-    else:
-        return results
-
-
-def _format_marker(marker, first=True):
-    assert isinstance(marker, (list, tuple, str))
-
-    # Sometimes we have a structure like [[...]] which is a single item list
-    # where the single item is itself it's own list. In that case we want skip
-    # the rest of this function so that we don't get extraneous () on the
-    # outside.
-    if (
-        isinstance(marker, list)
-        and len(marker) == 1
-        and isinstance(marker[0], (list, tuple))
-    ):
-        return _format_marker(marker[0])
-
-    if isinstance(marker, list):
-        inner = (_format_marker(m, first=False) for m in marker)
-        if first:
-            return " ".join(inner)
-        else:
-            return "(" + " ".join(inner) + ")"
-    elif isinstance(marker, tuple):
-        return " ".join([m.serialize() for m in marker])
-    else:
-        return marker
 
 
 class BaseMarker(object):
@@ -291,7 +178,7 @@ class SingleMarker(BaseMarker):
         )
         from poetry.core.semver import parse_constraint
 
-        self._name = name
+        self._name = ALIASES.get(name, name)
         self._constraint_string = str(constraint)
 
         # Extract operator and value
@@ -461,9 +348,7 @@ class SingleMarker(BaseMarker):
         return hash((self._name, self._constraint_string))
 
     def __str__(self):
-        return _format_marker(
-            (Variable(self._name), Op(self._operator), Value(self._value))
-        )
+        return '{} {} "{}"'.format(self._name, self._operator, self._value)
 
 
 def _flatten_markers(
@@ -669,16 +554,6 @@ class MarkerUnion(BaseMarker):
         if any(m.is_any() for m in markers):
             return AnyMarker()
 
-        to_delete_indices = set()
-        for i, marker in enumerate(markers):
-            for j, m in enumerate(markers):
-                if m.invert() == marker:
-                    to_delete_indices.add(i)
-                    to_delete_indices.add(j)
-
-        for idx in reversed(sorted(to_delete_indices)):
-            del markers[idx]
-
         if not markers:
             return AnyMarker()
 
@@ -805,32 +680,37 @@ def parse_marker(marker):
     if not marker or marker == "*":
         return AnyMarker()
 
-    markers = _coerce_parse_result(MARKER.parseString(marker))
+    parsed = _parser.parse(marker)
 
-    return _compact_markers(markers)
+    markers = _compact_markers(parsed.children)
+
+    return markers
 
 
-def _compact_markers(markers):
+def _compact_markers(tree_elements, tree_prefix=""):  # type: (Tree, str) -> BaseMarker
     groups = [MultiMarker()]
+    for token in tree_elements:
+        if isinstance(token, Token):
+            if token.type == "{}BOOL_OP".format(tree_prefix) and token.value == "or":
+                groups.append(MultiMarker())
 
-    for marker in markers:
-        if isinstance(marker, list):
-            groups[-1] = MultiMarker.of(groups[-1], _compact_markers(marker))
-        elif isinstance(marker, tuple):
-            lhs, op, rhs = marker
+            continue
 
-            if isinstance(lhs, Variable):
-                name = lhs.value
-                value = rhs.value
-            else:
-                value = lhs.value
-                name = rhs.value
+        if token.data == "marker":
+            groups[-1] = MultiMarker.of(
+                groups[-1], _compact_markers(token.children, tree_prefix=tree_prefix)
+            )
+        elif token.data == "{}item".format(tree_prefix):
+            name, op, value = token.children
+            if value.type == "{}MARKER_NAME".format(tree_prefix):
+                name, value, = value, name
 
+            value = value[1:-1]
             groups[-1] = MultiMarker.of(
                 groups[-1], SingleMarker(name, "{}{}".format(op, value))
             )
-        else:
-            if marker == "or":
+        elif token.data == "{}BOOL_OP".format(tree_prefix):
+            if token.children[0] == "or":
                 groups.append(MultiMarker())
 
     for i, group in enumerate(reversed(groups)):

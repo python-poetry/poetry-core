@@ -1,10 +1,13 @@
 import shutil
 import subprocess
+import tarfile
+import zipfile
 
 from contextlib import contextmanager
 from typing import Any
 from typing import ContextManager
 from typing import Dict
+from typing import List
 from typing import Optional
 
 from poetry.core.utils._compat import Path
@@ -62,3 +65,25 @@ def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.Completed
     )
     assert result.returncode == 0
     return result
+
+
+def validate_wheel_contents(
+    name, version, path, files=None
+):  # type: (str, str, str, Optional[List[str]]) -> None
+    dist_info = "{}-{}.dist-info".format(name, version)
+    files = files or []
+
+    with zipfile.ZipFile(path) as z:
+        namelist = z.namelist()
+        # we use concatenation here for PY2 compat
+        for filename in ["WHEEL", "METADATA", "RECORD"] + files:
+            assert "{}/{}".format(dist_info, filename) in namelist
+
+
+def validate_sdist_contents(
+    name, version, path, files
+):  # type: (str, str, str, List[str]) -> None
+    with tarfile.open(path) as tar:
+        namelist = tar.getnames()
+        for filename in files:
+            assert "{}-{}/{}".format(name, version, filename) in namelist

@@ -62,7 +62,7 @@ class WheelBuilder(Builder):
         cls.make_in(poetry)
 
     def build(self):
-        logger.info(" - Building wheel")
+        logger.info("Building wheel")
 
         dist_dir = self._target_dir
         if not dist_dir.exists():
@@ -77,8 +77,13 @@ class WheelBuilder(Builder):
         with zipfile.ZipFile(
             os.fdopen(fd, "w+b"), mode="w", compression=zipfile.ZIP_DEFLATED
         ) as zip_file:
-            self._copy_module(zip_file)
-            self._build(zip_file)
+            if not self._poetry.package.build_should_generate_setup():
+                self._build(zip_file)
+                self._copy_module(zip_file)
+            else:
+                self._copy_module(zip_file)
+                self._build(zip_file)
+
             self._write_metadata(zip_file)
             self._write_record(zip_file)
 
@@ -87,47 +92,63 @@ class WheelBuilder(Builder):
             wheel_path.unlink()
         shutil.move(temp_path, str(wheel_path))
 
-        logger.info(" - Built {}".format(self.wheel_filename))
+        logger.info("Built {}".format(self.wheel_filename))
 
     def _build(self, wheel):
         if self._package.build_script:
-            with SdistBuilder(poetry=self._poetry).setup_py() as setup:
-                # We need to place ourselves in the temporary
-                # directory in order to build the package
+            if not self._poetry.package.build_should_generate_setup():
+                # Since we have a build script but no setup.py generation is required,
+                # we assume that the build script will build and copy the files
+                # directly.
+                # That way they will be picked up when adding files to the wheel.
                 current_path = os.getcwd()
                 try:
                     os.chdir(str(self._path))
-                    self._run_build_command(setup)
+                    self._run_build_script(self._package.build_script)
                 finally:
                     os.chdir(current_path)
+            else:
+                with SdistBuilder(poetry=self._poetry).setup_py() as setup:
+                    # We need to place ourselves in the temporary
+                    # directory in order to build the package
+                    current_path = os.getcwd()
+                    try:
+                        os.chdir(str(self._path))
+                        self._run_build_command(setup)
+                    finally:
+                        os.chdir(current_path)
 
-                build_dir = self._path / "build"
-                lib = list(build_dir.glob("lib.*"))
-                if not lib:
-                    # The result of building the extensions
-                    # does not exist, this may due to conditional
-                    # builds, so we assume that it's okay
-                    return
+                    build_dir = self._path / "build"
+                    lib = list(build_dir.glob("lib.*"))
+                    if not lib:
+                        # The result of building the extensions
+                        # does not exist, this may due to conditional
+                        # builds, so we assume that it's okay
+                        return
 
-                lib = lib[0]
+                    lib = lib[0]
 
-                for pkg in lib.glob("**/*"):
-                    if pkg.is_dir() or self.is_excluded(pkg):
-                        continue
+                    for pkg in lib.glob("**/*"):
+                        if pkg.is_dir() or self.is_excluded(pkg):
+                            continue
 
-                    rel_path = str(pkg.relative_to(lib))
+                        rel_path = str(pkg.relative_to(lib))
 
-                    if rel_path in wheel.namelist():
-                        continue
+                        if rel_path in wheel.namelist():
+                            continue
 
-                    logger.debug(" - Adding: {}".format(rel_path))
+                        logger.debug("Adding: {}".format(rel_path))
 
-                    self._add_file(wheel, pkg, rel_path)
+                        self._add_file(wheel, pkg, rel_path)
 
     def _run_build_command(self, setup):
         subprocess.check_call(
             [sys.executable, str(setup), "build", "-b", str(self._path / "build")]
         )
+
+    def _run_build_script(self, build_script):
+        logger.debug("Executing build script: {}".format(build_script))
+        subprocess.check_call([sys.executable, build_script])
 
     def _copy_module(self, wheel):  # type: (zipfile.ZipFile) -> None
         to_add = self.find_files_to_add()

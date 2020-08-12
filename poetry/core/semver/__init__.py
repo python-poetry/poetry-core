@@ -1,6 +1,7 @@
 import re
 
 from .empty_constraint import EmptyConstraint
+from .exceptions import ParseConstraintError
 from .patterns import BASIC_CONSTRAINT
 from .patterns import CARET_CONSTRAINT
 from .patterns import TILDE_CONSTRAINT
@@ -159,4 +160,6 @@ def parse_single_constraint(constraint):  # type: (str) -> VersionConstraint
         else:
             return version
 
-    raise ValueError("Could not parse version constraint: {}".format(constraint))
+    raise ParseConstraintError(
+        "Could not parse version constraint: {}".format(constraint)
+    )

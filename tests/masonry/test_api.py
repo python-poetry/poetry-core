@@ -4,8 +4,6 @@ from __future__ import unicode_literals
 import os
 import platform
 import sys
-import tarfile
-import zipfile
 
 from contextlib import contextmanager
 
@@ -16,6 +14,8 @@ from poetry.core.masonry import api
 from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import decode
 from poetry.core.utils.helpers import temporary_directory
+from tests.testutils import validate_sdist_contents
+from tests.testutils import validate_wheel_contents
 
 
 @contextmanager
@@ -46,13 +46,23 @@ def test_get_requires_for_build_sdist():
 def test_build_wheel():
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         filename = api.build_wheel(tmp_dir)
+        validate_wheel_contents(
+            name="my_package",
+            version="1.2.3",
+            path=str(os.path.join(tmp_dir, filename)),
+            files=["entry_points.txt"],
+        )
 
-        with zipfile.ZipFile(str(os.path.join(tmp_dir, filename))) as zip:
-            namelist = zip.namelist()
 
-            assert "my_package-1.2.3.dist-info/entry_points.txt" in namelist
-            assert "my_package-1.2.3.dist-info/WHEEL" in namelist
-            assert "my_package-1.2.3.dist-info/METADATA" in namelist
+def test_build_wheel_with_include():
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
+        filename = api.build_wheel(tmp_dir)
+        validate_wheel_contents(
+            name="with_include",
+            version="1.2.3",
+            path=str(os.path.join(tmp_dir, filename)),
+            files=["entry_points.txt"],
+        )
 
 
 @pytest.mark.skipif(
@@ -64,26 +74,31 @@ def test_build_wheel():
 def test_build_wheel_extended():
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "extended")):
         filename = api.build_wheel(tmp_dir)
-
         whl = Path(tmp_dir) / filename
         assert whl.exists()
-
-        with zipfile.ZipFile(str(os.path.join(tmp_dir, filename))) as zip:
-            namelist = zip.namelist()
-
-            assert "extended-0.1.dist-info/RECORD" in namelist
-            assert "extended-0.1.dist-info/WHEEL" in namelist
-            assert "extended-0.1.dist-info/METADATA" in namelist
+        validate_wheel_contents(name="extended", version="0.1", path=whl.as_posix())
 
 
 def test_build_sdist():
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         filename = api.build_sdist(tmp_dir)
+        validate_sdist_contents(
+            name="my-package",
+            version="1.2.3",
+            path=str(os.path.join(tmp_dir, filename)),
+            files=["LICENSE"],
+        )
 
-        with tarfile.open(str(os.path.join(tmp_dir, filename))) as tar:
-            namelist = tar.getnames()
 
-            assert "my-package-1.2.3/LICENSE" in namelist
+def test_build_sdist_with_include():
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
+        filename = api.build_sdist(tmp_dir)
+        validate_sdist_contents(
+            name="with-include",
+            version="1.2.3",
+            path=str(os.path.join(tmp_dir, filename)),
+            files=["LICENSE"],
+        )
 
 
 def test_prepare_metadata_for_build_wheel():
