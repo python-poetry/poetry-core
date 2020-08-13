@@ -186,7 +186,10 @@ class WheelBuilder(Builder):
                 record = BytesIO()
 
             csv_writer = csv.writer(
-                record, delimiter=str(","), quotechar=str('"'), lineterminator="\n"
+                record,
+                delimiter=csv.excel.delimiter,
+                quotechar=csv.excel.quotechar,
+                lineterminator="\n",
             )
             for path, hash, size in self._records:
                 csv_writer.writerow((path, "sha256={}".format(hash), size))
@@ -194,11 +197,7 @@ class WheelBuilder(Builder):
             # RECORD itself is recorded with no hash or size
             csv_writer.writerow((self.dist_info + "/RECORD", "", ""))
 
-            record_values = record.getvalue()
-            if PY2:
-                record_values = record_values.decode("utf-8")
-
-            f.write(record_values)
+            f.write(decode(record.getvalue()))
 
     @property
     def dist_info(self):  # type: () -> str
