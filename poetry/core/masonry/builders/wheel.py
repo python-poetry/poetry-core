@@ -181,7 +181,7 @@ class WheelBuilder(Builder):
         with self._write_to_zip(wheel, self.dist_info + "/RECORD") as f:
             record = StringIO()
             csv_writer = csv.writer(
-                record, delimiter=",", quotechar='"', lineterminator="\n"
+                record, delimiter=str(","), quotechar=str('"'), lineterminator="\n"
             )
             for path, hash, size in self._records:
                 csv_writer.writerow((path, "sha256={}".format(hash), size))
