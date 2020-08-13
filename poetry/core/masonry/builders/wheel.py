@@ -13,11 +13,13 @@ import tempfile
 import zipfile
 
 from base64 import urlsafe_b64encode
+from io import BytesIO
 from io import StringIO
 
 from packaging.tags import sys_tags
 from poetry.core import __version__
 from poetry.core.semver import parse_constraint
+from poetry.core.utils._compat import PY2
 from poetry.core.utils._compat import decode
 
 from ..utils.helpers import escape_name
@@ -180,6 +182,9 @@ class WheelBuilder(Builder):
         # Write a record of the files in the wheel
         with self._write_to_zip(wheel, self.dist_info + "/RECORD") as f:
             record = StringIO()
+            if PY2:
+                record = BytesIO()
+
             csv_writer = csv.writer(
                 record, delimiter=str(","), quotechar=str('"'), lineterminator="\n"
             )
@@ -188,7 +193,12 @@ class WheelBuilder(Builder):
 
             # RECORD itself is recorded with no hash or size
             csv_writer.writerow((self.dist_info + "/RECORD", "", ""))
-            f.write(record.getvalue())
+
+            record_values = record.getvalue()
+            if PY2:
+                record_values = record_values.decode("utf-8")
+
+            f.write(record_values)
 
     @property
     def dist_info(self):  # type: () -> str
