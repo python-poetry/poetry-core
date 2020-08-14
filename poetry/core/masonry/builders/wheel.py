@@ -181,9 +181,7 @@ class WheelBuilder(Builder):
     def _write_record(self, wheel):
         # Write a record of the files in the wheel
         with self._write_to_zip(wheel, self.dist_info + "/RECORD") as f:
-            record = StringIO()
-            if PY2:
-                record = BytesIO()
+            record = StringIO() if not PY2 else BytesIO()
 
             csv_writer = csv.writer(
                 record,
