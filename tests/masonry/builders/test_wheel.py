@@ -198,3 +198,16 @@ def test_wheel_package_pep_561_stub_only_includes_typed_marker():
 
     with zipfile.ZipFile(str(whl)) as z:
         assert "pkg-stubs/py.typed" in z.namelist()
+
+
+def test_wheel_with_file_with_comma():
+    root = fixtures_dir / "comma_file"
+    WheelBuilder.make(Factory().create_poetry(root))
+
+    whl = root / "dist" / "comma_file-1.2.3-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        records = z.read("comma_file-1.2.3.dist-info/RECORD")
+        assert '\n"comma_file/a,b.py"' in records.decode()

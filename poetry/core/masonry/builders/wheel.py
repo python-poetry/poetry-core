@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import contextlib
+import csv
 import hashlib
 import logging
 import os
@@ -12,11 +13,13 @@ import tempfile
 import zipfile
 
 from base64 import urlsafe_b64encode
+from io import BytesIO
 from io import StringIO
 
 from packaging.tags import sys_tags
 from poetry.core import __version__
 from poetry.core.semver import parse_constraint
+from poetry.core.utils._compat import PY2
 from poetry.core.utils._compat import decode
 
 from ..utils.helpers import escape_name
@@ -37,7 +40,6 @@ logger = logging.getLogger(__name__)
 
 
 class WheelBuilder(Builder):
-
     format = "wheel"
 
     def __init__(self, poetry, target_dir=None, original=None):
@@ -179,10 +181,21 @@ class WheelBuilder(Builder):
     def _write_record(self, wheel):
         # Write a record of the files in the wheel
         with self._write_to_zip(wheel, self.dist_info + "/RECORD") as f:
+            record = StringIO() if not PY2 else BytesIO()
+
+            csv_writer = csv.writer(
+                record,
+                delimiter=csv.excel.delimiter,
+                quotechar=csv.excel.quotechar,
+                lineterminator="\n",
+            )
             for path, hash, size in self._records:
-                f.write("{},sha256={},{}\n".format(path, hash, size))
+                csv_writer.writerow((path, "sha256={}".format(hash), size))
+
             # RECORD itself is recorded with no hash or size
-            f.write(self.dist_info + "/RECORD,,\n")
+            csv_writer.writerow((self.dist_info + "/RECORD", "", ""))
+
+            f.write(decode(record.getvalue()))
 
     @property
     def dist_info(self):  # type: () -> str
