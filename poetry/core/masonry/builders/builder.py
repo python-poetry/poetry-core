@@ -96,7 +96,7 @@ class Builder(object):
 
             explicitely_excluded = set()
             for excluded_glob in self._package.exclude:
-                for excluded in self._path.glob(excluded_glob):
+                for excluded in self._path.glob(str(excluded_glob)):
                     explicitely_excluded.add(
                         Path(excluded).relative_to(self._path).as_posix()
                     )
