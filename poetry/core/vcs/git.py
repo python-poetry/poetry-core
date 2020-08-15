@@ -127,8 +127,8 @@ class ParsedUrl:
             "/" + self.pathname.lstrip(":/"),
         )
 
-    def format(self):
-        return "{}".format(self.url, "#{}".format(self.rev) if self.rev else "",)
+    def format(self):  # type: () -> str
+        return self.url
 
     def __str__(self):  # type: () -> str
         return self.format()
