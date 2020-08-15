@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
 from typing import List
 
 from .empty_constraint import EmptyConstraint
 from .version_constraint import VersionConstraint
+
+
+if TYPE_CHECKING:
+    from poetry.core.semver.version import Version
 
 
 class VersionUnion(VersionConstraint):

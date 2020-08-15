@@ -1,3 +1,10 @@
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from poetry.core.semver.version import Version
+
+
 class VersionConstraint:
     def is_empty(self):  # type: () -> bool
         raise NotImplementedError()
