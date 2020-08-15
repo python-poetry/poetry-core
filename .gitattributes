@@ -1,0 +1,4 @@
+poetry.lock linguist-generated=true
+vendors/poetry.lock linguist-generated=true
+poetry/core/_vendor/** linguist-generated=true
+poetry/core/_vendor/vendor.txt linguist-generated=false
