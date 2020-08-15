@@ -5,10 +5,11 @@ import sys
 
 import pytest
 
+from six.moves.urllib.request import pathname2url  # noqa
+
 from poetry.core.packages import path_to_url
 from poetry.core.packages import url_to_path
 from poetry.core.utils._compat import Path
-from six.moves.urllib.request import pathname2url  # noqa
 
 
 @pytest.mark.skipif("sys.platform == 'win32'")

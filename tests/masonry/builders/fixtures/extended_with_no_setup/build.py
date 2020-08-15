@@ -1,7 +1,10 @@
 import os
 import shutil
+
 from distutils.command.build_ext import build_ext
-from distutils.core import Distribution, Extension
+from distutils.core import Distribution
+from distutils.core import Extension
+
 
 extensions = [Extension("extended.extended", ["extended/extended.c"])]
 

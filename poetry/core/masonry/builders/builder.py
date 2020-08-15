@@ -6,6 +6,7 @@ import tempfile
 
 from collections import defaultdict
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 from typing import Optional
 from typing import Set
 from typing import Union
@@ -17,6 +18,10 @@ from poetry.core.vcs import get_vcs
 from ..metadata import Metadata
 from ..utils.module import Module
 from ..utils.package_include import PackageInclude
+
+
+if TYPE_CHECKING:
+    from poetry.core.poetry import Poetry
 
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
