@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "poetry-core"
 version = "1.0.0a9"
-description = "Core utilities for Poetry"
+description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
 license = "MIT"
