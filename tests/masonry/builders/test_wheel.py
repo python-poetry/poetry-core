@@ -21,9 +21,6 @@ def setup():
     clear_samples_dist()
 
 
-The development of an archived package is complete, and it has been archived on CRAN and on GitHub.
-
-
 def clear_samples_dist():
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
