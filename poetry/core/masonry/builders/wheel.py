@@ -175,7 +175,7 @@ class WheelBuilder(Builder):
 
         license_files_to_add.extend((self._path / "LICENSES").glob("**" + os.sep + "*"))
 
-        for path in license_files_to_add:
+        for path in set(license_files_to_add):
             if path.is_file():
                 relative_path = "%s/%s" % (self.dist_info, path.relative_to(self._path))
                 self._add_file(wheel, path, relative_path)
