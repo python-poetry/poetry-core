@@ -173,7 +173,7 @@ class WheelBuilder(Builder):
             license_files_to_add.append(self._path / base)
             license_files_to_add.extend(self._path.glob(base + ".*"))
 
-        license_files_to_add.extend(self._path.glob("LICENSES/**/*"))
+        license_files_to_add.extend((self._path / "LICENSES").glob("**" + os.pathsep + "*"))
 
         for path in license_files_to_add:
             if path.is_file():
