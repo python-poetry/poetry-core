@@ -170,18 +170,18 @@ class WheelBuilder(Builder):
 
         license_files_to_add = []
         for base in ("COPYING", "LICENSE"):
-            license_files_to_add.append(self._path / base)
+            license_files_to_add.append(base)
             license_files_to_add.extend(self._path.glob(base + ".*"))
 
         license_files_to_add.extend((self._path / "LICENSES").glob("**" + os.sep + "*"))
 
         for path in license_files_to_add:
-            if not path.is_file():
-                continue
-
-            self._add_file(
-                wheel, path, "%s/%s" % (self.dist_info, path.relative_to(self._path))
-            )
+            if path.is_file():
+                self._add_file(
+                    wheel, path, "%s/%s" % (self.dist_info, path.as_posix())
+                )
+            else:
+                logger.debug("Skipping: %s", path.as_posix()) 
 
         with self._write_to_zip(wheel, self.dist_info + "/WHEEL") as f:
             self._write_wheel_file(f)
