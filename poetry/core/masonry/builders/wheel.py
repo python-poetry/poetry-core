@@ -177,7 +177,8 @@ class WheelBuilder(Builder):
 
         for path in license_files_to_add:
             if path.is_file():
-                self._add_file(wheel, path, "%s/%s" % (self.dist_info, path.as_posix()))
+                relative_path = "%s/%s" % (self.dist_info, path.relative_to(self._path))
+                self._add_file(wheel, path, relative_path)
             else:
                 logger.debug("Skipping: %s", path.as_posix())
 
