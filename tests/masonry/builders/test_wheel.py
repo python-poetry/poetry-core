@@ -21,6 +21,9 @@ def setup():
     clear_samples_dist()
 
 
+The development of an archived package is complete, and it has been archived on CRAN and on GitHub.
+
+
 def clear_samples_dist():
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
@@ -215,3 +218,16 @@ def test_wheel_includes_licenses_in_correct_paths():
         assert "my_package-1.2.3.dist-info/LICENSES/CUSTOM-LICENSE" in z.namelist()
         assert "my_package-1.2.3.dist-info/LICENSES/BSD-3.md" in z.namelist()
         assert "my_package-1.2.3.dist-info/LICENSES/MIT.txt" in z.namelist()
+
+
+def test_wheel_with_file_with_comma():
+    root = fixtures_dir / "comma_file"
+    WheelBuilder.make(Factory().create_poetry(root))
+
+    whl = root / "dist" / "comma_file-1.2.3-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        records = z.read("comma_file-1.2.3.dist-info/RECORD")
+        assert '\n"comma_file/a,b.py"' in records.decode()

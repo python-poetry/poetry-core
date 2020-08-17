@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "poetry-core"
 version = "1.0.0a9"
-description = "Core utilities for Poetry"
+description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
 license = "MIT"
 
 readme = "README.md"
 
-homepage = "https://github.com/python-poetry/core"
-repository = "https://github.com/python-poetry/core"
+homepage = "https://github.com/python-poetry/poetry-core"
+repository = "https://github.com/python-poetry/poetry-core"
 
 keywords = ["packaging", "dependency", "poetry"]
 
@@ -25,6 +25,9 @@ exclude = [
     "**/*.pyc",
     "**/*.pyi",
 ]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
 [tool.poetry.dependencies]
 python = "~2.7 || ^3.5"
