@@ -14,6 +14,7 @@ class ModuleOrPackageNotFound(ValueError):
 
 class Module:
     def __init__(self, name, directory=".", packages=None, includes=None):
+        name = name.replace('-', '_')
         self._name = module_name(name)
         self._in_src = False
         self._is_package = False
