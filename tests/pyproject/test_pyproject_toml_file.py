@@ -3,6 +3,17 @@ import pytest
 from poetry.core.pyproject import PyProjectException
 from poetry.core.pyproject import PyProjectTOMLFile
 from poetry.core.utils._compat import decode
+from poetry.core.utils.toml_file import TomlFile
+
+
+def test_old_pyproject_toml_file_deprecation(
+    pyproject_toml, build_system_section, poetry_section
+):
+    with pytest.warns(DeprecationWarning):
+        file = TomlFile(pyproject_toml)
+
+    data = file.read()
+    assert data == PyProjectTOMLFile(pyproject_toml).read()
 
 
 def test_pyproject_toml_file_invalid(pyproject_toml):

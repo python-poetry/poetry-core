@@ -1,26 +1,20 @@
 # -*- coding: utf-8 -*-
-from typing import Union
-
-from tomlkit.toml_file import TOMLFile as BaseTOMLFile
-
-from ._compat import Path
+from poetry.core.pyproject import PyProjectTOMLFile
 
 
-class TomlFile(BaseTOMLFile):
-    def __init__(self, path):  # type: (Union[str, Path]) -> None
-        super(TomlFile, self).__init__(str(path))
+class TomlFile(PyProjectTOMLFile):
+    @classmethod
+    def __new__(cls, *args, **kwargs):
+        import warnings
 
-        self._path_ = Path(path)
-
-    @property
-    def path(self):  # type: () -> Path
-        return self._path_
-
-    def exists(self):  # type: () -> bool
-        return self._path_.exists()
-
-    def __getattr__(self, item):
-        return getattr(self._path_, item)
-
-    def __str__(self):
-        return str(self._path)
+        warnings.warn(
+            "Use of {}.{} has been deprecated, use {}.{} instead.".format(
+                cls.__module__,
+                cls.__name__,
+                PyProjectTOMLFile.__module__,
+                PyProjectTOMLFile.__name__,
+            ),
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return super(TomlFile, cls).__new__(cls)
