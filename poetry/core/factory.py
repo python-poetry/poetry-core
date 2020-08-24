@@ -9,9 +9,9 @@ from .json import validate_object
 from .packages.dependency import Dependency
 from .packages.project_package import ProjectPackage
 from .poetry import Poetry
+from .pyproject import PyProjectTOML
 from .spdx import license_by_id
 from .utils._compat import Path
-from .utils.toml_file import TomlFile
 
 
 class Factory(object):
@@ -21,13 +21,7 @@ class Factory(object):
 
     def create_poetry(self, cwd=None):  # type: (Optional[Path]) -> Poetry
         poetry_file = self.locate(cwd)
-
-        local_config = TomlFile(poetry_file.as_posix()).read()
-        if "tool" not in local_config or "poetry" not in local_config["tool"]:
-            raise RuntimeError(
-                "[tool.poetry] section not found in {}".format(poetry_file.name)
-            )
-        local_config = local_config["tool"]["poetry"]
+        local_config = PyProjectTOML(path=poetry_file).poetry_config
 
         # Checking validity
         check_result = self.validate(local_config)

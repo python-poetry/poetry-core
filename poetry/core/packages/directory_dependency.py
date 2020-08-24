@@ -1,5 +1,5 @@
+from poetry.core.pyproject import PyProjectTOML
 from poetry.core.utils._compat import Path
-from poetry.core.utils.toml_file import TomlFile
 
 from .dependency import Dependency
 
@@ -31,12 +31,9 @@ class DirectoryDependency(Dependency):
 
         # Checking content to determine actions
         setup = self._full_path / "setup.py"
-        pyproject = TomlFile(self._full_path / "pyproject.toml")
-        if pyproject.exists():
-            pyproject_content = pyproject.read()
-            self._supports_poetry = (
-                "tool" in pyproject_content and "poetry" in pyproject_content["tool"]
-            )
+        self._supports_poetry = PyProjectTOML(
+            self._full_path / "pyproject.toml"
+        ).is_poetry_project()
 
         if not setup.exists() and not self._supports_poetry:
             raise ValueError(

@@ -4,15 +4,15 @@ from __future__ import unicode_literals
 from typing import Any
 
 from .packages import ProjectPackage
+from .pyproject import PyProjectTOMLFile
 from .utils._compat import Path
-from .utils.toml_file import TomlFile
 
 
 class Poetry(object):
     def __init__(
         self, file, local_config, package,
     ):  # type: (Path, dict, ProjectPackage) -> None
-        self._file = TomlFile(file)
+        self._file = PyProjectTOMLFile(file)
         self._package = package
         self._local_config = local_config
 
