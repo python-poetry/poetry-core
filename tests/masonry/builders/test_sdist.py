@@ -494,6 +494,17 @@ def test_proper_python_requires_if_three_digits_precision_version_specified():
     assert parsed["Requires-Python"] == "==2.7.15"
 
 
+def test_proper_python_required_if_license_info_specified():
+    poetry = Factory().create_poetry(project("single_python"))
+
+    builder = SdistBuilder(poetry)
+    pkg_info = builder.build_pkg_info()
+    p = Parser()
+    parsed = p.parsestr(to_str(pkg_info))
+
+    assert parsed["License"] == "MIT"
+
+
 def test_includes():
     poetry = Factory().create_poetry(project("with-include"))
 
