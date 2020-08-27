@@ -2,53 +2,23 @@ from typing import Optional
 from typing import Union
 
 from tomlkit.container import Container
-from tomlkit.exceptions import TOMLKitError
 from tomlkit.toml_document import TOMLDocument
-from tomlkit.toml_file import TOMLFile
 
 from poetry.core.pyproject.exceptions import PyProjectException
 from poetry.core.pyproject.tables import BuildSystem
+from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import Path
-
-
-class PyProjectTOMLFile(TOMLFile):
-    def __init__(self, path):  # type: (Union[str, Path]) -> None
-        if isinstance(path, str):
-            path = Path(path)
-        super(PyProjectTOMLFile, self).__init__(path.as_posix())
-        self.__path = path
-
-    @property
-    def path(self):  # type: () -> Path
-        return self.__path
-
-    def exists(self):  # type: () -> bool
-        return self.__path.exists()
-
-    def read(self):
-        try:
-            return super(PyProjectTOMLFile, self).read()
-        except (ValueError, TOMLKitError) as e:
-            raise PyProjectException(
-                "Invalid TOML file {}: {}".format(self.path.as_posix(), e)
-            )
-
-    def __getattr__(self, item):
-        return getattr(self.__path, item)
-
-    def __str__(self):  # type: () -> str
-        return self.__path.as_posix()
 
 
 class PyProjectTOML:
     def __init__(self, path):  # type: (Union[str, Path]) -> None
-        self._file = PyProjectTOMLFile(path=path)
+        self._file = TOMLFile(path=path)
         self._data = None  # type: Optional[TOMLDocument]
         self._build_system = None  # type: Optional[BuildSystem]
         self._poetry_config = None  # type: Optional[TOMLDocument]
 
     @property
-    def file(self):  # type: () -> PyProjectTOMLFile
+    def file(self):  # type: () -> TOMLFile
         return self._file
 
     @property
