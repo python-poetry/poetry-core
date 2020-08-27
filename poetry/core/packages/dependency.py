@@ -44,13 +44,8 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
-        try:
-            if not isinstance(constraint, VersionConstraint):
-                self._constraint = parse_constraint(constraint)
-            else:
-                self._constraint = constraint
-        except ValueError:
-            self._constraint = parse_constraint("*")
+        self._constraint = None
+        self.constraint = constraint
 
         self._pretty_constraint = str(constraint)
         self._optional = optional
@@ -85,6 +80,16 @@ class Dependency(PackageSpecification):
     @property
     def constraint(self):
         return self._constraint
+
+    @constraint.setter
+    def constraint(self, value):
+        try:
+            if not isinstance(value, VersionConstraint):
+                self._constraint = parse_constraint(value)
+            else:
+                self._constraint = value
+        except ValueError:
+            self._constraint = parse_constraint("*")
 
     @property
     def pretty_constraint(self):

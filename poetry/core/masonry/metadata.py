@@ -3,6 +3,22 @@ from poetry.core.utils.helpers import normalize_version
 from poetry.core.version.helpers import format_python_constraint
 
 
+class MetadataConfig:
+    def __init__(
+        self, dependency_lock=False, dependency_nested=False
+    ):  # type: (bool, bool) -> None
+        self._dependency_lock = dependency_lock
+        self._dependency_nested = dependency_nested
+
+    @property
+    def dependency_lock(self):
+        return self._dependency_lock
+
+    @property
+    def dependency_nested(self):
+        return self._dependency_nested
+
+
 class Metadata:
 
     metadata_version = "2.1"
@@ -39,7 +55,8 @@ class Metadata:
     provides_extra = []
 
     @classmethod
-    def from_package(cls, package):  # type: (...) -> Metadata
+    def from_poetry_project(cls, poetry):  # type: (...) -> Metadata
+        package = poetry.package
         meta = cls()
 
         meta.name = canonicalize_name(package.name)
@@ -67,7 +84,14 @@ class Metadata:
         if package.python_versions != "*":
             meta.requires_python = format_python_constraint(package.python_constraint)
 
-        meta.requires_dist = [d.to_pep_508() for d in package.requires]
+        meta.requires_dist = [
+            d.to_pep_508()
+            for d in poetry.locker.get_project_dependencies(
+                project_requires=poetry.package.requires,
+                pinned_versions=poetry.build_metadata_config.dependency_lock,
+                with_nested=poetry.build_metadata_config.dependency_nested,
+            )
+        ]
 
         # Version 2.1
         if package.readme:
