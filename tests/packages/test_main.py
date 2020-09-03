@@ -49,7 +49,7 @@ def test_dependency_from_pep_508_with_python_version():
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
-    assert dep.extras == []
+    assert dep.extras == frozenset()
     assert dep.python_versions == "~2.7 || ~2.6"
     assert str(dep.marker) == 'python_version == "2.7" or python_version == "2.6"'
 
@@ -60,7 +60,7 @@ def test_dependency_from_pep_508_with_single_python_version():
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
-    assert dep.extras == []
+    assert dep.extras == frozenset()
     assert dep.python_versions == "~2.7"
     assert str(dep.marker) == 'python_version == "2.7"'
 
@@ -71,7 +71,7 @@ def test_dependency_from_pep_508_with_platform():
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
-    assert dep.extras == []
+    assert dep.extras == frozenset()
     assert dep.python_versions == "*"
     assert str(dep.marker) == 'sys_platform == "win32" or sys_platform == "darwin"'
 
@@ -133,7 +133,7 @@ def test_dependency_with_extra():
     assert str(dep.constraint) == "2.18.0"
 
     assert len(dep.extras) == 1
-    assert dep.extras[0] == "security"
+    assert "security" in dep.extras
 
 
 def test_dependency_from_pep_508_with_python_version_union_of_multi():
@@ -146,7 +146,7 @@ def test_dependency_from_pep_508_with_python_version_union_of_multi():
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
-    assert dep.extras == []
+    assert dep.extras == frozenset()
     assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5"
     assert str(dep.marker) == (
         'python_version >= "2.7" and python_version < "2.8" '
@@ -230,7 +230,7 @@ def test_dependency_from_pep_508_with_python_full_version():
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
-    assert dep.extras == []
+    assert dep.extras == frozenset()
     assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5.4"
     assert str(dep.marker) == (
         'python_version >= "2.7" and python_version < "2.8" '

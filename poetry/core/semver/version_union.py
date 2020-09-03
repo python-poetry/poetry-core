@@ -247,6 +247,14 @@ class VersionUnion(VersionConstraint):
 
         return self._ranges == other.ranges
 
+    def __hash__(self):  # type: () -> int
+        h = hash(self._ranges[0])
+
+        for range in self._ranges[1:]:
+            h ^= hash(range)
+
+        return h
+
     def __str__(self):
         from .version_range import VersionRange
 

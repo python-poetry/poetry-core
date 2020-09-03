@@ -176,3 +176,11 @@ def test_to_pep_508_combination():
     dependency = Dependency("foo", "~1.2,!=1.2.5")
 
     assert "foo (>=1.2,<1.3,!=1.2.5)" == dependency.to_pep_508()
+
+
+def test_complete_name():
+    assert "foo" == Dependency("foo", ">=1.2.3").complete_name
+    assert (
+        "foo[bar,baz]"
+        == Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
+    )

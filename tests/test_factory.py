@@ -49,7 +49,7 @@ def test_create_poetry():
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
     assert pendulum.allows_prereleases()
-    assert pendulum.develop
+    assert not pendulum.develop
 
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
@@ -65,7 +65,7 @@ def test_create_poetry():
     assert not requests.is_vcs()
     assert not requests.allows_prereleases()
     assert requests.is_optional()
-    assert requests.extras == ["security"]
+    assert requests.extras == frozenset({"security"})
 
     pathlib2 = dependencies["pathlib2"]
     assert pathlib2.pretty_constraint == "^2.2"

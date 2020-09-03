@@ -1,3 +1,7 @@
+from typing import List
+from typing import Set
+from typing import Union
+
 from poetry.core.pyproject import PyProjectTOML
 from poetry.core.utils._compat import Path
 
@@ -12,16 +16,21 @@ class DirectoryDependency(Dependency):
         category="main",  # type: str
         optional=False,  # type: bool
         base=None,  # type: Path
-        develop=True,  # type: bool
+        develop=False,  # type: bool
+        extras=None,  # type: Union[List[str], Set[str]]
     ):
         self._path = path
-        self._base = base
+        self._base = base or Path.cwd()
         self._full_path = path
+
+        if not self._path.is_absolute():
+            try:
+                self._full_path = self._base.joinpath(self._path).resolve()
+            except FileNotFoundError:
+                raise ValueError("Directory {} does not exist".format(self._path))
+
         self._develop = develop
         self._supports_poetry = False
-
-        if self._base and not self._path.is_absolute():
-            self._full_path = self._base / self._path
 
         if not self._full_path.exists():
             raise ValueError("Directory {} does not exist".format(self._path))
@@ -43,7 +52,14 @@ class DirectoryDependency(Dependency):
             )
 
         super(DirectoryDependency, self).__init__(
-            name, "*", category=category, optional=optional, allows_prereleases=True
+            name,
+            "*",
+            category=category,
+            optional=optional,
+            allows_prereleases=True,
+            source_type="directory",
+            source_url=self._full_path.as_posix(),
+            extras=extras,
         )
 
     @property
@@ -52,7 +68,7 @@ class DirectoryDependency(Dependency):
 
     @property
     def full_path(self):
-        return self._full_path.resolve()
+        return self._full_path
 
     @property
     def base(self):
@@ -67,6 +83,30 @@ class DirectoryDependency(Dependency):
 
     def is_directory(self):
         return True
+
+    def with_constraint(self, constraint):
+        new = DirectoryDependency(
+            self.pretty_name,
+            path=self.path,
+            base=self.base,
+            optional=self.is_optional(),
+            category=self.category,
+            develop=self._develop,
+            extras=self._extras,
+        )
+
+        new._constraint = constraint
+        new._pretty_constraint = str(constraint)
+
+        new.is_root = self.is_root
+        new.python_versions = self.python_versions
+        new.marker = self.marker
+        new.transitive_marker = self.transitive_marker
+
+        for in_extra in self.in_extras:
+            new.in_extras.append(in_extra)
+
+        return new
 
     @property
     def base_pep_508_name(self):  # type: () -> str
