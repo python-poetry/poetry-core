@@ -106,7 +106,7 @@ toml = ["toml"]
 name = "dataclasses"
 version = "0.8"
 description = "A backport of the dataclasses module for Python 3.6"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6, <3.7"
 
@@ -198,6 +198,7 @@ python-versions = "*"
 
 [package.dependencies]
 attrs = ">=17.4.0"
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 pyrsistent = ">=0.14.0"
 six = ">=1.11.0"
 
@@ -536,7 +537,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "317b9ea5e19fcb7b559aaa52f325fe5dddb30ec5f938446b79608c6b8b10fcba"
+content-hash = "9a3dbd14f45aa7c96293a0b4286c71f0b6501bc5fda78d834a9212c0c55cf3cd"
 
 [metadata.files]
 appdirs = [

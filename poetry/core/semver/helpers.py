@@ -69,10 +69,9 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
     m = TILDE_CONSTRAINT.match(constraint)
     if m:
         version = Version.parse(m.group(1))
-
-        high = version.stable.next_minor
+        high = version.stable.next_minor()
         if len(m.group(1).split(".")) == 1:
-            high = version.stable.next_major
+            high = version.stable.next_major()
 
         return VersionRange(version, high, include_min=True)
 
@@ -89,9 +88,9 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
         version = Version.parse(m.group(1))
 
         if precision == 2:
-            high = version.stable.next_major
+            high = version.stable.next_major()
         else:
-            high = version.stable.next_minor
+            high = version.stable.next_minor()
 
         return VersionRange(version, high, include_min=True)
 
@@ -100,7 +99,7 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
     if m:
         version = Version.parse(m.group(1))
 
-        return VersionRange(version, version.next_breaking, include_min=True)
+        return VersionRange(version, version.next_breaking(), include_min=True)
 
     # X Range
     m = X_CONSTRAINT.match(constraint)
@@ -110,16 +109,15 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
         minor = m.group(3)
 
         if minor is not None:
-            version = Version(major, int(minor), 0)
-
-            result = VersionRange(version, version.next_minor, include_min=True)
+            version = Version.from_parts(major, int(minor), 0)
+            result = VersionRange(version, version.next_minor(), include_min=True)
         else:
             if major == 0:
-                result = VersionRange(max=Version(1, 0, 0))
+                result = VersionRange(max=Version.from_parts(1, 0, 0))
             else:
-                version = Version(major, 0, 0)
+                version = Version.from_parts(major, 0, 0)
 
-                result = VersionRange(version, version.next_major, include_min=True)
+                result = VersionRange(version, version.next_major(), include_min=True)
 
         if op == "!=":
             result = VersionRange().difference(result)

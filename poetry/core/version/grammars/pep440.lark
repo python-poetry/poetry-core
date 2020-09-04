@@ -1,0 +1,32 @@
+// this is a modified version of the semver 2.0 specification grammar, specificially
+// crafted for use with Python PEP 440 version specifiers.
+start: version
+
+version: "v"? epoch? release pre_release? post_release? dev_release? ("+" local)?
+release: epoch? NUMERIC_IDENTIFIER (("." NUMERIC_IDENTIFIER)+)?
+
+major: NUMERIC_IDENTIFIER
+minor: NUMERIC_IDENTIFIER
+patch: NUMERIC_IDENTIFIER
+
+epoch: INT "!"
+
+pre_release: _SEPERATOR? PRE_RELEASE_TAG _SEPERATOR? NUMERIC_IDENTIFIER?
+PRE_RELEASE_TAG: "a" "lpha"? | "b" "eta"? | "c" | "rc" | "pre" "view"?
+
+post_release: "-" NUMERIC_IDENTIFIER | _SEPERATOR? POST_RELEASE_TAG _SEPERATOR? NUMERIC_IDENTIFIER?
+POST_RELEASE_TAG: "post" | "r" "ev"?
+
+dev_release: _SEPERATOR? DEV_RELEASE_TAG _SEPERATOR? NUMERIC_IDENTIFIER?
+DEV_RELEASE_TAG: "dev"
+
+local: LOCAL_IDENTIFIER ((_SEPERATOR LOCAL_IDENTIFIER)+)?
+LOCAL_IDENTIFIER: (LETTER | INT)+
+
+NUMERIC_IDENTIFIER: INT
+
+_SEPERATOR: "-" | "." | "_"
+
+%import common.LETTER
+%import common.DIGIT
+%import common.INT

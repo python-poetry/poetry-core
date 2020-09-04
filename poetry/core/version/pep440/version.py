@@ -1,0 +1,146 @@
+import dataclasses
+import math
+
+from typing import Optional
+from typing import Tuple
+from typing import Union
+
+from poetry.core.version.pep440.segments import LocalSegmentType
+from poetry.core.version.pep440.segments import Release
+from poetry.core.version.pep440.segments import ReleaseTag
+
+
+# we use the phase "z" to ensure we always sort this after other phases
+_INF_TAG = ReleaseTag("z", math.inf)  # noqa
+# we use the phase "" to ensure we always sort this before other phases
+_NEG_INF_TAG = ReleaseTag("", -math.inf)  # noqa
+
+
+@dataclasses.dataclass(frozen=True, eq=True, order=True)
+class PEP440Version:
+    epoch: int = dataclasses.field(default=0, compare=False)
+    release: Release = dataclasses.field(default_factory=Release, compare=False)
+    pre: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
+    post: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
+    dev: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
+    local: LocalSegmentType = dataclasses.field(default=None, compare=False)
+    text: str = dataclasses.field(default=None, compare=False)
+    _compare_key: Tuple[
+        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Union[int, str], ...]
+    ] = dataclasses.field(default=None, init=False, compare=True)
+
+    def __post_init__(self):
+        if self.local is not None and not isinstance(self.local, tuple):
+            object.__setattr__(self, "local", (self.local,))
+        if not self.text:
+            object.__setattr__(self, "text", self.to_string())
+        object.__setattr__(self, "_compare_key", self._make_compare_key())
+
+    def _make_compare_key(self):
+        """
+        This code is based on the implementation of packaging.version._cmpkey(..)
+        """
+        # We need to "trick" the sorting algorithm to put 1.0.dev0 before 1.0a0.
+        # We'll do this by abusing the pre segment, but we _only_ want to do this
+        # if there is not a pre or a post segment. If we have one of those then
+        # the normal sorting rules will handle this case correctly.
+        if self.pre is None and self.post is None and self.dev is not None:
+            _pre = _NEG_INF_TAG
+        # Versions without a pre-release (except as noted above) should sort after
+        # those with one.
+        elif self.pre is None:
+            _pre = _INF_TAG
+        else:
+            _pre = self.pre
+
+        # Versions without a post segment should sort before those with one.
+        _post = _NEG_INF_TAG if self.post is None else self.post
+
+        # Versions without a development segment should sort after those with one.
+        _dev = _INF_TAG if self.dev is None else self.dev
+
+        if self.local is None:
+            # Versions without a local segment should sort before those with one.
+            _local = ((-math.inf, ""),)
+        else:
+            # Versions with a local segment need that segment parsed to implement
+            # the sorting rules in PEP440.
+            # - Alpha numeric segments sort before numeric segments
+            # - Alpha numeric segments sort lexicographically
+            # - Numeric segments sort numerically
+            # - Shorter versions sort before longer versions when the prefixes
+            #   match exactly
+            _local = tuple(
+                (i, "") if isinstance(i, int) else (-math.inf, i) for i in self.local
+            )
+        return self.epoch, self.release, _pre, _post, _dev, _local
+
+    @property
+    def major(self) -> int:
+        return self.release.major
+
+    @property
+    def minor(self) -> Optional[int]:
+        return self.release.minor
+
+    @property
+    def patch(self) -> Optional[int]:
+        return self.release.patch
+
+    @property
+    def non_semver_parts(self) -> Optional[Tuple[int]]:
+        return self.release.extra
+
+    def to_string(self, short=False):
+        dash = "-" if not short else ""
+
+        version_string = dash.join(
+            filter(
+                bool,
+                [
+                    self.release.to_string(),
+                    self.pre.to_string(short) if self.pre else self.pre,
+                    self.post.to_string(short) if self.post else self.post,
+                    self.dev.to_string(short) if self.dev else self.dev,
+                ],
+            )
+        )
+
+        if self.epoch:
+            # if epoch is non-zero we should include it
+            version_string = "{}!{}".format(self.epoch, version_string)
+
+        if self.local:
+            version_string += "+{}".format(".".join(map(str, self.local)))
+
+        return version_string
+
+    @classmethod
+    def parse(cls, value: str) -> "PEP440Version":
+        from poetry.core.version.pep440.parser import parse_pep440
+
+        return parse_pep440(value, cls)
+
+    def is_pre_release(self) -> bool:
+        return self.pre is not None
+
+    def is_post_release(self) -> bool:
+        return self.post is not None
+
+    def is_developmental_release(self) -> bool:
+        return self.dev is not None
+
+    def is_no_suffix_release(self) -> bool:
+        return not (self.pre or self.post or self.dev)
+
+    def is_stable_release(self) -> bool:
+        return not (self.is_pre_release() or self.is_developmental_release())
+
+    def next_major(self) -> "PEP440Version":
+        return self.__class__(release=self.release.next_major())
+
+    def next_minor(self) -> "PEP440Version":
+        return self.__class__(release=self.release.next_minor())
+
+    def next_patch(self) -> "PEP440Version":
+        return self.__class__(release=self.release.next_patch())

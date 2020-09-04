@@ -305,7 +305,7 @@ class Package(PackageSpecification):
         return urls
 
     def is_prerelease(self) -> bool:
-        return self._version.is_prerelease()
+        return self._version.is_pre_release()
 
     def is_root(self) -> bool:
         return False

@@ -62,7 +62,7 @@ class Dependency(PackageSpecification):
 
         if isinstance(self._constraint, VersionRange) and self._constraint.min:
             allows_prereleases = (
-                allows_prereleases or self._constraint.min.is_prerelease()
+                allows_prereleases or self._constraint.min.is_pre_release()
             )
 
         self._allows_prereleases = allows_prereleases
