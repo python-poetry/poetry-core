@@ -15,7 +15,7 @@ import pytest
 
 from poetry.core import __version__
 from poetry.core.factory import Factory
-from poetry.core.masonry.builders import CompleteBuilder
+from poetry.core.masonry import Builder
 from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import decode
 
@@ -46,8 +46,8 @@ def clear_samples_dist():
 )
 def test_wheel_c_extension():
     module_path = fixtures_dir / "extended"
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     sdist = fixtures_dir / "extended" / "dist" / "extended-0.1.tar.gz"
 
@@ -103,8 +103,8 @@ $""".format(
 )
 def test_wheel_c_extension_with_no_setup():
     module_path = fixtures_dir / "extended_with_no_setup"
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     sdist = fixtures_dir / "extended_with_no_setup" / "dist" / "extended-0.1.tar.gz"
 
@@ -160,8 +160,8 @@ $""".format(
 )
 def test_wheel_c_extension_src_layout():
     module_path = fixtures_dir / "src_extended"
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     sdist = fixtures_dir / "src_extended" / "dist" / "extended-0.1.tar.gz"
 
@@ -211,8 +211,8 @@ $""".format(
 
 def test_complete():
     module_path = fixtures_dir / "complete"
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
@@ -300,8 +300,8 @@ def test_complete_no_vcs():
 
     shutil.copytree(module_path.as_posix(), temporary_dir.as_posix())
 
-    builder = CompleteBuilder(Factory().create_poetry(temporary_dir))
-    builder.build()
+    builder = Builder(Factory().create_poetry(temporary_dir))
+    builder.build(fmt="all")
 
     whl = temporary_dir / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
@@ -398,8 +398,8 @@ My Package
 
 def test_module_src():
     module_path = fixtures_dir / "source_file"
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     sdist = module_path / "dist" / "module-src-0.1.tar.gz"
 
@@ -422,8 +422,8 @@ def test_module_src():
 
 def test_package_src():
     module_path = fixtures_dir / "source_package"
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     sdist = module_path / "dist" / "package-src-0.1.tar.gz"
 
@@ -467,8 +467,8 @@ def test_package_with_include(mocker):
             / "vcs_excluded.txt"
         ),
     ]
-    builder = CompleteBuilder(Factory().create_poetry(module_path))
-    builder.build()
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
 
     sdist = fixtures_dir / "with-include" / "dist" / "with-include-1.2.3.tar.gz"
 
