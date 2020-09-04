@@ -4,12 +4,13 @@ from typing import List
 
 from .empty_constraint import EmptyConstraint
 from .version_constraint import VersionConstraint
+from .version_range_constraint import VersionRangeConstraint
 
 
 if TYPE_CHECKING:
-    from . import VersionTypes  # noqa
-    from .version import Version
-    from .version_range import VersionRange
+    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range import VersionRange
 
 
 class VersionUnion(VersionConstraint):
@@ -53,7 +54,7 @@ class VersionUnion(VersionConstraint):
         # about everything in flattened. _EmptyVersions and VersionUnions are
         # filtered out above.
         for constraint in flattened:
-            if isinstance(constraint, VersionRange):
+            if isinstance(constraint, VersionRangeConstraint):
                 continue
 
             raise ValueError("Unknown VersionConstraint type {}.".format(constraint))
@@ -222,16 +223,14 @@ class VersionUnion(VersionConstraint):
 
         return VersionUnion.of(*new_ranges)
 
-    def _ranges_for(self, constraint: "VersionTypes") -> List["VersionRange"]:
-        from .version_range import VersionRange
-
+    def _ranges_for(self, constraint: "VersionTypes") -> List["VersionRangeConstraint"]:
         if constraint.is_empty():
             return []
 
         if isinstance(constraint, VersionUnion):
             return constraint.ranges
 
-        if isinstance(constraint, VersionRange):
+        if isinstance(constraint, VersionRangeConstraint):
             return [constraint]
 
         raise ValueError("Unknown VersionConstraint type {}".format(constraint))

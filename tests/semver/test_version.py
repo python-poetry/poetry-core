@@ -1,41 +1,42 @@
 import pytest
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
-from poetry.core.semver.exceptions import ParseVersionError
 from poetry.core.semver.version import Version
 from poetry.core.semver.version_range import VersionRange
+from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.pep440 import ReleaseTag
 
 
 @pytest.mark.parametrize(
-    "input,version",
+    "text,version",
     [
-        ("1.0.0", Version(1, 0, 0)),
-        ("1", Version(1, 0, 0)),
-        ("1.0", Version(1, 0, 0)),
-        ("1b1", Version(1, 0, 0, pre="beta1")),
-        ("1.0b1", Version(1, 0, 0, pre="beta1")),
-        ("1.0.0b1", Version(1, 0, 0, pre="beta1")),
-        ("1.0.0-b1", Version(1, 0, 0, pre="beta1")),
-        ("1.0.0-beta.1", Version(1, 0, 0, pre="beta1")),
-        ("1.0.0+1", Version(1, 0, 0, build="1")),
-        ("1.0.0-1", Version(1, 0, 0, build="1")),
-        ("1.0.0.0", Version(1, 0, 0)),
-        ("1.0.0-post", Version(1, 0, 0)),
-        ("1.0.0-post1", Version(1, 0, 0, build="1")),
-        ("0.6c", Version(0, 6, 0, pre="rc0")),
-        ("0.6pre", Version(0, 6, 0, pre="rc0")),
+        ("1.0.0", Version.from_parts(1, 0, 0)),
+        ("1", Version.from_parts(1, 0, 0)),
+        ("1.0", Version.from_parts(1, 0, 0)),
+        ("1b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
+        ("1.0b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
+        ("1.0.0b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
+        ("1.0.0-b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
+        ("1.0.0-beta.1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
+        ("1.0.0+1", Version.from_parts(1, 0, 0, local=1)),
+        ("1.0.0-1", Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1))),
+        ("1.0.0.0", Version.from_parts(1, 0, 0, extra=0)),
+        ("1.0.0-post", Version.from_parts(1, 0, 0, post=ReleaseTag("post"))),
+        ("1.0.0-post1", Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1))),
+        ("0.6c", Version.from_parts(0, 6, 0, pre=ReleaseTag("rc", 0))),
+        ("0.6pre", Version.from_parts(0, 6, 0, pre=ReleaseTag("preview", 0))),
     ],
 )
-def test_parse_valid(input, version):
-    parsed = Version.parse(input)
+def test_parse_valid(text, version):
+    parsed = Version.parse(text)
 
     assert parsed == version
-    assert parsed.text == input
+    assert parsed.text == text
 
 
 @pytest.mark.parametrize("input", [(None, "example")])
 def test_parse_invalid(input):
-    with pytest.raises(ParseVersionError):
+    with pytest.raises(InvalidVersion):
         Version.parse(input)
 
 

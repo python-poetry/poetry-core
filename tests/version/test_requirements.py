@@ -28,12 +28,12 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
         ("name", {"name": "name"}),
         ("foo-bar.quux_baz", {"name": "foo-bar.quux_baz"}),
         ("name>=3", {"name": "name", "constraint": ">=3"}),
-        ("name==1.0.org1", {"name": "name", "constraint": "==1.0.org1"}),
+        ("name==1.0.post1", {"name": "name", "constraint": "==1.0.post1"}),
         (
-            "name>=1.x.y;python_version=='2.6'",
+            "name>=1.2.3;python_version=='2.6'",
             {
                 "name": "name",
-                "constraint": ">=1.x.y",
+                "constraint": ">=1.2.3",
                 "marker": 'python_version == "2.6"',
             },
         ),

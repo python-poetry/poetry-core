@@ -11,7 +11,7 @@ from typing import Iterator
 from typing import List
 from typing import Union
 
-from poetry.core.version import Version
+from poetry.core.version.pep440 import PEP440Version
 
 
 try:
@@ -32,7 +32,7 @@ def module_name(name: str) -> str:
 
 
 def normalize_version(version: str) -> str:
-    return str(Version(version))
+    return PEP440Version.parse(version).to_string(short=True)
 
 
 @contextmanager
