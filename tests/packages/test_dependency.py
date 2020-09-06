@@ -130,3 +130,49 @@ def test_to_pep_508_with_patch_python_version(python_versions, marker):
 
     assert expected == dependency.to_pep_508()
     assert marker == str(dependency.marker)
+
+
+def test_to_pep_508_tilde():
+    dependency = Dependency("foo", "~1.2.3")
+
+    assert "foo (>=1.2.3,<1.3.0)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "~1.2")
+
+    assert "foo (>=1.2,<1.3)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "~0.2.3")
+
+    assert "foo (>=0.2.3,<0.3.0)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "~0.2")
+
+    assert "foo (>=0.2,<0.3)" == dependency.to_pep_508()
+
+
+def test_to_pep_508_caret():
+    dependency = Dependency("foo", "^1.2.3")
+
+    assert "foo (>=1.2.3,<2.0.0)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "^1.2")
+
+    assert "foo (>=1.2,<2.0)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "^0.2.3")
+
+    assert "foo (>=0.2.3,<0.3.0)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "^0.2")
+
+    assert "foo (>=0.2,<0.3)" == dependency.to_pep_508()
+
+
+def test_to_pep_508_combination():
+    dependency = Dependency("foo", "^1.2,!=1.3.5")
+
+    assert "foo (>=1.2,<2.0,!=1.3.5)" == dependency.to_pep_508()
+
+    dependency = Dependency("foo", "~1.2,!=1.2.5")
+
+    assert "foo (>=1.2,<1.3,!=1.2.5)" == dependency.to_pep_508()
