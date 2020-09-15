@@ -161,21 +161,19 @@ class Builder(object):
                                 to_add.add(include_file)
                     continue
 
-                if (
-                    isinstance(include, PackageInclude)
-                    and include.source
-                    and self.format == "wheel"
-                ):
-                    source_root = include.base
-                else:
-                    source_root = self._path
-
-                include_file = BuildIncludeFile(path=file, source_root=source_root)
+                include_file = BuildIncludeFile(path=file, source_root=self._path)
 
                 if self.is_excluded(
                     include_file.relative_to_source_root()
                 ) and isinstance(include, PackageInclude):
                     continue
+
+                if (
+                    isinstance(include, PackageInclude)
+                    and include.source
+                    and self.format == "wheel"
+                ):
+                    include_file.source_root = include.base
 
                 if file.suffix == ".pyc":
                     continue

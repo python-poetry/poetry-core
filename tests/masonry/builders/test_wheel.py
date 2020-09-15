@@ -7,6 +7,7 @@ import pytest
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.wheel import WheelBuilder
 from poetry.core.utils._compat import Path
+from tests.masonry.builders.test_sdist import project
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -228,3 +229,44 @@ def test_wheel_with_file_with_comma():
     with zipfile.ZipFile(str(whl)) as z:
         records = z.read("comma_file-1.2.3.dist-info/RECORD")
         assert '\n"comma_file/a,b.py"' in records.decode()
+
+
+def test_default_src_with_excluded_data(mocker):
+    # Patch git module to return specific excluded files
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
+    p.return_value = [
+        (
+            (
+                Path(__file__).parent
+                / "fixtures"
+                / "default_src_with_excluded_data"
+                / "src"
+                / "my_package"
+                / "data"
+                / "sub_data"
+                / "data2.txt"
+            )
+            .relative_to(project("default_src_with_excluded_data"))
+            .as_posix()
+        )
+    ]
+    poetry = Factory().create_poetry(project("default_src_with_excluded_data"))
+
+    builder = WheelBuilder(poetry)
+    builder.build()
+
+    whl = (
+        fixtures_dir
+        / "default_src_with_excluded_data"
+        / "dist"
+        / "my_package-1.2.3-py3-none-any.whl"
+    )
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        names = z.namelist()
+        assert "my_package/__init__.py" in names
+        assert "my_package/data/data1.txt" in names
+        assert "my_package/data/sub_data/data2.txt" not in names
+        assert "my_package/data/sub_data/data3.txt" in names
