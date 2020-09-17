@@ -320,7 +320,7 @@ class SdistBuilder(Builder):
 
         for file in additional_files:
             file = BuildIncludeFile(
-                path=file, project_root=self._original_path, source_root=self._path
+                path=file, project_root=self._path, source_root=self._path
             )
             if file.path.exists():
                 logger.debug("Adding: {}".format(file.relative_to_source_root()))

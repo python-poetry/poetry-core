@@ -45,7 +45,6 @@ class Builder(object):
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
-        self._original_path = self._path
         self._excluded_files = None
 
         packages = []
@@ -93,7 +92,7 @@ class Builder(object):
     def find_excluded_files(self):  # type: () -> Set[str]
         if self._excluded_files is None:
             # Checking VCS
-            vcs = get_vcs(self._original_path)
+            vcs = get_vcs(self._path)
             if not vcs:
                 vcs_ignored_files = set()
             else:
@@ -153,7 +152,7 @@ class Builder(object):
                         for current_file in file.glob("**/*"):
                             include_file = BuildIncludeFile(
                                 path=current_file,
-                                project_root=self._original_path,
+                                project_root=self._path,
                                 source_root=self._path,
                             )
 
@@ -173,7 +172,7 @@ class Builder(object):
                     source_root = self._path
 
                 include_file = BuildIncludeFile(
-                    path=file, project_root=self._original_path, source_root=source_root
+                    path=file, project_root=self._path, source_root=source_root
                 )
 
                 if self.is_excluded(
@@ -196,14 +195,14 @@ class Builder(object):
             to_add.add(
                 BuildIncludeFile(
                     path=self._package.build_script,
-                    project_root=self._original_path,
+                    project_root=self._path,
                     source_root=self._path,
                 )
             )
 
         return to_add
 
-    def get_metadata_content(self):  # type: () -> bytes
+    def get_metadata_content(self):  # type: () -> str
         content = METADATA_BASE.format(
             name=self._meta.name,
             version=self._meta.version,
@@ -310,9 +309,9 @@ class Builder(object):
 class BuildIncludeFile:
     def __init__(
         self,
-        path,  # type: Path
-        project_root,  # type: Path
-        source_root=None,  # type: Optional[Path]
+        path,  # type: Union[Path, str]
+        project_root,  # type: Union[Path, str]
+        source_root=None,  # type: Optional[Union[Path, str]]
     ):
         """
         :param project_root: the full path of the project's root
