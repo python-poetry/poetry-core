@@ -1,6 +1,10 @@
 import hashlib
 import io
 
+from typing import List
+from typing import Set
+from typing import Union
+
 from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.utils._compat import Path
 
@@ -15,13 +19,17 @@ class FileDependency(Dependency):
         category="main",  # type: str
         optional=False,  # type: bool
         base=None,  # type: Path
+        extras=None,  # type: Union[List[str], Set[str]]
     ):
         self._path = path
-        self._base = base
+        self._base = base or Path.cwd()
         self._full_path = path
 
-        if self._base and not self._path.is_absolute():
-            self._full_path = self._base / self._path
+        if not self._path.is_absolute():
+            try:
+                self._full_path = self._base.joinpath(self._path).resolve()
+            except FileNotFoundError:
+                raise ValueError("Directory {} does not exist".format(self._path))
 
         if not self._full_path.exists():
             raise ValueError("File {} does not exist".format(self._path))
@@ -30,7 +38,14 @@ class FileDependency(Dependency):
             raise ValueError("{} is a directory, expected a file".format(self._path))
 
         super(FileDependency, self).__init__(
-            name, "*", category=category, optional=optional, allows_prereleases=True
+            name,
+            "*",
+            category=category,
+            optional=optional,
+            allows_prereleases=True,
+            source_type="file",
+            source_url=self._full_path.as_posix(),
+            extras=extras,
         )
 
     @property
@@ -43,7 +58,7 @@ class FileDependency(Dependency):
 
     @property
     def full_path(self):
-        return self._full_path.resolve()
+        return self._full_path
 
     def is_file(self):
         return True
@@ -55,6 +70,29 @@ class FileDependency(Dependency):
                 h.update(content)
 
         return h.hexdigest()
+
+    def with_constraint(self, constraint):
+        new = FileDependency(
+            self.pretty_name,
+            path=self.path,
+            base=self.base,
+            optional=self.is_optional(),
+            category=self.category,
+            extras=self._extras,
+        )
+
+        new._constraint = constraint
+        new._pretty_constraint = str(constraint)
+
+        new.is_root = self.is_root
+        new.python_versions = self.python_versions
+        new.marker = self.marker
+        new.transitive_marker = self.transitive_marker
+
+        for in_extra in self.in_extras:
+            new.in_extras.append(in_extra)
+
+        return new
 
     @property
     def base_pep_508_name(self):  # type: () -> str

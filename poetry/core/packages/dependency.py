@@ -1,4 +1,7 @@
+from typing import FrozenSet
+from typing import List
 from typing import Optional
+from typing import Union
 
 import poetry.core.packages
 
@@ -7,7 +10,6 @@ from poetry.core.semver import VersionConstraint
 from poetry.core.semver import VersionRange
 from poetry.core.semver import VersionUnion
 from poetry.core.semver import parse_constraint
-from poetry.core.utils.helpers import canonicalize_name
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import parse_marker
 
@@ -15,21 +17,32 @@ from .constraints import parse_constraint as parse_generic_constraint
 from .constraints.constraint import Constraint
 from .constraints.multi_constraint import MultiConstraint
 from .constraints.union_constraint import UnionConstraint
+from .specification import PackageSpecification
 from .utils.utils import convert_markers
 
 
-class Dependency(object):
+class Dependency(PackageSpecification):
     def __init__(
         self,
         name,  # type: str
-        constraint,  # type: str
+        constraint,  # type: Union[str, VersionConstraint]
         optional=False,  # type: bool
         category="main",  # type: str
         allows_prereleases=False,  # type: bool
-        source_name=None,  # type: Optional[str]
+        extras=None,  # type: Union[List[str], FrozenSet[str]]
+        source_type=None,  # type: Optional[str]
+        source_url=None,  # type: Optional[str]
+        source_reference=None,  # type: Optional[str]
+        source_resolved_reference=None,  # type: Optional[str]
     ):
-        self._name = canonicalize_name(name)
-        self._pretty_name = name
+        super(Dependency, self).__init__(
+            name,
+            source_type=source_type,
+            source_url=source_url,
+            source_reference=source_reference,
+            source_resolved_reference=source_resolved_reference,
+            features=extras,
+        )
 
         try:
             if not isinstance(constraint, VersionConstraint):
@@ -49,21 +62,21 @@ class Dependency(object):
             )
 
         self._allows_prereleases = allows_prereleases
-        self._source_name = source_name
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
         self._transitive_python_versions = None
         self._transitive_python_constraint = None
         self._transitive_marker = None
+        self._extras = frozenset(extras or [])
 
-        self._extras = []
         self._in_extras = []
 
         self._activated = not self._optional
 
         self.is_root = False
         self.marker = AnyMarker()
+        self.source_name = None
 
     @property
     def name(self):
@@ -84,10 +97,6 @@ class Dependency(object):
     @property
     def category(self):
         return self._category
-
-    @property
-    def source_name(self):
-        return self._source_name
 
     @property
     def python_versions(self):
@@ -141,7 +150,7 @@ class Dependency(object):
         return self._transitive_python_constraint
 
     @property
-    def extras(self):  # type: () -> list
+    def extras(self):  # type: () -> FrozenSet[str]
         return self._extras
 
     @property
@@ -346,13 +355,14 @@ class Dependency(object):
             optional=self.is_optional(),
             category=self.category,
             allows_prereleases=self.allows_prereleases(),
+            extras=self._extras,
+            source_type=self._source_type,
+            source_url=self._source_url,
+            source_reference=self._source_reference,
         )
 
         new.is_root = self.is_root
         new.python_versions = self.python_versions
-
-        for extra in self.extras:
-            new.extras.append(extra)
 
         for in_extra in self.in_extras:
             new.in_extras.append(in_extra)
@@ -363,19 +373,32 @@ class Dependency(object):
         if not isinstance(other, Dependency):
             return NotImplemented
 
-        return self._name == other.name and self._constraint == other.constraint
+        return (
+            self.is_same_package_as(other)
+            and self._constraint == other.constraint
+            and self._extras == other.extras
+        )
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash((self._name, self._pretty_constraint))
+        return (
+            super(Dependency, self).__hash__()
+            ^ hash(self._constraint)
+            ^ hash(self._extras)
+        )
 
     def __str__(self):
         if self.is_root:
             return self._pretty_name
 
-        return "{} ({})".format(self._pretty_name, self._pretty_constraint)
+        name = self._pretty_name
+
+        if self._features:
+            name = "{}[{}]".format(name, ",".join(sorted(self._features)))
+
+        return "{} ({})".format(name, self._pretty_constraint)
 
     def __repr__(self):
         return "<{} {}>".format(self.__class__.__name__, str(self))

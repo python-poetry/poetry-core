@@ -452,4 +452,9 @@ class VersionRange(VersionConstraint):
         return "<VersionRange ({})>".format(str(self))
 
     def __hash__(self):
-        return hash((self.min, self.max, self.include_min, self.include_max))
+        return (
+            hash(self.min)
+            ^ hash(self.max)
+            ^ hash(self.include_min)
+            ^ hash(self.include_max)
+        )
