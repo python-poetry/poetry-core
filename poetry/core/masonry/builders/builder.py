@@ -152,7 +152,9 @@ class Builder(object):
                     if self.format in formats:
                         for current_file in file.glob("**/*"):
                             include_file = BuildIncludeFile(
-                                path=current_file, source_root=self._path
+                                path=current_file,
+                                project_root=self._original_path,
+                                source_root=self._path,
                             )
 
                             if not current_file.is_dir() and not self.is_excluded(
@@ -161,19 +163,23 @@ class Builder(object):
                                 to_add.add(include_file)
                     continue
 
-                include_file = BuildIncludeFile(path=file, source_root=self._path)
-
-                if self.is_excluded(
-                    include_file.relative_to_source_root()
-                ) and isinstance(include, PackageInclude):
-                    continue
-
                 if (
                     isinstance(include, PackageInclude)
                     and include.source
                     and self.format == "wheel"
                 ):
-                    include_file.source_root = include.base
+                    source_root = include.base
+                else:
+                    source_root = self._path
+
+                include_file = BuildIncludeFile(
+                    path=file, project_root=self._original_path, source_root=source_root
+                )
+
+                if self.is_excluded(
+                    include_file.relative_to_project_root()
+                ) and isinstance(include, PackageInclude):
+                    continue
 
                 if file.suffix == ".pyc":
                     continue
@@ -189,7 +195,9 @@ class Builder(object):
         if self._package.build_script and not exclude_build:
             to_add.add(
                 BuildIncludeFile(
-                    path=self._package.build_script, source_root=self._path
+                    path=self._package.build_script,
+                    project_root=self._original_path,
+                    source_root=self._path,
                 )
             )
 
@@ -303,13 +311,16 @@ class BuildIncludeFile:
     def __init__(
         self,
         path,  # type: Path
+        project_root,  # type: Path
         source_root=None,  # type: Optional[Path]
     ):
         """
+        :param project_root: the full path of the project's root
         :param path: a full path to the file to be included
         :param source_root: the root path to resolve to
         """
         self.path = Path(path)
+        self.project_root = Path(project_root).resolve()
         self.source_root = None if not source_root else Path(source_root).resolve()
         if not self.path.is_absolute() and self.source_root:
             self.path = (self.source_root / self.path).resolve()
@@ -329,6 +340,9 @@ class BuildIncludeFile:
 
     def __repr__(self):  # type: () -> str
         return str(self.path)
+
+    def relative_to_project_root(self):  # type(): -> Path
+        return self.path.relative_to(self.project_root)
 
     def relative_to_source_root(self):  # type(): -> Path
         if self.source_root is not None:
