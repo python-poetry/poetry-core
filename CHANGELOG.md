@@ -1,5 +1,28 @@
 # Change Log
 
+## [1.0.0b1] - 2020-09-18
+
+### Added
+
+- Added support for build executable for wheels ([#72](https://github.com/python-poetry/core/pull/72)).
+
+### Changed
+
+- Improved packages with sources equality comparison ([#53](https://github.com/python-poetry/core/pull/53)).
+- Improved licenses handling and packaging in builders ([#57](https://github.com/python-poetry/core/pull/57)).
+- Refactored packages and dependencies classes to improve comparison between bare packages and packages with extras ([#78](https://github.com/python-poetry/core/pull/78)).
+
+### Fixed
+
+- Fixed PEP-508 representation of URL dependencies ([#60](https://github.com/python-poetry/core/pull/60)).
+- Fixed generated `RECORD` files in some cases by ensuring it's a valid CSV file ([#61](https://github.com/python-poetry/core/pull/61)).
+- Fixed an error when parsing some version constraints if they contained wildcard elements ([#56](https://github.com/python-poetry/core/pull/56)).
+- Fixed errors when using the `exclude` property ([#62](https://github.com/python-poetry/core/pull/62)).
+- Fixed the way git revisions are retrieved ([#69](https://github.com/python-poetry/core/pull/69)).
+- Fixed dependency constraint PEP-508 compatibility when generating metadata ([#79](https://github.com/python-poetry/core/pull/79)).
+- Fixed potential errors on Python 3.5 when building with the `include` property set ([#75](https://github.com/python-poetry/core/pull/75)).
+
+
 ## [1.0.0a9] - 2020-07-24
 
 ### Added
@@ -64,7 +87,8 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0a9...master
+[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0b1...master
+[1.0.0b1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0b1
 [1.0.0a9]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a9
 [1.0.0a8]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a8
 [1.0.0a7]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a7
