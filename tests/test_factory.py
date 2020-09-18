@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import pytest
 
 from poetry.core.factory import Factory
-from poetry.core.pyproject import PyProjectTOMLFile
+from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import PY2
 from poetry.core.utils._compat import Path
 
@@ -157,14 +157,14 @@ def test_create_poetry_with_multi_constraints_dependency():
 
 
 def test_validate():
-    complete = PyProjectTOMLFile(fixtures_dir / "complete.toml")
+    complete = TOMLFile(fixtures_dir / "complete.toml")
     content = complete.read()["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
 def test_validate_fails():
-    complete = PyProjectTOMLFile(fixtures_dir / "complete.toml")
+    complete = TOMLFile(fixtures_dir / "complete.toml")
     content = complete.read()["tool"]["poetry"]
     content["this key is not in the schema"] = ""
 
