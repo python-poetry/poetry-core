@@ -320,9 +320,17 @@ class BuildIncludeFile:
         self.path = Path(path)
         self.source_root = None if not source_root else Path(source_root).resolve()
         if not self.path.is_absolute() and self.source_root:
-            self.path = (self.source_root / self.path).resolve()
+            self.path = self.source_root / self.path
         else:
+            self.path = self.path
+
+        try:
             self.path = self.path.resolve()
+        except FileNotFoundError:
+            # this is an issue in in python 3.5, since resolve uses strict=True by
+            # default, this workaround needs to be maintained till python 2.7 and
+            # python 3.5 are dropped, until we can use resolve(strict=False).
+            pass
 
     def __eq__(self, other):  # type: (Union[BuildIncludeFile, Path]) -> bool
         if hasattr(other, "path"):

@@ -44,6 +44,12 @@ else:
     OrderedDict = dict
 
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError  # noqa
+
+
 def decode(string, encodings=None):
     if not PY2 and not isinstance(string, bytes):
         return string
