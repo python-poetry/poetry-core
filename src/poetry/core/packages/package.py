@@ -107,7 +107,7 @@ class Package(PackageSpecification):
         self._python_marker = AnyMarker()
 
         self.platform = None
-        self.marker = AnyMarker()
+        self.marker: "BaseMarker" = AnyMarker()
 
         self.root_dir: Optional[Path] = None
 
