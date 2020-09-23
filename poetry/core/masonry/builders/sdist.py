@@ -319,7 +319,9 @@ class SdistBuilder(Builder):
             additional_files.add(self._poetry.local_config["readme"])
 
         for file in additional_files:
-            file = BuildIncludeFile(path=file, source_root=self._path)
+            file = BuildIncludeFile(
+                path=file, project_root=self._path, source_root=self._path
+            )
             if file.path.exists():
                 logger.debug("Adding: {}".format(file.relative_to_source_root()))
                 to_add.add(file)

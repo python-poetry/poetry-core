@@ -188,7 +188,7 @@ class WheelBuilder(Builder):
                 relative_path = "%s/%s" % (self.dist_info, path.relative_to(self._path))
                 self._add_file(wheel, path, relative_path)
             else:
-                logger.debug("Skipping: %s", path.as_posix())
+                logger.debug("Skipping: {}".format(path.as_posix()))
 
         with self._write_to_zip(wheel, self.dist_info + "/WHEEL") as f:
             self._write_wheel_file(f)
