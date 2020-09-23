@@ -578,6 +578,9 @@
                 },
                 "script": {
                     "$ref": "#/definitions/build-script"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/build-metadata"
                 }
             }
         },
@@ -586,6 +589,29 @@
                 {"$ref": "#/definitions/build-script"},
                 {"$ref": "#/definitions/build-config"}
             ]
+        },
+        "build-metadata-dependencies": {
+            "type": "object",
+            "description": "Package dependency metadata configuration",
+            "properties": {
+                "lock": {
+                    "type": "boolean",
+                    "description": "Lock (pin) all dependencies",
+                    "default": false
+                },
+                "nested": {
+                    "type": "boolean",
+                    "description": "Include nested dependencies",
+                    "default": false
+                }
+            }
+        },
+        "build-metadata": {
+            "type": "object",
+            "description": "Build metadata configuration",
+            "properties": {
+                "dependencies": {"$ref": "#/definitions/build-metadata-dependencies"}
+            }
         }
     }
 }

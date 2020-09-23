@@ -86,7 +86,7 @@ class Builder(object):
             includes=includes,
         )
 
-        self._meta = Metadata.from_package(self._package)
+        self._meta = Metadata.from_poetry_project(self._poetry)
 
     @property
     def executable(self):  # type: () -> Path
