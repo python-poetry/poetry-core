@@ -202,6 +202,16 @@ def test_to_dependency():
     assert package.version == dep.constraint
 
 
+def test_to_dependency_with_python_constraint():
+    package = Package("foo", "1.2.3")
+    package.python_versions = ">=3.6"
+    dep = package.to_dependency()
+
+    assert "foo" == dep.name
+    assert package.version == dep.constraint
+    assert ">=3.6" == dep.python_versions
+
+
 def test_to_dependency_with_features():
     package = Package("foo", "1.2.3", features=["baz", "bar"])
     dep = package.to_dependency()

@@ -357,6 +357,9 @@ class Package(PackageSpecification):
         if not self.marker.is_any():
             dep.marker = self.marker
 
+        if not self.python_constraint.is_any():
+            dep.python_versions = self.python_versions
+
         if self._source_type not in ["directory", "file", "url", "git"]:
             return dep
 
