@@ -267,7 +267,7 @@ def create_nested_marker(name, constraint):
 def get_python_constraint_from_marker(
     marker,
 ):  # type: (BaseMarker) -> VersionConstraint
-    python_marker = marker.only("python_version")
+    python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():
         return VersionRange()
 

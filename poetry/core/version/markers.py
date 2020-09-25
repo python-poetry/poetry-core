@@ -65,7 +65,7 @@ class BaseMarker(object):
     def exclude(self, marker_name):  # type: (str) -> BaseMarker
         raise NotImplementedError()
 
-    def only(self, marker_name):  # type: (str) -> BaseMarker
+    def only(self, *marker_names):  # type: (str) -> BaseMarker
         raise NotImplementedError()
 
     def invert(self):  # type: () -> BaseMarker
@@ -97,7 +97,7 @@ class AnyMarker(BaseMarker):
     def exclude(self, marker_name):  # type: (str) -> AnyMarker
         return self
 
-    def only(self, marker_name):  # type: (str) -> AnyMarker
+    def only(self, *marker_names):  # type: (str) -> AnyMarker
         return self
 
     def invert(self):  # type: () -> EmptyMarker
@@ -141,7 +141,7 @@ class EmptyMarker(BaseMarker):
     def exclude(self, marker_name):  # type: (str) -> EmptyMarker
         return self
 
-    def only(self, marker_name):  # type: (str) -> EmptyMarker
+    def only(self, *marker_names):  # type: (str) -> EmptyMarker
         return self
 
     def invert(self):  # type: () -> AnyMarker
@@ -287,8 +287,8 @@ class SingleMarker(BaseMarker):
 
         return self
 
-    def only(self, marker_name):  # type: (str) -> BaseMarker
-        if self.name != marker_name:
+    def only(self, *marker_names):  # type: (str) -> BaseMarker
+        if self.name not in marker_names:
             return EmptyMarker()
 
         return self
@@ -464,15 +464,15 @@ class MultiMarker(BaseMarker):
 
         return self.of(*new_markers)
 
-    def only(self, marker_name):  # type: (str) -> BaseMarker
+    def only(self, *marker_names):  # type: (str) -> BaseMarker
         new_markers = []
 
         for m in self._markers:
-            if isinstance(m, SingleMarker) and m.name != marker_name:
+            if isinstance(m, SingleMarker) and m.name not in marker_names:
                 # The marker is not relevant since it's not one we want
                 continue
 
-            marker = m.only(marker_name)
+            marker = m.only(*marker_names)
 
             if not marker.is_empty():
                 new_markers.append(marker)
@@ -628,15 +628,15 @@ class MarkerUnion(BaseMarker):
 
         return self.of(*new_markers)
 
-    def only(self, marker_name):  # type: (str) -> BaseMarker
+    def only(self, *marker_names):  # type: (str) -> BaseMarker
         new_markers = []
 
         for m in self._markers:
-            if isinstance(m, SingleMarker) and m.name != marker_name:
+            if isinstance(m, SingleMarker) and m.name not in marker_names:
                 # The marker is not relevant since it's not one we want
                 continue
 
-            marker = m.only(marker_name)
+            marker = m.only(*marker_names)
 
             if not marker.is_empty():
                 new_markers.append(marker)
