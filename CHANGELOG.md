@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.0rc2] - 2020-09-25
+
+### Fixed
+
+- Fixed `python_full_version` markers conversion to version constraints ([#86](https://github.com/python-poetry/core/pull/86)).
+
+
 ## [1.0.0rc1] - 2020-09-25
 
 ### Fixed
@@ -95,7 +102,8 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0rc1...master
+[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0rc2...master
+[1.0.0rc2]: https://github.com/python-poetry/poetry/releases/tag/1.0.0rc2
 [1.0.0rc1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0rc1
 [1.0.0b1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0b1
 [1.0.0a9]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a9
