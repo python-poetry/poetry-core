@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.0.0rc1] - 2020-09-25
+
+### Fixed
+
+- Fixed Python constraint propagation when converting a package to a dependency ([#84](https://github.com/python-poetry/core/pull/84)).
+- Fixed VCS ignored files being included in wheel distributions for projects using the `src` layout ([#81](https://github.com/python-poetry/core/pull/81))
+
+
 ## [1.0.0b1] - 2020-09-18
 
 ### Added
@@ -87,7 +95,8 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0b1...master
+[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0rc1...master
+[1.0.0rc1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0rc1
 [1.0.0b1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0b1
 [1.0.0a9]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a9
 [1.0.0a8]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a8
