@@ -3,24 +3,27 @@ ROOT_DIR                        := $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))
 
 VENDOR_SRC                      := $(ROOT_DIR)/vendors
 VENDOR_DIR                      := $(ROOT_DIR)/poetry/core/_vendor
+VENDOR_TXT                      := $(VENDOR_DIR)/vendor.txt
 POETRY_BIN                      ?= $(shell which poetry)
 
-
 .PHONY: vendor/lock
-vendor/lock:
-    # regenerate lock file
-	@pushd $(VENDOR_SRC) && $(POETRY_BIN) lock
-
-	# regenerate vendor.txt file (exported from lockfile)
-	@pushd $(VENDOR_SRC) && $(POETRY_BIN) export --without-hashes \
-			| egrep -v "(importlib|zipp)" \
-			| sort > $(VENDOR_DIR)/vendor.txt
-
+vendor/lock: $(VENDOR_LOCK)
+	# regenerate lock file
+	@pushd $(VENDOR_SRC) && $(POETRY_BIN) lock --no-update
 
 .PHONY: vendor/sync
-vendor/sync: | vendor/lock
+vendor/sync:
+	# regenerate vendor.txt file (exported from lockfile)
+	@pushd $(VENDOR_SRC) && $(POETRY_BIN) export --without-hashes 2> /dev/null \
+			| egrep -v "(importlib|zipp)" \
+			| sort > $(VENDOR_TXT)
+
 	# vendor packages
 	@vendoring sync
 
 	# strip out *.pyi stubs
 	@find "$(VENDOR_DIR)" -type f -name "*.pyi" -exec rm {} \;
+
+.PHONY: vendor/update
+vendor/update: | vendor/lock vendor/sync
+	@:
