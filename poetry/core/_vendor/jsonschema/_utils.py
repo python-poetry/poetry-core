@@ -1,6 +1,6 @@
 import itertools
 import json
-import os
+import pkgutil
 import re
 
 from jsonschema.compat import MutableMapping, str_types, urlsplit
@@ -50,12 +50,12 @@ def load_schema(name):
     """
     Load a schema from ./schemas/``name``.json and return it.
     """
-    with open(
-        os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name))
-    ) as f:
-        data = f.read()
 
-    return json.loads(data)
+    data = pkgutil.get_data(
+        "poetry.core",
+        "_vendor/jsonschema/schemas/{0}.json".format(name),
+    )
+    return json.loads(data.decode("utf-8"))
 
 
 def indent(string, times=1):

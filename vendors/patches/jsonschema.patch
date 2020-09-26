@@ -17,26 +17,13 @@ diff --git a/poetry/core/_vendor/jsonschema/_utils.py b/poetry/core/_vendor/json
 index 8fb8593..368474a 100644
 --- a/poetry/core/_vendor/jsonschema/_utils.py
 +++ b/poetry/core/_vendor/jsonschema/_utils.py
-@@ -1,6 +1,6 @@
- import itertools
- import json
--import pkgutil
-+import os
- import re
-
- from jsonschema.compat import MutableMapping, str_types, urlsplit
-@@ -50,9 +50,12 @@ def load_schema(name):
-     """
+@@ -51,5 +51,8 @@ def load_schema(name):
      Load a schema from ./schemas/``name``.json and return it.
      """
-+    with open(
-+        os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name))
-+    ) as f:
-+        data = f.read()
 
 -    data = pkgutil.get_data("jsonschema", "schemas/{0}.json".format(name))
--    return json.loads(data.decode("utf-8"))
-+    return json.loads(data)
-
-
- def indent(string, times=1):
++    data = pkgutil.get_data(
++        "poetry.core",
++        "_vendor/jsonschema/schemas/{0}.json".format(name),
++    )
+     return json.loads(data.decode("utf-8"))
