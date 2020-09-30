@@ -24,6 +24,8 @@ class PyProjectTOML:
     @property
     def data(self):  # type: () -> TOMLDocument
         if self._data is None:
+            if not self._file.exists():
+                return TOMLDocument()
             self._data = self._file.read()
         return self._data
 
