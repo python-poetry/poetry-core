@@ -53,9 +53,6 @@ vendoring = {version = "^0.3", python = "~3.8"}
 pep517 = "^0.8.2"
 "backports.tempfile" = {version = "^1.0", python = "~2.7"}
 
-[tool.intreehooks]
-build-backend = "poetry.core.masonry.api"
-
 [tool.black]
 line-length = 88
 include = '\.pyi?$'
@@ -119,5 +116,6 @@ appdirs = []
 pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENCE.mit"
 
 [build-system]
-requires = ["intreehooks"]
-build-backend = "intreehooks:loader"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+backend-path = ["."]
