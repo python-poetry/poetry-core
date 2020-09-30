@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 
+from tomlkit.toml_document import TOMLDocument
 from tomlkit.toml_file import TOMLFile
 
 from poetry.core.pyproject import PyProjectException
@@ -55,6 +56,16 @@ def test_pyproject_toml_build_requires_as_dependencies(pyproject_toml):
     build_system = PyProjectTOML(pyproject_toml).build_system
     assert build_system.requires == ["setuptools", "wheel"]
     assert build_system.build_backend == "setuptools.build_meta:__legacy__"
+
+
+def test_pyproject_toml_non_existent(pyproject_toml):
+    pyproject_toml.unlink()
+    pyproject = PyProjectTOML(pyproject_toml)
+    build_system = pyproject.build_system
+
+    assert pyproject.data == TOMLDocument()
+    assert build_system.requires == ["poetry-core"]
+    assert build_system.build_backend == "poetry.core.masonry.api"
 
 
 def test_pyproject_toml_reload(pyproject_toml, poetry_section):
