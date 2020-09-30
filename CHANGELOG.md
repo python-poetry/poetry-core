@@ -1,5 +1,14 @@
 # Change Log
 
+## [1.0.0rc3] - 2020-09-30
+
+### Changed
+
+- Removed `intreehooks` build backend in favor of the `backend-path` mechanism ([#90](https://github.com/python-poetry/poetry-core/pull/90)).
+- Directory dependencies will now always use a posix path for their representation ([#90](https://github.com/python-poetry/poetry-core/pull/91)).
+- Dependency constraints can now be set directly via a proper setter ([#90](https://github.com/python-poetry/poetry-core/pull/90)).
+
+
 ## [1.0.0rc2] - 2020-09-25
 
 ### Fixed
@@ -102,11 +111,12 @@
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry/compare/1.0.0rc2...master
-[1.0.0rc2]: https://github.com/python-poetry/poetry/releases/tag/1.0.0rc2
-[1.0.0rc1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0rc1
-[1.0.0b1]: https://github.com/python-poetry/poetry/releases/tag/1.0.0b1
-[1.0.0a9]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a9
-[1.0.0a8]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a8
-[1.0.0a7]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a7
-[1.0.0a6]: https://github.com/python-poetry/poetry/releases/tag/1.0.0a6
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.0rc3...master
+[1.0.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc3
+[1.0.0rc2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc2
+[1.0.0rc1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc1
+[1.0.0b1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0b1
+[1.0.0a9]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0a9
+[1.0.0a8]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0a8
+[1.0.0a7]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0a7
+[1.0.0a6]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0a6
