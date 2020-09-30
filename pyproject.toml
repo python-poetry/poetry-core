@@ -116,6 +116,6 @@ appdirs = []
 pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENCE.mit"
 
 [build-system]
-requires = ["poetry-core"]
+requires = []
 build-backend = "poetry.core.masonry.api"
 backend-path = ["."]
