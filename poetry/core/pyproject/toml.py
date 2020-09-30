@@ -25,17 +25,25 @@ class PyProjectTOML:
     def data(self):  # type: () -> TOMLDocument
         if self._data is None:
             if not self._file.exists():
-                return TOMLDocument()
-            self._data = self._file.read()
+                self._data = TOMLDocument()
+            else:
+                self._data = self._file.read()
         return self._data
 
     @property
     def build_system(self):  # type: () -> BuildSystem
         if self._build_system is None:
+            build_backend = None
+            requires = None
+
+            if not self._file.exists():
+                build_backend = "poetry.core.masonry.api"
+                requires = ["poetry-core"]
+
             container = self.data.get("build-system", {})
             self._build_system = BuildSystem(
-                build_backend=container.get("build-backend"),
-                requires=container.get("requires"),
+                build_backend=container.get("build-backend", build_backend),
+                requires=container.get("requires", requires),
             )
         return self._build_system
 
