@@ -115,7 +115,7 @@ class DirectoryDependency(Dependency):
         if self.extras:
             requirement += "[{}]".format(",".join(self.extras))
 
-        requirement += " @ {}".format(str(self.path))
+        requirement += " @ {}".format(self._path.as_posix())
 
         return requirement
 
@@ -124,8 +124,8 @@ class DirectoryDependency(Dependency):
             return self._pretty_name
 
         return "{} ({} {})".format(
-            self._pretty_name, self._pretty_constraint, self._path
+            self._pretty_name, self._pretty_constraint, self._path.as_posix()
         )
 
     def __hash__(self):
-        return hash((self._name, self._full_path))
+        return hash((self._name, self._full_path.as_posix()))
