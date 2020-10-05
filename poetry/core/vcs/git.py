@@ -147,6 +147,13 @@ class ParsedUrl:
             "/" + self.pathname.lstrip(":/"),
         )
 
+    @property
+    def is_unsafe(self):  # type: () -> bool
+        if self.password is not None:
+            return True
+        else:
+            return False
+
     def format(self):  # type: () -> str
         return self.url
 
