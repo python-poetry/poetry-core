@@ -308,3 +308,33 @@ def test_parse_url_should_fail():
 
     with pytest.raises(ValueError):
         ParsedUrl.parse(url)
+
+
+@pytest.mark.parametrize(
+    ["url", "is_unsafe"],
+    [
+        (
+            ParsedUrl(
+                protocol="ssh",
+                resource="git.example.com",
+                pathname=":sdispater/project/my_repo.git",
+                user="git",
+                name="my_repo",
+            ),
+            False,
+        ),
+        (
+            ParsedUrl(
+                protocol="https",
+                resource="hostname",
+                pathname="/project/blah.git",
+                user="user",
+                password="fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a",
+                name="blah",
+            ),
+            True,
+        ),
+    ],
+)
+def test_is_unsafe(url, is_unsafe):
+    assert url.is_unsafe == is_unsafe
