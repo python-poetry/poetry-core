@@ -3,13 +3,15 @@ import re
 import subprocess
 
 from collections import namedtuple
+from typing import Optional
 
 from poetry.core.utils._compat import decode
 
 
 pattern_formats = {
     "protocol": r"\w+",
-    "user": r"[a-zA-Z0-9_.-]+",
+    "user": r"[a-zA-Z0-9_.\+-]+",
+    "password": r"[\w\d-]+",
     "resource": r"[a-zA-Z0-9_.-]+",
     "port": r"\d+",
     "path": r"[\w~.\-/\\]+",
@@ -21,7 +23,7 @@ PATTERNS = [
     re.compile(
         r"^(git\+)?"
         r"(?P<protocol>https?|git|ssh|rsync|file)://"
-        r"(?:(?P<user>{user})@)?"
+        r"(?:(?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource})?"
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>[:/\\]({path}[/\\])?"
@@ -29,6 +31,7 @@ PATTERNS = [
         r"([@#](?P<rev>{rev}))?"
         r"$".format(
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             port=pattern_formats["port"],
             path=pattern_formats["path"],
@@ -39,7 +42,7 @@ PATTERNS = [
     re.compile(
         r"(git\+)?"
         r"((?P<protocol>{protocol})://)"
-        r"(?:(?P<user>{user})@)?"
+        r"(?:(?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource}:?)"
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>({path})"
@@ -48,6 +51,7 @@ PATTERNS = [
         r"$".format(
             protocol=pattern_formats["protocol"],
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             port=pattern_formats["port"],
             path=pattern_formats["path"],
@@ -56,7 +60,7 @@ PATTERNS = [
         )
     ),
     re.compile(
-        r"^(?:(?P<user>{user})@)?"
+        r"^(?:(?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource})"
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>([:/]{path}/)"
@@ -64,6 +68,7 @@ PATTERNS = [
         r"([@#](?P<rev>{rev}))?"
         r"$".format(
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             port=pattern_formats["port"],
             path=pattern_formats["path"],
@@ -72,7 +77,7 @@ PATTERNS = [
         )
     ),
     re.compile(
-        r"((?P<user>{user})@)?"
+        r"((?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource})"
         r"[:/]{{1,2}}"
         r"(?P<pathname>({path})"
@@ -80,6 +85,7 @@ PATTERNS = [
         r"([@#](?P<rev>{rev}))?"
         r"$".format(
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             path=pattern_formats["path"],
             name=pattern_formats["name"],
@@ -90,17 +96,28 @@ PATTERNS = [
 
 
 class ParsedUrl:
-    def __init__(self, protocol, resource, pathname, user, port, name, rev):
+    def __init__(
+        self,
+        protocol,
+        resource,
+        pathname,
+        user=None,
+        password=None,
+        port=None,
+        name=None,
+        rev=None,
+    ):  # type: (str, str, str, Optional[str], Optional[str], Optional[str],Optional[str], Optional[str]) -> None
         self.protocol = protocol
         self.resource = resource
         self.pathname = pathname
         self.user = user
+        self.password = password
         self.port = port
         self.name = name
         self.rev = rev
 
     @classmethod
-    def parse(cls, url):  # type: () -> ParsedUrl
+    def parse(cls, url):  # type: (str) -> ParsedUrl
         for pattern in PATTERNS:
             m = pattern.match(url)
             if m:
@@ -110,6 +127,7 @@ class ParsedUrl:
                     groups.get("resource"),
                     groups.get("pathname"),
                     groups.get("user"),
+                    groups.get("password"),
                     groups.get("port"),
                     groups.get("name"),
                     groups.get("rev"),
@@ -119,9 +137,11 @@ class ParsedUrl:
 
     @property
     def url(self):  # type: () -> str
-        return "{}{}{}{}{}".format(
+        return "{}{}{}{}{}{}{}".format(
             "{}://".format(self.protocol) if self.protocol else "",
-            "{}@".format(self.user) if self.user else "",
+            "{}".format(self.user) if self.user else "",
+            ":{}".format(self.password) if self.password else "",
+            "@" if self.user else "",
             self.resource,
             ":{}".format(self.port) if self.port else "",
             "/" + self.pathname.lstrip(":/"),
