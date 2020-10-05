@@ -98,15 +98,15 @@ PATTERNS = [
 class ParsedUrl:
     def __init__(
         self,
-        protocol,
-        resource,
-        pathname,
+        protocol=None,
+        resource=None,
+        pathname=None,
         user=None,
         password=None,
         port=None,
         name=None,
         rev=None,
-    ):  # type: (str, str, str, Optional[str], Optional[str], Optional[str],Optional[str], Optional[str]) -> None
+    ):  # type: (Optional[str], Optional[str], Optional[str], Optional[str], Optional[str], Optional[str],Optional[str], Optional[str]) -> None
         self.protocol = protocol
         self.resource = resource
         self.pathname = pathname
