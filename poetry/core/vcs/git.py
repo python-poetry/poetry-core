@@ -9,7 +9,8 @@ from typing import Optional
 
 pattern_formats = {
     "protocol": r"\w+",
-    "user": r"[a-zA-Z0-9_.-]+",
+    "user": r"[a-zA-Z0-9_.\+-]+",
+    "password": r"[\w\d-]+",
     "resource": r"[a-zA-Z0-9_.-]+",
     "port": r"\d+",
     "path": r"[\w~.\-/\\]+",
@@ -21,7 +22,7 @@ PATTERNS = [
     re.compile(
         r"^(git\+)?"
         r"(?P<protocol>https?|git|ssh|rsync|file)://"
-        r"(?:(?P<user>{user})@)?"
+        r"(?:(?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource})?"
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>[:/\\]({path}[/\\])?"
@@ -29,6 +30,7 @@ PATTERNS = [
         r"([@#](?P<rev>{rev}))?"
         r"$".format(
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             port=pattern_formats["port"],
             path=pattern_formats["path"],
@@ -39,7 +41,7 @@ PATTERNS = [
     re.compile(
         r"(git\+)?"
         r"((?P<protocol>{protocol})://)"
-        r"(?:(?P<user>{user})@)?"
+        r"(?:(?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource}:?)"
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>({path})"
@@ -48,6 +50,7 @@ PATTERNS = [
         r"$".format(
             protocol=pattern_formats["protocol"],
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             port=pattern_formats["port"],
             path=pattern_formats["path"],
@@ -56,7 +59,7 @@ PATTERNS = [
         )
     ),
     re.compile(
-        r"^(?:(?P<user>{user})@)?"
+        r"^(?:(?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource})"
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>([:/]{path}/)"
@@ -64,6 +67,7 @@ PATTERNS = [
         r"([@#](?P<rev>{rev}))?"
         r"$".format(
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             port=pattern_formats["port"],
             path=pattern_formats["path"],
@@ -72,7 +76,7 @@ PATTERNS = [
         )
     ),
     re.compile(
-        r"((?P<user>{user})@)?"
+        r"((?P<user>{user})(:(?P<password>{password}))?@)?"
         r"(?P<resource>{resource})"
         r"[:/]{{1,2}}"
         r"(?P<pathname>({path})"
@@ -80,6 +84,7 @@ PATTERNS = [
         r"([@#](?P<rev>{rev}))?"
         r"$".format(
             user=pattern_formats["user"],
+            password=pattern_formats["password"],
             resource=pattern_formats["resource"],
             path=pattern_formats["path"],
             name=pattern_formats["name"],
@@ -104,6 +109,7 @@ class ParsedUrl:
         self.resource = resource
         self.pathname = pathname
         self.user = user
+        self.password = password
         self.port = port
         self.name = name
         self.rev = rev
@@ -119,6 +125,7 @@ class ParsedUrl:
                     groups.get("resource"),
                     groups.get("pathname"),
                     groups.get("user"),
+                    groups.get("password"),
                     groups.get("port"),
                     groups.get("name"),
                     groups.get("rev"),
@@ -130,7 +137,9 @@ class ParsedUrl:
     def url(self) -> str:
         return "{}{}{}{}{}".format(
             "{}://".format(self.protocol) if self.protocol else "",
-            "{}@".format(self.user) if self.user else "",
+            "{}".format(self.user) if self.user else "",
+            ":{}".format(self.password) if self.password else "",
+            "@" if self.user else "",
             self.resource,
             ":{}".format(self.port) if self.port else "",
             "/" + self.pathname.lstrip(":/"),
