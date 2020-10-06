@@ -49,7 +49,8 @@ class Package(PackageSpecification):
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
         source_resolved_reference: Optional[str] = None,
-        features: Optional[List[str]] = None,  # type
+        features: Optional[List[str]] = None,
+        develop: bool = False,
     ) -> None:
         """
         Creates a new in memory package.
@@ -105,7 +106,7 @@ class Package(PackageSpecification):
 
         self.root_dir = None
 
-        self.develop = True
+        self.develop = develop
 
     @property
     def name(self) -> str:
