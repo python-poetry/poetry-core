@@ -38,8 +38,10 @@ def multi_url_object():
 def test_missing_authors(base_object):
     del base_object["authors"]
 
-    expected = [u"'authors' is a required property"]
-    assert validate_object(base_object, "poetry-schema") == expected
+    errors = validate_object(base_object, "poetry-schema")
+
+    assert len(errors) == 1
+    assert "'authors' is a required property" in errors[0]
 
 
 def test_path_dependencies(base_object):
