@@ -8,6 +8,7 @@ def base_object():
     return {
         "name": "myapp",
         "version": "1.0.0",
+        "authors": ["john doe"],
         "description": "Some description.",
         "dependencies": {"python": "^3.6"},
         "dev-dependencies": {},
@@ -20,6 +21,7 @@ def multi_url_object():
         "name": "myapp",
         "version": "1.0.0",
         "description": "Some description.",
+        "authors": ["john doe"],
         "dependencies": {
             "python": [
                 {
@@ -31,6 +33,13 @@ def multi_url_object():
         },
         "dev-dependencies": {},
     }
+
+
+def test_missing_authors(base_object):
+    del base_object["authors"]
+
+    expected = ["'authors' is a required property"]
+    assert validate_object(base_object, "poetry-schema") == expected
 
 
 def test_path_dependencies(base_object):
