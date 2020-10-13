@@ -1,3 +1,6 @@
+import pytest
+
+from poetry.core.utils.helpers import canonicalize_name
 from poetry.core.utils.helpers import parse_requires
 
 
@@ -52,3 +55,10 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
         'isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort ; extra == "dev"',
     ]
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "raw", ["a-b-c", "a.b-c", "a.b.c", "a_b-c", "a_b_c", "a-b_c", "a.b_c", "a-b.c"]
+)
+def test_utils_helpers_canonical_names(raw):
+    assert canonicalize_name(raw) == "a-b-c"
