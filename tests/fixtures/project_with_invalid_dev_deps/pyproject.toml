@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = ["Awesome Hacker <awesome@hacker.io>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+
+[tool.poetry.extras]
+
+[tool.poetry.dev-dependencies]
+mylib = { path = "../mylib", develop = true}

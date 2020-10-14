@@ -199,3 +199,16 @@ The Poetry configuration is invalid:
   - 'description' is a required property
 """
     assert expected == str(e.value)
+
+
+def test_create_poetry_with_invalid_dev_dependencies():
+    with pytest.raises(ValueError) as err:
+        Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
+    assert "../mylib does not exist" in str(err.value)
+
+
+def test_create_poetry_skipping_dev_dependencies():
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_invalid_dev_deps", with_dev=False
+    )
+    assert not poetry.package.dev_requires
