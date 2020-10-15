@@ -201,14 +201,19 @@ The Poetry configuration is invalid:
     assert expected == str(e.value)
 
 
-def test_create_poetry_with_invalid_dev_dependencies():
+def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_dev=False)
+    assert not any(r for r in poetry.package.dev_requires if "pytest" in str(r))
+
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project")
+    assert any(r for r in poetry.package.dev_requires if "pytest" in str(r))
+
+
+def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true():
     with pytest.raises(ValueError) as err:
         Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
     assert "../mylib does not exist" in str(err.value)
 
-
-def test_create_poetry_skipping_dev_dependencies():
-    poetry = Factory().create_poetry(
+    Factory().create_poetry(
         fixtures_dir / "project_with_invalid_dev_deps", with_dev=False
     )
-    assert not poetry.package.dev_requires

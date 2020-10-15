@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "with_bad_path_dev_dep"
+version = "1.2.3"
+description = "Some description."
+authors = ["Awesome Hacker <awesome@hacker.io>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+bogus = { path = "../only/in/dev", develop = true }
