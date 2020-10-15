@@ -77,7 +77,7 @@ def test_build_wheel_with_bad_path_dep_fails():
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.build_wheel(tmp_dir)
-    assert "../only/in/dev" in str(err.value)
+    assert "does not exist" in str(err.value)
 
 
 @pytest.mark.skipif(
@@ -128,7 +128,7 @@ def test_build_sdist_with_bad_path_dep_fails():
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.build_sdist(tmp_dir)
-    assert "../only/in/dev" in str(err.value)
+    assert "does not exist" in str(err.value)
 
 
 def test_prepare_metadata_for_build_wheel():
@@ -214,4 +214,4 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds():
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.prepare_metadata_for_build_wheel(tmp_dir)
-    assert "../only/in/dev" in str(err.value)
+    assert "does not exist" in str(err.value)
