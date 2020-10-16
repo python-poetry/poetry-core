@@ -224,7 +224,9 @@ class Dependency(PackageSpecification):
             if not with_extras:
                 marker = marker.without_extras()
 
-            if not marker.is_empty():
+            # we re-check for any marker here since the without extra marker might
+            # return an any marker again
+            if not marker.is_empty() and not marker.is_any():
                 markers.append(str(marker))
 
             has_extras = "extra" in convert_markers(marker)
