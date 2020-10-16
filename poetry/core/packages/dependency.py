@@ -396,13 +396,7 @@ class Dependency(PackageSpecification):
     def __str__(self):
         if self.is_root:
             return self._pretty_name
-
-        name = self._pretty_name
-
-        if self._features:
-            name = "{}[{}]".format(name, ",".join(sorted(self._features)))
-
-        return "{} ({})".format(name, self._pretty_constraint)
+        return self.base_pep_508_name
 
     def __repr__(self):
         return "<{} {}>".format(self.__class__.__name__, str(self))
