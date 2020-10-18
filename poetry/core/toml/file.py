@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+from typing import Any
 from typing import Union
 
 from tomlkit.exceptions import TOMLKitError
@@ -5,6 +7,10 @@ from tomlkit.toml_file import TOMLFile as BaseTOMLFile
 
 from poetry.core.toml import TOMLError
 from poetry.core.utils._compat import Path
+
+
+if TYPE_CHECKING:
+    from tomlkit.toml_document import TOMLDocument  # noqa
 
 
 class TOMLFile(BaseTOMLFile):
@@ -21,13 +27,13 @@ class TOMLFile(BaseTOMLFile):
     def exists(self):  # type: () -> bool
         return self.__path.exists()
 
-    def read(self):
+    def read(self):  # type: () -> "TOMLDocument"
         try:
             return super(TOMLFile, self).read()
         except (ValueError, TOMLKitError) as e:
             raise TOMLError("Invalid TOML file {}: {}".format(self.path.as_posix(), e))
 
-    def __getattr__(self, item):
+    def __getattr__(self, item):  # type: (str) -> Any
         return getattr(self.__path, item)
 
     def __str__(self):  # type: () -> str

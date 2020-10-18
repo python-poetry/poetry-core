@@ -1,10 +1,16 @@
+from typing import TYPE_CHECKING
+from typing import FrozenSet
 from typing import List
-from typing import Set
+from typing import Optional
 from typing import Union
 
 from poetry.core.vcs import git
 
 from .dependency import Dependency
+
+
+if TYPE_CHECKING:
+    from .constraints import BaseConstraint
 
 
 class VCSDependency(Dependency):
@@ -14,17 +20,17 @@ class VCSDependency(Dependency):
 
     def __init__(
         self,
-        name,
-        vcs,
-        source,
-        branch=None,
-        tag=None,
-        rev=None,
-        resolved_rev=None,
-        category="main",
-        optional=False,
-        develop=False,
-        extras=None,  # type: Union[List[str], Set[str]]
+        name,  # type: str
+        vcs,  # type: str
+        source,  # type: str
+        branch=None,  # type: Optional[str]
+        tag=None,  # type: Optional[str]
+        rev=None,  # type: Optional[str]
+        resolved_rev=None,  # type: Optional[str]
+        category="main",  # type: str
+        optional=False,  # type: bool
+        develop=False,  # type: bool
+        extras=None,  # type: Union[List[str], FrozenSet[str]]
     ):
         self._vcs = vcs
         self._source = source
@@ -52,23 +58,23 @@ class VCSDependency(Dependency):
         )
 
     @property
-    def vcs(self):
+    def vcs(self):  # type: () -> str
         return self._vcs
 
     @property
-    def source(self):
+    def source(self):  # type: () -> str
         return self._source
 
     @property
-    def branch(self):
+    def branch(self):  # type: () -> Optional[str]
         return self._branch
 
     @property
-    def tag(self):
+    def tag(self):  # type: () -> Optional[str]
         return self._tag
 
     @property
-    def rev(self):
+    def rev(self):  # type: () -> Optional[str]
         return self._rev
 
     @property
@@ -116,7 +122,7 @@ class VCSDependency(Dependency):
     def accepts_prereleases(self):  # type: () -> bool
         return True
 
-    def with_constraint(self, constraint):
+    def with_constraint(self, constraint):  # type: ("BaseConstraint") -> VCSDependency
         new = VCSDependency(
             self.pretty_name,
             self._vcs,
@@ -144,7 +150,7 @@ class VCSDependency(Dependency):
 
         return new
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         reference = self._vcs
         if self._branch:
             reference += " branch {}".format(self._branch)
@@ -155,5 +161,5 @@ class VCSDependency(Dependency):
 
         return "{} ({} {})".format(self._pretty_name, self._constraint, reference)
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash((self._name, self._vcs, self._branch, self._tag, self._rev))

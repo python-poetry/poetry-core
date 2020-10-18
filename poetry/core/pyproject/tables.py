@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
 from typing import List
 from typing import Optional
 
 from poetry.core.utils._compat import Path
 from poetry.core.utils.helpers import canonicalize_name
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages import Dependency  # noqa
 
 
 # TODO: Convert to dataclass once python 2.7, 3.5 is dropped
@@ -19,7 +24,7 @@ class BuildSystem:
         self._dependencies = None
 
     @property
-    def dependencies(self):
+    def dependencies(self):  # type: () -> List["Dependency"]
         if self._dependencies is None:
             # avoid circular dependency when loading DirectoryDependency
             from poetry.core.packages import DirectoryDependency

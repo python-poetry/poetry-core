@@ -29,7 +29,7 @@ class Factory(object):
 
     def create_poetry(
         self, cwd=None, with_dev=True
-    ):  # type: (Optional[Path]. bool) -> Poetry
+    ):  # type: (Optional[Path], bool) -> Poetry
         poetry_file = self.locate(cwd)
         local_config = PyProjectTOML(path=poetry_file).poetry_config
 

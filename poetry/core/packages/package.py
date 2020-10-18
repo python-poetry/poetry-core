@@ -3,7 +3,11 @@ import copy
 import re
 
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
+from typing import Dict
 from typing import List
+from typing import Optional
+from typing import Union
 
 from poetry.core.semver import Version
 from poetry.core.semver import parse_constraint
@@ -12,10 +16,19 @@ from poetry.core.spdx import license_by_id
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import parse_marker
 
-from .dependency import Dependency
 from .specification import PackageSpecification
 from .utils.utils import create_nested_marker
 
+
+if TYPE_CHECKING:
+    from poetry.core.semver import VersionTypes  # noqa
+    from poetry.core.version.markers import BaseMarker  # noqa
+
+    from .dependency import Dependency
+    from .directory_dependency import DirectoryDependency
+    from .file_dependency import FileDependency
+    from .url_dependency import URLDependency
+    from .vcs_dependency import VCSDependency
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+)(?: <(?P<email>.+?)>)?$")
 
@@ -36,14 +49,14 @@ class Package(PackageSpecification):
 
     def __init__(
         self,
-        name,
-        version,
-        pretty_version=None,
-        source_type=None,
-        source_url=None,
-        source_reference=None,
-        source_resolved_reference=None,
-        features=None,
+        name,  # type: str
+        version,  # type: Union[str, Version]
+        pretty_version=None,  # type: Optional[str]
+        source_type=None,  # type: Optional[str]
+        source_url=None,  # type: Optional[str]
+        source_reference=None,  # type: Optional[str]
+        source_resolved_reference=None,  # type: Optional[str]
+        features=None,  # type: Optional[List[str]]
     ):
         """
         Creates a new in memory package.
@@ -99,34 +112,34 @@ class Package(PackageSpecification):
         self.develop = True
 
     @property
-    def name(self):
+    def name(self):  # type: () -> str
         return self._name
 
     @property
-    def pretty_name(self):
+    def pretty_name(self):  # type: () -> str
         return self._pretty_name
 
     @property
-    def version(self):
+    def version(self):  # type: () -> "Version"
         return self._version
 
     @property
-    def pretty_version(self):
+    def pretty_version(self):  # type: () -> str
         return self._pretty_version
 
     @property
-    def unique_name(self):
+    def unique_name(self):  # type: () -> str
         if self.is_root():
             return self._name
 
         return self.complete_name + "-" + self._version.text
 
     @property
-    def pretty_string(self):
+    def pretty_string(self):  # type: () -> str
         return self.pretty_name + " " + self.pretty_version
 
     @property
-    def full_pretty_version(self):
+    def full_pretty_version(self):  # type: () -> str
         if self.source_type in ["file", "directory", "url"]:
             return "{} {}".format(self._pretty_version, self.source_url)
 
@@ -173,7 +186,9 @@ class Package(PackageSpecification):
         return self._get_maintainer()["email"]
 
     @property
-    def all_requires(self):
+    def all_requires(
+        self,
+    ):  # type: () -> List[Union["DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency", "Dependency"]]
         return self.requires + self.dev_requires
 
     def _get_author(self):  # type: () -> dict
@@ -211,11 +226,11 @@ class Package(PackageSpecification):
         return {"name": name, "email": email}
 
     @property
-    def python_versions(self):
+    def python_versions(self):  # type: () -> str
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value):
+    def python_versions(self, value):  # type: (str) -> None
         self._python_versions = value
         self._python_constraint = parse_constraint(value)
         self._python_marker = parse_marker(
@@ -223,19 +238,19 @@ class Package(PackageSpecification):
         )
 
     @property
-    def python_constraint(self):
+    def python_constraint(self):  # type: () -> "VersionTypes"
         return self._python_constraint
 
     @property
-    def python_marker(self):
+    def python_marker(self):  # type: () -> "BaseMarker"
         return self._python_marker
 
     @property
-    def license(self):
+    def license(self):  # type: () -> License
         return self._license
 
     @license.setter
-    def license(self, value):
+    def license(self, value):  # type: (Optional[str, License]) -> None
         if value is None:
             self._license = value
         elif isinstance(value, License):
@@ -244,7 +259,7 @@ class Package(PackageSpecification):
             self._license = license_by_id(value)
 
     @property
-    def all_classifiers(self):
+    def all_classifiers(self):  # type: () -> List[str]
         classifiers = copy.copy(self.classifiers)
 
         # Automatically set python classifiers
@@ -273,7 +288,7 @@ class Package(PackageSpecification):
         return sorted(classifiers)
 
     @property
-    def urls(self):
+    def urls(self):  # type: () -> Dict[str, str]
         urls = {}
 
         if self.homepage:
@@ -287,15 +302,15 @@ class Package(PackageSpecification):
 
         return urls
 
-    def is_prerelease(self):
+    def is_prerelease(self):  # type: () -> bool
         return self._version.is_prerelease()
 
-    def is_root(self):
+    def is_root(self):  # type: () -> bool
         return False
 
     def add_dependency(
         self, dependency,
-    ):  # type: (Dependency) -> "Package"
+    ):  # type: ("Dependency") -> "Dependency"
         if dependency.category == "dev":
             self.dev_requires.append(dependency)
         else:
@@ -303,7 +318,9 @@ class Package(PackageSpecification):
 
         return dependency
 
-    def to_dependency(self):
+    def to_dependency(
+        self,
+    ):  # type: () -> Union["Dependency", "DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency"]
         from poetry.core.utils._compat import Path
 
         from .dependency import Dependency
@@ -366,7 +383,7 @@ class Package(PackageSpecification):
         return dep.with_constraint(self._version)
 
     @contextmanager
-    def with_python_versions(self, python_versions):
+    def with_python_versions(self, python_versions):  # type: (str) -> None
         original_python_versions = self.python_versions
 
         self.python_versions = python_versions
@@ -415,19 +432,19 @@ class Package(PackageSpecification):
 
         return clone
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return super(Package, self).__hash__() ^ hash(self._version)
 
-    def __eq__(self, other):
+    def __eq__(self, other):  # type: (Package) -> bool
         if not isinstance(other, Package):
             return NotImplemented
 
         return self.is_same_package_as(other) and self._version == other.version
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         return "{} ({})".format(self.complete_name, self.full_pretty_version)
 
-    def __repr__(self):
+    def __repr__(self):  # type: () -> str
         args = [repr(self._name), repr(self._version.text)]
 
         if self._features:

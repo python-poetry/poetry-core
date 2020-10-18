@@ -1,5 +1,6 @@
+from typing import TYPE_CHECKING
+from typing import FrozenSet
 from typing import List
-from typing import Set
 from typing import Union
 
 from poetry.core.utils._compat import urlparse
@@ -7,14 +8,18 @@ from poetry.core.utils._compat import urlparse
 from .dependency import Dependency
 
 
+if TYPE_CHECKING:
+    from .constraints import BaseConstraint
+
+
 class URLDependency(Dependency):
     def __init__(
         self,
-        name,
+        name,  # type: str
         url,  # type: str
         category="main",  # type: str
         optional=False,  # type: bool
-        extras=None,  # type: Union(List[str], Set[str])
+        extras=None,  # type: Union[List[str], FrozenSet[str]]
     ):
         self._url = url
 
@@ -34,7 +39,7 @@ class URLDependency(Dependency):
         )
 
     @property
-    def url(self):
+    def url(self):  # type: () -> str
         return self._url
 
     @property
@@ -51,7 +56,7 @@ class URLDependency(Dependency):
     def is_url(self):  # type: () -> bool
         return True
 
-    def with_constraint(self, constraint):
+    def with_constraint(self, constraint):  # type: ("BaseConstraint") -> URLDependency
         new = URLDependency(
             self.pretty_name,
             url=self._url,
@@ -73,8 +78,8 @@ class URLDependency(Dependency):
 
         return new
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         return "{} ({} url)".format(self._pretty_name, self._pretty_constraint)
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash((self._name, self._url))

@@ -1,5 +1,7 @@
 import re
 
+from typing import Union
+
 from .empty_constraint import EmptyConstraint
 from .exceptions import ParseConstraintError
 from .patterns import BASIC_CONSTRAINT
@@ -13,7 +15,10 @@ from .version_range import VersionRange
 from .version_union import VersionUnion
 
 
-def parse_constraint(constraints):  # type: (str) -> VersionConstraint
+VersionTypes = Union[Version, VersionRange, VersionUnion, EmptyConstraint]
+
+
+def parse_constraint(constraints):  # type: (str) -> VersionTypes
     if constraints == "*":
         return VersionRange()
 
@@ -46,7 +51,7 @@ def parse_constraint(constraints):  # type: (str) -> VersionConstraint
         return VersionUnion.of(*or_groups)
 
 
-def parse_single_constraint(constraint):  # type: (str) -> VersionConstraint
+def parse_single_constraint(constraint):  # type: (str) -> VersionTypes
     m = re.match(r"(?i)^v?[xX*](\.[xX*])*$", constraint)
     if m:
         return VersionRange()

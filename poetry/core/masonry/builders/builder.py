@@ -8,6 +8,9 @@ import tempfile
 from collections import defaultdict
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Set
 from typing import Union
@@ -22,7 +25,7 @@ from ..utils.package_include import PackageInclude
 
 
 if TYPE_CHECKING:
-    from poetry.core.poetry import Poetry
+    from poetry.core.poetry import Poetry  # noqa
 
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
@@ -38,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 class Builder(object):
-    format = None
+    format = None  # type: Optional[str]
 
     def __init__(
         self, poetry, ignore_packages_formats=False, executable=None
@@ -46,8 +49,8 @@ class Builder(object):
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
-        self._excluded_files = None
-        self._executable = Path(executable or sys.executable)  # type: Path
+        self._excluded_files = None  # type: Optional[Set[str]]
+        self._executable = Path(executable or sys.executable)
 
         packages = []
         for p in self._package.packages:
@@ -92,7 +95,7 @@ class Builder(object):
     def executable(self):  # type: () -> Path
         return self._executable
 
-    def build(self):
+    def build(self):  # type: () -> None
         raise NotImplementedError()
 
     def find_excluded_files(self):  # type: () -> Set[str]
@@ -264,7 +267,7 @@ class Builder(object):
 
         return content
 
-    def convert_entry_points(self):  # type: () -> dict
+    def convert_entry_points(self):  # type: () -> Dict[str, List[str]]
         result = defaultdict(list)
 
         # Scripts -> Entry points
@@ -288,7 +291,7 @@ class Builder(object):
         return dict(result)
 
     @classmethod
-    def convert_author(cls, author):  # type: (...) -> dict
+    def convert_author(cls, author):  # type: (str) -> Dict[str, str]
         m = AUTHOR_REGEX.match(author)
 
         name = m.group("name")
@@ -298,7 +301,7 @@ class Builder(object):
 
     @classmethod
     @contextmanager
-    def temporary_directory(cls, *args, **kwargs):
+    def temporary_directory(cls, *args, **kwargs):  # type: (*Any, **Any) -> None
         try:
             from tempfile import TemporaryDirectory
 
@@ -348,16 +351,16 @@ class BuildIncludeFile:
     def __ne__(self, other):  # type: (Union[BuildIncludeFile, Path]) -> bool
         return not self.__eq__(other)
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash(self.path)
 
     def __repr__(self):  # type: () -> str
         return str(self.path)
 
-    def relative_to_project_root(self):  # type(): -> Path
+    def relative_to_project_root(self):  # type: () -> Path
         return self.path.relative_to(self.project_root)
 
-    def relative_to_source_root(self):  # type(): -> Path
+    def relative_to_source_root(self):  # type: () -> Path
         if self.source_root is not None:
             return self.path.relative_to(self.source_root)
         return self.path
