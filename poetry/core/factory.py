@@ -27,7 +27,9 @@ class Factory(object):
     Factory class to create various elements needed by Poetry.
     """
 
-    def create_poetry(self, cwd=None):  # type: (Optional[Path]) -> Poetry
+    def create_poetry(
+        self, cwd=None, with_dev=True
+    ):  # type: (Optional[Path]. bool) -> Poetry
         poetry_file = self.locate(cwd)
         local_config = PyProjectTOML(path=poetry_file).poetry_config
 
@@ -91,7 +93,7 @@ class Factory(object):
                     self.create_dependency(name, constraint, root_dir=package.root_dir)
                 )
 
-        if "dev-dependencies" in local_config:
+        if with_dev and "dev-dependencies" in local_config:
             for name, constraint in local_config["dev-dependencies"].items():
                 if isinstance(constraint, list):
                     for _constraint in constraint:

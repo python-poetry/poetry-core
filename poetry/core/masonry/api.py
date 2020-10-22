@@ -31,7 +31,7 @@ get_requires_for_build_sdist = get_requires_for_build_wheel
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
     builder = WheelBuilder(poetry)
 
     dist_info = Path(metadata_directory, builder.dist_info)
@@ -52,14 +52,14 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     """Builds a wheel, places it in wheel_directory"""
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
 
     return unicode(WheelBuilder.make_in(poetry, Path(wheel_directory)))
 
 
 def build_sdist(sdist_directory, config_settings=None):
     """Builds an sdist, places it in sdist_directory"""
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
 
     path = SdistBuilder(poetry).build(Path(sdist_directory))
 
