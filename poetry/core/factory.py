@@ -5,6 +5,7 @@ import logging
 
 from typing import Any
 from typing import Dict
+from typing import Generator
 from typing import List
 from typing import Optional
 from typing import Union
@@ -26,6 +27,11 @@ class Factory(object):
     """
     Factory class to create various elements needed by Poetry.
     """
+
+    DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP = {
+        "allows-prereleases": "allow-prereleases",
+        "develop": "editable",
+    }
 
     def create_poetry(
         self, cwd=None, with_dev=True
@@ -182,49 +188,40 @@ class Factory(object):
             constraint = "*"
 
         if isinstance(constraint, dict):
-            optional = constraint.get("optional", False)
-            python_versions = constraint.get("python")
-            platform = constraint.get("platform")
-            markers = constraint.get("markers")
-            if "allows-prereleases" in constraint:
-                message = (
-                    'The "{}" dependency specifies '
-                    'the "allows-prereleases" property, which is deprecated. '
-                    'Use "allow-prereleases" instead.'.format(name)
-                )
-                warn(message, DeprecationWarning)
-                logger.warning(message)
-
-            allows_prereleases = constraint.get(
-                "allow-prereleases", constraint.get("allows-prereleases", False)
+            constraint_without_deprecated_keys = cls.as_constraint_with_deprecated_keys_renamed_to_current_keys(
+                dependency_name=name, constraint=constraint,
             )
+            optional = constraint_without_deprecated_keys.get("optional", False)
+            python_versions = constraint_without_deprecated_keys.get("python")
+            platform = constraint_without_deprecated_keys.get("platform")
+            markers = constraint_without_deprecated_keys.get("markers")
 
-            if "git" in constraint:
+            if "git" in constraint_without_deprecated_keys:
                 # VCS dependency
                 dependency = VCSDependency(
                     name,
                     "git",
-                    constraint["git"],
-                    branch=constraint.get("branch", None),
-                    tag=constraint.get("tag", None),
-                    rev=constraint.get("rev", None),
+                    constraint_without_deprecated_keys["git"],
+                    branch=constraint_without_deprecated_keys.get("branch", None),
+                    tag=constraint_without_deprecated_keys.get("tag", None),
+                    rev=constraint_without_deprecated_keys.get("rev", None),
                     category=category,
                     optional=optional,
-                    develop=constraint.get("develop", False),
-                    extras=constraint.get("extras", []),
+                    editable=constraint_without_deprecated_keys.get("editable", False),
+                    extras=constraint_without_deprecated_keys.get("extras", []),
                 )
-            elif "file" in constraint:
-                file_path = Path(constraint["file"])
+            elif "file" in constraint_without_deprecated_keys:
+                file_path = Path(constraint_without_deprecated_keys["file"])
 
                 dependency = FileDependency(
                     name,
                     file_path,
                     category=category,
                     base=root_dir,
-                    extras=constraint.get("extras", []),
+                    extras=constraint_without_deprecated_keys.get("extras", []),
                 )
-            elif "path" in constraint:
-                path = Path(constraint["path"])
+            elif "path" in constraint_without_deprecated_keys:
+                path = Path(constraint_without_deprecated_keys["path"])
 
                 if root_dir:
                     is_file = root_dir.joinpath(path).is_file()
@@ -238,7 +235,7 @@ class Factory(object):
                         category=category,
                         optional=optional,
                         base=root_dir,
-                        extras=constraint.get("extras", []),
+                        extras=constraint_without_deprecated_keys.get("extras", []),
                     )
                 else:
                     dependency = DirectoryDependency(
@@ -247,27 +244,31 @@ class Factory(object):
                         category=category,
                         optional=optional,
                         base=root_dir,
-                        develop=constraint.get("develop", False),
-                        extras=constraint.get("extras", []),
+                        editable=constraint_without_deprecated_keys.get(
+                            "editable", False
+                        ),
+                        extras=constraint_without_deprecated_keys.get("extras", []),
                     )
-            elif "url" in constraint:
+            elif "url" in constraint_without_deprecated_keys:
                 dependency = URLDependency(
                     name,
-                    constraint["url"],
+                    constraint_without_deprecated_keys["url"],
                     category=category,
                     optional=optional,
-                    extras=constraint.get("extras", []),
+                    extras=constraint_without_deprecated_keys.get("extras", []),
                 )
             else:
-                version = constraint["version"]
+                version = constraint_without_deprecated_keys["version"]
 
                 dependency = Dependency(
                     name,
                     version,
                     optional=optional,
                     category=category,
-                    allows_prereleases=allows_prereleases,
-                    extras=constraint.get("extras", []),
+                    allows_prereleases=constraint_without_deprecated_keys.get(
+                        "allow_prereleases", False
+                    ),
+                    extras=constraint_without_deprecated_keys.get("extras", []),
                 )
 
             if not markers:
@@ -296,7 +297,7 @@ class Factory(object):
             if not marker.is_any():
                 dependency.marker = marker
 
-            dependency.source_name = constraint.get("source")
+            dependency.source_name = constraint_without_deprecated_keys.get("source")
         else:
             dependency = Dependency(name, constraint, category=category)
 
@@ -329,12 +330,23 @@ class Factory(object):
                     if not isinstance(constraint, dict):
                         continue
 
-                    if "allows-prereleases" in constraint:
-                        result["warnings"].append(
-                            'The "{}" dependency specifies '
-                            'the "allows-prereleases" property, which is deprecated. '
-                            'Use "allow-prereleases" instead.'.format(name)
-                        )
+                    for deprecated_key in cls.deprecated_keys():
+                        if deprecated_key in constraint:
+                            if cls.constraint_has_deprecated_key_current_key_conflict(
+                                constraint, deprecated_key
+                            ):
+                                result["errors"].append(
+                                    cls.deprecated_constraint_key_current_key_conflict_error_message(
+                                        dependency_name=name,
+                                        deprecated_key=deprecated_key,
+                                    )
+                                )
+                            else:
+                                result["warnings"].append(
+                                    cls.constraint_key_deprecation_message(
+                                        dependency_name=name, key=deprecated_key
+                                    )
+                                )
 
             # Checking for scripts with extras
             if "scripts" in config:
@@ -371,3 +383,88 @@ class Factory(object):
                     cwd
                 )
             )
+
+    @classmethod
+    def deprecated_keys(cls):  # type: () -> Generator[str, None, None]
+        for key in cls.DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP:
+            yield key
+
+    @classmethod
+    def as_constraint_with_deprecated_keys_renamed_to_current_keys(
+        cls, dependency_name, constraint
+    ):  # type: (str, Dict[str, Any]) -> Dict[str, Any]
+        constraint_with_renamed_keys = {}
+        for key, value in constraint.items():
+            if cls.is_deprecated_constraint_key(key):
+                cls.raise_on_deprecated_constraint_key_current_key_conflict(
+                    dependency_name, constraint, key
+                )
+                cls.warn_constraint_key_is_deprecated(dependency_name, key)
+                current_key = cls.DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP[key]
+                constraint_with_renamed_keys[current_key] = value
+            else:
+                constraint_with_renamed_keys[key] = value
+        return constraint_with_renamed_keys
+
+    @classmethod
+    def raise_on_deprecated_constraint_key_current_key_conflict(
+        cls, dependency_name, constraint, deprecated_key
+    ):  # type: (str, Dict[str, Any], str) -> None
+        """Raise `RuntimeError` when both a deprecated key and it's current, updated counterpart (key) are contained in constraint."""
+        if cls.constraint_has_deprecated_key_current_key_conflict(
+            constraint, deprecated_key
+        ):
+            raise RuntimeError(
+                cls.deprecated_constraint_key_current_key_conflict_error_message(
+                    dependency_name, deprecated_key,
+                )
+            )
+
+    @classmethod
+    def constraint_has_deprecated_key_current_key_conflict(
+        cls, constraint, deprecated_key
+    ):  # type: (Dict[str, Any], str) -> bool
+        current_key = cls.DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP[deprecated_key]
+        return current_key in constraint
+
+    @classmethod
+    def deprecated_constraint_key_current_key_conflict_error_message(
+        cls, dependency_name, deprecated_key
+    ):  # type: (str, str) -> str
+        current_key = cls.DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP[deprecated_key]
+        return (
+            'The "{dependency_name}" dependency specifies '
+            'both the "{current_key}" property and the deprecated "{deprecated_key}" property. '
+            'Please remove "{deprecated_key}" and resolve value conflicts!'.format(
+                dependency_name=dependency_name,
+                current_key=current_key,
+                deprecated_key=deprecated_key,
+            )
+        )
+
+    @classmethod
+    def is_deprecated_constraint_key(cls, key):  # type: (str) -> bool
+        return key in cls.DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP
+
+    @classmethod
+    def warn_constraint_key_is_deprecated(
+        cls, dependency_name, key
+    ):  # type: (str, str) -> None
+        message = cls.constraint_key_deprecation_message(dependency_name, key)
+        warn(message, DeprecationWarning)
+        logging.warning(message)
+
+    @classmethod
+    def constraint_key_deprecation_message(
+        cls, dependency_name, key
+    ):  # type: (str, str) -> str
+        current_key = cls.DEPRECATED_CONSTRAINT_KEY_CURRENT_KEY_MAP[key]
+        return (
+            'The "{dependency_name}" dependency specifies '
+            'the "{deprecated_key}" property, which is deprecated. '
+            'Use "{current_key}" instead.'.format(
+                dependency_name=dependency_name,
+                deprecated_key=key,
+                current_key=current_key,
+            )
+        )

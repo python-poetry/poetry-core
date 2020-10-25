@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import warnings
+
 import pytest
 
 from poetry.core.factory import Factory
@@ -49,7 +51,7 @@ def test_create_poetry():
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
     assert pendulum.allows_prereleases()
-    assert not pendulum.develop
+    assert not pendulum.editable
 
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
@@ -58,7 +60,7 @@ def test_create_poetry():
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
     assert tomlkit.allows_prereleases()
-    assert not tomlkit.develop
+    assert not tomlkit.editable
 
     requests = dependencies["requests"]
     assert requests.pretty_constraint == "^2.18"
@@ -182,6 +184,37 @@ def test_validate_fails():
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
 
+def test_validate_strict_adds_error_when_dependency_contains_editable_and_deprecated_develop_key():
+    config = TOMLFile(
+        fixtures_dir
+        / "project_with_editable_and_deprecated_develop_dependency/pyproject.toml"
+    ).read()["tool"]["poetry"]
+    expected = (
+        'The "pendulum" dependency specifies '
+        'both the "editable" property and the deprecated "develop" property. '
+        'Please remove "develop" and resolve value conflicts!'
+    )
+    assert Factory.validate(config, strict=True) == {
+        "errors": [expected],
+        "warnings": [],
+    }
+
+
+def test_validate_strict_adds_warning_when_dependency_contains_deprecated_develop_key():
+    config = TOMLFile(
+        fixtures_dir / "project_with_deprecated_develop_dependency/pyproject.toml"
+    ).read()["tool"]["poetry"]
+    expected = (
+        'The "pendulum" dependency specifies '
+        'the "develop" property, which is deprecated. '
+        'Use "editable" instead.'
+    )
+    assert Factory.validate(config, strict=True) == {
+        "errors": [],
+        "warnings": [expected],
+    }
+
+
 def test_create_poetry_fails_on_invalid_configuration():
     with pytest.raises(RuntimeError) as e:
         Factory().create_poetry(
@@ -217,3 +250,35 @@ def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true(
     Factory().create_poetry(
         fixtures_dir / "project_with_invalid_dev_deps", with_dev=False
     )
+
+
+def test_create_poetry_fails_when_dependency_contains_editable_and_deprecated_develop_key():
+    with pytest.raises(RuntimeError) as e:
+        Factory().create_poetry(
+            fixtures_dir / "project_with_editable_and_deprecated_develop_dependency"
+        )
+    assert (
+        'The "pendulum" dependency specifies '
+        'both the "editable" property and the deprecated "develop" property. '
+        'Please remove "develop" and resolve value conflicts!'
+    ) == str(e.value)
+
+
+def test_create_poetry_warns_when_dependency_contains_deprecated_develop_key(caplog):
+    # All warnings are triggered inside this context manager.
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        expected = (
+            'The "pendulum" dependency specifies '
+            'the "develop" property, which is deprecated. '
+            'Use "editable" instead.'
+        )
+        Factory().create_poetry(
+            fixtures_dir / "project_with_deprecated_develop_dependency"
+        )
+        assert len(w) == 1
+        assert issubclass(w[-1].category, DeprecationWarning)
+        assert expected == str(w[-1].message)
+        for record in caplog.records:
+            assert record.levelname == "WARNING"
+        assert expected in caplog.text

@@ -16,7 +16,7 @@ class DirectoryDependency(Dependency):
         category="main",  # type: str
         optional=False,  # type: bool
         base=None,  # type: Path
-        develop=False,  # type: bool
+        editable=False,  # type: bool
         extras=None,  # type: Union[List[str], Set[str]]
     ):
         self._path = path
@@ -29,7 +29,7 @@ class DirectoryDependency(Dependency):
             except FileNotFoundError:
                 raise ValueError("Directory {} does not exist".format(self._path))
 
-        self._develop = develop
+        self._editable = editable
         self._supports_poetry = False
 
         if not self._full_path.exists():
@@ -75,8 +75,8 @@ class DirectoryDependency(Dependency):
         return self._base
 
     @property
-    def develop(self):
-        return self._develop
+    def editable(self):
+        return self._editable
 
     def supports_poetry(self):
         return self._supports_poetry
@@ -91,7 +91,7 @@ class DirectoryDependency(Dependency):
             base=self.base,
             optional=self.is_optional(),
             category=self.category,
-            develop=self._develop,
+            editable=self._editable,
             extras=self._extras,
         )
 

@@ -96,7 +96,7 @@ class Package(PackageSpecification):
 
         self.root_dir = None
 
-        self.develop = True
+        self.editable = True
 
     @property
     def name(self):
@@ -319,7 +319,7 @@ class Package(PackageSpecification):
                 category=self.category,
                 optional=self.optional,
                 base=self.root_dir,
-                develop=self.develop,
+                editable=self.editable,
                 extras=self.features,
             )
         elif self.source_type == "file":
@@ -348,7 +348,7 @@ class Package(PackageSpecification):
                 resolved_rev=self.source_resolved_reference,
                 category=self.category,
                 optional=self.optional,
-                develop=self.develop,
+                editable=self.editable,
                 extras=self.features,
             )
         else:
@@ -405,7 +405,7 @@ class Package(PackageSpecification):
         clone.marker = self.marker
         clone.extras = self.extras
         clone.root_dir = self.root_dir
-        clone.develop = self.develop
+        clone.editable = self.editable
 
         for dep in self.requires:
             clone.requires.append(dep)

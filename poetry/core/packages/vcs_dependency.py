@@ -23,7 +23,7 @@ class VCSDependency(Dependency):
         resolved_rev=None,
         category="main",
         optional=False,
-        develop=False,
+        editable=False,
         extras=None,  # type: Union[List[str], Set[str]]
     ):
         self._vcs = vcs
@@ -36,7 +36,7 @@ class VCSDependency(Dependency):
         self._branch = branch
         self._tag = tag
         self._rev = rev
-        self._develop = develop
+        self._editable = editable
 
         super(VCSDependency, self).__init__(
             name,
@@ -72,8 +72,8 @@ class VCSDependency(Dependency):
         return self._rev
 
     @property
-    def develop(self):  # type: () -> bool
-        return self._develop
+    def editable(self):  # type: () -> bool
+        return self._editable
 
     @property
     def reference(self):  # type: () -> str
@@ -127,7 +127,7 @@ class VCSDependency(Dependency):
             resolved_rev=self._source_resolved_reference,
             optional=self.is_optional(),
             category=self.category,
-            develop=self._develop,
+            editable=self._editable,
             extras=self._extras,
         )
 

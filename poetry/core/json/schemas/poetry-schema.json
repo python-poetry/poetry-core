@@ -359,9 +359,14 @@
                         "type": "string"
                     }
                 },
+                "editable": {
+                    "type": "boolean",
+                    "description": "Whether to install the dependency in editable mode."
+                },
                 "develop": {
                     "type": "boolean",
-                    "description": "Whether to install the dependency in development mode."
+                    "description": "Whether to install the dependency in editable mode.",
+                    "deprecated": true
                 }
             }
         },
@@ -435,9 +440,14 @@
                         "type": "string"
                     }
                 },
+                "editable": {
+                    "type": "boolean",
+                    "description": "Whether to install the dependency in editable mode."
+                },
                 "develop": {
                     "type": "boolean",
-                    "description": "Whether to install the dependency in development mode."
+                    "description": "Whether to install the dependency in editable mode.",
+                    "deprecated": true
                 }
             }
         },
