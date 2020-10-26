@@ -1,6 +1,7 @@
 from typing import List
 from typing import Set
 from typing import Union
+from warnings import warn
 
 from poetry.core.vcs import git
 
@@ -24,6 +25,7 @@ class VCSDependency(Dependency):
         category="main",
         optional=False,
         editable=False,
+        develop=False,
         extras=None,  # type: Union[List[str], Set[str]]
     ):
         self._vcs = vcs
@@ -36,6 +38,17 @@ class VCSDependency(Dependency):
         self._branch = branch
         self._tag = tag
         self._rev = rev
+        # TODO: Remove the following once poetry has been updated to use editable in source.
+        if develop:
+            if editable:
+                raise ValueError(
+                    'Deprecated "develop" parameter may not be passed with new "editable" parameter. '
+                    'Only use "editable"!'
+                )
+            warn(
+                '"develop" parameter is deprecated, use "editable" instead.',
+                DeprecationWarning,
+            )
         self._editable = editable
 
         super(VCSDependency, self).__init__(
@@ -74,6 +87,15 @@ class VCSDependency(Dependency):
     @property
     def editable(self):  # type: () -> bool
         return self._editable
+
+    # TODO: Remove the following once poetry has been updated to use editable in source.
+    @property
+    def develop(self):  # type: () -> bool
+        warn(
+            '"develop" property is deprecated, use "editable" instead.',
+            DeprecationWarning,
+        )
+        return self.editable
 
     @property
     def reference(self):  # type: () -> str

@@ -1,6 +1,7 @@
 from typing import List
 from typing import Set
 from typing import Union
+from warnings import warn
 
 from poetry.core.pyproject import PyProjectTOML
 from poetry.core.utils._compat import Path
@@ -17,6 +18,7 @@ class DirectoryDependency(Dependency):
         optional=False,  # type: bool
         base=None,  # type: Path
         editable=False,  # type: bool
+        develop=False,  # type: bool
         extras=None,  # type: Union[List[str], Set[str]]
     ):
         self._path = path
@@ -29,7 +31,18 @@ class DirectoryDependency(Dependency):
             except FileNotFoundError:
                 raise ValueError("Directory {} does not exist".format(self._path))
 
-        self._editable = editable
+        # TODO: Remove the following once poetry has been updated to use editable in source.
+        if develop:
+            if editable:
+                raise ValueError(
+                    'Deprecated "develop" parameter may not be passed with new "editable" parameter. '
+                    'Only use "editable"!'
+                )
+            warn(
+                '"develop" parameter is deprecated, use "editable" instead.',
+                DeprecationWarning,
+            )
+        self._editable = editable or develop
         self._supports_poetry = False
 
         if not self._full_path.exists():
@@ -77,6 +90,15 @@ class DirectoryDependency(Dependency):
     @property
     def editable(self):
         return self._editable
+
+    # TODO: Remove the following once poetry has been updated to use editable in source.
+    @property
+    def develop(self):  # type: () -> bool
+        warn(
+            '"develop" property is deprecated, use "editable" instead.',
+            DeprecationWarning,
+        )
+        return self.editable
 
     def supports_poetry(self):
         return self._supports_poetry

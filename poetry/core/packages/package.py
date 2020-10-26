@@ -4,6 +4,7 @@ import re
 
 from contextlib import contextmanager
 from typing import List
+from warnings import warn
 
 from poetry.core.semver import Version
 from poetry.core.semver import parse_constraint
@@ -286,6 +287,24 @@ class Package(PackageSpecification):
             urls["Documentation"] = self.documentation_url
 
         return urls
+
+    # TODO: Remove the following once poetry has been updated to use editable in source.
+    @property
+    def develop(self):  # type: () -> bool
+        warn(
+            '"develop" attribute is deprecated, use "editable" instead.',
+            DeprecationWarning,
+        )
+        return self.editable
+
+    # TODO: Remove the following once poetry has been updated to use editable in source.
+    @develop.setter
+    def develop(self, value):  # type: (bool) -> None
+        warn(
+            '"develop" attribute is deprecated, use "editable" instead.',
+            DeprecationWarning,
+        )
+        self.editable = value
 
     def is_prerelease(self):
         return self._version.is_prerelease()
