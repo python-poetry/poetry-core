@@ -115,19 +115,30 @@ class Factory(object):
                 )
 
         extras = local_config.get("extras", {})
+        deps_by_name = {dep.name: dep for dep in package.requires}
         for extra_name, requirements in extras.items():
             package.extras[extra_name] = []
 
-            # Checking for dependency
-            for req in requirements:
-                req = Dependency(req, "*")
+            reqs_list = requirements.copy()
+            while reqs_list:
+                req = Dependency(reqs_list.pop(), "*")
 
-                for dep in package.requires:
-                    if dep.name == req.name:
-                        dep.in_extras.append(extra_name)
-                        package.extras[extra_name].append(dep)
+                # Check for extra
+                is_extra = req.name in extras
+                # Check for dependency
+                is_dep = req.name in deps_by_name
 
-                        break
+                if is_extra and is_dep:
+                    raise ValueError(
+                        f"{req.name!r} is both an extra and a requirment. "
+                        "Consider changing the name of the extra."
+                    )
+                elif is_extra:
+                    reqs_list.extend(extras[req.name])
+                elif is_dep:
+                    dep = deps_by_name[req.name]
+                    dep.in_extras.append(extra_name)
+                    package.extras[extra_name].append(dep)
 
         if "build" in local_config:
             build = local_config["build"]
