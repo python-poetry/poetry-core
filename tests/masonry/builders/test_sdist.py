@@ -629,3 +629,23 @@ def test_sdist_mtime_zero():
     with gzip.open(str(sdist), "rb") as gz:
         gz.read(100)
         assert gz.mtime == 0
+
+
+def test_split_source():
+    root = fixtures_dir / "split_source"
+    poetry = Factory().create_poetry(root)
+
+    builder = SdistBuilder(poetry)
+
+    # Check setup.py
+    setup = builder.build_setup()
+    setup_ast = ast.parse(setup)
+
+    setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
+    ns = {}
+    exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
+    assert "moduleA" in ns["package_dir"] or "moduleB" in ns["package_dir"]
+    if "moduleA" in ns["package_dir"]:
+        assert ns["package_dir"]["moduleA"] == "libA/moduleA"
+    if "moduleB" in ns["package_dir"]:
+        assert ns["package_dir"]["moduleB"] == "libB/moduleB"
