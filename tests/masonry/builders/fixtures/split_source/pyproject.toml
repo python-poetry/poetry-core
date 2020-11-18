@@ -7,8 +7,8 @@ authors = [
 ]
 license = "MIT"
 packages = [
-    { include = "moduleA", from = "libA" },
-    { include = "moduleB", from = "libB" },
+    { include = "module_a", from = "lib_a" },
+    { include = "module_b", from = "lib_b" },
 ]
 
 [tool.poetry.dependencies]
