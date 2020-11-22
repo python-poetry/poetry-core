@@ -85,6 +85,13 @@ from poetry.core.vcs.git import ParsedUrl
                 None,
             ),
         ),
+        (
+            "git+https://fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a:x-oauth-basic@hostname/project/blah.git",
+            GitUrl(
+                "https://fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a:x-oauth-basic@hostname/project/blah.git",
+                None,
+            ),
+        ),
     ],
 )
 def test_normalize_url(url, normalized):
@@ -285,6 +292,17 @@ def test_normalize_url(url, normalized):
                 pathname="/project/blah.git",
                 user="user",
                 password="fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a",
+                name="blah",
+            ),
+        ),
+        (
+            "git+https://fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a:x-oauth-basic@hostname/project/blah.git",
+            ParsedUrl(
+                protocol="https",
+                resource="hostname",
+                pathname="/project/blah.git",
+                user="fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a",
+                password="x-oauth-basic",
                 name="blah",
             ),
         ),
