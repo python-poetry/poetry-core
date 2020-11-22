@@ -356,3 +356,18 @@ def test_parse_url_should_fail():
 )
 def test_is_unsafe(url, is_unsafe):
     assert url.is_unsafe == is_unsafe
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "git+https://user:fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a@hostname/project/blah.git",
+        "git+https://fafb334-cb038533f851c23d0b63254223Abf72ce4f02987e7064b0c95566699a:x-oauth-basic@hostname/project/blah.git",
+    ],
+)
+def test_is_unsafe_warning(url):
+    with pytest.warns(Warning) as records:
+        parsed_url = ParsedUrl.parse(url)
+        assert parsed_url.password is not None
+        assert parsed_url.is_unsafe
+        assert len(records) == 1

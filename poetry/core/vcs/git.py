@@ -1,5 +1,7 @@
+import logging
 import re
 import subprocess
+import warnings
 
 from collections import namedtuple
 from pathlib import Path
@@ -94,6 +96,9 @@ PATTERNS = [
 ]
 
 
+logger = logging.getLogger(__name__)
+
+
 class ParsedUrl:
     def __init__(
         self,
@@ -101,6 +106,7 @@ class ParsedUrl:
         resource: Optional[str],
         pathname: Optional[str],
         user: Optional[str],
+        password: Optional[str],
         port: Optional[str],
         name: Optional[str],
         rev: Optional[str],
@@ -113,6 +119,14 @@ class ParsedUrl:
         self.port = port
         self.name = name
         self.rev = rev
+
+        # Warn if password is stored when adding the dependency.
+        if self.is_unsafe:
+            message = "Password being stored in plain text for dependency '{name}' to pyproject.toml and poetry.lock.".format(
+                name=self.name
+            )
+            warnings.warn(message, Warning)
+            logger.warning(message)
 
     @classmethod
     def parse(cls, url: str) -> "ParsedUrl":
@@ -130,7 +144,6 @@ class ParsedUrl:
                     groups.get("name"),
                     groups.get("rev"),
                 )
-
         raise ValueError('Invalid git url "{}"'.format(url))
 
     @property
