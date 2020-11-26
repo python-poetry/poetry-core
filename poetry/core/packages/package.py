@@ -406,6 +406,7 @@ class Package(PackageSpecification):
         clone.extras = self.extras
         clone.root_dir = self.root_dir
         clone.develop = self.develop
+        clone.files = self.files
 
         for dep in self.requires:
             clone.requires.append(dep)
