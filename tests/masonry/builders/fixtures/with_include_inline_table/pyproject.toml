@@ -24,6 +24,7 @@ packages = [
 
 include = [
     { path = "tests", format = "sdist" },
+    { path = "both.txt" },
     { path = "wheel_only.txt", format = "wheel" }
 ]
 
