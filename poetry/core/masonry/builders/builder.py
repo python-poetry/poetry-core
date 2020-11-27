@@ -53,7 +53,13 @@ class Builder(object):
 
         packages = []
         for p in self._package.packages:
-            formats = p.get("format", [])
+            formats = p.get("format") or None
+
+            # Default to including the package in both sdist & wheel
+            # if the `format` key is not provided in the inline include table.
+            if formats is None:
+                formats = ["sdist", "wheel"]
+
             if not isinstance(formats, list):
                 formats = [formats]
 

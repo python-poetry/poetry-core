@@ -529,6 +529,7 @@ def test_includes_with_inline_table():
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
+        assert "with-include-1.2.3/both.txt" in tar.getnames()
         assert "with-include-1.2.3/wheel_only.txt" not in tar.getnames()
         assert "with-include-1.2.3/tests/__init__.py" in tar.getnames()
         assert "with-include-1.2.3/tests/test_foo/test.py" in tar.getnames()

@@ -182,6 +182,7 @@ def test_wheel_includes_inline_table():
     assert whl.exists()
 
     with zipfile.ZipFile(str(whl)) as z:
+        assert "both.txt" in z.namelist()
         assert "wheel_only.txt" in z.namelist()
         assert "notes.txt" not in z.namelist()
 
