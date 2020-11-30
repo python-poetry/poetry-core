@@ -31,7 +31,8 @@ class Factory(object):
         self, cwd=None, with_dev=True
     ):  # type: (Optional[Path]. bool) -> Poetry
         poetry_file = self.locate(cwd)
-        local_config = PyProjectTOML(path=poetry_file).poetry_config
+        config = PyProjectTOML(path=poetry_file)
+        local_config = config.poetry_config
 
         # Checking validity
         check_result = self.validate(local_config)
@@ -113,6 +114,10 @@ class Factory(object):
                         name, constraint, category="dev", root_dir=package.root_dir
                     )
                 )
+
+        if with_dev:
+            for dep in config.build_system.dependencies:
+                package.add_dependency(dep)
 
         extras = local_config.get("extras", {})
         for extra_name, requirements in extras.items():

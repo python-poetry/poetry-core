@@ -30,18 +30,22 @@ class BuildSystem:
             for requirement in self.requires:
                 dependency = None
                 try:
-                    dependency = dependency_from_pep_508(requirement)
+                    dependency = dependency_from_pep_508(requirement, category="dev")
                 except ValueError:
                     # PEP 517 requires can be path if not PEP 508
                     path = Path(requirement)
                     try:
                         if path.is_file():
                             dependency = FileDependency(
-                                name=canonicalize_name(path.name), path=path
+                                name=canonicalize_name(path.name),
+                                path=path,
+                                category="dev",
                             )
                         elif path.is_dir():
                             dependency = DirectoryDependency(
-                                name=canonicalize_name(path.name), path=path
+                                name=canonicalize_name(path.name),
+                                path=path,
+                                category="dev",
                             )
                     except OSError:
                         # compatibility Python < 3.8
