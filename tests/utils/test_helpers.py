@@ -1,5 +1,4 @@
 import os
-import pathlib
 
 from stat import S_IREAD
 
@@ -72,6 +71,7 @@ def test_utils_helpers_canonical_names(raw):
 
 def test_utils_helpers_temporary_directory_readonly_file():
     with temporary_directory() as temp_dir:
-        readonly_file = pathlib.Path(temp_dir, "file.txt")
-        readonly_file.touch()
-        os.chmod(str(readonly_file), S_IREAD)
+        readonly_filename = os.path.join(temp_dir, "file.txt")
+        with open(readonly_filename, "w+") as readonly_file:
+            readonly_file.write("Poetry rocks!")
+        os.chmod(str(readonly_filename), S_IREAD)
