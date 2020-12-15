@@ -34,17 +34,9 @@ def normalize_version(version):  # type: (str) -> str
 
 @contextmanager
 def temporary_directory(*args, **kwargs):
-    try:
-        from tempfile import TemporaryDirectory
-
-        with TemporaryDirectory(*args, **kwargs) as name:
-            yield name
-    except ImportError:
-        name = tempfile.mkdtemp(*args, **kwargs)
-        try:
-            yield name
-        finally:
-            shutil.rmtree(name)
+    name = tempfile.mkdtemp(*args, **kwargs)
+    yield name
+    safe_rmtree(name)
 
 
 def parse_requires(requires):  # type: (str) -> List[str]
