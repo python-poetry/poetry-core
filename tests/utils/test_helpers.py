@@ -1,7 +1,12 @@
+import os
+import pathlib
+from stat import S_IREAD
+
 import pytest
 
 from poetry.core.utils.helpers import canonicalize_name
 from poetry.core.utils.helpers import parse_requires
+from poetry.core.utils.helpers import temporary_directory
 
 
 def test_parse_requires():
@@ -62,3 +67,10 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
 )
 def test_utils_helpers_canonical_names(raw):
     assert canonicalize_name(raw) == "a-b-c"
+
+
+def test_utils_helpers_temporary_directory_readonly_file():
+    with temporary_directory() as temp_dir:
+        readonly_file = pathlib.Path(temp_dir, "file.txt")
+        readonly_file.touch()
+        os.chmod(str(readonly_file), S_IREAD)
