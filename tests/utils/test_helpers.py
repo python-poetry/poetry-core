@@ -75,3 +75,6 @@ def test_utils_helpers_temporary_directory_readonly_file():
         with open(readonly_filename, "w+") as readonly_file:
             readonly_file.write("Poetry rocks!")
         os.chmod(str(readonly_filename), S_IREAD)
+
+    assert not os.path.exists(temp_dir)
+    assert not os.path.exists(readonly_filename)
