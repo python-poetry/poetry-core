@@ -1,6 +1,10 @@
 from .include import Include
 
 
+class NotAPackageError(ValueError):
+    pass
+
+
 class PackageInclude(Include):
     def __init__(self, base, include, formats=None, source=None):
         self._package = None
@@ -61,7 +65,7 @@ class PackageInclude(Include):
             self._package = root.parent.name
 
             if not self.is_stub_only() and not self.has_modules():
-                raise ValueError("{} is not a package.".format(root.name))
+                raise NotAPackageError("{} is not a package.".format(root.name))
 
         else:
             if root.is_dir():
@@ -70,7 +74,7 @@ class PackageInclude(Include):
                 self._elements = sorted(list(root.glob("**/*")))
 
                 if not self.is_stub_only() and not self.has_modules():
-                    raise ValueError("{} is not a package.".format(root.name))
+                    raise NotAPackageError("{} is not a package.".format(root.name))
 
                 self._is_package = True
             else:
