@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import shutil
 import zipfile
 
@@ -270,3 +271,24 @@ def test_default_src_with_excluded_data(mocker):
         assert "my_package/data/data1.txt" in names
         assert "my_package/data/sub_data/data2.txt" not in names
         assert "my_package/data/sub_data/data3.txt" in names
+
+
+def test_wheel_file_is_closed(monkeypatch):
+    """Confirm that wheel zip files are explicitly closed."""
+
+    # Using a list is a hack for Python 2.7 compatibility.
+    fd_file = [None]
+
+    real_fdopen = os.fdopen
+
+    def capturing_fdopen(*args, **kwargs):
+        fd_file[0] = real_fdopen(*args, **kwargs)
+        return fd_file[0]
+
+    monkeypatch.setattr(os, "fdopen", capturing_fdopen)
+
+    module_path = fixtures_dir / "module1"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    assert fd_file[0] is not None
+    assert fd_file[0].closed
