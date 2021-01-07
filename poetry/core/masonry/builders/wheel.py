@@ -78,18 +78,19 @@ class WheelBuilder(Builder):
         new_mode = normalize_file_permissions(st_mode)
         os.chmod(temp_path, new_mode)
 
-        with zipfile.ZipFile(
-            os.fdopen(fd, "w+b"), mode="w", compression=zipfile.ZIP_DEFLATED
-        ) as zip_file:
-            if not self._poetry.package.build_should_generate_setup():
-                self._build(zip_file)
-                self._copy_module(zip_file)
-            else:
-                self._copy_module(zip_file)
-                self._build(zip_file)
+        with os.fdopen(fd, "w+b") as fd_file:
+            with zipfile.ZipFile(
+                fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
+            ) as zip_file:
+                if not self._poetry.package.build_should_generate_setup():
+                    self._build(zip_file)
+                    self._copy_module(zip_file)
+                else:
+                    self._copy_module(zip_file)
+                    self._build(zip_file)
 
-            self._write_metadata(zip_file)
-            self._write_record(zip_file)
+                self._write_metadata(zip_file)
+                self._write_record(zip_file)
 
         wheel_path = dist_dir / self.wheel_filename
         if wheel_path.exists():
