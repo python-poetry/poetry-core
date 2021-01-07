@@ -1,6 +1,6 @@
 import pytest
 
-from poetry.core.masonry.utils.package_include import PackageInclude
+from poetry.core.masonry.utils.package_include import NotAPackageError, PackageInclude
 from poetry.core.utils._compat import Path
 
 
@@ -37,7 +37,7 @@ def test_package_include_with_nested_dir():
 
 
 def test_package_include_with_no_python_files_in_dir():
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(NotAPackageError) as e:
         PackageInclude(base=with_includes, include="not_a_python_pkg")
 
     assert str(e.value) == "not_a_python_pkg is not a package."
