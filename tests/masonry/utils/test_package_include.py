@@ -1,6 +1,7 @@
 import pytest
 
-from poetry.core.masonry.utils.package_include import NotAPackageError, PackageInclude
+from poetry.core.masonry.utils.package_include import NotAPackageError
+from poetry.core.masonry.utils.package_include import PackageInclude
 from poetry.core.utils._compat import Path
 
 
