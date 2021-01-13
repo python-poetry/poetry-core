@@ -96,6 +96,7 @@ def test_wheel_excluded_nested_data():
         assert "my_package/public/item1/subitem/subitemdata.txt" not in z.namelist()
         assert "my_package/public/item2/itemdata2.txt" not in z.namelist()
 
+
 def test_include_excluded_code():
     module_path = fixtures_dir / "include_excluded_code"
     poetry = Factory().create_poetry(module_path)
@@ -108,6 +109,7 @@ def test_include_excluded_code():
         assert "my_package/__init__.py" in z.namelist()
         assert "my_package/generated.py" in z.namelist()
         assert "lib/my_package/generated.py" not in z.namelist()
+
 
 def test_wheel_localversionlabel():
     module_path = fixtures_dir / "localversionlabel"
@@ -282,4 +284,3 @@ def test_default_src_with_excluded_data(mocker):
         assert "my_package/data/data1.txt" in names
         assert "my_package/data/sub_data/data2.txt" not in names
         assert "my_package/data/sub_data/data3.txt" in names
-

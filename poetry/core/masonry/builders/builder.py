@@ -113,7 +113,7 @@ class Builder(object):
 
             explicitely_included = set()
             for inc in self._package.include:
-                included_glob = inc['path']
+                included_glob = inc["path"]
                 for included in self._path.glob(str(included_glob)):
                     explicitely_included.add(
                         Path(included).relative_to(self._path).as_posix()
