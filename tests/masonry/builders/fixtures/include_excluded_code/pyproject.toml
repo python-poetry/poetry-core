@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "my_package"
+version = "0.1.0"
+description = ""
+authors = ["Audun Skaugen <audun.skaugen@cognitedata.com>"]
+
+packages = [{include='my_package', from='lib'}]
+# Simulate excluding due to .gitignore
+exclude = ['lib/my_package/generated.py']
+# Include again
+include = ['lib/my_package/generated.py']
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
