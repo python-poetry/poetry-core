@@ -45,6 +45,7 @@ functools32 = {version = "^3.2.3-2", python = "~2.7"}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^1.10"
+pyrsistent = "^0.16.0"
 pytest = "^4.6"
 pytest-cov = "^2.8"
 pytest-mock = "^2.0"
@@ -113,7 +114,7 @@ appdirs = []
 
 
 [tool.vendoring.license.fallback-urls]
-pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENCE.mit"
+pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"
 
 [build-system]
 requires = []
