@@ -182,9 +182,7 @@ class Builder(object):
                     path=file, project_root=self._path, source_root=source_root
                 )
 
-                if self.is_excluded(
-                    file.relative_to(source_root)
-                ) and isinstance(include, PackageInclude):
+                if self.is_excluded(file.relative_to(source_root)):
                     continue
 
                 if file.suffix == ".pyc":
