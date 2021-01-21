@@ -153,8 +153,10 @@ class Builder(object):
                 if "__pycache__" in str(file):
                     continue
 
+                # this should be moved to Include.check_elements(), similar
+                # to PackageInclude.check_elements()
                 if file.is_dir():
-                    if self.format in formats:
+                    if self.format in formats:  # why check this only for dirs?
                         for current_file in file.glob("**/*"):
                             include_file = BuildIncludeFile(
                                 path=current_file,
