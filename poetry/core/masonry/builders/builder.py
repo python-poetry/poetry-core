@@ -163,7 +163,7 @@ class Builder(object):
                             )
 
                             if not current_file.is_dir() and not self.is_excluded(
-                                include_file.relative_to_source_root()
+                                current_file.relative_to(self._path)
                             ):
                                 logger.debug("Adding: {}".format(str(current_file)))
                                 to_add.add(include_file)
@@ -183,7 +183,7 @@ class Builder(object):
                 )
 
                 if self.is_excluded(
-                    include_file.relative_to_project_root()
+                    file.relative_to(source_root)
                 ) and isinstance(include, PackageInclude):
                     continue
 
