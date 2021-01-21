@@ -165,6 +165,7 @@ class Builder(object):
                             if not current_file.is_dir() and not self.is_excluded(
                                 include_file.relative_to_source_root()
                             ):
+                                logger.debug("Adding: {}".format(str(current_file)))
                                 to_add.add(include_file)
                     continue
 
