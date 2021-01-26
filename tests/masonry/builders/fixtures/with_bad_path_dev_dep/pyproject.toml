@@ -8,4 +8,4 @@ authors = ["Awesome Hacker <awesome@hacker.io>"]
 python = "^3.6"
 
 [tool.poetry.dev-dependencies]
-bogus = { path = "../only/in/dev", develop = true }
+bogus = { path = "../only/in/dev", editable = true }

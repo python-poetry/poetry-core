@@ -1,6 +1,7 @@
 from typing import List
 from typing import Set
 from typing import Union
+from warnings import warn
 
 from poetry.core.vcs import git
 
@@ -23,6 +24,7 @@ class VCSDependency(Dependency):
         resolved_rev=None,
         category="main",
         optional=False,
+        editable=False,
         develop=False,
         extras=None,  # type: Union[List[str], Set[str]]
     ):
@@ -36,7 +38,18 @@ class VCSDependency(Dependency):
         self._branch = branch
         self._tag = tag
         self._rev = rev
-        self._develop = develop
+        # TODO: Remove the following once poetry has been updated to use editable in source.
+        if develop:
+            if editable:
+                raise ValueError(
+                    'Deprecated "develop" parameter may not be passed with new "editable" parameter. '
+                    'Only use "editable"!'
+                )
+            warn(
+                '"develop" parameter is deprecated, use "editable" instead.',
+                DeprecationWarning,
+            )
+        self._editable = editable
 
         super(VCSDependency, self).__init__(
             name,
@@ -72,8 +85,17 @@ class VCSDependency(Dependency):
         return self._rev
 
     @property
+    def editable(self):  # type: () -> bool
+        return self._editable
+
+    # TODO: Remove the following once poetry has been updated to use editable in source.
+    @property
     def develop(self):  # type: () -> bool
-        return self._develop
+        warn(
+            '"develop" property is deprecated, use "editable" instead.',
+            DeprecationWarning,
+        )
+        return self.editable
 
     @property
     def reference(self):  # type: () -> str
@@ -127,7 +149,7 @@ class VCSDependency(Dependency):
             resolved_rev=self._source_resolved_reference,
             optional=self.is_optional(),
             category=self.category,
-            develop=self._develop,
+            editable=self._editable,
             extras=self._extras,
         )
 

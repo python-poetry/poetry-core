@@ -1,6 +1,7 @@
 from typing import List
 from typing import Set
 from typing import Union
+from warnings import warn
 
 from poetry.core.pyproject import PyProjectTOML
 from poetry.core.utils._compat import Path
@@ -16,6 +17,7 @@ class DirectoryDependency(Dependency):
         category="main",  # type: str
         optional=False,  # type: bool
         base=None,  # type: Path
+        editable=False,  # type: bool
         develop=False,  # type: bool
         extras=None,  # type: Union[List[str], Set[str]]
     ):
@@ -29,7 +31,18 @@ class DirectoryDependency(Dependency):
             except FileNotFoundError:
                 raise ValueError("Directory {} does not exist".format(self._path))
 
-        self._develop = develop
+        # TODO: Remove the following once poetry has been updated to use editable in source.
+        if develop:
+            if editable:
+                raise ValueError(
+                    'Deprecated "develop" parameter may not be passed with new "editable" parameter. '
+                    'Only use "editable"!'
+                )
+            warn(
+                '"develop" parameter is deprecated, use "editable" instead.',
+                DeprecationWarning,
+            )
+        self._editable = editable or develop
         self._supports_poetry = False
 
         if not self._full_path.exists():
@@ -75,8 +88,17 @@ class DirectoryDependency(Dependency):
         return self._base
 
     @property
-    def develop(self):
-        return self._develop
+    def editable(self):
+        return self._editable
+
+    # TODO: Remove the following once poetry has been updated to use editable in source.
+    @property
+    def develop(self):  # type: () -> bool
+        warn(
+            '"develop" property is deprecated, use "editable" instead.',
+            DeprecationWarning,
+        )
+        return self.editable
 
     def supports_poetry(self):
         return self._supports_poetry
@@ -91,7 +113,7 @@ class DirectoryDependency(Dependency):
             base=self.base,
             optional=self.is_optional(),
             category=self.category,
-            develop=self._develop,
+            editable=self._editable,
             extras=self._extras,
         )
 

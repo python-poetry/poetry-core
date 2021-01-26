@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = ""
+authors = ["Awesome Hacker <awesome@hacker.io>"]
+
+[tool.poetry.dependencies]
+python = "3.9.0"
+pendulum = { git = "https://github.com/sdispater/pendulum.git", develop = false }
