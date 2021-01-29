@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import shutil
 import zipfile
 
@@ -95,6 +96,20 @@ def test_wheel_excluded_nested_data():
         assert "my_package/public/item1/itemdata1.txt" not in z.namelist()
         assert "my_package/public/item1/subitem/subitemdata.txt" not in z.namelist()
         assert "my_package/public/item2/itemdata2.txt" not in z.namelist()
+
+
+def test_include_excluded_code():
+    module_path = fixtures_dir / "include_excluded_code"
+    poetry = Factory().create_poetry(module_path)
+    wb = WheelBuilder(poetry)
+    wb.build()
+    whl = module_path / "dist" / wb.wheel_filename
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "my_package/__init__.py" in z.namelist()
+        assert "my_package/generated.py" in z.namelist()
+        assert "lib/my_package/generated.py" not in z.namelist()
 
 
 def test_wheel_localversionlabel():
@@ -270,3 +285,24 @@ def test_default_src_with_excluded_data(mocker):
         assert "my_package/data/data1.txt" in names
         assert "my_package/data/sub_data/data2.txt" not in names
         assert "my_package/data/sub_data/data3.txt" in names
+
+
+def test_wheel_file_is_closed(monkeypatch):
+    """Confirm that wheel zip files are explicitly closed."""
+
+    # Using a list is a hack for Python 2.7 compatibility.
+    fd_file = [None]
+
+    real_fdopen = os.fdopen
+
+    def capturing_fdopen(*args, **kwargs):
+        fd_file[0] = real_fdopen(*args, **kwargs)
+        return fd_file[0]
+
+    monkeypatch.setattr(os, "fdopen", capturing_fdopen)
+
+    module_path = fixtures_dir / "module1"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    assert fd_file[0] is not None
+    assert fd_file[0].closed

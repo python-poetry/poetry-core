@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from .url_dependency import URLDependency
     from .vcs_dependency import VCSDependency
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+)(?: <(?P<email>.+?)>)?$")
+AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
