@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import ast
+import gzip
 import shutil
 import tarfile
 
@@ -587,3 +588,18 @@ def test_sdist_disable_setup_py():
             "my-package-1.2.3/PKG-INFO",
             "my-package-1.2.3/my_package/__init__.py",
         }
+
+
+def test_sdist_mtime_zero():
+    poetry = Factory().create_poetry(project("module1"))
+
+    builder = SdistBuilder(poetry)
+    builder.build()
+
+    sdist = fixtures_dir / "module1" / "dist" / "module1-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with gzip.open(str(sdist), "rb") as gz:
+        gz.read(100)
+        assert gz.mtime == 0
