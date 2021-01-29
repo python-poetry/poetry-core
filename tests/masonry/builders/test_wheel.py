@@ -97,6 +97,20 @@ def test_wheel_excluded_nested_data():
         assert "my_package/public/item2/itemdata2.txt" not in z.namelist()
 
 
+def test_include_excluded_code():
+    module_path = fixtures_dir / "include_excluded_code"
+    poetry = Factory().create_poetry(module_path)
+    wb = WheelBuilder(poetry)
+    wb.build()
+    whl = module_path / "dist" / wb.wheel_filename
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "my_package/__init__.py" in z.namelist()
+        assert "my_package/generated.py" in z.namelist()
+        assert "lib/my_package/generated.py" not in z.namelist()
+
+
 def test_wheel_localversionlabel():
     module_path = fixtures_dir / "localversionlabel"
     project = Factory().create_poetry(module_path)
