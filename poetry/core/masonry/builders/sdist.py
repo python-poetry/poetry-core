@@ -12,8 +12,14 @@ from gzip import GzipFile
 from io import BytesIO
 from posixpath import join as pjoin
 from pprint import pformat
+from tarfile import TarInfo
+from typing import TYPE_CHECKING
+from typing import Dict
 from typing import Iterator
+from typing import List
+from typing import Optional
 from typing import Set
+from typing import Tuple
 
 from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import decode
@@ -25,6 +31,10 @@ from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .builder import BuildIncludeFile
 
+
+if TYPE_CHECKING:
+    from poetry.core.packages import Dependency  # noqa
+    from poetry.core.packages import ProjectPackage  # noqa
 
 SETUP = """\
 # -*- coding: utf-8 -*-
@@ -55,7 +65,7 @@ class SdistBuilder(Builder):
 
     format = "sdist"
 
-    def build(self, target_dir=None):  # type: (Path) -> Path
+    def build(self, target_dir=None):  # type: (Optional[Path]) -> Path
         logger.info("Building <info>sdist</info>")
         if target_dir is None:
             target_dir = self._path / "dist"
@@ -219,10 +229,12 @@ class SdistBuilder(Builder):
         if not has_setup:
             setup.unlink()
 
-    def build_pkg_info(self):
+    def build_pkg_info(self):  # type: () -> bytes
         return encode(self.get_metadata_content())
 
-    def find_packages(self, include):
+    def find_packages(
+        self, include
+    ):  # type: (PackageInclude) -> Tuple[str, List[str], dict]
         """
         Discover subpackages and data.
 
@@ -242,7 +254,7 @@ class SdistBuilder(Builder):
         packages = [pkg_name]
         subpkg_paths = set()
 
-        def find_nearest_pkg(rel_path):
+        def find_nearest_pkg(rel_path):  # type: (str) -> Tuple[str, str]
             parts = rel_path.split(os.sep)
             for i in reversed(range(1, len(parts))):
                 ancestor = "/".join(parts[:i])
@@ -329,7 +341,9 @@ class SdistBuilder(Builder):
         return to_add
 
     @classmethod
-    def convert_dependencies(cls, package, dependencies):
+    def convert_dependencies(
+        cls, package, dependencies
+    ):  # type: ("ProjectPackage", List["Dependency"]) -> Tuple[List[str], Dict[str, List[str]]]
         main = []
         extras = defaultdict(list)
         req_regex = re.compile(r"^(.+) \((.+)\)$")
@@ -386,7 +400,7 @@ class SdistBuilder(Builder):
         return main, dict(extras)
 
     @classmethod
-    def clean_tarinfo(cls, tar_info):
+    def clean_tarinfo(cls, tar_info):  # type: (TarInfo) -> TarInfo
         """
         Clean metadata from a TarInfo object to make it more reproducible.
 

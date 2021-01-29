@@ -8,13 +8,13 @@ from poetry.core.utils.helpers import canonicalize_name
 class PackageSpecification(object):
     def __init__(
         self,
-        name,
-        source_type=None,
-        source_url=None,
-        source_reference=None,
-        source_resolved_reference=None,
-        features=None,
-    ):  # type: (str, Optional[str], Optional[str], Optional[str], Optional[str], Optional[List[str]]) -> None
+        name,  # type: str
+        source_type=None,  # type: Optional[str]
+        source_url=None,  # type: Optional[str]
+        source_reference=None,  # type: Optional[str]
+        source_resolved_reference=None,  # type: Optional[str]
+        features=None,  # type: Optional[List[str]]
+    ):
         self._pretty_name = name
         self._name = canonicalize_name(name)
         self._source_type = source_type
@@ -36,7 +36,7 @@ class PackageSpecification(object):
         return self._pretty_name
 
     @property
-    def complete_name(self):  # type () -> str
+    def complete_name(self):  # type: () -> str
         name = self._name
 
         if self._features:

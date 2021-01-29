@@ -1,3 +1,4 @@
+from typing import Any
 from typing import Optional
 from typing import Union
 
@@ -66,10 +67,10 @@ class PyProjectTOML:
                 pass
         return False
 
-    def __getattr__(self, item):
+    def __getattr__(self, item):  # type: (str) -> Any
         return getattr(self.data, item)
 
-    def save(self):
+    def save(self):  # type: () -> None
         data = self.data
 
         if self._poetry_config is not None:
@@ -83,7 +84,7 @@ class PyProjectTOML:
 
         self.file.write(data=data)
 
-    def reload(self):
+    def reload(self):  # type: () -> None
         self._data = None
         self._build_system = None
         self._poetry_config = None

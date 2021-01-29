@@ -2,10 +2,15 @@ import re
 
 from collections import namedtuple
 from itertools import dropwhile
+from typing import Any
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 from .base import BaseVersion
 from .exceptions import InvalidVersion
 from .utils import Infinity
+from .utils import NegativeInfinity
 
 
 _Version = namedtuple("_Version", ["epoch", "release", "dev", "pre", "post", "local"])
@@ -49,7 +54,7 @@ VERSION_PATTERN = re.compile(
 
 
 class Version(BaseVersion):
-    def __init__(self, version):
+    def __init__(self, version):  # type: (str) -> None
         # Validate the version and parse it into pieces
         match = VERSION_PATTERN.match(version)
         if not match:
@@ -77,10 +82,10 @@ class Version(BaseVersion):
             self._version.local,
         )
 
-    def __repr__(self):
+    def __repr__(self):  # type: () -> str
         return "<Version({0})>".format(repr(str(self)))
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         parts = []
 
         # Epoch
@@ -109,11 +114,11 @@ class Version(BaseVersion):
         return "".join(parts)
 
     @property
-    def public(self):
+    def public(self):  # type: () -> str
         return str(self).split("+", 1)[0]
 
     @property
-    def base_version(self):
+    def base_version(self):  # type: () -> str
         parts = []
 
         # Epoch
@@ -126,21 +131,23 @@ class Version(BaseVersion):
         return "".join(parts)
 
     @property
-    def local(self):
+    def local(self):  # type: () -> str
         version_string = str(self)
         if "+" in version_string:
             return version_string.split("+", 1)[1]
 
     @property
-    def is_prerelease(self):
+    def is_prerelease(self):  # type: () -> bool
         return bool(self._version.dev or self._version.pre)
 
     @property
-    def is_postrelease(self):
+    def is_postrelease(self):  # type: () -> bool
         return bool(self._version.post)
 
 
-def _parse_letter_version(letter, number):
+def _parse_letter_version(
+    letter, number
+):  # type: (str, Optional[str]) -> Tuple[str, int]
     if letter:
         # We consider there to be an implicit 0 in a pre-release if there is
         # not a numeral associated with it.
@@ -174,7 +181,7 @@ def _parse_letter_version(letter, number):
 _local_version_seperators = re.compile(r"[._-]")
 
 
-def _parse_local_version(local):
+def _parse_local_version(local):  # type: (Optional[str]) -> Tuple[Union[str, int], ...]
     """
     Takes a string like abc.1.twelve and turns it into ("abc", 1, "twelve").
     """
@@ -185,7 +192,14 @@ def _parse_local_version(local):
         )
 
 
-def _cmpkey(epoch, release, pre, post, dev, local):
+def _cmpkey(
+    epoch,  # type: int
+    release,  # type: Optional[Tuple[int, ...]]
+    pre,  # type: Optional[Tuple[str, int]]
+    post,  # type: Optional[Tuple[str, int]]
+    dev,  # type: Optional[Tuple[str, int]]
+    local,  # type: Optional[Tuple[Union[str, int], ...]]
+):  # type: (...) -> Tuple[int, Tuple[int, ...], Union[Union[Infinity, NegativeInfinity, Tuple[str, int]], Any], Union[NegativeInfinity, Tuple[str, int]], Union[Union[Infinity, Tuple[str, int]], Any], Union[NegativeInfinity, Tuple[Union[Tuple[int, str], Tuple[NegativeInfinity, Union[str, int]]], ...]]]
     # When we compare a release version, we want to compare it with all of the
     # trailing zeros removed. So we'll use a reverse the list, drop all the now
     # leading zeros until we come to something non zero, then take the rest

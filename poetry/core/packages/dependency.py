@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+from typing import Any
 from typing import FrozenSet
 from typing import List
 from typing import Optional
@@ -19,6 +21,13 @@ from .constraints.multi_constraint import MultiConstraint
 from .constraints.union_constraint import UnionConstraint
 from .specification import PackageSpecification
 from .utils.utils import convert_markers
+
+
+if TYPE_CHECKING:
+    from poetry.core.version.markers import BaseMarker  # noqa
+    from poetry.core.version.markers import VersionTypes  # noqa
+
+    from .constraints import BaseConstraint  # noqa
 
 
 class Dependency(PackageSpecification):
@@ -74,14 +83,14 @@ class Dependency(PackageSpecification):
         self.source_name = None
 
     @property
-    def name(self):
+    def name(self):  # type: () -> str
         return self._name
 
     @property
-    def constraint(self):
+    def constraint(self):  # type: () -> "VersionTypes"
         return self._constraint
 
-    def set_constraint(self, constraint):
+    def set_constraint(self, constraint):  # type: (Union[str, "VersionTypes"]) -> None
         try:
             if not isinstance(constraint, VersionConstraint):
                 self._constraint = parse_constraint(constraint)
@@ -91,23 +100,23 @@ class Dependency(PackageSpecification):
             self._constraint = parse_constraint("*")
 
     @property
-    def pretty_constraint(self):
+    def pretty_constraint(self):  # type: () -> str
         return self._pretty_constraint
 
     @property
-    def pretty_name(self):
+    def pretty_name(self):  # type: () -> str
         return self._pretty_name
 
     @property
-    def category(self):
+    def category(self):  # type: () -> str
         return self._category
 
     @property
-    def python_versions(self):
+    def python_versions(self):  # type: () -> str
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value):
+    def python_versions(self, value):  # type: (str) -> None
         self._python_versions = value
         self._python_constraint = parse_constraint(value)
         if not self._python_constraint.is_any():
@@ -120,34 +129,34 @@ class Dependency(PackageSpecification):
             )
 
     @property
-    def transitive_python_versions(self):
+    def transitive_python_versions(self):  # type: () -> str
         if self._transitive_python_versions is None:
             return self._python_versions
 
         return self._transitive_python_versions
 
     @transitive_python_versions.setter
-    def transitive_python_versions(self, value):
+    def transitive_python_versions(self, value):  # type: (str) -> None
         self._transitive_python_versions = value
         self._transitive_python_constraint = parse_constraint(value)
 
     @property
-    def transitive_marker(self):
+    def transitive_marker(self):  # type: () -> "BaseMarker"
         if self._transitive_marker is None:
             return self.marker
 
         return self._transitive_marker
 
     @transitive_marker.setter
-    def transitive_marker(self, value):
+    def transitive_marker(self, value):  # type: ("BaseMarker") -> None
         self._transitive_marker = value
 
     @property
-    def python_constraint(self):
+    def python_constraint(self):  # type: () -> "VersionTypes"
         return self._python_constraint
 
     @property
-    def transitive_python_constraint(self):
+    def transitive_python_constraint(self):  # type: () -> "VersionTypes"
         if self._transitive_python_constraint is None:
             return self._python_constraint
 
@@ -183,25 +192,25 @@ class Dependency(PackageSpecification):
 
         return requirement
 
-    def allows_prereleases(self):
+    def allows_prereleases(self):  # type: () -> bool
         return self._allows_prereleases
 
-    def is_optional(self):
+    def is_optional(self):  # type: () -> bool
         return self._optional
 
-    def is_activated(self):
+    def is_activated(self):  # type: () -> bool
         return self._activated
 
-    def is_vcs(self):
+    def is_vcs(self):  # type: () -> bool
         return False
 
-    def is_file(self):
+    def is_file(self):  # type: () -> bool
         return False
 
-    def is_directory(self):
+    def is_directory(self):  # type: () -> bool
         return False
 
-    def is_url(self):
+    def is_url(self):  # type: () -> bool
         return False
 
     def accepts(self, package):  # type: (poetry.core.packages.Package) -> bool
@@ -257,7 +266,9 @@ class Dependency(PackageSpecification):
 
         return requirement
 
-    def _create_nested_marker(self, name, constraint):
+    def _create_nested_marker(
+        self, name, constraint
+    ):  # type: (str, Union["BaseConstraint", Version, VersionConstraint]) -> str
         if isinstance(constraint, (MultiConstraint, UnionConstraint)):
             parts = []
             for c in constraint.constraints:
@@ -339,13 +350,13 @@ class Dependency(PackageSpecification):
 
         return marker
 
-    def activate(self):
+    def activate(self):  # type: () -> None
         """
         Set the dependency as mandatory.
         """
         self._activated = True
 
-    def deactivate(self):
+    def deactivate(self):  # type: () -> None
         """
         Set the dependency as optional.
         """
@@ -354,7 +365,9 @@ class Dependency(PackageSpecification):
 
         self._activated = False
 
-    def with_constraint(self, constraint):
+    def with_constraint(
+        self, constraint
+    ):  # type: (Union[str, VersionConstraint]) -> Dependency
         new = Dependency(
             self.pretty_name,
             constraint,
@@ -375,7 +388,7 @@ class Dependency(PackageSpecification):
 
         return new
 
-    def __eq__(self, other):
+    def __eq__(self, other):  # type: (Any) -> bool
         if not isinstance(other, Dependency):
             return NotImplemented
 
@@ -385,17 +398,17 @@ class Dependency(PackageSpecification):
             and self._extras == other.extras
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other):  # type: (Any) -> bool
         return not self == other
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return (
             super(Dependency, self).__hash__()
             ^ hash(self._constraint)
             ^ hash(self._extras)
         )
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         if self.is_root:
             return self._pretty_name
 
@@ -406,5 +419,5 @@ class Dependency(PackageSpecification):
 
         return "{} ({})".format(name, self._pretty_constraint)
 
-    def __repr__(self):
+    def __repr__(self):  # type: () -> str
         return "<{} {}>".format(self.__class__.__name__, str(self))

@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from typing import Optional
 from typing import Union
 
@@ -7,13 +8,17 @@ from .builders.sdist import SdistBuilder
 from .builders.wheel import WheelBuilder
 
 
+if TYPE_CHECKING:
+    from poetry.core.poetry import Poetry  # noqa
+
+
 class Builder:
     _FORMATS = {
         "sdist": SdistBuilder,
         "wheel": WheelBuilder,
     }
 
-    def __init__(self, poetry):
+    def __init__(self, poetry):  # type: ("Poetry") -> None
         self._poetry = poetry
 
     def build(

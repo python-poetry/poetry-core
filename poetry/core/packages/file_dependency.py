@@ -1,8 +1,9 @@
 import hashlib
 import io
 
+from typing import TYPE_CHECKING
+from typing import FrozenSet
 from typing import List
-from typing import Set
 from typing import Union
 
 from poetry.core.packages.utils.utils import path_to_url
@@ -11,15 +12,19 @@ from poetry.core.utils._compat import Path
 from .dependency import Dependency
 
 
+if TYPE_CHECKING:
+    from .constraints import BaseConstraint
+
+
 class FileDependency(Dependency):
     def __init__(
         self,
-        name,
+        name,  # type: str
         path,  # type: Path
         category="main",  # type: str
         optional=False,  # type: bool
         base=None,  # type: Path
-        extras=None,  # type: Union[List[str], Set[str]]
+        extras=None,  # type: Union[List[str], FrozenSet[str]]
     ):
         self._path = path
         self._base = base or Path.cwd()
@@ -49,21 +54,21 @@ class FileDependency(Dependency):
         )
 
     @property
-    def base(self):
+    def base(self):  # type: () -> Path
         return self._base
 
     @property
-    def path(self):
+    def path(self):  # type: () -> Path
         return self._path
 
     @property
-    def full_path(self):
+    def full_path(self):  # type: () -> Path
         return self._full_path
 
-    def is_file(self):
+    def is_file(self):  # type: () -> bool
         return True
 
-    def hash(self):
+    def hash(self):  # type: () -> str
         h = hashlib.sha256()
         with self._full_path.open("rb") as fp:
             for content in iter(lambda: fp.read(io.DEFAULT_BUFFER_SIZE), b""):
@@ -71,7 +76,7 @@ class FileDependency(Dependency):
 
         return h.hexdigest()
 
-    def with_constraint(self, constraint):
+    def with_constraint(self, constraint):  # type: ("BaseConstraint") -> FileDependency
         new = FileDependency(
             self.pretty_name,
             path=self.path,
@@ -106,7 +111,7 @@ class FileDependency(Dependency):
 
         return requirement
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         if self.is_root:
             return self._pretty_name
 
@@ -114,5 +119,5 @@ class FileDependency(Dependency):
             self._pretty_name, self._pretty_constraint, self._path
         )
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash((self._name, self._full_path))

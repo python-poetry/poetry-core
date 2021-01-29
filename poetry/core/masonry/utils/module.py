@@ -1,4 +1,7 @@
+from typing import Any
+from typing import Dict
 from typing import List
+from typing import Optional
 
 from poetry.core.utils._compat import Path
 from poetry.core.utils.helpers import module_name
@@ -13,7 +16,9 @@ class ModuleOrPackageNotFound(ValueError):
 
 
 class Module:
-    def __init__(self, name, directory=".", packages=None, includes=None):
+    def __init__(
+        self, name, directory=".", packages=None, includes=None
+    ):  # type: (str, str, Optional[List[Dict[str, Any]]], Optional[List[Dict[str, Any]]]) -> None
         self._name = module_name(name)
         self._in_src = False
         self._is_package = False

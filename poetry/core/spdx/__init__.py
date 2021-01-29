@@ -2,15 +2,17 @@ import json
 import os
 
 from io import open
+from typing import Dict
+from typing import Optional
 
 from .license import License
 from .updater import Updater
 
 
-_licenses = None
+_licenses = None  # type: Optional[Dict[str, License]]
 
 
-def license_by_id(identifier):
+def license_by_id(identifier):  # type: (str) -> License
     if _licenses is None:
         load_licenses()
 
@@ -24,7 +26,7 @@ def license_by_id(identifier):
     return _licenses[id]
 
 
-def load_licenses():
+def load_licenses():  # type: () -> None
     global _licenses
 
     _licenses = {}
