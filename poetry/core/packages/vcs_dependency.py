@@ -20,17 +20,17 @@ class VCSDependency(Dependency):
 
     def __init__(
         self,
-        name,  # type: str
-        vcs,  # type: str
-        source,  # type: str
-        branch=None,  # type: Optional[str]
-        tag=None,  # type: Optional[str]
-        rev=None,  # type: Optional[str]
-        resolved_rev=None,  # type: Optional[str]
-        category="main",  # type: str
-        optional=False,  # type: bool
-        develop=False,  # type: bool
-        extras=None,  # type: Union[List[str], FrozenSet[str]]
+        name: str,
+        vcs: str,
+        source: str,
+        branch: Optional[str] = None,
+        tag: Optional[str] = None,
+        rev: Optional[str] = None,
+        resolved_rev: Optional[str] = None,
+        category: str = "main",
+        optional: bool = False,
+        develop: bool = False,
+        extras: Union[List[str], FrozenSet[str]] = None,
     ):
         self._vcs = vcs
         self._source = source
@@ -58,35 +58,35 @@ class VCSDependency(Dependency):
         )
 
     @property
-    def vcs(self):  # type: () -> str
+    def vcs(self) -> str:
         return self._vcs
 
     @property
-    def source(self):  # type: () -> str
+    def source(self) -> str:
         return self._source
 
     @property
-    def branch(self):  # type: () -> Optional[str]
+    def branch(self) -> Optional[str]:
         return self._branch
 
     @property
-    def tag(self):  # type: () -> Optional[str]
+    def tag(self) -> Optional[str]:
         return self._tag
 
     @property
-    def rev(self):  # type: () -> Optional[str]
+    def rev(self) -> Optional[str]:
         return self._rev
 
     @property
-    def develop(self):  # type: () -> bool
+    def develop(self) -> bool:
         return self._develop
 
     @property
-    def reference(self):  # type: () -> str
+    def reference(self) -> str:
         return self._branch or self._tag or self._rev
 
     @property
-    def pretty_constraint(self):  # type: () -> str
+    def pretty_constraint(self) -> str:
         if self._branch:
             what = "branch"
             version = self._branch
@@ -100,7 +100,7 @@ class VCSDependency(Dependency):
         return "{} {}".format(what, version)
 
     @property
-    def base_pep_508_name(self):  # type: () -> str
+    def base_pep_508_name(self) -> str:
         requirement = self.pretty_name
         parsed_url = git.ParsedUrl.parse(self._source)
 
@@ -116,13 +116,13 @@ class VCSDependency(Dependency):
 
         return requirement
 
-    def is_vcs(self):  # type: () -> bool
+    def is_vcs(self) -> bool:
         return True
 
-    def accepts_prereleases(self):  # type: () -> bool
+    def accepts_prereleases(self) -> bool:
         return True
 
-    def with_constraint(self, constraint):  # type: ("BaseConstraint") -> VCSDependency
+    def with_constraint(self, constraint: "BaseConstraint") -> "VCSDependency":
         new = VCSDependency(
             self.pretty_name,
             self._vcs,
@@ -150,7 +150,7 @@ class VCSDependency(Dependency):
 
         return new
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         reference = self._vcs
         if self._branch:
             reference += " branch {}".format(self._branch)
@@ -161,5 +161,5 @@ class VCSDependency(Dependency):
 
         return "{} ({} {})".format(self._pretty_name, self._constraint, reference)
 
-    def __hash__(self):  # type: () -> int
+    def __hash__(self) -> int:
         return hash((self._name, self._vcs, self._branch, self._tag, self._rev))

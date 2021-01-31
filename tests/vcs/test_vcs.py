@@ -36,7 +36,10 @@ from poetry.core.vcs.git import ParsedUrl
             "git+ssh://git@github.com:/sdispater/poetry.git",
             GitUrl("git@github.com:/sdispater/poetry.git", None),
         ),
-        ("git+ssh://git@github.com:org/repo", GitUrl("git@github.com:org/repo", None),),
+        (
+            "git+ssh://git@github.com:org/repo",
+            GitUrl("git@github.com:org/repo", None),
+        ),
         (
             "git+ssh://git@github.com/org/repo",
             GitUrl("ssh://git@github.com/org/repo", None),

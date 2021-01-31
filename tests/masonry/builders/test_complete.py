@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import ast
@@ -11,13 +10,13 @@ import tarfile
 import tempfile
 import zipfile
 
+from pathlib import Path
+
 import pytest
 
 from poetry.core import __version__
 from poetry.core.factory import Factory
 from poetry.core.masonry import Builder
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -71,7 +70,7 @@ def test_wheel_c_extension():
     assert has_compiled_extension
 
     try:
-        wheel_data = decode(zip.read("extended-0.1.dist-info/WHEEL"))
+        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
 
         assert (
             re.match(
@@ -88,7 +87,7 @@ $""".format(
             is not None
         )
 
-        records = decode(zip.read("extended-0.1.dist-info/RECORD"))
+        records = zip.read("extended-0.1.dist-info/RECORD").decode()
 
         assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
     finally:
@@ -128,7 +127,7 @@ def test_wheel_c_extension_with_no_setup():
     assert has_compiled_extension
 
     try:
-        wheel_data = decode(zip.read("extended-0.1.dist-info/WHEEL"))
+        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
 
         assert (
             re.match(
@@ -145,7 +144,7 @@ $""".format(
             is not None
         )
 
-        records = decode(zip.read("extended-0.1.dist-info/RECORD"))
+        records = zip.read("extended-0.1.dist-info/RECORD").decode()
 
         assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
     finally:
@@ -185,7 +184,7 @@ def test_wheel_c_extension_src_layout():
     assert has_compiled_extension
 
     try:
-        wheel_data = decode(zip.read("extended-0.1.dist-info/WHEEL"))
+        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
 
         assert (
             re.match(
@@ -202,7 +201,7 @@ $""".format(
             is not None
         )
 
-        records = decode(zip.read("extended-0.1.dist-info/RECORD"))
+        records = zip.read("extended-0.1.dist-info/RECORD").decode()
 
         assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
     finally:
@@ -228,7 +227,7 @@ def test_complete():
         entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
 
         assert (
-            decode(entry_points.decode())
+            entry_points.decode()
             == """\
 [console_scripts]
 extra-script=my_package.extra:main[time]
@@ -237,7 +236,7 @@ my-script=my_package:main
 
 """
         )
-        wheel_data = decode(zip.read("my_package-1.2.3.dist-info/WHEEL"))
+        wheel_data = zip.read("my_package-1.2.3.dist-info/WHEEL").decode()
 
         assert (
             wheel_data
@@ -250,7 +249,7 @@ Tag: py3-none-any
                 __version__
             )
         )
-        wheel_data = decode(zip.read("my_package-1.2.3.dist-info/METADATA"))
+        wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
         assert (
             wheel_data
@@ -331,7 +330,7 @@ def test_complete_no_vcs():
         entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
 
         assert (
-            decode(entry_points.decode())
+            entry_points.decode()
             == """\
 [console_scripts]
 extra-script=my_package.extra:main[time]
@@ -340,7 +339,7 @@ my-script=my_package:main
 
 """
         )
-        wheel_data = decode(zip.read("my_package-1.2.3.dist-info/WHEEL"))
+        wheel_data = zip.read("my_package-1.2.3.dist-info/WHEEL").decode()
 
         assert (
             wheel_data
@@ -353,7 +352,7 @@ Tag: py3-none-any
                 __version__
             )
         )
-        wheel_data = decode(zip.read("my_package-1.2.3.dist-info/METADATA"))
+        wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
         assert (
             wheel_data

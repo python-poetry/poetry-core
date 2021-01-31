@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import pytest
 
 from poetry.core.masonry.utils.package_include import PackageInclude
-from poetry.core.utils._compat import Path
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"

@@ -17,8 +17,8 @@ ConstraintTypes = Union[
 
 
 def parse_constraint(
-    constraints,
-):  # type: (str) -> Union[AnyConstraint, UnionConstraint, Constraint]
+    constraints: str,
+) -> Union[AnyConstraint, UnionConstraint, Constraint]:
     if constraints == "*":
         return AnyConstraint()
 
@@ -51,7 +51,7 @@ def parse_constraint(
         return UnionConstraint(*or_groups)
 
 
-def parse_single_constraint(constraint):  # type: (str) -> Constraint
+def parse_single_constraint(constraint: str) -> Constraint:
     # Basic comparator
     m = BASIC_CONSTRAINT.match(constraint)
     if m:

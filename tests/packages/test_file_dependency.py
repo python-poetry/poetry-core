@@ -1,9 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 from poetry.core.packages import FileDependency
 from poetry.core.packages import dependency_from_pep_508
 from poetry.core.utils._compat import PY36
-from poetry.core.utils._compat import Path
 
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"

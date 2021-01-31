@@ -9,10 +9,10 @@ from .license import License
 from .updater import Updater
 
 
-_licenses = None  # type: Optional[Dict[str, License]]
+_licenses: Optional[Dict[str, License]] = None
 
 
-def license_by_id(identifier):  # type: (str) -> License
+def license_by_id(identifier: str) -> License:
     if _licenses is None:
         load_licenses()
 
@@ -26,7 +26,7 @@ def license_by_id(identifier):  # type: (str) -> License
     return _licenses[id]
 
 
-def load_licenses():  # type: () -> None
+def load_licenses() -> None:
     global _licenses
 
     _licenses = {}

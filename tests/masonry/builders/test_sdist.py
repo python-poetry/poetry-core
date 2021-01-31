@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 import ast
 import gzip
 import shutil
 import tarfile
 
 from email.parser import Parser
+from pathlib import Path
 
 import pytest
 
@@ -14,9 +14,6 @@ from poetry.core.masonry.utils.package_include import PackageInclude
 from poetry.core.packages import Package
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.vcs_dependency import VCSDependency
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import encode
-from poetry.core.utils._compat import to_str
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -157,7 +154,7 @@ def test_make_pkg_info_any_python():
     builder = SdistBuilder(poetry)
     pkg_info = builder.build_pkg_info()
     p = Parser()
-    parsed = p.parsestr(to_str(pkg_info))
+    parsed = p.parsestr(pkg_info.decode())
 
     assert "Requires-Python" not in parsed
 
@@ -193,7 +190,7 @@ def test_make_pkg_info_multi_constraints_dependency():
     builder = SdistBuilder(poetry)
     pkg_info = builder.build_pkg_info()
     p = Parser()
-    parsed = p.parsestr(to_str(pkg_info))
+    parsed = p.parsestr(pkg_info.decode())
 
     requires = parsed.get_all("Requires-Dist")
     assert requires == [
@@ -269,8 +266,8 @@ def test_setup_py_context():
 
             with open(str(setup), "rb") as f:
                 # we convert to string  and replace line endings here for compatibility
-                data = to_str(encode(f.read())).replace("\r\n", "\n")
-                assert data == to_str(builder.build_setup())
+                data = f.read().decode().replace("\r\n", "\n")
+                assert data == builder.build_setup().decode()
 
         assert not project_setup_py.exists()
     finally:
@@ -483,7 +480,7 @@ def test_proper_python_requires_if_two_digits_precision_version_specified():
     builder = SdistBuilder(poetry)
     pkg_info = builder.build_pkg_info()
     p = Parser()
-    parsed = p.parsestr(to_str(pkg_info))
+    parsed = p.parsestr(pkg_info.decode())
 
     assert parsed["Requires-Python"] == ">=3.6,<3.7"
 
@@ -494,7 +491,7 @@ def test_proper_python_requires_if_three_digits_precision_version_specified():
     builder = SdistBuilder(poetry)
     pkg_info = builder.build_pkg_info()
     p = Parser()
-    parsed = p.parsestr(to_str(pkg_info))
+    parsed = p.parsestr(pkg_info.decode())
 
     assert parsed["Requires-Python"] == "==2.7.15"
 

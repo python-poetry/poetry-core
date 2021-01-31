@@ -25,8 +25,8 @@ PYTHON_VERSION = [
 
 
 def format_python_constraint(
-    constraint,
-):  # type: (Union[Version, VersionUnion, "VersionConstraint"]) -> str
+    constraint: Union[Version, VersionUnion, "VersionConstraint"],
+) -> str:
     """
     This helper will help in transforming
     disjunctive constraint into proper constraint.

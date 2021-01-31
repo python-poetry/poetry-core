@@ -1,9 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 from pep517.build import build
 from pep517.check import check
 
-from poetry.core.utils._compat import Path
 from tests.testutils import subprocess_run
 from tests.testutils import temporary_project_directory
 

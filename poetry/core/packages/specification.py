@@ -8,12 +8,12 @@ from poetry.core.utils.helpers import canonicalize_name
 class PackageSpecification(object):
     def __init__(
         self,
-        name,  # type: str
-        source_type=None,  # type: Optional[str]
-        source_url=None,  # type: Optional[str]
-        source_reference=None,  # type: Optional[str]
-        source_resolved_reference=None,  # type: Optional[str]
-        features=None,  # type: Optional[List[str]]
+        name: str,
+        source_type: Optional[str] = None,
+        source_url: Optional[str] = None,
+        source_reference: Optional[str] = None,
+        source_resolved_reference: Optional[str] = None,
+        features: Optional[List[str]] = None,
     ):
         self._pretty_name = name
         self._name = canonicalize_name(name)
@@ -28,15 +28,15 @@ class PackageSpecification(object):
         self._features = frozenset(features)
 
     @property
-    def name(self):  # type: () -> str
+    def name(self) -> str:
         return self._name
 
     @property
-    def pretty_name(self):  # type: () -> str
+    def pretty_name(self) -> str:
         return self._pretty_name
 
     @property
-    def complete_name(self):  # type: () -> str
+    def complete_name(self) -> str:
         name = self._name
 
         if self._features:
@@ -45,26 +45,26 @@ class PackageSpecification(object):
         return name
 
     @property
-    def source_type(self):  # type: () -> Optional[str]
+    def source_type(self) -> Optional[str]:
         return self._source_type
 
     @property
-    def source_url(self):  # type: () -> Optional[str]
+    def source_url(self) -> Optional[str]:
         return self._source_url
 
     @property
-    def source_reference(self):  # type: () -> Optional[str]
+    def source_reference(self) -> Optional[str]:
         return self._source_reference
 
     @property
-    def source_resolved_reference(self):  # type: () -> Optional[str]
+    def source_resolved_reference(self) -> Optional[str]:
         return self._source_resolved_reference
 
     @property
-    def features(self):  # type: () -> FrozenSet[str]
+    def features(self) -> FrozenSet[str]:
         return self._features
 
-    def is_same_package_as(self, other):  # type: ("PackageSpecification") -> bool
+    def is_same_package_as(self, other: "PackageSpecification") -> bool:
         if other.complete_name != self.complete_name:
             return False
 
@@ -101,7 +101,7 @@ class PackageSpecification(object):
 
         return True
 
-    def __hash__(self):  # type: () -> int
+    def __hash__(self) -> int:
         if not self._source_type:
             return hash(self._name)
 
@@ -114,5 +114,5 @@ class PackageSpecification(object):
             ^ hash(self._features)
         )
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         raise NotImplementedError()

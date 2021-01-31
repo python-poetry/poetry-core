@@ -43,7 +43,7 @@ class Requirement(object):
     string.
     """
 
-    def __init__(self, requirement_string):  # type: (str) -> None
+    def __init__(self, requirement_string: str) -> None:
         try:
             parsed = _parser.parse(requirement_string)
         except (UnexpectedCharacters, UnexpectedToken) as e:
@@ -101,7 +101,7 @@ class Requirement(object):
 
         self.marker = marker
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         parts = [self.name]
 
         if self.extras:
@@ -118,5 +118,5 @@ class Requirement(object):
 
         return "".join(parts)
 
-    def __repr__(self):  # type: () -> str
+    def __repr__(self) -> str:
         return "<Requirement({0!r})>".format(str(self))

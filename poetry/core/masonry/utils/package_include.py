@@ -1,15 +1,18 @@
+from pathlib import Path
 from typing import List
 from typing import Optional
-
-from poetry.core.utils._compat import Path
 
 from .include import Include
 
 
 class PackageInclude(Include):
     def __init__(
-        self, base, include, formats=None, source=None
-    ):  # type: (Path, str, Optional[List[str]], Optional[str]) -> None
+        self,
+        base: Path,
+        include: str,
+        formats: Optional[List[str]] = None,
+        source: Optional[str] = None,
+    ) -> None:
         self._package = None
         self._is_package = False
         self._is_module = False
@@ -22,25 +25,25 @@ class PackageInclude(Include):
         self.check_elements()
 
     @property
-    def package(self):  # type: () -> str
+    def package(self) -> str:
         return self._package
 
     @property
-    def source(self):  # type: () -> Optional[str]
+    def source(self) -> Optional[str]:
         return self._source
 
-    def is_package(self):  # type: () -> bool
+    def is_package(self) -> bool:
         return self._is_package
 
-    def is_module(self):  # type: () -> bool
+    def is_module(self) -> bool:
         return self._is_module
 
-    def refresh(self):  # type: () -> PackageInclude
+    def refresh(self) -> "PackageInclude":
         super(PackageInclude, self).refresh()
 
         return self.check_elements()
 
-    def is_stub_only(self):  # type: () -> bool
+    def is_stub_only(self) -> bool:
         # returns `True` if this a PEP 561 stub-only package,
         # see [PEP 561](https://www.python.org/dev/peps/pep-0561/#stub-only-packages)
         return self.package.endswith("-stubs") and all(
@@ -50,12 +53,12 @@ class PackageInclude(Include):
             if el.is_file()
         )
 
-    def has_modules(self):  # type: () -> bool
+    def has_modules(self) -> bool:
         # Packages no longer need an __init__.py in python3, but there must
         # at least be one .py file for it to be considered a package
         return any(element.suffix == ".py" for element in self.elements)
 
-    def check_elements(self):  # type: () -> PackageInclude
+    def check_elements(self) -> "PackageInclude":
         if not self._elements:
             raise ValueError(
                 "{} does not contain any element".format(self._base / self._include)
@@ -74,7 +77,7 @@ class PackageInclude(Include):
             if root.is_dir():
                 # If it's a directory, we include everything inside it
                 self._package = root.name
-                self._elements = sorted(list(root.glob("**/*")))  # type: List[Path]
+                self._elements: List[Path] = sorted(list(root.glob("**/*")))
 
                 if not self.is_stub_only() and not self.has_modules():
                     raise ValueError("{} is not a package.".format(root.name))

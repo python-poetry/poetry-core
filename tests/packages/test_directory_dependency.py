@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import pytest
 
 from poetry.core.packages import dependency_from_pep_508
 from poetry.core.packages.directory_dependency import DirectoryDependency
-from poetry.core.utils._compat import Path
 
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"

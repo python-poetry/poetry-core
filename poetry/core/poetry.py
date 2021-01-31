@@ -5,37 +5,41 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 from poetry.core.pyproject import PyProjectTOML
-from poetry.core.utils._compat import Path  # noqa
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from poetry.core.packages import ProjectPackage  # noqa
     from poetry.core.pyproject.toml import PyProjectTOMLFile  # noqa
 
 
 class Poetry(object):
     def __init__(
-        self, file, local_config, package,
-    ):  # type: (Path, dict, "ProjectPackage") -> None
+        self,
+        file: "Path",
+        local_config: dict,
+        package: "ProjectPackage",
+    ) -> None:
         self._pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
 
     @property
-    def pyproject(self):  # type: () -> PyProjectTOML
+    def pyproject(self) -> PyProjectTOML:
         return self._pyproject
 
     @property
-    def file(self):  # type: () -> "PyProjectTOMLFile"
+    def file(self) -> "PyProjectTOMLFile":
         return self._pyproject.file
 
     @property
-    def package(self):  # type: () -> "ProjectPackage"
+    def package(self) -> "ProjectPackage":
         return self._package
 
     @property
-    def local_config(self):  # type: () -> dict
+    def local_config(self) -> dict:
         return self._local_config
 
-    def get_project_config(self, config, default=None):  # type: (str, Any) -> Any
+    def get_project_config(self, config: str, default: Any = None) -> Any:
         return self._local_config.get("config", {}).get(config, default)

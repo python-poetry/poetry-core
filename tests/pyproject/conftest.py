@@ -1,7 +1,6 @@
-import pytest
+from pathlib import Path
 
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
+import pytest
 
 
 @pytest.fixture
@@ -20,7 +19,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 """
     with pyproject_toml.open(mode="a") as f:
-        f.write(decode(content))
+        f.write(content)
     return content
 
 
@@ -34,5 +33,5 @@ name = "poetry"
 python = "^3.5"
 """
     with pyproject_toml.open(mode="a") as f:
-        f.write(decode(content))
+        f.write(content)
     return content

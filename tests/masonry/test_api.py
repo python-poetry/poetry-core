@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import os
@@ -6,13 +5,12 @@ import platform
 import sys
 
 from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
 from poetry.core.utils.helpers import temporary_directory
 from tests.testutils import validate_sdist_contents
 from tests.testutils import validate_wheel_contents
@@ -193,13 +191,13 @@ My Package
         assert (dist_info / "METADATA").exists()
 
         with (dist_info / "entry_points.txt").open(encoding="utf-8") as f:
-            assert entry_points == decode(f.read())
+            assert entry_points == f.read()
 
         with (dist_info / "WHEEL").open(encoding="utf-8") as f:
-            assert wheel_data == decode(f.read())
+            assert wheel_data == f.read()
 
         with (dist_info / "METADATA").open(encoding="utf-8") as f:
-            assert metadata == decode(f.read())
+            assert metadata == f.read()
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds():

@@ -1,7 +1,6 @@
+from pathlib import Path
 from typing import List
 from typing import Optional
-
-from poetry.core.utils._compat import Path
 
 
 class Include(object):
@@ -19,32 +18,30 @@ class Include(object):
     """
 
     def __init__(
-        self, base, include, formats=None
-    ):  # type: (Path, str, Optional[List[str]]) -> None
+        self, base: Path, include: str, formats: Optional[List[str]] = None
+    ) -> None:
         self._base = base
         self._include = str(include)
         self._formats = formats
 
-        self._elements = sorted(
-            list(self._base.glob(str(self._include)))
-        )  # type: List[Path]
+        self._elements: List[Path] = sorted(list(self._base.glob(str(self._include))))
 
     @property
-    def base(self):  # type: () -> Path
+    def base(self) -> Path:
         return self._base
 
     @property
-    def elements(self):  # type: () -> List[Path]
+    def elements(self) -> List[Path]:
         return self._elements
 
     @property
-    def formats(self):  # type: () -> Optional[List[str]]
+    def formats(self) -> Optional[List[str]]:
         return self._formats
 
-    def is_empty(self):  # type: () -> bool
+    def is_empty(self) -> bool:
         return len(self._elements) == 0
 
-    def refresh(self):  # type: () -> Include
+    def refresh(self) -> "Include":
         self._elements = sorted(list(self._base.glob(self._include)))
 
         return self

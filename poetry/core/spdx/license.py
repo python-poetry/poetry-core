@@ -131,7 +131,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
     }
 
     @property
-    def classifier(self):  # type: () -> str
+    def classifier(self) -> str:
         parts = ["License"]
 
         if self.is_osi_approved:
@@ -144,7 +144,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
         return " :: ".join(parts)
 
     @property
-    def classifier_name(self):  # type: () -> Optional[str]
+    def classifier_name(self) -> Optional[str]:
         if self.id not in self.CLASSIFIER_SUPPORTED:
             if self.is_osi_approved:
                 return None

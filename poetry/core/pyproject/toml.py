@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -8,22 +9,21 @@ from tomlkit.toml_document import TOMLDocument
 from poetry.core.pyproject.exceptions import PyProjectException
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.toml import TOMLFile
-from poetry.core.utils._compat import Path
 
 
 class PyProjectTOML:
-    def __init__(self, path):  # type: (Union[str, Path]) -> None
+    def __init__(self, path: Union[str, Path]) -> None:
         self._file = TOMLFile(path=path)
-        self._data = None  # type: Optional[TOMLDocument]
-        self._build_system = None  # type: Optional[BuildSystem]
-        self._poetry_config = None  # type: Optional[TOMLDocument]
+        self._data: Optional[TOMLDocument] = None
+        self._build_system: Optional[BuildSystem] = None
+        self._poetry_config: Optional[TOMLDocument] = None
 
     @property
-    def file(self):  # type: () -> TOMLFile
+    def file(self) -> TOMLFile:
         return self._file
 
     @property
-    def data(self):  # type: () -> TOMLDocument
+    def data(self) -> TOMLDocument:
         if self._data is None:
             if not self._file.exists():
                 self._data = TOMLDocument()
@@ -32,7 +32,7 @@ class PyProjectTOML:
         return self._data
 
     @property
-    def build_system(self):  # type: () -> BuildSystem
+    def build_system(self) -> BuildSystem:
         if self._build_system is None:
             build_backend = None
             requires = None
@@ -49,7 +49,7 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self):  # type: () -> Optional[TOMLDocument]
+    def poetry_config(self) -> Optional[TOMLDocument]:
         if self._poetry_config is None:
             self._poetry_config = self.data.get("tool", {}).get("poetry")
             if self._poetry_config is None:
@@ -58,7 +58,7 @@ class PyProjectTOML:
                 )
         return self._poetry_config
 
-    def is_poetry_project(self):  # type: () -> bool
+    def is_poetry_project(self) -> bool:
         if self.file.exists():
             try:
                 _ = self.poetry_config
@@ -67,10 +67,10 @@ class PyProjectTOML:
                 pass
         return False
 
-    def __getattr__(self, item):  # type: (str) -> Any
+    def __getattr__(self, item: str) -> Any:
         return getattr(self.data, item)
 
-    def save(self):  # type: () -> None
+    def save(self) -> None:
         data = self.data
 
         if self._poetry_config is not None:
@@ -84,7 +84,7 @@ class PyProjectTOML:
 
         self.file.write(data=data)
 
-    def reload(self):  # type: () -> None
+    def reload(self) -> None:
         self._data = None
         self._build_system = None
         self._poetry_config = None

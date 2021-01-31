@@ -1,13 +1,13 @@
 import os
 import re
 
+from pathlib import Path
 from typing import List
 from typing import Optional
 from typing import Union
 
 from poetry.core.semver import Version
 from poetry.core.semver import parse_constraint
-from poetry.core.utils._compat import Path
 from poetry.core.utils.patterns import wheel_file_re
 from poetry.core.version.requirements import Requirement
 
@@ -30,11 +30,11 @@ from .vcs_dependency import VCSDependency
 
 
 def _make_file_or_dir_dep(
-    name,  # type: str
-    path,  # type: Path
-    base=None,  # type: Optional[Path]
-    extras=None,  # type: Optional[List[str]]
-):  # type: (...) -> Optional[Union[FileDependency, DirectoryDependency]]
+    name: str,
+    path: Path,
+    base: Optional[Path] = None,
+    extras: Optional[List[str]] = None,
+) -> Optional[Union[FileDependency, DirectoryDependency]]:
     """
     Helper function to create a file or directoru dependency with the given arguments. If
     path is not a file or directory that exists, `None` is returned.
@@ -53,8 +53,8 @@ def _make_file_or_dir_dep(
 
 
 def dependency_from_pep_508(
-    name, relative_to=None
-):  # type: (str, Optional[Path]) -> Dependency
+    name: str, relative_to: Optional[Path] = None
+) -> Dependency:
     """
     Resolve a PEP-508 requirement string to a `Dependency` instance. If a `relative_to`
     path is specified, this is used as the base directory if the identified dependency is
@@ -141,7 +141,10 @@ def dependency_from_pep_508(
             try:
                 # this is a local path not using the file URI scheme
                 dep = _make_file_or_dir_dep(
-                    name=name, path=Path(req.url), base=relative_to, extras=req.extras,
+                    name=name,
+                    path=Path(req.url),
+                    base=relative_to,
+                    extras=req.extras,
                 )
             except ValueError:
                 pass
