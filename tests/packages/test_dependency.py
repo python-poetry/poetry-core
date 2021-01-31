@@ -205,3 +205,22 @@ def test_complete_name():
         "foo[bar,baz]"
         == Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
     )
+
+
+@pytest.mark.parametrize(
+    "name,constraint,extras,expected",
+    [
+        ("A", ">2.7,<3.0", None, "A (>2.7,<3.0)"),
+        ("A", ">2.7,<3.0", ["x"], "A[x] (>2.7,<3.0)"),
+        ("A", ">=1.6.5,<1.8.0 || >1.8.0,<3.1.0", None, "A (>=1.6.5,!=1.8.0,<3.1.0)"),
+        (
+            "A",
+            ">=1.6.5,<1.8.0 || >1.8.0,<3.1.0",
+            ["x"],
+            "A[x] (>=1.6.5,!=1.8.0,<3.1.0)",
+        ),
+    ],
+)
+def test_dependency_string_representation(name, constraint, extras, expected):
+    dependency = Dependency(name=name, constraint=constraint, extras=extras)
+    assert str(dependency) == expected
