@@ -25,8 +25,9 @@ class VersionRange(VersionConstraint):
     ):
         full_max = max
         if (
-            always_include_max_prerelease
+            not always_include_max_prerelease
             and not include_max
+            and full_max is not None
             and not full_max.is_prerelease()
             and not full_max.build
             and (
@@ -77,11 +78,11 @@ class VersionRange(VersionConstraint):
             if not self._include_min and other == self._min:
                 return False
 
-        if self._max is not None:
-            if other > self._max:
+        if self.full_max is not None:
+            if other > self.full_max:
                 return False
 
-            if not self._include_max and other == self._max:
+            if not self._include_max and other == self.full_max:
                 return False
 
         return True
@@ -335,22 +336,22 @@ class VersionRange(VersionConstraint):
         return self.include_min and not other.include_min
 
     def allows_higher(self, other):  # type: (VersionRange) -> bool
-        if self.max is None:
+        if self.full_max is None:
             return other.max is not None
 
-        if other.max is None:
+        if other.full_max is None:
             return False
 
-        if self.max < other.max:
+        if self.full_max < other.full_max:
             return False
 
-        if self.max > other.max:
+        if self.full_max > other.full_max:
             return True
 
         return self.include_max and not other.include_max
 
     def is_strictly_lower(self, other):  # type: (VersionRange) -> bool
-        if self.max is None or other.min is None:
+        if self.full_max is None or other.min is None:
             return False
 
         if self.full_max < other.min:
