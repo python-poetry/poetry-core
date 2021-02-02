@@ -7,7 +7,7 @@ from poetry.core.utils._compat import decode
 from .git import Git
 
 
-def get_vcs(directory):  # type: (Path) -> Git
+def get_vcs(directory: Path) -> Git:
     working_dir = Path.cwd()
     os.chdir(str(directory.resolve()))
 

@@ -9,35 +9,35 @@ if TYPE_CHECKING:
 
 
 class AnyConstraint(BaseConstraint):
-    def allows(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows(self, other: "ConstraintTypes") -> bool:
         return True
 
-    def allows_all(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_all(self, other: "ConstraintTypes") -> bool:
         return True
 
-    def allows_any(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_any(self, other: "ConstraintTypes") -> bool:
         return True
 
-    def difference(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
+    def difference(self, other: "ConstraintTypes") -> "ConstraintTypes":
         if other.is_any():
             return EmptyConstraint()
 
         return other
 
-    def intersect(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
+    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
         return other
 
-    def union(self, other):  # type: ("ConstraintTypes") -> AnyConstraint
+    def union(self, other: "ConstraintTypes") -> "AnyConstraint":
         return AnyConstraint()
 
-    def is_any(self):  # type: () -> bool
+    def is_any(self) -> bool:
         return True
 
-    def is_empty(self):  # type: () -> bool
+    def is_empty(self) -> bool:
         return False
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return "*"
 
-    def __eq__(self, other):  # type: ("ConstraintTypes") -> bool
+    def __eq__(self, other: "ConstraintTypes") -> bool:
         return other.is_any()

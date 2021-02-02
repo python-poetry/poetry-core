@@ -257,7 +257,7 @@ class Package(PackageSpecification):
         return self._license
 
     @license.setter
-    def license(self, value: Optional[str, License]) -> None:
+    def license(self, value: Optional[Union[str, License]]) -> None:
         if value is None:
             self._license = value
         elif isinstance(value, License):

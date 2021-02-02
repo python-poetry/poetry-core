@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 class URLDependency(Dependency):
     def __init__(
         self,
-        name,  # type: str
-        url,  # type: str
-        category="main",  # type: str
-        optional=False,  # type: bool
-        extras=None,  # type: Union[List[str], FrozenSet[str]]
+        name: str,
+        url: str,
+        category: str = "main",
+        optional: bool = False,
+        extras: Union[List[str], FrozenSet[str]] = None,
     ):
         self._url = url
 
@@ -39,11 +39,11 @@ class URLDependency(Dependency):
         )
 
     @property
-    def url(self):  # type: () -> str
+    def url(self) -> str:
         return self._url
 
     @property
-    def base_pep_508_name(self):  # type: () -> str
+    def base_pep_508_name(self) -> str:
         requirement = self.pretty_name
 
         if self.extras:
@@ -53,10 +53,10 @@ class URLDependency(Dependency):
 
         return requirement
 
-    def is_url(self):  # type: () -> bool
+    def is_url(self) -> bool:
         return True
 
-    def with_constraint(self, constraint):  # type: ("BaseConstraint") -> URLDependency
+    def with_constraint(self, constraint: "BaseConstraint") -> "URLDependency":
         new = URLDependency(
             self.pretty_name,
             url=self._url,
@@ -78,8 +78,8 @@ class URLDependency(Dependency):
 
         return new
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return "{} ({} url)".format(self._pretty_name, self._pretty_constraint)
 
-    def __hash__(self):  # type: () -> int
+    def __hash__(self) -> int:
         return hash((self._name, self._url))

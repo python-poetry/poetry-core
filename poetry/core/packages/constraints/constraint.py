@@ -21,7 +21,7 @@ class Constraint(BaseConstraint):
 
     _trans_op_int = {OP_EQ: "==", OP_NE: "!="}
 
-    def __init__(self, version, operator="=="):  # type: (str, str) -> None
+    def __init__(self, version: str, operator: str = "==") -> None:
         if operator == "=":
             operator = "=="
 
@@ -30,14 +30,14 @@ class Constraint(BaseConstraint):
         self._op = self._trans_op_str[operator]
 
     @property
-    def version(self):  # type: () -> str
+    def version(self) -> str:
         return self._version
 
     @property
-    def operator(self):  # type: () -> str
+    def operator(self) -> str:
         return self._operator
 
-    def allows(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows(self, other: "ConstraintTypes") -> bool:
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
         is_other_equal_op = other.operator == "=="
@@ -58,13 +58,13 @@ class Constraint(BaseConstraint):
 
         return False
 
-    def allows_all(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_all(self, other: "ConstraintTypes") -> bool:
         if not isinstance(other, Constraint):
             return other.is_empty()
 
         return other == self
 
-    def allows_any(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_any(self, other: "ConstraintTypes") -> bool:
         if isinstance(other, Constraint):
             is_non_equal_op = self._operator == "!="
             is_other_non_equal_op = other.operator == "!="
@@ -75,14 +75,14 @@ class Constraint(BaseConstraint):
         return other.allows(self)
 
     def difference(
-        self, other
-    ):  # type: ("ConstraintTypes") -> Union[Constraint, "EmptyConstraint"]
+        self, other: "ConstraintTypes"
+    ) -> Union["Constraint", "EmptyConstraint"]:
         if other.allows(self):
             return EmptyConstraint()
 
         return self
 
-    def intersect(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
+    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
         from .multi_constraint import MultiConstraint
 
         if isinstance(other, Constraint):
@@ -102,7 +102,7 @@ class Constraint(BaseConstraint):
 
         return other.intersect(self)
 
-    def union(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
+    def union(self, other: "ConstraintTypes") -> "ConstraintTypes":
         if isinstance(other, Constraint):
             from .union_constraint import UnionConstraint
 
@@ -110,22 +110,22 @@ class Constraint(BaseConstraint):
 
         return other.union(self)
 
-    def is_any(self):  # type: () -> bool
+    def is_any(self) -> bool:
         return False
 
-    def is_empty(self):  # type: () -> bool
+    def is_empty(self) -> bool:
         return False
 
-    def __eq__(self, other):  # type: (Any) -> bool
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Constraint):
             return NotImplemented
 
         return (self.version, self.operator) == (other.version, other.operator)
 
-    def __hash__(self):  # type: () -> int
+    def __hash__(self) -> int:
         return hash((self._operator, self._version))
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return "{}{}".format(
             self._operator if self._operator != "==" else "", self._version
         )

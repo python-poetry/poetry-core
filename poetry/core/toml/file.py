@@ -14,27 +14,27 @@ if TYPE_CHECKING:
 
 
 class TOMLFile(BaseTOMLFile):
-    def __init__(self, path):  # type: (Union[str, Path]) -> None
+    def __init__(self, path: Union[str, Path]) -> None:
         if isinstance(path, str):
             path = Path(path)
         super(TOMLFile, self).__init__(path.as_posix())
         self.__path = path
 
     @property
-    def path(self):  # type: () -> Path
+    def path(self) -> Path:
         return self.__path
 
-    def exists(self):  # type: () -> bool
+    def exists(self) -> bool:
         return self.__path.exists()
 
-    def read(self):  # type: () -> "TOMLDocument"
+    def read(self) -> "TOMLDocument":
         try:
             return super(TOMLFile, self).read()
         except (ValueError, TOMLKitError) as e:
             raise TOMLError("Invalid TOML file {}: {}".format(self.path.as_posix(), e))
 
-    def __getattr__(self, item):  # type: (str) -> Any
+    def __getattr__(self, item: str) -> Any:
         return getattr(self.__path, item)
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return self.__path.as_posix()

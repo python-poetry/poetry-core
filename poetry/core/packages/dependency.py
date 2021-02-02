@@ -22,11 +22,11 @@ from .utils.utils import convert_markers
 
 
 if TYPE_CHECKING:
-    from poetry.core.version.markers import BaseMarker  # noqa
-    from poetry.core.version.markers import VersionTypes  # noqa
+    from poetry.core.packages import Package
+    from poetry.core.version.markers import BaseMarker
+    from poetry.core.version.markers import VersionTypes
 
-    from .constraints import BaseConstraint  # noqa
-    from .package import Package
+    from .constraints import BaseConstraint
 
 
 class Dependency(PackageSpecification):
@@ -397,7 +397,7 @@ class Dependency(PackageSpecification):
             and self._extras == other.extras
         )
 
-    def __ne__(self, other):  # type: (Any) -> bool
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
     def __hash__(self) -> int:

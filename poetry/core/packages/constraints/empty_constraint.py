@@ -11,26 +11,26 @@ class EmptyConstraint(BaseConstraint):
 
     pretty_string = None
 
-    def matches(self, _):  # type: ("ConstraintTypes") -> bool
+    def matches(self, _: "ConstraintTypes") -> bool:
         return True
 
-    def is_empty(self):  # type: () -> bool
+    def is_empty(self) -> bool:
         return True
 
-    def allows_all(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_all(self, other: "ConstraintTypes") -> bool:
         return True
 
-    def allows_any(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_any(self, other: "ConstraintTypes") -> bool:
         return True
 
-    def intersect(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
+    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
         return other
 
-    def difference(self, other):  # type: ("ConstraintTypes") -> None
+    def difference(self, other: "ConstraintTypes") -> None:
         return
 
-    def __eq__(self, other):  # type: ("ConstraintTypes") -> bool
+    def __eq__(self, other: "ConstraintTypes") -> bool:
         return other.is_empty()
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return ""
