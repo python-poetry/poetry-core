@@ -2,8 +2,6 @@ from typing import FrozenSet
 from typing import List
 from typing import Optional
 
-from poetry.core.utils.helpers import canonicalize_name
-
 
 class PackageSpecification(object):
     def __init__(
@@ -15,6 +13,8 @@ class PackageSpecification(object):
         source_resolved_reference: Optional[str] = None,
         features: Optional[List[str]] = None,
     ):
+        from poetry.core.utils.helpers import canonicalize_name
+
         self._pretty_name = name
         self._name = canonicalize_name(name)
         self._source_type = source_type

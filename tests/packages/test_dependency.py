@@ -1,8 +1,7 @@
 import pytest
 
-from poetry.core.packages import Dependency
-from poetry.core.packages import Package
-from poetry.core.packages import dependency_from_pep_508
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.package import Package
 
 
 def test_accepts():
@@ -118,7 +117,9 @@ def test_to_pep_508_in_extras():
 
 
 def test_to_pep_508_in_extras_parsed():
-    dependency = dependency_from_pep_508('foo[bar] (>=1.23,<2.0) ; extra == "baz"')
+    dependency = Dependency.create_from_pep_508(
+        'foo[bar] (>=1.23,<2.0) ; extra == "baz"'
+    )
 
     result = dependency.to_pep_508()
     assert result == 'foo[bar] (>=1.23,<2.0); extra == "baz"'

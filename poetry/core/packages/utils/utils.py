@@ -9,29 +9,20 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Union
-
-from six.moves.urllib.parse import unquote  # noqa
-from six.moves.urllib.parse import urlsplit  # noqa
-from six.moves.urllib.request import url2pathname  # noqa
-
-from poetry.core.packages.constraints.constraint import Constraint
-from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-from poetry.core.packages.constraints.union_constraint import UnionConstraint
-from poetry.core.semver import EmptyConstraint
-from poetry.core.semver import Version
-from poetry.core.semver import VersionConstraint
-from poetry.core.semver import VersionRange
-from poetry.core.semver import VersionUnion
-from poetry.core.semver import parse_constraint
-from poetry.core.version.markers import BaseMarker
-from poetry.core.version.markers import MarkerUnion
-from poetry.core.version.markers import MultiMarker
-from poetry.core.version.markers import SingleMarker
+from urllib.parse import unquote
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint  # noqa
-    from poetry.core.semver import VersionTypes  # noqa
+    from poetry.core.semver.helpers import VersionTypes  # noqa
+    from poetry.core.semver.version import Version  # noqa
+    from poetry.core.semver.version_constraint import VersionConstraint  # noqa
+    from poetry.core.semver.version_range import VersionRange  # noqa
+    from poetry.core.semver.version_union import VersionUnion  # noqa
+    from poetry.core.version.markers import BaseMarker  # noqa
+
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
 XZ_EXTENSIONS = (".tar.xz", ".txz", ".tlz", ".tar.lz", ".tar.lzma")
@@ -150,8 +141,12 @@ def splitext(path: str) -> Tuple[str, str]:
 
 
 def group_markers(
-    markers: List[BaseMarker], or_: bool = False
+    markers: List["BaseMarker"], or_: bool = False
 ) -> List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]]:
+    from poetry.core.version.markers import MarkerUnion
+    from poetry.core.version.markers import MultiMarker
+    from poetry.core.version.markers import SingleMarker
+
     groups = [[]]
 
     for marker in markers:
@@ -170,7 +165,7 @@ def group_markers(
     return groups
 
 
-def convert_markers(marker: BaseMarker) -> Dict[str, List[Tuple[str, str]]]:
+def convert_markers(marker: "BaseMarker") -> Dict[str, List[Tuple[str, str]]]:
     groups = group_markers([marker])
 
     requirements = {}
@@ -212,8 +207,14 @@ def convert_markers(marker: BaseMarker) -> Dict[str, List[Tuple[str, str]]]:
 
 def create_nested_marker(
     name: str,
-    constraint: Union["BaseConstraint", VersionUnion, Version, VersionConstraint],
+    constraint: Union["BaseConstraint", "VersionUnion", "Version", "VersionConstraint"],
 ) -> str:
+    from poetry.core.packages.constraints.constraint import Constraint
+    from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+    from poetry.core.packages.constraints.union_constraint import UnionConstraint
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_union import VersionUnion
+
     if constraint.is_any():
         return ""
 
@@ -281,8 +282,13 @@ def create_nested_marker(
 
 
 def get_python_constraint_from_marker(
-    marker: BaseMarker,
+    marker: "BaseMarker",
 ) -> "VersionTypes":
+    from poetry.core.semver.empty_constraint import EmptyConstraint
+    from poetry.core.semver.helpers import parse_constraint
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range import VersionRange  # noqa
+
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():
         return VersionRange()

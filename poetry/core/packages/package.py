@@ -8,28 +8,20 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from poetry.core.semver import Version
-from poetry.core.semver import parse_constraint
-from poetry.core.spdx import License
-from poetry.core.spdx import license_by_id
-from poetry.core.version.markers import AnyMarker
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
-# Do not move to the TYPE_CHECKING only section, because Dependency get's imported
-# by poetry/packages/locker.py from here
-from .dependency import Dependency
 from .specification import PackageSpecification
 from .utils.utils import create_nested_marker
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver import VersionTypes  # noqa
+    from poetry.core.semver.helpers import VersionTypes  # noqa
+    from poetry.core.semver.version import Version  # noqa
+    from poetry.core.spdx.license import License  # noqa
     from poetry.core.version.markers import BaseMarker  # noqa
 
-    from .directory_dependency import DirectoryDependency
-    from .file_dependency import FileDependency
-    from .url_dependency import URLDependency
-    from .vcs_dependency import VCSDependency
+    from .types import DependencyTypes
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
@@ -51,7 +43,7 @@ class Package(PackageSpecification):
     def __init__(
         self,
         name: str,
-        version: Union[str, Version],
+        version: Union[str, "Version"],
         pretty_version: Optional[str] = None,
         source_type: Optional[str] = None,
         source_url: Optional[str] = None,
@@ -62,6 +54,9 @@ class Package(PackageSpecification):
         """
         Creates a new in memory package.
         """
+        from poetry.core.semver.version import Version
+        from poetry.core.version.markers import AnyMarker
+
         super(Package, self).__init__(
             name,
             source_type=source_type,
@@ -189,15 +184,7 @@ class Package(PackageSpecification):
     @property
     def all_requires(
         self,
-    ) -> List[
-        Union[
-            "DirectoryDependency",
-            "FileDependency",
-            "URLDependency",
-            "VCSDependency",
-            "Dependency",
-        ]
-    ]:
+    ) -> List[Union["DependencyTypes"]]:
         return self.requires + self.dev_requires
 
     def _get_author(self) -> Dict[str, Optional[str]]:
@@ -255,11 +242,14 @@ class Package(PackageSpecification):
         return self._python_marker
 
     @property
-    def license(self) -> License:
+    def license(self) -> "License":
         return self._license
 
     @license.setter
-    def license(self, value: Optional[Union[str, License]]) -> None:
+    def license(self, value: Optional[Union[str, "License"]]) -> None:
+        from poetry.core.spdx.helpers import license_by_id
+        from poetry.core.spdx.license import License  # noqa
+
         if value is None:
             self._license = value
         elif isinstance(value, License):
@@ -269,6 +259,8 @@ class Package(PackageSpecification):
 
     @property
     def all_classifiers(self) -> List[str]:
+        from poetry.core.semver.version import Version  # noqa
+
         classifiers = copy.copy(self.classifiers)
 
         # Automatically set python classifiers
@@ -319,8 +311,8 @@ class Package(PackageSpecification):
 
     def add_dependency(
         self,
-        dependency: "Dependency",
-    ) -> "Dependency":
+        dependency: "DependencyTypes",
+    ) -> "DependencyTypes":
         if dependency.category == "dev":
             self.dev_requires.append(dependency)
         else:
@@ -330,13 +322,7 @@ class Package(PackageSpecification):
 
     def to_dependency(
         self,
-    ) -> Union[
-        "Dependency",
-        "DirectoryDependency",
-        "FileDependency",
-        "URLDependency",
-        "VCSDependency",
-    ]:
+    ) -> Union["DependencyTypes"]:
         from pathlib import Path
 
         from .dependency import Dependency

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import logging
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
@@ -11,13 +12,10 @@ from typing import Optional
 from typing import Union
 from warnings import warn
 
-from .json import validate_object
-from .packages.dependency import Dependency
-from .packages.project_package import ProjectPackage
-from .poetry import Poetry
-from .pyproject import PyProjectTOML
-from .spdx import license_by_id
 
+if TYPE_CHECKING:
+    from .packages.types import DependencyTypes
+    from .poetry import Poetry
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +27,13 @@ class Factory(object):
 
     def create_poetry(
         self, cwd: Optional[Path] = None, with_dev: bool = True
-    ) -> Poetry:
+    ) -> "Poetry":
+        from .packages.dependency import Dependency
+        from .packages.project_package import ProjectPackage
+        from .poetry import Poetry
+        from .pyproject.toml import PyProjectTOML
+        from .spdx.helpers import license_by_id
+
         poetry_file = self.locate(cwd)
         local_config = PyProjectTOML(path=poetry_file).poetry_config
 
@@ -168,8 +172,9 @@ class Factory(object):
         constraint: Union[str, Dict[str, Any]],
         category: str = "main",
         root_dir: Optional[Path] = None,
-    ) -> Dependency:
+    ) -> "DependencyTypes":
         from .packages.constraints import parse_constraint as parse_generic_constraint
+        from .packages.dependency import Dependency
         from .packages.directory_dependency import DirectoryDependency
         from .packages.file_dependency import FileDependency
         from .packages.url_dependency import URLDependency
@@ -307,6 +312,8 @@ class Factory(object):
         """
         Checks the validity of a configuration
         """
+        from .json import validate_object
+
         result = {"errors": [], "warnings": []}
         # Schema validation errors
         validation_errors = validate_object(config, "poetry-schema")

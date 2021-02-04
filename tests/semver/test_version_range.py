@@ -1,8 +1,8 @@
 import pytest
 
-from poetry.core.semver import EmptyConstraint
-from poetry.core.semver import Version
-from poetry.core.semver import VersionRange
+from poetry.core.semver.empty_constraint import EmptyConstraint
+from poetry.core.semver.version import Version
+from poetry.core.semver.version_range import VersionRange
 
 
 @pytest.fixture()

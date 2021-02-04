@@ -7,8 +7,8 @@ import pytest
 from tomlkit.toml_document import TOMLDocument
 from tomlkit.toml_file import TOMLFile
 
-from poetry.core.pyproject import PyProjectException
-from poetry.core.pyproject import PyProjectTOML
+from poetry.core.pyproject.exceptions import PyProjectException
+from poetry.core.pyproject.toml import PyProjectTOML
 
 
 def test_pyproject_toml_simple(pyproject_toml, build_system_section, poetry_section):

@@ -3,10 +3,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Union
 
-from tomlkit.exceptions import TOMLKitError
 from tomlkit.toml_file import TOMLFile as BaseTOMLFile
-
-from poetry.core.toml import TOMLError
 
 
 if TYPE_CHECKING:
@@ -28,6 +25,10 @@ class TOMLFile(BaseTOMLFile):
         return self.__path.exists()
 
     def read(self) -> "TOMLDocument":
+        from tomlkit.exceptions import TOMLKitError
+
+        from poetry.core.toml import TOMLError
+
         try:
             return super(TOMLFile, self).read()
         except (ValueError, TOMLKitError) as e:

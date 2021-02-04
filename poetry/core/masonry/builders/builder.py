@@ -16,12 +16,6 @@ from typing import Optional
 from typing import Set
 from typing import Union
 
-from poetry.core.vcs import get_vcs
-
-from ..metadata import Metadata
-from ..utils.module import Module
-from ..utils.package_include import PackageInclude
-
 
 if TYPE_CHECKING:
     from poetry.core.poetry import Poetry  # noqa
@@ -48,6 +42,9 @@ class Builder(object):
         ignore_packages_formats: bool = False,
         executable: Optional[Union[Path, str]] = None,
     ) -> None:
+        from poetry.core.masonry.metadata import Metadata
+        from poetry.core.masonry.utils.module import Module
+
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
@@ -102,6 +99,8 @@ class Builder(object):
 
     def find_excluded_files(self) -> Set[str]:
         if self._excluded_files is None:
+            from poetry.core.vcs import get_vcs
+
             # Checking VCS
             vcs = get_vcs(self._path)
             if not vcs:
@@ -154,6 +153,8 @@ class Builder(object):
         """
         Finds all files to add to the tarball
         """
+        from poetry.core.masonry.utils.package_include import PackageInclude
+
         to_add = set()
 
         for include in self._module.includes:

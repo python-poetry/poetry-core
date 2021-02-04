@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver import Version  # noqa
+    from poetry.core.semver.version import Version  # noqa
 
 
 class VersionConstraint:

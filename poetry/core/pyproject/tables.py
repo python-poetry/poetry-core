@@ -27,15 +27,15 @@ class BuildSystem:
     def dependencies(self) -> List["Dependency"]:
         if self._dependencies is None:
             # avoid circular dependency when loading DirectoryDependency
-            from poetry.core.packages import DirectoryDependency
-            from poetry.core.packages import FileDependency
-            from poetry.core.packages import dependency_from_pep_508
+            from poetry.core.packages.dependency import Dependency
+            from poetry.core.packages.directory_dependency import DirectoryDependency
+            from poetry.core.packages.file_dependency import FileDependency
 
             self._dependencies = []
             for requirement in self.requires:
                 dependency = None
                 try:
-                    dependency = dependency_from_pep_508(requirement)
+                    dependency = Dependency.create_from_pep_508(requirement)
                 except ValueError:
                     # PEP 517 requires can be path if not PEP 508
                     path = Path(requirement)

@@ -1,9 +1,5 @@
 from typing import TYPE_CHECKING
 
-from poetry.core.utils.helpers import canonicalize_name
-from poetry.core.utils.helpers import normalize_version
-from poetry.core.version.helpers import format_python_constraint
-
 
 if TYPE_CHECKING:
     from poetry.core.packages import Package  # noqa
@@ -46,6 +42,10 @@ class Metadata:
 
     @classmethod
     def from_package(cls, package: "Package") -> "Metadata":
+        from poetry.core.utils.helpers import canonicalize_name
+        from poetry.core.utils.helpers import normalize_version
+        from poetry.core.version.helpers import format_python_constraint
+
         meta = cls()
 
         meta.name = canonicalize_name(package.name)

@@ -21,13 +21,12 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from ..utils.helpers import normalize_file_permissions
-from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .builder import BuildIncludeFile
 
 
 if TYPE_CHECKING:
+    from poetry.core.masonry.utils.package_include import PackageInclude  # noqa
     from poetry.core.packages import Dependency  # noqa
     from poetry.core.packages import ProjectPackage  # noqa
 
@@ -115,6 +114,8 @@ class SdistBuilder(Builder):
         return target
 
     def build_setup(self) -> bytes:
+        from poetry.core.masonry.utils.package_include import PackageInclude
+
         before, extra, after = [], [], []
         package_dir = {}
 
@@ -225,7 +226,7 @@ class SdistBuilder(Builder):
     def build_pkg_info(self) -> bytes:
         return self.get_metadata_content().encode()
 
-    def find_packages(self, include: PackageInclude) -> Tuple[str, List[str], dict]:
+    def find_packages(self, include: "PackageInclude") -> Tuple[str, List[str], dict]:
         """
         Discover subpackages and data.
 
@@ -396,6 +397,8 @@ class SdistBuilder(Builder):
             - Normalise permissions to 644 or 755
             - Set mtime if not None
         """
+        from poetry.core.masonry.utils.helpers import normalize_file_permissions
+
         ti = copy(tar_info)
         ti.uid = 0
         ti.gid = 0

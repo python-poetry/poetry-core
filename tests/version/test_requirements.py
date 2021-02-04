@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 

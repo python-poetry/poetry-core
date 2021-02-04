@@ -1,6 +1,6 @@
 import pytest
 
-from poetry.core.spdx import license_by_id
+from poetry.core.spdx.helpers import license_by_id
 
 
 def test_license_by_id():

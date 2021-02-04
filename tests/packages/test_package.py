@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from poetry.core.packages import Package
+from poetry.core.packages.package import Package
 
 
 def test_package_authors():

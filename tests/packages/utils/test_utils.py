@@ -2,7 +2,7 @@ import pytest
 
 from poetry.core.packages.utils.utils import convert_markers
 from poetry.core.packages.utils.utils import get_python_constraint_from_marker
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 

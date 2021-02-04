@@ -1,4 +1,3 @@
-import os
 import re
 
 from typing import TYPE_CHECKING
@@ -8,13 +7,13 @@ from typing import Iterator
 from typing import List
 from typing import Union
 
-from lark import Lark
-from lark import Token
-from lark import Tree
+from .grammars.parser import Parser
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver import VersionTypes  # noqa
+    from lark import Tree  # noqa
+
+    from poetry.core.semver.helpers import VersionTypes  # noqa
 
 MarkerTypes = Union[
     "AnyMarker", "EmptyMarker", "SingleMarker", "MultiMarker", "MarkerUnion"
@@ -48,9 +47,9 @@ ALIASES = {
     "platform.python_implementation": "platform_python_implementation",
     "python_implementation": "platform_python_implementation",
 }
-_parser = Lark.open(
-    os.path.join(os.path.dirname(__file__), "grammars", "markers.lark"), parser="lalr"
-)
+
+
+_parser = Parser("markers")
 
 
 class BaseMarker(object):
@@ -186,7 +185,7 @@ class SingleMarker(BaseMarker):
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
         )
-        from poetry.core.semver import parse_constraint
+        from poetry.core.semver.helpers import parse_constraint
 
         self._name = ALIASES.get(name, name)
         self._constraint_string = str(constraint)
@@ -324,7 +323,7 @@ class SingleMarker(BaseMarker):
             # This one is more tricky to handle
             # since it's technically a multi marker
             # so the inverse will be a union of inverse
-            from poetry.core.semver import VersionRange
+            from poetry.core.semver.version_range import VersionRange
 
             if not isinstance(self._constraint, VersionRange):
                 # The constraint must be a version range, otherwise
@@ -697,7 +696,9 @@ def parse_marker(marker: str) -> MarkerTypes:
     return markers
 
 
-def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> MarkerTypes:
+def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> MarkerTypes:
+    from lark import Token
+
     groups = [MultiMarker()]
     for token in tree_elements:
         if isinstance(token, Token):

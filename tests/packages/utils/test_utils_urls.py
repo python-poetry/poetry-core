@@ -7,10 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from six.moves.urllib.request import pathname2url  # noqa
-
-from poetry.core.packages import path_to_url
-from poetry.core.packages import url_to_path
+from poetry.core.packages.utils.utils import path_to_url
+from poetry.core.packages.utils.utils import url_to_path
 
 
 @pytest.mark.skipif("sys.platform == 'win32'")

@@ -11,8 +11,8 @@ import pytest
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.package_include import PackageInclude
-from poetry.core.packages import Package
 from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.package import Package
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 

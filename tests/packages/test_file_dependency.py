@@ -2,9 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from poetry.core.packages import FileDependency
-from poetry.core.packages import dependency_from_pep_508
-from poetry.core.utils._compat import PY36
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.file_dependency import FileDependency
 
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
@@ -25,10 +24,10 @@ def _test_file_dependency_pep_508(
 ):
     mocker.patch.object(Path, "exists").return_value = True
     mocker.patch.object(Path, "is_file").return_value = True
-    if not PY36:
-        mocker.patch.object(Path, "resolve").return_value = path
 
-    dep = dependency_from_pep_508(pep_508_input, relative_to=Path(__file__).parent)
+    dep = Dependency.create_from_pep_508(
+        pep_508_input, relative_to=Path(__file__).parent
+    )
 
     assert dep.is_file()
     assert dep.name == name

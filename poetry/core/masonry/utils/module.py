@@ -4,11 +4,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from poetry.core.utils.helpers import module_name
-
-from .include import Include
-from .package_include import PackageInclude
-
 
 class ModuleOrPackageNotFound(ValueError):
 
@@ -23,6 +18,11 @@ class Module:
         packages: Optional[List[Dict[str, Any]]] = None,
         includes: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
+        from poetry.core.utils.helpers import module_name
+
+        from .include import Include
+        from .package_include import PackageInclude
+
         self._name = module_name(name)
         self._in_src = False
         self._is_package = False

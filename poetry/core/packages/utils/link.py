@@ -1,30 +1,20 @@
 import posixpath
 import re
+import urllib.parse as urlparse
 
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import Optional
 from typing import Tuple
 
-
-if TYPE_CHECKING:
-    from pip._internal.index.collector import HTMLPage  # noqa
-
 from .utils import path_to_url
 from .utils import splitext
-
-
-try:
-    import urllib.parse as urlparse
-except ImportError:
-    import urlparse
 
 
 class Link:
     def __init__(
         self,
         url: str,
-        comes_from: Optional["HTMLPage"] = None,
+        comes_from: Optional[Any] = None,
         requires_python: Optional[str] = None,
     ) -> None:
         """
@@ -99,7 +89,7 @@ class Link:
         _, netloc, path, _, _ = urlparse.urlsplit(self.url)
         name = posixpath.basename(path.rstrip("/")) or netloc
         name = urlparse.unquote(name)
-        assert name, "URL %r produced no filename" % self.url
+
         return name
 
     @property

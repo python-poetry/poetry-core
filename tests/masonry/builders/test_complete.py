@@ -16,7 +16,7 @@ import pytest
 
 from poetry.core import __version__
 from poetry.core.factory import Factory
-from poetry.core.masonry import Builder
+from poetry.core.masonry.builder import Builder
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"

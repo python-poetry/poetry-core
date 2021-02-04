@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING
 from typing import Union
 
-from poetry.core.semver import Version
-from poetry.core.semver import VersionUnion
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
+from poetry.core.semver.version import Version
+from poetry.core.semver.version_union import VersionUnion
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver import VersionConstraint  # noqa
+    from poetry.core.semver.version_constraint import VersionConstraint  # noqa
 
 PYTHON_VERSION = [
     "2.7.*",

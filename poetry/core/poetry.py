@@ -4,13 +4,12 @@ from __future__ import unicode_literals
 from typing import TYPE_CHECKING
 from typing import Any
 
-from poetry.core.pyproject import PyProjectTOML
-
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from poetry.core.packages import ProjectPackage  # noqa
+    from poetry.core.pyproject.toml import PyProjectTOML  # noqa
     from poetry.core.pyproject.toml import PyProjectTOMLFile  # noqa
 
 
@@ -21,12 +20,14 @@ class Poetry(object):
         local_config: dict,
         package: "ProjectPackage",
     ) -> None:
+        from poetry.core.pyproject.toml import PyProjectTOML  # noqa
+
         self._pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
 
     @property
-    def pyproject(self) -> PyProjectTOML:
+    def pyproject(self) -> "PyProjectTOML":
         return self._pyproject
 
     @property

@@ -1,26 +1,10 @@
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the BSD License. See the LICENSE file in the root of this repository
-# for complete details.
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+import urllib.parse as urlparse
 
-import os
-
-from lark import Lark
-from lark import UnexpectedCharacters
-from lark import UnexpectedToken
-
-from poetry.core.semver import parse_constraint
 from poetry.core.semver.exceptions import ParseConstraintError
+from poetry.core.semver.helpers import parse_constraint
 
+from .grammars.parser import Parser
 from .markers import _compact_markers
-
-
-try:
-    import urllib.parse as urlparse
-except ImportError:
-    import urlparse
 
 
 class InvalidRequirement(ValueError):
@@ -29,9 +13,7 @@ class InvalidRequirement(ValueError):
     """
 
 
-_parser = Lark.open(
-    os.path.join(os.path.dirname(__file__), "grammars", "pep508.lark"), parser="lalr"
-)
+_parser = Parser("pep508")
 
 
 class Requirement(object):
@@ -44,6 +26,9 @@ class Requirement(object):
     """
 
     def __init__(self, requirement_string: str) -> None:
+        from lark import UnexpectedCharacters
+        from lark import UnexpectedToken
+
         try:
             parsed = _parser.parse(requirement_string)
         except (UnexpectedCharacters, UnexpectedToken) as e:

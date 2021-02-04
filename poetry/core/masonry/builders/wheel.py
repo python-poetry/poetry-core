@@ -23,7 +23,7 @@ from typing import Union
 from packaging.tags import sys_tags
 
 from poetry.core import __version__
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
 
 from ..utils.helpers import escape_name
 from ..utils.helpers import escape_version

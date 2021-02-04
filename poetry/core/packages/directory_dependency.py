@@ -5,8 +5,6 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from poetry.core.pyproject import PyProjectTOML
-
 
 if TYPE_CHECKING:
     from .constraints import BaseConstraint  # noqa
@@ -25,6 +23,8 @@ class DirectoryDependency(Dependency):
         develop: bool = False,
         extras: Optional[Union[List[str], FrozenSet[str]]] = None,
     ) -> None:
+        from poetry.core.pyproject.toml import PyProjectTOML
+
         self._path = path
         self._base = base or Path.cwd()
         self._full_path = path
