@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.2] - 2021-02-05
+
+### Fixed
+
+- Fixed a missing import causing an error in Poetry ([#134](https://github.com/python-poetry/poetry-core/pull/134)).
+
+
 ## [1.0.1] - 2021-02-05
 
 ### Fixed
@@ -132,7 +139,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.1...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.2...master
+[1.0.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.2
 [1.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.1
 [1.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0
 [1.0.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc3
