@@ -20,7 +20,7 @@ except ImportError:
     from collections import Mapping
 
 
-_canonicalize_regex = re.compile(r"[-_.]+")
+_canonicalize_regex = re.compile(r"[-_]+")
 
 
 def canonicalize_name(name):  # type: (str) -> str
