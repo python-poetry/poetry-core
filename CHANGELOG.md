@@ -13,6 +13,7 @@
 - Fixed an error where the `&` character was not accepted for author names ([#120](https://github.com/python-poetry/poetry-core/pull/120)).
 - Fixed the PEP-508 representation of some dependencies ([#103](https://github.com/python-poetry/poetry-core/pull/103)).
 - Fixed the `Requires-Python` metadata generation ([#127](https://github.com/python-poetry/poetry-core/pull/127)).
+- Fixed an error where pre-release versions were accepted in version constraints ([#128](https://github.com/python-poetry/poetry-core/pull/128)).
 
 
 ## [1.0.0] - 2020-09-30
