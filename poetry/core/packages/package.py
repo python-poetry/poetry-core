@@ -16,6 +16,9 @@ from poetry.core.spdx import license_by_id
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import parse_marker
 
+# Do not move to the TYPE_CHECKING only section, because Dependency get's imported
+# by poetry/packages/locker.py from here
+from .dependency import Dependency
 from .specification import PackageSpecification
 from .utils.utils import create_nested_marker
 
@@ -24,7 +27,6 @@ if TYPE_CHECKING:
     from poetry.core.semver import VersionTypes  # noqa
     from poetry.core.version.markers import BaseMarker  # noqa
 
-    from .dependency import Dependency
     from .directory_dependency import DirectoryDependency
     from .file_dependency import FileDependency
     from .url_dependency import URLDependency
@@ -188,7 +190,7 @@ class Package(PackageSpecification):
     @property
     def all_requires(
         self,
-    ):  # type: () -> List[Union["DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency", "Dependency"]]
+    ):  # type: () -> List[Union["DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency", Dependency]]
         return self.requires + self.dev_requires
 
     def _get_author(self):  # type: () -> dict
@@ -310,7 +312,7 @@ class Package(PackageSpecification):
 
     def add_dependency(
         self, dependency,
-    ):  # type: ("Dependency") -> "Dependency"
+    ):  # type: (Dependency) -> Dependency
         if dependency.category == "dev":
             self.dev_requires.append(dependency)
         else:
@@ -320,7 +322,7 @@ class Package(PackageSpecification):
 
     def to_dependency(
         self,
-    ):  # type: () -> Union["Dependency", "DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency"]
+    ):  # type: () -> Union[Dependency, "DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency"]
         from poetry.core.utils._compat import Path
 
         from .dependency import Dependency
