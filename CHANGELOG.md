@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.0.1] - 2021-02-05
+
+### Fixed
+
+- Fixed PEP 508 representation of dependency without extras ([#102](https://github.com/python-poetry/poetry-core/pull/102)).
+- Fixed an error where development dependencies were being resolved when invoking the PEP-517 backend ([#101](https://github.com/python-poetry/poetry-core/pull/101)).
+- Fixed source distribution not being deterministic ([#105](https://github.com/python-poetry/poetry-core/pull/105)).
+- Fixed an error where zip files were left open when building wheels ([#122](https://github.com/python-poetry/poetry-core/pull/122)).
+- Fixed an error where explicitly included files were still not present in final distributions ([#124](https://github.com/python-poetry/poetry-core/pull/124)).
+- Fixed wheel filename matching for recent architecture ([#125](https://github.com/python-poetry/poetry-core/pull/125), [#129](https://github.com/python-poetry/poetry-core/pull/129)).
+- Fixed an error where the `&` character was not accepted for author names ([#120](https://github.com/python-poetry/poetry-core/pull/120)).
+- Fixed the PEP-508 representation of some dependencies ([#103](https://github.com/python-poetry/poetry-core/pull/103)).
+- Fixed the `Requires-Python` metadata generation ([#127](https://github.com/python-poetry/poetry-core/pull/127)).
+
+
 ## [1.0.0] - 2020-09-30
 
 No changes.
@@ -116,7 +131,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.0...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.1...master
+[1.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.1
 [1.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0
 [1.0.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc3
 [1.0.0rc2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc2
