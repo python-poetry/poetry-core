@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.2] - 2021-02-05
+
+### Fixed
+
+- Fixed a missing import causing an error in Poetry ([#134](https://github.com/python-poetry/poetry-core/pull/134)).
+
+
 ## [1.0.1] - 2021-02-05
 
 ### Fixed
@@ -13,6 +20,7 @@
 - Fixed an error where the `&` character was not accepted for author names ([#120](https://github.com/python-poetry/poetry-core/pull/120)).
 - Fixed the PEP-508 representation of some dependencies ([#103](https://github.com/python-poetry/poetry-core/pull/103)).
 - Fixed the `Requires-Python` metadata generation ([#127](https://github.com/python-poetry/poetry-core/pull/127)).
+- Fixed an error where pre-release versions were accepted in version constraints ([#128](https://github.com/python-poetry/poetry-core/pull/128)).
 
 
 ## [1.0.0] - 2020-09-30
@@ -131,7 +139,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.1...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.2...master
+[1.0.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.2
 [1.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.1
 [1.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0
 [1.0.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0rc3
