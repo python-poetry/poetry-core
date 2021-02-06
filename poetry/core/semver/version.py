@@ -1,5 +1,6 @@
 import re
 
+from typing import TYPE_CHECKING
 from typing import List
 from typing import Optional
 from typing import Union
@@ -10,6 +11,10 @@ from .patterns import COMPLETE_VERSION
 from .version_constraint import VersionConstraint
 from .version_range import VersionRange
 from .version_union import VersionUnion
+
+
+if TYPE_CHECKING:
+    from . import VersionTypes  # noqa
 
 
 class Version(VersionRange):
@@ -119,7 +124,7 @@ class Version(VersionRange):
         return self._build
 
     @property
-    def text(self):
+    def text(self):  # type: () -> str
         return self._text
 
     @property
@@ -127,7 +132,7 @@ class Version(VersionRange):
         return self._precision
 
     @property
-    def stable(self):
+    def stable(self):  # type: () -> Version
         if not self.is_prerelease():
             return self
 
@@ -176,23 +181,23 @@ class Version(VersionRange):
         )
 
     @property
-    def min(self):
+    def min(self):  # type: () -> Version
         return self
 
     @property
-    def max(self):
+    def max(self):  # type: () -> Version
         return self
 
     @property
-    def full_max(self):
+    def full_max(self):  # type: () -> Version
         return self
 
     @property
-    def include_min(self):
+    def include_min(self):  # type: () -> bool
         return True
 
     @property
-    def include_max(self):
+    def include_max(self):  # type: () -> bool
         return True
 
     @classmethod
@@ -220,10 +225,10 @@ class Version(VersionRange):
 
         return Version(major, minor, patch, rest, pre, build, text)
 
-    def is_any(self):
+    def is_any(self):  # type: () -> bool
         return False
 
-    def is_empty(self):
+    def is_empty(self):  # type: () -> bool
         return False
 
     def is_prerelease(self):  # type: () -> bool
@@ -232,19 +237,21 @@ class Version(VersionRange):
     def allows(self, version):  # type: (Version) -> bool
         return self == version
 
-    def allows_all(self, other):  # type: (VersionConstraint) -> bool
+    def allows_all(self, other):  # type: ("VersionTypes") -> bool
         return other.is_empty() or other == self
 
-    def allows_any(self, other):  # type: (VersionConstraint) -> bool
+    def allows_any(self, other):  # type: ("VersionTypes") -> bool
         return other.allows(self)
 
-    def intersect(self, other):  # type: (VersionConstraint) -> VersionConstraint
+    def intersect(
+        self, other
+    ):  # type: ("VersionTypes") -> Union[Version, EmptyConstraint]
         if other.allows(self):
             return self
 
         return EmptyConstraint()
 
-    def union(self, other):  # type: (VersionConstraint) -> VersionConstraint
+    def union(self, other):  # type: ("VersionTypes") -> "VersionTypes"
         from .version_range import VersionRange
 
         if other.allows(self):
@@ -269,7 +276,9 @@ class Version(VersionRange):
 
         return VersionUnion.of(self, other)
 
-    def difference(self, other):  # type: (VersionConstraint) -> VersionConstraint
+    def difference(
+        self, other
+    ):  # type: ("VersionTypes") -> Union[Version, EmptyConstraint]
         if other.allows(self):
             return EmptyConstraint()
 
@@ -293,7 +302,7 @@ class Version(VersionRange):
             self.major, self.minor, self.patch + 1, precision=self._precision
         )
 
-    def _normalize_prerelease(self, pre):  # type: (str) -> str
+    def _normalize_prerelease(self, pre):  # type: (str) -> Optional[str]
         if not pre:
             return
 
@@ -318,7 +327,7 @@ class Version(VersionRange):
 
         return "{}.{}".format(modifier, number)
 
-    def _normalize_build(self, build):  # type: (str) -> str
+    def _normalize_build(self, build):  # type: (str) -> Optional[str]
         if not build:
             return
 
@@ -341,19 +350,19 @@ class Version(VersionRange):
 
         return parts
 
-    def __lt__(self, other):
+    def __lt__(self, other):  # type: (Version) -> int
         return self._cmp(other) < 0
 
-    def __le__(self, other):
+    def __le__(self, other):  # type: (Version) -> int
         return self._cmp(other) <= 0
 
-    def __gt__(self, other):
+    def __gt__(self, other):  # type: (Version) -> int
         return self._cmp(other) > 0
 
-    def __ge__(self, other):
+    def __ge__(self, other):  # type: (Version) -> int
         return self._cmp(other) >= 0
 
-    def _cmp(self, other):
+    def _cmp(self, other):  # type: (Version) -> int
         if not isinstance(other, VersionConstraint):
             return NotImplemented
 
@@ -392,7 +401,7 @@ class Version(VersionRange):
 
         return self._cmp_lists(self.build, other.build)
 
-    def _cmp_parts(self, a, b):
+    def _cmp_parts(self, a, b):  # type: (Optional[int], Optional[int]) -> int
         if a < b:
             return -1
         elif a > b:
@@ -446,16 +455,16 @@ class Version(VersionRange):
             and self._build == other.build
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other):  # type: ("VersionTypes") -> bool
         return not self == other
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         return self._text
 
-    def __repr__(self):
+    def __repr__(self):  # type: () -> str
         return "<Version {}>".format(str(self))
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash(
             (
                 self.major,

@@ -10,7 +10,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from poetry.core.pyproject import PyProjectTOMLFile
+from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import Path
 
 
@@ -49,7 +49,7 @@ def temporary_project_directory(
     with tempfile.TemporaryDirectory(prefix="poetry-core-pep517") as tmp:
         dst = Path(tmp) / path.name
         shutil.copytree(str(path), dst)
-        toml = PyProjectTOMLFile(str(dst / "pyproject.toml"))
+        toml = TOMLFile(str(dst / "pyproject.toml"))
         data = toml.read()
         data.update(toml_patch or __toml_build_backend_patch__)
         toml.write(data)

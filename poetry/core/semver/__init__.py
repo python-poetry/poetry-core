@@ -1,5 +1,7 @@
 import re
 
+from typing import Union
+
 from .empty_constraint import EmptyConstraint
 from .exceptions import ParseConstraintError
 from .patterns import BASIC_CONSTRAINT
@@ -13,7 +15,10 @@ from .version_range import VersionRange
 from .version_union import VersionUnion
 
 
-def parse_constraint(constraints):  # type: (str) -> VersionConstraint
+VersionTypes = Union[Version, VersionRange, VersionUnion, EmptyConstraint]
+
+
+def parse_constraint(constraints):  # type: (str) -> VersionTypes
     if constraints == "*":
         return VersionRange()
 
@@ -46,7 +51,7 @@ def parse_constraint(constraints):  # type: (str) -> VersionConstraint
         return VersionUnion.of(*or_groups)
 
 
-def parse_single_constraint(constraint):  # type: (str) -> VersionConstraint
+def parse_single_constraint(constraint):  # type: (str) -> VersionTypes
     m = re.match(r"(?i)^v?[xX*](\.[xX*])*$", constraint)
     if m:
         return VersionRange()
@@ -60,9 +65,7 @@ def parse_single_constraint(constraint):  # type: (str) -> VersionConstraint
         if len(m.group(1).split(".")) == 1:
             high = version.stable.next_major
 
-        return VersionRange(
-            version, high, include_min=True, always_include_max_prerelease=True
-        )
+        return VersionRange(version, high, include_min=True)
 
     # PEP 440 Tilde range (~=)
     m = TILDE_PEP440_CONSTRAINT.match(constraint)
@@ -81,21 +84,14 @@ def parse_single_constraint(constraint):  # type: (str) -> VersionConstraint
         else:
             high = version.stable.next_minor
 
-        return VersionRange(
-            version, high, include_min=True, always_include_max_prerelease=True
-        )
+        return VersionRange(version, high, include_min=True)
 
     # Caret range
     m = CARET_CONSTRAINT.match(constraint)
     if m:
         version = Version.parse(m.group(1))
 
-        return VersionRange(
-            version,
-            version.next_breaking,
-            include_min=True,
-            always_include_max_prerelease=True,
-        )
+        return VersionRange(version, version.next_breaking, include_min=True)
 
     # X Range
     m = X_CONSTRAINT.match(constraint)
@@ -107,24 +103,14 @@ def parse_single_constraint(constraint):  # type: (str) -> VersionConstraint
         if minor is not None:
             version = Version(major, int(minor), 0)
 
-            result = VersionRange(
-                version,
-                version.next_minor,
-                include_min=True,
-                always_include_max_prerelease=True,
-            )
+            result = VersionRange(version, version.next_minor, include_min=True)
         else:
             if major == 0:
                 result = VersionRange(max=Version(1, 0, 0))
             else:
                 version = Version(major, 0, 0)
 
-                result = VersionRange(
-                    version,
-                    version.next_major,
-                    include_min=True,
-                    always_include_max_prerelease=True,
-                )
+                result = VersionRange(version, version.next_major, include_min=True)
 
         if op == "!=":
             result = VersionRange().difference(result)

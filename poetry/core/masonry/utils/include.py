@@ -25,7 +25,9 @@ class Include(object):
         self._include = str(include)
         self._formats = formats
 
-        self._elements = sorted(list(self._base.glob(str(self._include))))
+        self._elements = sorted(
+            list(self._base.glob(str(self._include)))
+        )  # type: List[Path]
 
     @property
     def base(self):  # type: () -> Path

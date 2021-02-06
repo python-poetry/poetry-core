@@ -1,6 +1,7 @@
 import os
 import re
 
+from typing import List
 from typing import Optional
 from typing import Union
 
@@ -29,8 +30,11 @@ from .vcs_dependency import VCSDependency
 
 
 def _make_file_or_dir_dep(
-    name, path, base=None
-):  # type: (str, Path, Optional[Path]) -> Optional[Union[FileDependency, DirectoryDependency]]
+    name,  # type: str
+    path,  # type: Path
+    base=None,  # type: Optional[Path]
+    extras=None,  # type: Optional[List[str]]
+):  # type: (...) -> Optional[Union[FileDependency, DirectoryDependency]]
     """
     Helper function to create a file or directoru dependency with the given arguments. If
     path is not a file or directory that exists, `None` is returned.
@@ -41,9 +45,9 @@ def _make_file_or_dir_dep(
         _path = Path(base) / path
 
     if _path.is_file():
-        return FileDependency(name, path, base=base)
+        return FileDependency(name, path, base=base, extras=extras)
     elif _path.is_dir():
-        return DirectoryDependency(name, path, base=base)
+        return DirectoryDependency(name, path, base=base, extras=extras)
 
     return None
 
@@ -120,26 +124,30 @@ def dependency_from_pep_508(
 
         if link.scheme.startswith("git+"):
             url = ParsedUrl.parse(link.url)
-            dep = VCSDependency(name, "git", url.url, rev=url.rev)
+            dep = VCSDependency(name, "git", url.url, rev=url.rev, extras=req.extras)
         elif link.scheme == "git":
-            dep = VCSDependency(name, "git", link.url_without_fragment)
+            dep = VCSDependency(
+                name, "git", link.url_without_fragment, extras=req.extras
+            )
         elif link.scheme in ["http", "https"]:
             dep = URLDependency(name, link.url)
         elif is_file_uri:
             # handle RFC 8089 references
             path = url_to_path(req.url)
-            dep = _make_file_or_dir_dep(name=name, path=path, base=relative_to)
+            dep = _make_file_or_dir_dep(
+                name=name, path=path, base=relative_to, extras=req.extras
+            )
         else:
             try:
                 # this is a local path not using the file URI scheme
                 dep = _make_file_or_dir_dep(
-                    name=name, path=Path(req.url), base=relative_to
+                    name=name, path=Path(req.url), base=relative_to, extras=req.extras,
                 )
             except ValueError:
                 pass
 
         if dep is None:
-            dep = Dependency(name, version or "*")
+            dep = Dependency(name, version or "*", extras=req.extras)
 
         if version:
             dep._constraint = parse_constraint(version)
@@ -149,7 +157,7 @@ def dependency_from_pep_508(
         else:
             constraint = "*"
 
-        dep = Dependency(name, constraint)
+        dep = Dependency(name, constraint, extras=req.extras)
 
     if "extra" in markers:
         # If we have extras, the dependency is optional
@@ -212,9 +220,5 @@ def dependency_from_pep_508(
 
     if req.marker:
         dep.marker = req.marker
-
-    # Extras
-    for extra in req.extras:
-        dep.extras.append(extra)
 
     return dep

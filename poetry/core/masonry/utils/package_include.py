@@ -1,8 +1,15 @@
+from typing import List
+from typing import Optional
+
+from poetry.core.utils._compat import Path
+
 from .include import Include
 
 
 class PackageInclude(Include):
-    def __init__(self, base, include, formats=None, source=None):
+    def __init__(
+        self, base, include, formats=None, source=None
+    ):  # type: (Path, str, Optional[List[str]], Optional[str]) -> None
         self._package = None
         self._is_package = False
         self._is_module = False
@@ -19,7 +26,7 @@ class PackageInclude(Include):
         return self._package
 
     @property
-    def source(self):  # type: () -> str
+    def source(self):  # type: () -> Optional[str]
         return self._source
 
     def is_package(self):  # type: () -> bool
@@ -67,7 +74,7 @@ class PackageInclude(Include):
             if root.is_dir():
                 # If it's a directory, we include everything inside it
                 self._package = root.name
-                self._elements = sorted(list(root.glob("**/*")))
+                self._elements = sorted(list(root.glob("**/*")))  # type: List[Path]
 
                 if not self.is_stub_only() and not self.has_modules():
                     raise ValueError("{} is not a package.".format(root.name))

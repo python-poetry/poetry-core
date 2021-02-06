@@ -1,27 +1,36 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from typing import TYPE_CHECKING
 from typing import Any
 
-from .packages import ProjectPackage
-from .pyproject import PyProjectTOMLFile
-from .utils._compat import Path
+from poetry.core.pyproject import PyProjectTOML
+from poetry.core.utils._compat import Path  # noqa
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages import ProjectPackage  # noqa
+    from poetry.core.pyproject.toml import PyProjectTOMLFile  # noqa
 
 
 class Poetry(object):
     def __init__(
         self, file, local_config, package,
-    ):  # type: (Path, dict, ProjectPackage) -> None
-        self._file = PyProjectTOMLFile(file)
+    ):  # type: (Path, dict, "ProjectPackage") -> None
+        self._pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
 
     @property
-    def file(self):
-        return self._file
+    def pyproject(self):  # type: () -> PyProjectTOML
+        return self._pyproject
 
     @property
-    def package(self):  # type: () -> ProjectPackage
+    def file(self):  # type: () -> "PyProjectTOMLFile"
+        return self._pyproject.file
+
+    @property
+    def package(self):  # type: () -> "ProjectPackage"
         return self._package
 
     @property

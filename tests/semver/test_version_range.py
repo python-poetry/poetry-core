@@ -70,6 +70,11 @@ def v300():
     return Version.parse("3.0.0")
 
 
+@pytest.fixture()
+def v300b1():
+    return Version.parse("3.0.0b1")
+
+
 def test_allows_all(v003, v010, v080, v114, v123, v124, v140, v200, v234, v250, v300):
     assert VersionRange(v123, v250).allows_all(EmptyConstraint())
 
@@ -173,12 +178,7 @@ def test_allows_any(
     # pre-release min does not allow lesser than itself
     range = VersionRange(Version.parse("1.9b1"), include_min=True)
     assert not range.allows_any(
-        VersionRange(
-            Version.parse("1.8.0"),
-            Version.parse("1.9.0"),
-            include_min=True,
-            always_include_max_prerelease=True,
-        )
+        VersionRange(Version.parse("1.8.0"), Version.parse("1.9.0"), include_min=True)
     )
 
 
@@ -258,3 +258,17 @@ def test_union(
     assert result == VersionRange(v003, v200)
     result = VersionRange(v003, v114).union(VersionRange(v114, v200, include_min=True))
     assert result == VersionRange(v003, v200)
+
+
+def test_include_max_prerelease(v200, v300, v300b1):
+    result = VersionRange(v200, v300)
+
+    assert not result.allows(v300b1)
+    assert not result.allows_any(VersionRange(v300b1))
+    assert not result.allows_all(VersionRange(v200, v300b1))
+
+    result = VersionRange(v200, v300, always_include_max_prerelease=True)
+
+    assert result.allows(v300b1)
+    assert result.allows_any(VersionRange(v300b1))
+    assert result.allows_all(VersionRange(v200, v300b1))

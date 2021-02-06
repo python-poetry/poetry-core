@@ -1,15 +1,31 @@
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Dict
 from typing import Optional
+from typing import Union
 
 from poetry.core.semver import VersionRange
 from poetry.core.semver import parse_constraint
 from poetry.core.version.markers import parse_marker
+
+
+if TYPE_CHECKING:
+    from . import (
+        DirectoryDependency,
+        FileDependency,
+        URLDependency,
+        VCSDependency,
+        Dependency,
+    )
 
 from .package import Package
 from .utils.utils import create_nested_marker
 
 
 class ProjectPackage(Package):
-    def __init__(self, name, version, pretty_version=None):
+    def __init__(
+        self, name, version, pretty_version=None
+    ):  # type: (str, Union[str, VersionRange], Optional[str]) -> None
         super(ProjectPackage, self).__init__(name, version, pretty_version)
 
         self.build_config = dict()
@@ -25,10 +41,12 @@ class ProjectPackage(Package):
     def build_script(self):  # type: () -> Optional[str]
         return self.build_config.get("script")
 
-    def is_root(self):
+    def is_root(self):  # type: () -> bool
         return True
 
-    def to_dependency(self):
+    def to_dependency(
+        self,
+    ):  # type: () -> Union["DirectoryDependency", "FileDependency", "URLDependency", "VCSDependency", "Dependency"]
         dependency = super(ProjectPackage, self).to_dependency()
 
         dependency.is_root = True
@@ -36,11 +54,11 @@ class ProjectPackage(Package):
         return dependency
 
     @property
-    def python_versions(self):
+    def python_versions(self):  # type: () -> Union[str, VersionRange]
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value):
+    def python_versions(self, value):  # type: (Union[str, VersionRange]) -> None
         self._python_versions = value
 
         if value == "*" or value == VersionRange():
@@ -52,7 +70,7 @@ class ProjectPackage(Package):
         )
 
     @property
-    def urls(self):
+    def urls(self):  # type: () -> Dict[str, Any]
         urls = super(ProjectPackage, self).urls
 
         urls.update(self.custom_urls)

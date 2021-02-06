@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [Ubuntu, MacOS, Windows]
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, pypy2, pypy3]
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy2, pypy3]
         exclude:
           - os: Ubuntu
             python-version: pypy2
@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -42,11 +42,16 @@ jobs:
         run: |
           curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
           python get-poetry.py --preview -y
-          echo "::set-env name=PATH::$HOME/.poetry/bin:$PATH"
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
 
       - name: Configure poetry
         shell: bash
         run: poetry config virtualenvs.in-project true
+
+      - name: Configure poetry installer
+        if: matrix.python-version == '2.7'
+        shell: bash
+        run: poetry config experimental.new-installer false
 
       - name: Set up cache
         uses: actions/cache@v1
@@ -58,7 +63,7 @@ jobs:
       - name: Ensure cache is healthy
         if: steps.cache.outputs.cache-hit == 'true'
         shell: bash
-        run: poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
+        run: timeout 10s poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
 
       - name: Install dependencies
         shell: bash

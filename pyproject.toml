@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.0.0a9"
+version = "1.0.2"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -45,6 +45,7 @@ functools32 = {version = "^3.2.3-2", python = "~2.7"}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^1.10"
+pyrsistent = "^0.16.0"
 pytest = "^4.6"
 pytest-cov = "^2.8"
 pytest-mock = "^2.0"
@@ -52,9 +53,6 @@ tox = "^3.0"
 vendoring = {version = "^0.3", python = "~3.8"}
 pep517 = "^0.8.2"
 "backports.tempfile" = {version = "^1.0", python = "~2.7"}
-
-[tool.intreehooks]
-build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
@@ -116,8 +114,9 @@ appdirs = []
 
 
 [tool.vendoring.license.fallback-urls]
-pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENCE.mit"
+pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"
 
 [build-system]
-requires = ["intreehooks"]
-build-backend = "intreehooks:loader"
+requires = []
+build-backend = "poetry.core.masonry.api"
+backend-path = ["."]

@@ -1,15 +1,24 @@
 import re
 
+from typing import Union
+
 from .any_constraint import AnyConstraint
 from .base_constraint import BaseConstraint
 from .constraint import Constraint
+from .empty_constraint import EmptyConstraint
+from .multi_constraint import MultiConstraint
 from .union_constraint import UnionConstraint
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
+ConstraintTypes = Union[
+    AnyConstraint, Constraint, UnionConstraint, EmptyConstraint, MultiConstraint
+]
 
 
-def parse_constraint(constraints):
+def parse_constraint(
+    constraints,
+):  # type: (str) -> Union[AnyConstraint, UnionConstraint, Constraint]
     if constraints == "*":
         return AnyConstraint()
 
@@ -42,7 +51,7 @@ def parse_constraint(constraints):
         return UnionConstraint(*or_groups)
 
 
-def parse_single_constraint(constraint):  # type: (str) -> BaseConstraint
+def parse_single_constraint(constraint):  # type: (str) -> Constraint
     # Basic comparator
     m = BASIC_CONSTRAINT.match(constraint)
     if m:

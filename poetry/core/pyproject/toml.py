@@ -1,69 +1,50 @@
+from typing import Any
 from typing import Optional
 from typing import Union
 
 from tomlkit.container import Container
-from tomlkit.exceptions import TOMLKitError
 from tomlkit.toml_document import TOMLDocument
-from tomlkit.toml_file import TOMLFile
 
 from poetry.core.pyproject.exceptions import PyProjectException
 from poetry.core.pyproject.tables import BuildSystem
+from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import Path
-
-
-class PyProjectTOMLFile(TOMLFile):
-    def __init__(self, path):  # type: (Union[str, Path]) -> None
-        if isinstance(path, str):
-            path = Path(path)
-        super(PyProjectTOMLFile, self).__init__(path.as_posix())
-        self.__path = path
-
-    @property
-    def path(self):  # type: () -> Path
-        return self.__path
-
-    def exists(self):  # type: () -> bool
-        return self.__path.exists()
-
-    def read(self):
-        try:
-            return super(PyProjectTOMLFile, self).read()
-        except (ValueError, TOMLKitError) as e:
-            raise PyProjectException(
-                "Invalid TOML file {}: {}".format(self.path.as_posix(), e)
-            )
-
-    def __getattr__(self, item):
-        return getattr(self.__path, item)
-
-    def __str__(self):  # type: () -> str
-        return self.__path.as_posix()
 
 
 class PyProjectTOML:
     def __init__(self, path):  # type: (Union[str, Path]) -> None
-        self._file = PyProjectTOMLFile(path=path)
+        self._file = TOMLFile(path=path)
         self._data = None  # type: Optional[TOMLDocument]
         self._build_system = None  # type: Optional[BuildSystem]
         self._poetry_config = None  # type: Optional[TOMLDocument]
 
     @property
-    def file(self):  # type: () -> PyProjectTOMLFile
+    def file(self):  # type: () -> TOMLFile
         return self._file
 
     @property
     def data(self):  # type: () -> TOMLDocument
         if self._data is None:
-            self._data = self._file.read()
+            if not self._file.exists():
+                self._data = TOMLDocument()
+            else:
+                self._data = self._file.read()
         return self._data
 
     @property
     def build_system(self):  # type: () -> BuildSystem
         if self._build_system is None:
+            build_backend = None
+            requires = None
+
+            if not self._file.exists():
+                build_backend = "poetry.core.masonry.api"
+                requires = ["poetry-core"]
+
             container = self.data.get("build-system", {})
             self._build_system = BuildSystem(
-                build_backend=container.get("build-backend"),
-                requires=container.get("requires"),
+                build_backend=container.get("build-backend", build_backend),
+                requires=container.get("requires", requires),
             )
         return self._build_system
 
@@ -86,10 +67,10 @@ class PyProjectTOML:
                 pass
         return False
 
-    def __getattr__(self, item):
+    def __getattr__(self, item):  # type: (str) -> Any
         return getattr(self.data, item)
 
-    def save(self):
+    def save(self):  # type: () -> None
         data = self.data
 
         if self._poetry_config is not None:
@@ -103,7 +84,7 @@ class PyProjectTOML:
 
         self.file.write(data=data)
 
-    def reload(self):
+    def reload(self):  # type: () -> None
         self._data = None
         self._build_system = None
         self._poetry_config = None

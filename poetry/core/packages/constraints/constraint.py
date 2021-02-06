@@ -1,7 +1,15 @@
 import operator
 
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Union
+
 from .base_constraint import BaseConstraint
 from .empty_constraint import EmptyConstraint
+
+
+if TYPE_CHECKING:
+    from . import ConstraintTypes  # noqa
 
 
 class Constraint(BaseConstraint):
@@ -13,7 +21,7 @@ class Constraint(BaseConstraint):
 
     _trans_op_int = {OP_EQ: "==", OP_NE: "!="}
 
-    def __init__(self, version, operator="=="):
+    def __init__(self, version, operator="=="):  # type: (str, str) -> None
         if operator == "=":
             operator = "=="
 
@@ -22,14 +30,14 @@ class Constraint(BaseConstraint):
         self._op = self._trans_op_str[operator]
 
     @property
-    def version(self):
+    def version(self):  # type: () -> str
         return self._version
 
     @property
-    def operator(self):
+    def operator(self):  # type: () -> str
         return self._operator
 
-    def allows(self, other):
+    def allows(self, other):  # type: ("ConstraintTypes") -> bool
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
         is_other_equal_op = other.operator == "=="
@@ -50,13 +58,13 @@ class Constraint(BaseConstraint):
 
         return False
 
-    def allows_all(self, other):
+    def allows_all(self, other):  # type: ("ConstraintTypes") -> bool
         if not isinstance(other, Constraint):
             return other.is_empty()
 
         return other == self
 
-    def allows_any(self, other):
+    def allows_any(self, other):  # type: ("ConstraintTypes") -> bool
         if isinstance(other, Constraint):
             is_non_equal_op = self._operator == "!="
             is_other_non_equal_op = other.operator == "!="
@@ -66,13 +74,15 @@ class Constraint(BaseConstraint):
 
         return other.allows(self)
 
-    def difference(self, other):
+    def difference(
+        self, other
+    ):  # type: ("ConstraintTypes") -> Union[Constraint, "EmptyConstraint"]
         if other.allows(self):
             return EmptyConstraint()
 
         return self
 
-    def intersect(self, other):
+    def intersect(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
         from .multi_constraint import MultiConstraint
 
         if isinstance(other, Constraint):
@@ -92,7 +102,7 @@ class Constraint(BaseConstraint):
 
         return other.intersect(self)
 
-    def union(self, other):
+    def union(self, other):  # type: ("ConstraintTypes") -> "ConstraintTypes"
         if isinstance(other, Constraint):
             from .union_constraint import UnionConstraint
 
@@ -100,22 +110,22 @@ class Constraint(BaseConstraint):
 
         return other.union(self)
 
-    def is_any(self):
+    def is_any(self):  # type: () -> bool
         return False
 
-    def is_empty(self):
+    def is_empty(self):  # type: () -> bool
         return False
 
-    def __eq__(self, other):
+    def __eq__(self, other):  # type: (Any) -> bool
         if not isinstance(other, Constraint):
             return NotImplemented
 
         return (self.version, self.operator) == (other.version, other.operator)
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash((self._operator, self._version))
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         return "{}{}".format(
             self._operator if self._operator != "==" else "", self._version
         )

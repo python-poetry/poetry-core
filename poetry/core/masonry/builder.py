@@ -1,5 +1,15 @@
+from typing import TYPE_CHECKING
+from typing import Optional
+from typing import Union
+
+from poetry.core.utils._compat import Path
+
 from .builders.sdist import SdistBuilder
 from .builders.wheel import WheelBuilder
+
+
+if TYPE_CHECKING:
+    from poetry.core.poetry import Poetry  # noqa
 
 
 class Builder:
@@ -8,10 +18,12 @@ class Builder:
         "wheel": WheelBuilder,
     }
 
-    def __init__(self, poetry):
+    def __init__(self, poetry):  # type: ("Poetry") -> None
         self._poetry = poetry
 
-    def build(self, fmt="all"):
+    def build(
+        self, fmt, executable=None
+    ):  # type: (str, Optional[Union[str, Path]]) -> None
         if fmt in self._FORMATS:
             builders = [self._FORMATS[fmt]]
         elif fmt == "all":
@@ -20,4 +32,4 @@ class Builder:
             raise ValueError("Invalid format: {}".format(fmt))
 
         for builder in builders:
-            builder(self._poetry).build()
+            builder(self._poetry, executable=executable).build()

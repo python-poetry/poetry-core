@@ -2,6 +2,7 @@ import pytest
 
 from poetry.core.packages import Dependency
 from poetry.core.packages import Package
+from poetry.core.packages import dependency_from_pep_508
 
 
 def test_accepts():
@@ -88,6 +89,9 @@ def test_to_pep_508_in_extras():
     result = dependency.to_pep_508()
     assert result == 'Django (>=1.23,<2.0); extra == "foo"'
 
+    result = dependency.to_pep_508(with_extras=False)
+    assert result == "Django (>=1.23,<2.0)"
+
     dependency.in_extras.append("bar")
 
     result = dependency.to_pep_508()
@@ -104,6 +108,23 @@ def test_to_pep_508_in_extras():
         ") "
         'and (extra == "foo" or extra == "bar")'
     )
+
+    result = dependency.to_pep_508(with_extras=False)
+    assert result == (
+        "Django (>=1.23,<2.0); "
+        'python_version >= "2.7" and python_version < "2.8" '
+        'or python_version >= "3.6" and python_version < "4.0"'
+    )
+
+
+def test_to_pep_508_in_extras_parsed():
+    dependency = dependency_from_pep_508('foo[bar] (>=1.23,<2.0) ; extra == "baz"')
+
+    result = dependency.to_pep_508()
+    assert result == 'foo[bar] (>=1.23,<2.0); extra == "baz"'
+
+    result = dependency.to_pep_508(with_extras=False)
+    assert result == "foo[bar] (>=1.23,<2.0)"
 
 
 def test_to_pep_508_with_single_version_excluded():
@@ -176,3 +197,30 @@ def test_to_pep_508_combination():
     dependency = Dependency("foo", "~1.2,!=1.2.5")
 
     assert "foo (>=1.2,<1.3,!=1.2.5)" == dependency.to_pep_508()
+
+
+def test_complete_name():
+    assert "foo" == Dependency("foo", ">=1.2.3").complete_name
+    assert (
+        "foo[bar,baz]"
+        == Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
+    )
+
+
+@pytest.mark.parametrize(
+    "name,constraint,extras,expected",
+    [
+        ("A", ">2.7,<3.0", None, "A (>2.7,<3.0)"),
+        ("A", ">2.7,<3.0", ["x"], "A[x] (>2.7,<3.0)"),
+        ("A", ">=1.6.5,<1.8.0 || >1.8.0,<3.1.0", None, "A (>=1.6.5,!=1.8.0,<3.1.0)"),
+        (
+            "A",
+            ">=1.6.5,<1.8.0 || >1.8.0,<3.1.0",
+            ["x"],
+            "A[x] (>=1.6.5,!=1.8.0,<3.1.0)",
+        ),
+    ],
+)
+def test_dependency_string_representation(name, constraint, extras, expected):
+    dependency = Dependency(name=name, constraint=constraint, extras=extras)
+    assert str(dependency) == expected

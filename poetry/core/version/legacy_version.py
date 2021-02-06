@@ -1,37 +1,39 @@
 import re
 
+from typing import Tuple
+
 from .base import BaseVersion
 
 
 class LegacyVersion(BaseVersion):
-    def __init__(self, version):
+    def __init__(self, version):  # type: (str) -> None
         self._version = str(version)
         self._key = _legacy_cmpkey(self._version)
 
-    def __str__(self):
+    def __str__(self):  # type: () -> str
         return self._version
 
-    def __repr__(self):
+    def __repr__(self):  # type: () -> str
         return "<LegacyVersion({0})>".format(repr(str(self)))
 
     @property
-    def public(self):
+    def public(self):  # type: () -> str
         return self._version
 
     @property
-    def base_version(self):
+    def base_version(self):  # type: () -> str
         return self._version
 
     @property
-    def local(self):
+    def local(self):  # type: () -> None
         return None
 
     @property
-    def is_prerelease(self):
+    def is_prerelease(self):  # type: () -> bool
         return False
 
     @property
-    def is_postrelease(self):
+    def is_postrelease(self):  # type: () -> bool
         return False
 
 
@@ -46,7 +48,7 @@ _legacy_version_replacement_map = {
 }
 
 
-def _parse_version_parts(s):
+def _parse_version_parts(s):  # type: (str) -> str
     for part in _legacy_version_component_re.split(s):
         part = _legacy_version_replacement_map.get(part, part)
 
@@ -63,7 +65,7 @@ def _parse_version_parts(s):
     yield "*final"
 
 
-def _legacy_cmpkey(version):
+def _legacy_cmpkey(version):  # type: (str) -> Tuple[int, Tuple[str]]
     # We hardcode an epoch of -1 here. A PEP 440 version can only have a epoch
     # greater than or equal to 0. This will effectively put the LegacyVersion,
     # which uses the defacto standard originally implemented by setuptools,

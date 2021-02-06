@@ -2,11 +2,15 @@
 import logging
 import re
 import shutil
+import sys
 import tempfile
 
 from collections import defaultdict
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Set
 from typing import Union
@@ -21,7 +25,7 @@ from ..utils.package_include import PackageInclude
 
 
 if TYPE_CHECKING:
-    from poetry.core.poetry import Poetry
+    from poetry.core.poetry import Poetry  # noqa
 
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
@@ -37,16 +41,16 @@ logger = logging.getLogger(__name__)
 
 
 class Builder(object):
-    format = None
+    format = None  # type: Optional[str]
 
     def __init__(
-        self, poetry, ignore_packages_formats=False
-    ):  # type: ("Poetry", bool) -> None
+        self, poetry, ignore_packages_formats=False, executable=None
+    ):  # type: ("Poetry", bool, Optional[Union[Path, str]]) -> None
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
-        self._original_path = self._path
-        self._excluded_files = None
+        self._excluded_files = None  # type: Optional[Set[str]]
+        self._executable = Path(executable or sys.executable)
 
         packages = []
         for p in self._package.packages:
@@ -87,13 +91,17 @@ class Builder(object):
 
         self._meta = Metadata.from_package(self._package)
 
-    def build(self):
+    @property
+    def executable(self):  # type: () -> Path
+        return self._executable
+
+    def build(self):  # type: () -> None
         raise NotImplementedError()
 
     def find_excluded_files(self):  # type: () -> Set[str]
         if self._excluded_files is None:
             # Checking VCS
-            vcs = get_vcs(self._original_path)
+            vcs = get_vcs(self._path)
             if not vcs:
                 vcs_ignored_files = set()
             else:
@@ -106,7 +114,15 @@ class Builder(object):
                         Path(excluded).relative_to(self._path).as_posix()
                     )
 
-            ignored = vcs_ignored_files | explicitely_excluded
+            explicitely_included = set()
+            for inc in self._package.include:
+                included_glob = inc["path"]
+                for included in self._path.glob(str(included_glob)):
+                    explicitely_included.add(
+                        Path(included).relative_to(self._path).as_posix()
+                    )
+
+            ignored = (vcs_ignored_files | explicitely_excluded) - explicitely_included
             result = set()
             for file in ignored:
                 result.add(file)
@@ -152,7 +168,9 @@ class Builder(object):
                     if self.format in formats:
                         for current_file in file.glob("**/*"):
                             include_file = BuildIncludeFile(
-                                path=current_file, source_root=self._path
+                                path=current_file,
+                                project_root=self._path,
+                                source_root=self._path,
                             )
 
                             if not current_file.is_dir() and not self.is_excluded(
@@ -170,10 +188,12 @@ class Builder(object):
                 else:
                     source_root = self._path
 
-                include_file = BuildIncludeFile(path=file, source_root=source_root)
+                include_file = BuildIncludeFile(
+                    path=file, project_root=self._path, source_root=source_root
+                )
 
                 if self.is_excluded(
-                    include_file.relative_to_source_root()
+                    include_file.relative_to_project_root()
                 ) and isinstance(include, PackageInclude):
                     continue
 
@@ -191,13 +211,15 @@ class Builder(object):
         if self._package.build_script and not exclude_build:
             to_add.add(
                 BuildIncludeFile(
-                    path=self._package.build_script, source_root=self._path
+                    path=self._package.build_script,
+                    project_root=self._path,
+                    source_root=self._path,
                 )
             )
 
         return to_add
 
-    def get_metadata_content(self):  # type: () -> bytes
+    def get_metadata_content(self):  # type: () -> str
         content = METADATA_BASE.format(
             name=self._meta.name,
             version=self._meta.version,
@@ -253,7 +275,7 @@ class Builder(object):
 
         return content
 
-    def convert_entry_points(self):  # type: () -> dict
+    def convert_entry_points(self):  # type: () -> Dict[str, List[str]]
         result = defaultdict(list)
 
         # Scripts -> Entry points
@@ -277,7 +299,7 @@ class Builder(object):
         return dict(result)
 
     @classmethod
-    def convert_author(cls, author):  # type: (...) -> dict
+    def convert_author(cls, author):  # type: (str) -> Dict[str, str]
         m = AUTHOR_REGEX.match(author)
 
         name = m.group("name")
@@ -287,7 +309,7 @@ class Builder(object):
 
     @classmethod
     @contextmanager
-    def temporary_directory(cls, *args, **kwargs):
+    def temporary_directory(cls, *args, **kwargs):  # type: (*Any, **Any) -> None
         try:
             from tempfile import TemporaryDirectory
 
@@ -304,19 +326,30 @@ class Builder(object):
 class BuildIncludeFile:
     def __init__(
         self,
-        path,  # type: Path
-        source_root=None,  # type: Optional[Path]
+        path,  # type: Union[Path, str]
+        project_root,  # type: Union[Path, str]
+        source_root=None,  # type: Optional[Union[Path, str]]
     ):
         """
+        :param project_root: the full path of the project's root
         :param path: a full path to the file to be included
         :param source_root: the root path to resolve to
         """
         self.path = Path(path)
+        self.project_root = Path(project_root).resolve()
         self.source_root = None if not source_root else Path(source_root).resolve()
         if not self.path.is_absolute() and self.source_root:
-            self.path = (self.source_root / self.path).resolve()
+            self.path = self.source_root / self.path
         else:
+            self.path = self.path
+
+        try:
             self.path = self.path.resolve()
+        except FileNotFoundError:
+            # this is an issue in in python 3.5, since resolve uses strict=True by
+            # default, this workaround needs to be maintained till python 2.7 and
+            # python 3.5 are dropped, until we can use resolve(strict=False).
+            pass
 
     def __eq__(self, other):  # type: (Union[BuildIncludeFile, Path]) -> bool
         if hasattr(other, "path"):
@@ -326,13 +359,16 @@ class BuildIncludeFile:
     def __ne__(self, other):  # type: (Union[BuildIncludeFile, Path]) -> bool
         return not self.__eq__(other)
 
-    def __hash__(self):
+    def __hash__(self):  # type: () -> int
         return hash(self.path)
 
     def __repr__(self):  # type: () -> str
         return str(self.path)
 
-    def relative_to_source_root(self):  # type(): -> Path
+    def relative_to_project_root(self):  # type: () -> Path
+        return self.path.relative_to(self.project_root)
+
+    def relative_to_source_root(self):  # type: () -> Path
         if self.source_root is not None:
             return self.path.relative_to(self.source_root)
         return self.path

@@ -3,7 +3,10 @@ import re
 import subprocess
 
 from collections import namedtuple
+from typing import Any
+from typing import Optional
 
+from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import decode
 
 
@@ -90,7 +93,16 @@ PATTERNS = [
 
 
 class ParsedUrl:
-    def __init__(self, protocol, resource, pathname, user, port, name, rev):
+    def __init__(
+        self,
+        protocol,  # type: Optional[str]
+        resource,  # type: Optional[str]
+        pathname,  # type: Optional[str]
+        user,  # type: Optional[str]
+        port,  # type: Optional[str]
+        name,  # type: Optional[str]
+        rev,  # type: Optional[str]
+    ):
         self.protocol = protocol
         self.resource = resource
         self.pathname = pathname
@@ -100,7 +112,7 @@ class ParsedUrl:
         self.rev = rev
 
     @classmethod
-    def parse(cls, url):  # type: () -> ParsedUrl
+    def parse(cls, url):  # type: (str) -> ParsedUrl
         for pattern in PATTERNS:
             m = pattern.match(url)
             if m:
@@ -138,7 +150,7 @@ GitUrl = namedtuple("GitUrl", ["url", "revision"])
 
 
 class GitConfig:
-    def __init__(self, requires_git_presence=False):
+    def __init__(self, requires_git_presence=False):  # type: (bool) -> None
         self._config = {}
 
         try:
@@ -156,15 +168,15 @@ class GitConfig:
             if requires_git_presence:
                 raise
 
-    def get(self, key, default=None):
+    def get(self, key, default=None):  # type: (Any, Optional[Any]) -> Any
         return self._config.get(key, default)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item):  # type: (Any) -> Any
         return self._config[item]
 
 
 class Git:
-    def __init__(self, work_dir=None):
+    def __init__(self, work_dir=None):  # type: (Optional[Path]) -> None
         self._config = GitConfig(requires_git_presence=True)
         self._work_dir = work_dir
 
@@ -196,10 +208,10 @@ class Git:
     def config(self):  # type: () -> GitConfig
         return self._config
 
-    def clone(self, repository, dest):  # type: (...) -> str
+    def clone(self, repository, dest):  # type: (str, Path) -> str
         return self.run("clone", "--recurse-submodules", repository, str(dest))
 
-    def checkout(self, rev, folder=None):  # type: (...) -> str
+    def checkout(self, rev, folder=None):  # type: (str, Optional[Path]) -> str
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -216,7 +228,7 @@ class Git:
 
         return self.run(*args)
 
-    def rev_parse(self, rev, folder=None):  # type: (...) -> str
+    def rev_parse(self, rev, folder=None):  # type: (str, Optional[Path]) -> str
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -241,7 +253,7 @@ class Git:
 
         return self.run(*args)
 
-    def get_ignored_files(self, folder=None):  # type: (...) -> list
+    def get_ignored_files(self, folder=None):  # type: (Optional[Path]) -> list
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -259,7 +271,7 @@ class Git:
 
         return output.strip().split("\n")
 
-    def remote_urls(self, folder=None):  # type: (...) -> dict
+    def remote_urls(self, folder=None):  # type: (Optional[Path]) -> dict
         output = self.run(
             "config", "--get-regexp", r"remote\..*\.url", folder=folder
         ).strip()
@@ -271,12 +283,12 @@ class Git:
 
         return urls
 
-    def remote_url(self, folder=None):  # type: (...) -> str
+    def remote_url(self, folder=None):  # type: (Optional[Path]) -> str
         urls = self.remote_urls(folder=folder)
 
         return urls.get("remote.origin.url", urls[list(urls.keys())[0]])
 
-    def run(self, *args, **kwargs):  # type: (...) -> str
+    def run(self, *args, **kwargs):  # type: (*Any, **Any) -> str
         folder = kwargs.pop("folder", None)
         if folder:
             args = (

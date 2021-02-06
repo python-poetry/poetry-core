@@ -3,6 +3,11 @@ PEP-517 compliant buildsystem API
 """
 import logging
 
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+
 from poetry.core.factory import Factory
 from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import unicode
@@ -14,7 +19,9 @@ from .builders.wheel import WheelBuilder
 log = logging.getLogger(__name__)
 
 
-def get_requires_for_build_wheel(config_settings=None):
+def get_requires_for_build_wheel(
+    config_settings=None,
+):  # type: (Optional[Dict[str, Any]]) -> List[str]
     """
     Returns an additional list of requirements for building, as PEP508 strings,
     above and beyond those specified in the pyproject.toml file.
@@ -30,8 +37,10 @@ def get_requires_for_build_wheel(config_settings=None):
 get_requires_for_build_sdist = get_requires_for_build_wheel
 
 
-def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
-    poetry = Factory().create_poetry(Path(".").resolve())
+def prepare_metadata_for_build_wheel(
+    metadata_directory, config_settings=None
+):  # type: (str, Optional[Dict[str, Any]]) -> str
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
     builder = WheelBuilder(poetry)
 
     dist_info = Path(metadata_directory, builder.dist_info)
@@ -50,16 +59,20 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     return dist_info.name
 
 
-def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+def build_wheel(
+    wheel_directory, config_settings=None, metadata_directory=None
+):  # type: (str, Optional[Dict[str, Any]], Optional[str]) -> str
     """Builds a wheel, places it in wheel_directory"""
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
 
     return unicode(WheelBuilder.make_in(poetry, Path(wheel_directory)))
 
 
-def build_sdist(sdist_directory, config_settings=None):
+def build_sdist(
+    sdist_directory, config_settings=None
+):  # type: (str, Optional[Dict[str, Any]]) -> str
     """Builds an sdist, places it in sdist_directory"""
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
 
     path = SdistBuilder(poetry).build(Path(sdist_directory))
 

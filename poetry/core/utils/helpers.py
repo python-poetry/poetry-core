@@ -5,7 +5,10 @@ import stat
 import tempfile
 
 from contextlib import contextmanager
+from typing import Any
+from typing import Iterator
 from typing import List
+from typing import Union
 
 from poetry.core.utils._compat import Path
 from poetry.core.version import Version
@@ -17,7 +20,7 @@ except ImportError:
     from collections import Mapping
 
 
-_canonicalize_regex = re.compile("[-_]+")
+_canonicalize_regex = re.compile(r"[-_]+")
 
 
 def canonicalize_name(name):  # type: (str) -> str
@@ -33,18 +36,10 @@ def normalize_version(version):  # type: (str) -> str
 
 
 @contextmanager
-def temporary_directory(*args, **kwargs):
-    try:
-        from tempfile import TemporaryDirectory
-
-        with TemporaryDirectory(*args, **kwargs) as name:
-            yield name
-    except ImportError:
-        name = tempfile.mkdtemp(*args, **kwargs)
-        try:
-            yield name
-        finally:
-            shutil.rmtree(name)
+def temporary_directory(*args, **kwargs):  # type: (*Any, **Any) -> Iterator[str]
+    name = tempfile.mkdtemp(*args, **kwargs)
+    yield name
+    safe_rmtree(name)
 
 
 def parse_requires(requires):  # type: (str) -> List[str]
@@ -88,7 +83,7 @@ def parse_requires(requires):  # type: (str) -> List[str]
     return requires_dist
 
 
-def _on_rm_error(func, path, exc_info):
+def _on_rm_error(func, path, exc_info):  # type: (Any, Union[str, Path], Any) -> None
     if not os.path.exists(path):
         return
 
@@ -96,14 +91,14 @@ def _on_rm_error(func, path, exc_info):
     func(path)
 
 
-def safe_rmtree(path):
+def safe_rmtree(path):  # type: (Union[str, Path]) -> None
     if Path(path).is_symlink():
         return os.unlink(str(path))
 
     shutil.rmtree(path, onerror=_on_rm_error)
 
 
-def merge_dicts(d1, d2):
+def merge_dicts(d1, d2):  # type: (dict, dict) -> None
     for k, v in d2.items():
         if k in d1 and isinstance(d1[k], dict) and isinstance(d2[k], Mapping):
             merge_dicts(d1[k], d2[k])

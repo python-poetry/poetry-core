@@ -1,5 +1,10 @@
 import sys
 
+from typing import AnyStr
+from typing import List
+from typing import Optional
+from typing import Union
+
 import six.moves.urllib.parse as urllib_parse
 
 
@@ -34,17 +39,25 @@ else:
     shell_quote = shlex.quote
 
 if PY35:
-    from pathlib import Path
+    from pathlib import Path  # noqa
 else:
-    from pathlib2 import Path
+    from pathlib2 import Path  # noqa
 
 if not PY36:
-    from collections import OrderedDict
+    from collections import OrderedDict  # noqa
 else:
     OrderedDict = dict
 
 
-def decode(string, encodings=None):
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError  # noqa
+
+
+def decode(
+    string, encodings=None
+):  # type: (Union[AnyStr, unicode], Optional[str]) -> Union[str, bytes]
     if not PY2 and not isinstance(string, bytes):
         return string
 
@@ -62,7 +75,9 @@ def decode(string, encodings=None):
     return string.decode(encodings[0], errors="ignore")
 
 
-def encode(string, encodings=None):
+def encode(
+    string, encodings=None
+):  # type: (AnyStr, Optional[str]) -> Union[str, bytes]
     if not PY2 and isinstance(string, bytes):
         return string
 
@@ -80,7 +95,7 @@ def encode(string, encodings=None):
     return string.encode(encodings[0], errors="ignore")
 
 
-def to_str(string):
+def to_str(string):  # type: (AnyStr) -> str
     if isinstance(string, str) or not isinstance(string, (unicode, bytes)):
         return string
 
@@ -100,7 +115,7 @@ def to_str(string):
     return getattr(string, method)(encodings[0], errors="ignore")
 
 
-def list_to_shell_command(cmd):
+def list_to_shell_command(cmd):  # type: (List[str]) -> str
     executable = cmd[0]
 
     if " " in executable:

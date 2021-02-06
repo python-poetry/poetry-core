@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import pytest
 
 from poetry.core.factory import Factory
-from poetry.core.pyproject import PyProjectTOMLFile
+from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import PY2
 from poetry.core.utils._compat import Path
 
@@ -49,7 +49,7 @@ def test_create_poetry():
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
     assert pendulum.allows_prereleases()
-    assert pendulum.develop
+    assert not pendulum.develop
 
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
@@ -65,7 +65,7 @@ def test_create_poetry():
     assert not requests.is_vcs()
     assert not requests.allows_prereleases()
     assert requests.is_optional()
-    assert requests.extras == ["security"]
+    assert requests.extras == frozenset({"security"})
 
     pathlib2 = dependencies["pathlib2"]
     assert pathlib2.pretty_constraint == "^2.2"
@@ -157,14 +157,14 @@ def test_create_poetry_with_multi_constraints_dependency():
 
 
 def test_validate():
-    complete = PyProjectTOMLFile(fixtures_dir / "complete.toml")
+    complete = TOMLFile(fixtures_dir / "complete.toml")
     content = complete.read()["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
 def test_validate_fails():
-    complete = PyProjectTOMLFile(fixtures_dir / "complete.toml")
+    complete = TOMLFile(fixtures_dir / "complete.toml")
     content = complete.read()["tool"]["poetry"]
     content["this key is not in the schema"] = ""
 
@@ -199,3 +199,21 @@ The Poetry configuration is invalid:
   - 'description' is a required property
 """
     assert expected == str(e.value)
+
+
+def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_dev=False)
+    assert not any(r for r in poetry.package.dev_requires if "pytest" in str(r))
+
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project")
+    assert any(r for r in poetry.package.dev_requires if "pytest" in str(r))
+
+
+def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true():
+    with pytest.raises(ValueError) as err:
+        Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
+    assert "does not exist" in str(err.value)
+
+    Factory().create_poetry(
+        fixtures_dir / "project_with_invalid_dev_deps", with_dev=False
+    )
