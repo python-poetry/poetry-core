@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
-import re
+import regex as re
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
