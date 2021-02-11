@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-import re
+import regex as re
 import shutil
 import sys
 import tempfile
