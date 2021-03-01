@@ -258,6 +258,12 @@ class WheelBuilder(Builder):
         return "{}-{}.dist-info".format(escaped_name, escaped_version)
 
     @property
+    def dist_info_glob(self) -> str:
+        escaped_name = escape_name(self._package.name)
+
+        return "{}-*.dist-info".format(escaped_name)
+
+    @property
     def tag(self) -> str:
         if self._package.build_script:
             tag = next(sys_tags())
