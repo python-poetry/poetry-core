@@ -1,11 +1,7 @@
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Optional
 from typing import Union
-
-from poetry.core.utils._compat import Path
-
-from .builders.sdist import SdistBuilder
-from .builders.wheel import WheelBuilder
 
 
 if TYPE_CHECKING:
@@ -13,21 +9,22 @@ if TYPE_CHECKING:
 
 
 class Builder:
-    _FORMATS = {
-        "sdist": SdistBuilder,
-        "wheel": WheelBuilder,
-    }
+    def __init__(self, poetry: "Poetry") -> None:
+        from .builders.sdist import SdistBuilder
+        from .builders.wheel import WheelBuilder
 
-    def __init__(self, poetry):  # type: ("Poetry") -> None
         self._poetry = poetry
 
-    def build(
-        self, fmt, executable=None
-    ):  # type: (str, Optional[Union[str, Path]]) -> None
-        if fmt in self._FORMATS:
-            builders = [self._FORMATS[fmt]]
+        self._formats = {
+            "sdist": SdistBuilder,
+            "wheel": WheelBuilder,
+        }
+
+    def build(self, fmt: str, executable: Optional[Union[str, Path]] = None) -> None:
+        if fmt in self._formats:
+            builders = [self._formats[fmt]]
         elif fmt == "all":
-            builders = self._FORMATS.values()
+            builders = self._formats.values()
         else:
             raise ValueError("Invalid format: {}".format(fmt))
 

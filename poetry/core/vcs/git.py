@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
 import re
 import subprocess
 
 from collections import namedtuple
+from pathlib import Path
 from typing import Any
 from typing import Optional
-
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
 
 
 pattern_formats = {
@@ -95,13 +92,13 @@ PATTERNS = [
 class ParsedUrl:
     def __init__(
         self,
-        protocol,  # type: Optional[str]
-        resource,  # type: Optional[str]
-        pathname,  # type: Optional[str]
-        user,  # type: Optional[str]
-        port,  # type: Optional[str]
-        name,  # type: Optional[str]
-        rev,  # type: Optional[str]
+        protocol: Optional[str],
+        resource: Optional[str],
+        pathname: Optional[str],
+        user: Optional[str],
+        port: Optional[str],
+        name: Optional[str],
+        rev: Optional[str],
     ):
         self.protocol = protocol
         self.resource = resource
@@ -112,7 +109,7 @@ class ParsedUrl:
         self.rev = rev
 
     @classmethod
-    def parse(cls, url):  # type: (str) -> ParsedUrl
+    def parse(cls, url: str) -> "ParsedUrl":
         for pattern in PATTERNS:
             m = pattern.match(url)
             if m:
@@ -130,7 +127,7 @@ class ParsedUrl:
         raise ValueError('Invalid git url "{}"'.format(url))
 
     @property
-    def url(self):  # type: () -> str
+    def url(self) -> str:
         return "{}{}{}{}{}".format(
             "{}://".format(self.protocol) if self.protocol else "",
             "{}@".format(self.user) if self.user else "",
@@ -139,10 +136,10 @@ class ParsedUrl:
             "/" + self.pathname.lstrip(":/"),
         )
 
-    def format(self):  # type: () -> str
+    def format(self) -> str:
         return self.url
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return self.format()
 
 
@@ -150,15 +147,13 @@ GitUrl = namedtuple("GitUrl", ["url", "revision"])
 
 
 class GitConfig:
-    def __init__(self, requires_git_presence=False):  # type: (bool) -> None
+    def __init__(self, requires_git_presence: bool = False) -> None:
         self._config = {}
 
         try:
-            config_list = decode(
-                subprocess.check_output(
-                    ["git", "config", "-l"], stderr=subprocess.STDOUT
-                )
-            )
+            config_list = subprocess.check_output(
+                ["git", "config", "-l"], stderr=subprocess.STDOUT
+            ).decode()
 
             m = re.findall("(?ms)^([^=]+)=(.*?)$", config_list)
             if m:
@@ -168,20 +163,20 @@ class GitConfig:
             if requires_git_presence:
                 raise
 
-    def get(self, key, default=None):  # type: (Any, Optional[Any]) -> Any
+    def get(self, key: Any, default: Optional[Any] = None) -> Any:
         return self._config.get(key, default)
 
-    def __getitem__(self, item):  # type: (Any) -> Any
+    def __getitem__(self, item: Any) -> Any:
         return self._config[item]
 
 
 class Git:
-    def __init__(self, work_dir=None):  # type: (Optional[Path]) -> None
+    def __init__(self, work_dir: Optional[Path] = None) -> None:
         self._config = GitConfig(requires_git_presence=True)
         self._work_dir = work_dir
 
     @classmethod
-    def normalize_url(cls, url):  # type: (str) -> GitUrl
+    def normalize_url(cls, url: str) -> GitUrl:
         parsed = ParsedUrl.parse(url)
 
         formatted = re.sub(r"^git\+", "", url)
@@ -205,13 +200,13 @@ class Git:
         return GitUrl(re.sub(r"#[^#]*$", "", normalized), parsed.rev)
 
     @property
-    def config(self):  # type: () -> GitConfig
+    def config(self) -> GitConfig:
         return self._config
 
-    def clone(self, repository, dest):  # type: (str, Path) -> str
+    def clone(self, repository: str, dest: Path) -> str:
         return self.run("clone", "--recurse-submodules", repository, str(dest))
 
-    def checkout(self, rev, folder=None):  # type: (str, Optional[Path]) -> str
+    def checkout(self, rev: str, folder: Optional[Path] = None) -> str:
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -228,7 +223,7 @@ class Git:
 
         return self.run(*args)
 
-    def rev_parse(self, rev, folder=None):  # type: (str, Optional[Path]) -> str
+    def rev_parse(self, rev: str, folder: Optional[Path] = None) -> str:
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -253,7 +248,7 @@ class Git:
 
         return self.run(*args)
 
-    def get_ignored_files(self, folder=None):  # type: (Optional[Path]) -> list
+    def get_ignored_files(self, folder: Optional[Path] = None) -> list:
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -271,7 +266,7 @@ class Git:
 
         return output.strip().split("\n")
 
-    def remote_urls(self, folder=None):  # type: (Optional[Path]) -> dict
+    def remote_urls(self, folder: Optional[Path] = None) -> dict:
         output = self.run(
             "config", "--get-regexp", r"remote\..*\.url", folder=folder
         ).strip()
@@ -283,12 +278,12 @@ class Git:
 
         return urls
 
-    def remote_url(self, folder=None):  # type: (Optional[Path]) -> str
+    def remote_url(self, folder: Optional[Path] = None) -> str:
         urls = self.remote_urls(folder=folder)
 
         return urls.get("remote.origin.url", urls[list(urls.keys())[0]])
 
-    def run(self, *args, **kwargs):  # type: (*Any, **Any) -> str
+    def run(self, *args: Any, **kwargs: Any) -> str:
         folder = kwargs.pop("folder", None)
         if folder:
             args = (
@@ -298,6 +293,8 @@ class Git:
                 folder.as_posix(),
             ) + args
 
-        return decode(
+        return (
             subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT)
-        ).strip()
+            .decode()
+            .strip()
+        )

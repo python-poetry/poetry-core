@@ -1,13 +1,9 @@
 import sys
 
+from pathlib import Path
 
-try:
-    from pathlib import Path
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    from pathlib2 import Path
 
-__version__ = "1.0.2"
+__version__ = "1.1.0a0"
 
 __vendor_site__ = (Path(__file__).parent / "_vendor").as_posix()
 

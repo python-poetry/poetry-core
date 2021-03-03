@@ -5,12 +5,12 @@ import stat
 import tempfile
 
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 from typing import Iterator
 from typing import List
 from typing import Union
 
-from poetry.core.utils._compat import Path
 from poetry.core.version import Version
 
 
@@ -23,26 +23,26 @@ except ImportError:
 _canonicalize_regex = re.compile(r"[-_]+")
 
 
-def canonicalize_name(name):  # type: (str) -> str
+def canonicalize_name(name: str) -> str:
     return _canonicalize_regex.sub("-", name).lower()
 
 
-def module_name(name):  # type: (str) -> str
+def module_name(name: str) -> str:
     return canonicalize_name(name).replace(".", "_").replace("-", "_")
 
 
-def normalize_version(version):  # type: (str) -> str
+def normalize_version(version: str) -> str:
     return str(Version(version))
 
 
 @contextmanager
-def temporary_directory(*args, **kwargs):  # type: (*Any, **Any) -> Iterator[str]
+def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
     name = tempfile.mkdtemp(*args, **kwargs)
     yield name
     safe_rmtree(name)
 
 
-def parse_requires(requires):  # type: (str) -> List[str]
+def parse_requires(requires: str) -> List[str]:
     lines = requires.split("\n")
 
     requires_dist = []
@@ -83,7 +83,7 @@ def parse_requires(requires):  # type: (str) -> List[str]
     return requires_dist
 
 
-def _on_rm_error(func, path, exc_info):  # type: (Any, Union[str, Path], Any) -> None
+def _on_rm_error(func: Any, path: Union[str, Path], exc_info: Any) -> None:
     if not os.path.exists(path):
         return
 
@@ -91,14 +91,14 @@ def _on_rm_error(func, path, exc_info):  # type: (Any, Union[str, Path], Any) ->
     func(path)
 
 
-def safe_rmtree(path):  # type: (Union[str, Path]) -> None
+def safe_rmtree(path: Union[str, Path]) -> None:
     if Path(path).is_symlink():
         return os.unlink(str(path))
 
     shutil.rmtree(path, onerror=_on_rm_error)
 
 
-def merge_dicts(d1, d2):  # type: (dict, dict) -> None
+def merge_dicts(d1: dict, d2: dict) -> None:
     for k, v in d2.items():
         if k in d1 and isinstance(d1[k], dict) and isinstance(d2[k], Mapping):
             merge_dicts(d1[k], d2[k])

@@ -5,6 +5,7 @@ from itertools import dropwhile
 from typing import Any
 from typing import Optional
 from typing import Tuple
+from typing import Type
 from typing import Union
 
 from .base import BaseVersion
@@ -54,7 +55,7 @@ VERSION_PATTERN = re.compile(
 
 
 class Version(BaseVersion):
-    def __init__(self, version):  # type: (str) -> None
+    def __init__(self, version: str) -> None:
         # Validate the version and parse it into pieces
         match = VERSION_PATTERN.match(version)
         if not match:
@@ -82,10 +83,10 @@ class Version(BaseVersion):
             self._version.local,
         )
 
-    def __repr__(self):  # type: () -> str
+    def __repr__(self) -> str:
         return "<Version({0})>".format(repr(str(self)))
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         parts = []
 
         # Epoch
@@ -114,11 +115,11 @@ class Version(BaseVersion):
         return "".join(parts)
 
     @property
-    def public(self):  # type: () -> str
+    def public(self) -> str:
         return str(self).split("+", 1)[0]
 
     @property
-    def base_version(self):  # type: () -> str
+    def base_version(self) -> str:
         parts = []
 
         # Epoch
@@ -131,23 +132,21 @@ class Version(BaseVersion):
         return "".join(parts)
 
     @property
-    def local(self):  # type: () -> str
+    def local(self) -> str:
         version_string = str(self)
         if "+" in version_string:
             return version_string.split("+", 1)[1]
 
     @property
-    def is_prerelease(self):  # type: () -> bool
+    def is_prerelease(self) -> bool:
         return bool(self._version.dev or self._version.pre)
 
     @property
-    def is_postrelease(self):  # type: () -> bool
+    def is_postrelease(self) -> bool:
         return bool(self._version.post)
 
 
-def _parse_letter_version(
-    letter, number
-):  # type: (str, Optional[str]) -> Tuple[str, int]
+def _parse_letter_version(letter: str, number: Optional[str]) -> Tuple[str, int]:
     if letter:
         # We consider there to be an implicit 0 in a pre-release if there is
         # not a numeral associated with it.
@@ -181,7 +180,7 @@ def _parse_letter_version(
 _local_version_seperators = re.compile(r"[._-]")
 
 
-def _parse_local_version(local):  # type: (Optional[str]) -> Tuple[Union[str, int], ...]
+def _parse_local_version(local: Optional[str]) -> Tuple[Union[str, int], ...]:
     """
     Takes a string like abc.1.twelve and turns it into ("abc", 1, "twelve").
     """
@@ -193,13 +192,29 @@ def _parse_local_version(local):  # type: (Optional[str]) -> Tuple[Union[str, in
 
 
 def _cmpkey(
-    epoch,  # type: int
-    release,  # type: Optional[Tuple[int, ...]]
-    pre,  # type: Optional[Tuple[str, int]]
-    post,  # type: Optional[Tuple[str, int]]
-    dev,  # type: Optional[Tuple[str, int]]
-    local,  # type: Optional[Tuple[Union[str, int], ...]]
-):  # type: (...) -> Tuple[int, Tuple[int, ...], Union[Union[Infinity, NegativeInfinity, Tuple[str, int]], Any], Union[NegativeInfinity, Tuple[str, int]], Union[Union[Infinity, Tuple[str, int]], Any], Union[NegativeInfinity, Tuple[Union[Tuple[int, str], Tuple[NegativeInfinity, Union[str, int]]], ...]]]
+    epoch: int,
+    release: Optional[Tuple[int, ...]],
+    pre: Optional[Tuple[str, int]],
+    post: Optional[Tuple[str, int]],
+    dev: Optional[Tuple[str, int]],
+    local: Optional[Tuple[Union[str, int], ...]],
+) -> Tuple[
+    int,
+    Tuple[int, ...],
+    Union[Infinity.__class__, NegativeInfinity.__class__, Tuple[str, int], Any],
+    Union[NegativeInfinity.__class__, Tuple[str, int]],
+    Union[Infinity.__class__, Tuple[str, int], Any],
+    Union[
+        NegativeInfinity.__class__,
+        Tuple[
+            Union[
+                Tuple[int, str],
+                Tuple[Type[NegativeInfinity.__class__], Union[str, int]],
+            ],
+            ...,
+        ],
+    ],
+]:
     # When we compare a release version, we want to compare it with all of the
     # trailing zeros removed. So we'll use a reverse the list, drop all the now
     # leading zeros until we come to something non zero, then take the rest

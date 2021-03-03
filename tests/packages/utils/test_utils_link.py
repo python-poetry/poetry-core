@@ -2,7 +2,7 @@ import uuid
 
 from hashlib import sha256
 
-from poetry.core.packages import Link
+from poetry.core.packages.utils.link import Link
 
 
 def make_url(ext):

@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
+from pathlib import Path
 
 import pytest
 
-from poetry.core.packages import Package
-from poetry.core.utils._compat import Path
+from poetry.core.packages.package import Package
 
 
 def test_package_authors():

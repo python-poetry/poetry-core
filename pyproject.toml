@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.0.2"
+version = "1.1.0a0"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -30,21 +30,13 @@ exclude = [
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
 [tool.poetry.dependencies]
-python = "~2.7 || ^3.5"
+python = "^3.6"
 
 # required for compatibility
-importlib-metadata = {version = "^1.7.0", python = "~2.7 || >=3.5, <3.8"}
-pathlib2 = {version = "^2.3.5", python = "~2.7"}
-typing = {version = "^3.7.4.1", python = "~2.7"}
-
-# required by tomlkit
-enum34 = {version = "^1.1.10", python = "~2.7"}
-
-# required by tomlkit, jsonschema
-functools32 = {version = "^3.2.3-2", python = "~2.7"}
+importlib-metadata = {version = "^1.7.0", python = ">=3.5, <3.8"}
 
 [tool.poetry.dev-dependencies]
-pre-commit = "^1.10"
+pre-commit = {version = "^2.10.0", python = "^3.6.1"}
 pyrsistent = "^0.16.0"
 pytest = "^4.6"
 pytest-cov = "^2.8"
@@ -52,7 +44,8 @@ pytest-mock = "^2.0"
 tox = "^3.0"
 vendoring = {version = "^0.3", python = "~3.8"}
 pep517 = "^0.8.2"
-"backports.tempfile" = {version = "^1.0", python = "~2.7"}
+black = {version = "^20.8b1", markers = "python_version >= '3.6' and python_version < '4.0' and implementation_name != 'pypy'"}
+isort = "^5.7.0"
 
 [tool.black]
 line-length = 88
@@ -74,15 +67,13 @@ exclude = '''
 '''
 
 [tool.isort]
-line_length = 88
+profile = "black"
 force_single_line = true
 atomic = true
 include_trailing_comma = true
 lines_after_imports = 2
 lines_between_types = 1
-multi_line_output = 3
 use_parentheses = true
-not_skip = "__init__.py"
 skip_glob = ["*/setup.py", "*/poetry/core/_vendor/*"]
 filter_files = true
 

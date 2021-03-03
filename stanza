@@ -34,13 +34,19 @@ def extract_license(
         ext = sdist.suffixes[-1][1:]
         with tarfile.open(sdist, mode="r:{}".format(ext)) as tar:
             return find_and_extract_license(
-                destination, tar, tar.getmembers(), license_directories,
+                destination,
+                tar,
+                tar.getmembers(),
+                license_directories,
             )
 
     def extract_from_source_zipfile(sdist: Path) -> bool:
         with zipfile.ZipFile(sdist) as zip:
             return find_and_extract_license(
-                destination, zip, zip.infolist(), license_directories,
+                destination,
+                zip,
+                zip.infolist(),
+                license_directories,
             )
 
     if sdist.suffixes[-2] == ".tar":

@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 
@@ -56,7 +56,10 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
             "name @ file:///absolute/path",
             {"name": "name", "url": "file:///absolute/path"},
         ),
-        ("name @ file://.", {"name": "name", "url": "file://."},),
+        (
+            "name @ file://.",
+            {"name": "name", "url": "file://."},
+        ),
         (
             "name [fred,bar] @ http://foo.com ; python_version=='2.7'",
             {

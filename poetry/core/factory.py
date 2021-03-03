@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import logging
 
+from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
@@ -10,14 +12,10 @@ from typing import Optional
 from typing import Union
 from warnings import warn
 
-from .json import validate_object
-from .packages.dependency import Dependency
-from .packages.project_package import ProjectPackage
-from .poetry import Poetry
-from .pyproject import PyProjectTOML
-from .spdx import license_by_id
-from .utils._compat import Path
 
+if TYPE_CHECKING:
+    from .packages.types import DependencyTypes
+    from .poetry import Poetry
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +26,14 @@ class Factory(object):
     """
 
     def create_poetry(
-        self, cwd=None, with_dev=True
-    ):  # type: (Optional[Path], bool) -> Poetry
+        self, cwd: Optional[Path] = None, with_dev: bool = True
+    ) -> "Poetry":
+        from .packages.dependency import Dependency
+        from .packages.project_package import ProjectPackage
+        from .poetry import Poetry
+        from .pyproject.toml import PyProjectTOML
+        from .spdx.helpers import license_by_id
+
         poetry_file = self.locate(cwd)
         local_config = PyProjectTOML(path=poetry_file).poetry_config
 
@@ -164,12 +168,13 @@ class Factory(object):
     @classmethod
     def create_dependency(
         cls,
-        name,  # type: str
-        constraint,  # type: Union[str, Dict[str, Any]]
-        category="main",  # type: str
-        root_dir=None,  # type: Optional[Path]
-    ):  # type: (...) -> Dependency
+        name: str,
+        constraint: Union[str, Dict[str, Any]],
+        category: str = "main",
+        root_dir: Optional[Path] = None,
+    ) -> "DependencyTypes":
         from .packages.constraints import parse_constraint as parse_generic_constraint
+        from .packages.dependency import Dependency
         from .packages.directory_dependency import DirectoryDependency
         from .packages.file_dependency import FileDependency
         from .packages.url_dependency import URLDependency
@@ -303,12 +308,12 @@ class Factory(object):
         return dependency
 
     @classmethod
-    def validate(
-        cls, config, strict=False
-    ):  # type: (dict, bool) -> Dict[str, List[str]]
+    def validate(cls, config: dict, strict: bool = False) -> Dict[str, List[str]]:
         """
         Checks the validity of a configuration
         """
+        from .json import validate_object
+
         result = {"errors": [], "warnings": []}
         # Schema validation errors
         validation_errors = validate_object(config, "poetry-schema")
@@ -355,7 +360,7 @@ class Factory(object):
         return result
 
     @classmethod
-    def locate(cls, cwd):  # type: (Path) -> Path
+    def locate(cls, cwd: Path) -> Path:
         candidates = [Path(cwd)]
         candidates.extend(Path(cwd).parents)
 

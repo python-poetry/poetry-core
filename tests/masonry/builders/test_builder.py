@@ -1,14 +1,13 @@
-# -*- coding: utf-8 -*-
 import sys
 
 from email.parser import Parser
+from pathlib import Path
 
 import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.utils._compat import PY37
-from poetry.core.utils._compat import Path
 
 
 def test_builder_find_excluded_files(mocker):
