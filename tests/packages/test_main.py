@@ -1,9 +1,9 @@
-from poetry.core.packages import dependency_from_pep_508
+from poetry.core.packages.dependency import Dependency
 
 
 def test_dependency_from_pep_508():
     name = "requests"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == name
     assert str(dep.constraint) == "*"
@@ -11,7 +11,7 @@ def test_dependency_from_pep_508():
 
 def test_dependency_from_pep_508_with_version():
     name = "requests==2.18.0"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -19,7 +19,7 @@ def test_dependency_from_pep_508_with_version():
 
 def test_dependency_from_pep_508_with_parens():
     name = "requests (==2.18.0)"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -27,7 +27,7 @@ def test_dependency_from_pep_508_with_parens():
 
 def test_dependency_from_pep_508_with_constraint():
     name = "requests>=2.12.0,!=2.17.*,<3.0"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == ">=2.12.0,<2.17.0 || >=2.18.0,<3.0"
@@ -35,7 +35,7 @@ def test_dependency_from_pep_508_with_constraint():
 
 def test_dependency_from_pep_508_with_extras():
     name = 'requests==2.18.0; extra == "foo" or extra == "bar"'
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -45,7 +45,7 @@ def test_dependency_from_pep_508_with_extras():
 
 def test_dependency_from_pep_508_with_python_version():
     name = 'requests (==2.18.0); python_version == "2.7" or python_version == "2.6"'
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -56,7 +56,7 @@ def test_dependency_from_pep_508_with_python_version():
 
 def test_dependency_from_pep_508_with_single_python_version():
     name = 'requests (==2.18.0); python_version == "2.7"'
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -67,7 +67,7 @@ def test_dependency_from_pep_508_with_single_python_version():
 
 def test_dependency_from_pep_508_with_platform():
     name = 'requests (==2.18.0); sys_platform == "win32" or sys_platform == "darwin"'
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -83,7 +83,7 @@ def test_dependency_from_pep_508_complex():
         'and (sys_platform == "win32" or sys_platform == "darwin") '
         'and extra == "foo"'
     )
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -98,7 +98,7 @@ def test_dependency_from_pep_508_complex():
 
 def test_dependency_python_version_in():
     name = "requests (==2.18.0); python_version in '3.3 3.4 3.5'"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -108,7 +108,7 @@ def test_dependency_python_version_in():
 
 def test_dependency_python_version_in_comma():
     name = "requests (==2.18.0); python_version in '3.3, 3.4, 3.5'"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -118,7 +118,7 @@ def test_dependency_python_version_in_comma():
 
 def test_dependency_platform_in():
     name = "requests (==2.18.0); sys_platform in 'win32 darwin'"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -127,7 +127,7 @@ def test_dependency_platform_in():
 
 def test_dependency_with_extra():
     name = "requests[security] (==2.18.0)"
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -142,7 +142,7 @@ def test_dependency_from_pep_508_with_python_version_union_of_multi():
         '(python_version >= "2.7" and python_version < "2.8") '
         'or (python_version >= "3.4" and python_version < "3.5")'
     )
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -160,7 +160,7 @@ def test_dependency_from_pep_508_with_not_in_op_marker():
         '; python_version not in "3.0,3.1,3.2" and extra == "export"'
     )
 
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "jinja2"
     assert str(dep.constraint) == ">=2.7,<2.8"
@@ -174,7 +174,7 @@ def test_dependency_from_pep_508_with_not_in_op_marker():
 def test_dependency_from_pep_508_with_git_url():
     name = "django-utils @ git+ssh://git@corp-gitlab.com/corp-utils.git@1.2"
 
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert "django-utils" == dep.name
     assert dep.is_vcs()
@@ -189,7 +189,7 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
         ' ; extra == "foo;"'
     )
 
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert "poetry" == dep.name
     assert dep.is_vcs()
@@ -202,7 +202,7 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
 def test_dependency_from_pep_508_with_url():
     name = "django-utils @ https://example.com/django-utils-1.0.0.tar.gz"
 
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert "django-utils" == dep.name
     assert dep.is_url()
@@ -214,7 +214,7 @@ def test_dependency_from_pep_508_with_wheel_url():
         "example_wheel @ https://example.com/example_wheel-14.0.2-py2.py3-none-any.whl"
     )
 
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert "example-wheel" == dep.name
     assert str(dep.constraint) == "14.0.2"
@@ -226,7 +226,7 @@ def test_dependency_from_pep_508_with_python_full_version():
         '(python_version >= "2.7" and python_version < "2.8") '
         'or (python_full_version >= "3.4" and python_full_version < "3.5.4")'
     )
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
@@ -240,7 +240,7 @@ def test_dependency_from_pep_508_with_python_full_version():
 
 def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix():
     name = 'pathlib2 ; python_version == "3.4.*" or python_version < "3"'
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "pathlib2"
     assert str(dep.constraint) == "*"
@@ -249,7 +249,7 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
 
 def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde():
     name = 'pathlib2 ; python_version ~= "3.4" or python_version < "3"'
-    dep = dependency_from_pep_508(name)
+    dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "pathlib2"
     assert str(dep.constraint) == "*"

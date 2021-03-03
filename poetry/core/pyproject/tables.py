@@ -1,8 +1,8 @@
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import List
 from typing import Optional
 
-from poetry.core.utils._compat import Path
 from poetry.core.utils.helpers import canonicalize_name
 
 
@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 # TODO: Convert to dataclass once python 2.7, 3.5 is dropped
 class BuildSystem:
     def __init__(
-        self, build_backend=None, requires=None
-    ):  # type: (Optional[str], Optional[List[str]]) -> None
+        self, build_backend: Optional[str] = None, requires: Optional[List[str]] = None
+    ) -> None:
         self.build_backend = (
             build_backend
             if build_backend is not None
@@ -24,18 +24,18 @@ class BuildSystem:
         self._dependencies = None
 
     @property
-    def dependencies(self):  # type: () -> List["Dependency"]
+    def dependencies(self) -> List["Dependency"]:
         if self._dependencies is None:
             # avoid circular dependency when loading DirectoryDependency
-            from poetry.core.packages import DirectoryDependency
-            from poetry.core.packages import FileDependency
-            from poetry.core.packages import dependency_from_pep_508
+            from poetry.core.packages.dependency import Dependency
+            from poetry.core.packages.directory_dependency import DirectoryDependency
+            from poetry.core.packages.file_dependency import FileDependency
 
             self._dependencies = []
             for requirement in self.requires:
                 dependency = None
                 try:
-                    dependency = dependency_from_pep_508(requirement)
+                    dependency = Dependency.create_from_pep_508(requirement)
                 except ValueError:
                     # PEP 517 requires can be path if not PEP 508
                     path = Path(requirement)

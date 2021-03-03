@@ -3,35 +3,26 @@ import posixpath
 import re
 import sys
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Union
-
-from six.moves.urllib.parse import unquote  # noqa
-from six.moves.urllib.parse import urlsplit  # noqa
-from six.moves.urllib.request import url2pathname  # noqa
-
-from poetry.core.packages.constraints.constraint import Constraint
-from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-from poetry.core.packages.constraints.union_constraint import UnionConstraint
-from poetry.core.semver import EmptyConstraint
-from poetry.core.semver import Version
-from poetry.core.semver import VersionConstraint
-from poetry.core.semver import VersionRange
-from poetry.core.semver import VersionUnion
-from poetry.core.semver import parse_constraint
-from poetry.core.utils._compat import Path
-from poetry.core.version.markers import BaseMarker
-from poetry.core.version.markers import MarkerUnion
-from poetry.core.version.markers import MultiMarker
-from poetry.core.version.markers import SingleMarker
+from urllib.parse import unquote
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint  # noqa
-    from poetry.core.semver import VersionTypes  # noqa
+    from poetry.core.semver.helpers import VersionTypes  # noqa
+    from poetry.core.semver.version import Version  # noqa
+    from poetry.core.semver.version_constraint import VersionConstraint  # noqa
+    from poetry.core.semver.version_range import VersionRange  # noqa
+    from poetry.core.semver.version_union import VersionUnion  # noqa
+    from poetry.core.version.markers import BaseMarker  # noqa
+
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
 XZ_EXTENSIONS = (".tar.xz", ".txz", ".tlz", ".tar.lz", ".tar.lzma")
@@ -56,7 +47,7 @@ except ImportError:
     pass
 
 
-def path_to_url(path):  # type: (Union[str, Path]) -> str
+def path_to_url(path: Union[str, Path]) -> str:
     """
     Convert a path to a file: URL.  The path will be made absolute unless otherwise
     specified and have quoted path parts.
@@ -64,7 +55,7 @@ def path_to_url(path):  # type: (Union[str, Path]) -> str
     return Path(path).absolute().as_uri()
 
 
-def url_to_path(url):  # type: (str) -> Path
+def url_to_path(url: str) -> Path:
     """
     Convert an RFC8089 file URI to path.
 
@@ -90,7 +81,7 @@ def url_to_path(url):  # type: (str) -> Path
     return Path(url2pathname(netloc + unquote(path)))
 
 
-def is_url(name):  # type: (str) -> bool
+def is_url(name: str) -> bool:
     if ":" not in name:
         return False
     scheme = name.split(":", 1)[0].lower()
@@ -110,7 +101,7 @@ def is_url(name):  # type: (str) -> bool
     ]
 
 
-def strip_extras(path):  # type: (str) -> Tuple[str, str]
+def strip_extras(path: str) -> Tuple[str, str]:
     m = re.match(r"^(.+)(\[[^\]]+\])$", path)
     extras = None
     if m:
@@ -122,7 +113,7 @@ def strip_extras(path):  # type: (str) -> Tuple[str, str]
     return path_no_extras, extras
 
 
-def is_installable_dir(path):  # type: (str) -> bool
+def is_installable_dir(path: str) -> bool:
     """Return True if `path` is a directory containing a setup.py file."""
     if not os.path.isdir(path):
         return False
@@ -132,7 +123,7 @@ def is_installable_dir(path):  # type: (str) -> bool
     return False
 
 
-def is_archive_file(name):  # type: (str) -> bool
+def is_archive_file(name: str) -> bool:
     """Return True if `name` is a considered as an archive file."""
     ext = splitext(name)[1].lower()
     if ext in ARCHIVE_EXTENSIONS:
@@ -140,7 +131,7 @@ def is_archive_file(name):  # type: (str) -> bool
     return False
 
 
-def splitext(path):  # type: (str) -> Tuple[str, str]
+def splitext(path: str) -> Tuple[str, str]:
     """Like os.path.splitext, but take off .tar too"""
     base, ext = posixpath.splitext(path)
     if base.lower().endswith(".tar"):
@@ -150,8 +141,12 @@ def splitext(path):  # type: (str) -> Tuple[str, str]
 
 
 def group_markers(
-    markers, or_=False
-):  # type: (List[BaseMarker], bool) -> List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]]
+    markers: List["BaseMarker"], or_: bool = False
+) -> List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]]:
+    from poetry.core.version.markers import MarkerUnion
+    from poetry.core.version.markers import MultiMarker
+    from poetry.core.version.markers import SingleMarker
+
     groups = [[]]
 
     for marker in markers:
@@ -170,14 +165,15 @@ def group_markers(
     return groups
 
 
-def convert_markers(marker):  # type: (BaseMarker) -> Dict[str, List[Tuple[str, str]]]
+def convert_markers(marker: "BaseMarker") -> Dict[str, List[Tuple[str, str]]]:
     groups = group_markers([marker])
 
     requirements = {}
 
     def _group(
-        _groups, or_=False
-    ):  # type: (List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]], bool) -> None
+        _groups: List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]],
+        or_: bool = False,
+    ) -> None:
         ors = {}
         for group in _groups:
             if isinstance(group, list):
@@ -210,8 +206,15 @@ def convert_markers(marker):  # type: (BaseMarker) -> Dict[str, List[Tuple[str, 
 
 
 def create_nested_marker(
-    name, constraint
-):  # type: (str, Union["BaseConstraint", VersionUnion, Version, VersionConstraint]) -> str
+    name: str,
+    constraint: Union["BaseConstraint", "VersionUnion", "Version", "VersionConstraint"],
+) -> str:
+    from poetry.core.packages.constraints.constraint import Constraint
+    from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+    from poetry.core.packages.constraints.union_constraint import UnionConstraint
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_union import VersionUnion
+
     if constraint.is_any():
         return ""
 
@@ -278,7 +281,14 @@ def create_nested_marker(
     return marker
 
 
-def get_python_constraint_from_marker(marker,):  # type: (BaseMarker) -> "VersionTypes"
+def get_python_constraint_from_marker(
+    marker: "BaseMarker",
+) -> "VersionTypes":
+    from poetry.core.semver.empty_constraint import EmptyConstraint
+    from poetry.core.semver.helpers import parse_constraint
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range import VersionRange  # noqa
+
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():
         return VersionRange()

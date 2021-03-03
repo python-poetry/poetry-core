@@ -1,12 +1,12 @@
 import sys
 
+from pathlib import Path
 from typing import Callable
 
 import pytest
 import virtualenv
 
 from poetry.core.factory import Factory
-from poetry.core.utils._compat import Path
 from tests.testutils import tempfile
 
 

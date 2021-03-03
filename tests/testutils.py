@@ -4,6 +4,7 @@ import tarfile
 import zipfile
 
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 from typing import ContextManager
 from typing import Dict
@@ -11,7 +12,6 @@ from typing import List
 from typing import Optional
 
 from poetry.core.toml import TOMLFile
-from poetry.core.utils._compat import Path
 
 
 try:

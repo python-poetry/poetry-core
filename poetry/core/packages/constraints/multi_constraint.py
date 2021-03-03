@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class MultiConstraint(BaseConstraint):
-    def __init__(self, *constraints):  # type: (*Constraint) -> None
+    def __init__(self, *constraints: Constraint) -> None:
         if any(c.operator == "==" for c in constraints):
             raise ValueError(
                 "A multi-constraint can only be comprised of negative constraints"
@@ -20,17 +20,17 @@ class MultiConstraint(BaseConstraint):
         self._constraints = constraints
 
     @property
-    def constraints(self):  # type: () -> Tuple[Constraint]
+    def constraints(self) -> Tuple[Constraint]:
         return self._constraints
 
-    def allows(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows(self, other: "ConstraintTypes") -> bool:
         for constraint in self._constraints:
             if not constraint.allows(other):
                 return False
 
         return True
 
-    def allows_all(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_all(self, other: "ConstraintTypes") -> bool:
         if other.is_any():
             return False
 
@@ -53,7 +53,7 @@ class MultiConstraint(BaseConstraint):
 
         return their_constraint is None
 
-    def allows_any(self, other):  # type: ("ConstraintTypes") -> bool
+    def allows_any(self, other: "ConstraintTypes") -> bool:
         if other.is_any():
             return True
 
@@ -71,7 +71,7 @@ class MultiConstraint(BaseConstraint):
 
         return False
 
-    def intersect(self, other):  # type: (Constraint) -> MultiConstraint
+    def intersect(self, other: Constraint) -> "MultiConstraint":
         if isinstance(other, Constraint):
             constraints = self._constraints
             if other not in constraints:
@@ -84,7 +84,7 @@ class MultiConstraint(BaseConstraint):
 
             return MultiConstraint(*constraints)
 
-    def __eq__(self, other):  # type: (Any) -> bool
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, MultiConstraint):
             return False
 
@@ -92,7 +92,7 @@ class MultiConstraint(BaseConstraint):
             self._constraints, key=lambda c: (c.operator, c.version)
         ) == sorted(other.constraints, key=lambda c: (c.operator, c.version))
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         constraints = []
         for constraint in self._constraints:
             constraints.append(str(constraint))

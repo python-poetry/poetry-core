@@ -2,7 +2,6 @@ import pytest
 
 from poetry.core.exceptions import PoetryCoreException
 from poetry.core.toml import TOMLFile
-from poetry.core.utils._compat import decode
 
 
 def test_old_pyproject_toml_file_deprecation(
@@ -19,7 +18,7 @@ def test_old_pyproject_toml_file_deprecation(
 
 def test_pyproject_toml_file_invalid(pyproject_toml):
     with pyproject_toml.open(mode="a") as f:
-        f.write(decode("<<<<<<<<<<<"))
+        f.write("<<<<<<<<<<<")
 
     with pytest.raises(PoetryCoreException) as excval:
         _ = TOMLFile(pyproject_toml).read()

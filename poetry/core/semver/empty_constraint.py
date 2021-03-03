@@ -9,29 +9,29 @@ if TYPE_CHECKING:
 
 
 class EmptyConstraint(VersionConstraint):
-    def is_empty(self):  # type: () -> bool
+    def is_empty(self) -> bool:
         return True
 
-    def is_any(self):  # type: () -> bool
+    def is_any(self) -> bool:
         return False
 
-    def allows(self, version):  # type: ("Version") -> bool
+    def allows(self, version: "Version") -> bool:
         return False
 
-    def allows_all(self, other):  # type: ("VersionTypes") -> bool
+    def allows_all(self, other: "VersionTypes") -> bool:
         return other.is_empty()
 
-    def allows_any(self, other):  # type: ("VersionTypes") -> bool
+    def allows_any(self, other: "VersionTypes") -> bool:
         return False
 
-    def intersect(self, other):  # type: ("VersionTypes") -> EmptyConstraint
+    def intersect(self, other: "VersionTypes") -> "EmptyConstraint":
         return self
 
-    def union(self, other):  # type: ("VersionTypes") -> "VersionTypes"
+    def union(self, other: "VersionTypes") -> "VersionTypes":
         return other
 
-    def difference(self, other):  # type: ("VersionTypes") -> EmptyConstraint
+    def difference(self, other: "VersionTypes") -> "EmptyConstraint":
         return self
 
-    def __str__(self):  # type: () -> str
+    def __str__(self) -> str:
         return "<empty>"

@@ -1,22 +1,23 @@
 import os
 import subprocess
 
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
+from pathlib import Path
 
 from .git import Git
 
 
-def get_vcs(directory):  # type: (Path) -> Git
+def get_vcs(directory: Path) -> Git:
     working_dir = Path.cwd()
     os.chdir(str(directory.resolve()))
 
     try:
-        git_dir = decode(
+        git_dir = (
             subprocess.check_output(
                 ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.STDOUT
             )
-        ).strip()
+            .decode()
+            .strip()
+        )
 
         vcs = Git(Path(git_dir))
 
