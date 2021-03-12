@@ -42,7 +42,7 @@ pytest = "^4.6"
 pytest-cov = "^2.8"
 pytest-mock = "^2.0"
 tox = "^3.0"
-vendoring = {version = "^0.3", python = "~3.8"}
+vendoring = {version = "^0.3", python = "^3.8"}
 pep517 = "^0.8.2"
 black = {version = "^20.8b1", markers = "python_version >= '3.6' and python_version < '4.0' and implementation_name != 'pypy'"}
 isort = "^5.7.0"
