@@ -136,6 +136,7 @@ class Version(BaseVersion):
         version_string = str(self)
         if "+" in version_string:
             return version_string.split("+", 1)[1]
+        return version_string
 
     @property
     def is_prerelease(self) -> bool:
@@ -146,7 +147,9 @@ class Version(BaseVersion):
         return bool(self._version.post)
 
 
-def _parse_letter_version(letter: str, number: Optional[str]) -> Tuple[str, int]:
+def _parse_letter_version(
+    letter: str, number: Optional[str]
+) -> Optional[Tuple[str, int]]:
     if letter:
         # We consider there to be an implicit 0 in a pre-release if there is
         # not a numeral associated with it.
@@ -176,6 +179,8 @@ def _parse_letter_version(letter: str, number: Optional[str]) -> Tuple[str, int]
 
         return letter, int(number)
 
+    return None
+
 
 _local_version_seperators = re.compile(r"[._-]")
 
@@ -184,11 +189,13 @@ def _parse_local_version(local: Optional[str]) -> Tuple[Union[str, int], ...]:
     """
     Takes a string like abc.1.twelve and turns it into ("abc", 1, "twelve").
     """
-    if local is not None:
-        return tuple(
-            part.lower() if not part.isdigit() else int(part)
-            for part in _local_version_seperators.split(local)
-        )
+    if local is None:
+        return None
+
+    return tuple(
+        part.lower() if not part.isdigit() else int(part)
+        for part in _local_version_seperators.split(local)
+    )
 
 
 def _cmpkey(

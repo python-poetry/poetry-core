@@ -300,11 +300,11 @@ class Version(VersionRange):
 
     def _normalize_prerelease(self, pre: str) -> Optional[str]:
         if not pre:
-            return
+            return None
 
         m = re.match(r"(?i)^(a|alpha|b|beta|c|pre|rc|dev)[-.]?(\d+)?$", pre)
         if not m:
-            return
+            return None
 
         modifier = m.group(1)
         number = m.group(2)
@@ -325,13 +325,13 @@ class Version(VersionRange):
 
     def _normalize_build(self, build: str) -> Optional[str]:
         if not build:
-            return
+            return None
 
         if build.startswith("post"):
             build = build.lstrip("post")
 
         if not build:
-            return
+            return None
 
         return build
 
