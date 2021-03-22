@@ -1,5 +1,6 @@
 import ast
 import gzip
+import hashlib
 import shutil
 import tarfile
 
@@ -250,6 +251,24 @@ def test_package():
         assert "my-package-1.2.3/LICENSE" in tar.getnames()
 
 
+def test_sdist_reproducibility():
+    poetry = Factory().create_poetry(project("complete"))
+
+    hashes = set()
+
+    for _ in range(2):
+        builder = SdistBuilder(poetry)
+        builder.build()
+
+        sdist = fixtures_dir / "complete" / "dist" / "my-package-1.2.3.tar.gz"
+
+        assert sdist.exists()
+
+        hashes.add(hashlib.sha256(sdist.read_bytes()).hexdigest())
+
+    assert len(hashes) == 1
+
+
 def test_setup_py_context():
     poetry = Factory().create_poetry(project("complete"))
 
@@ -438,6 +457,13 @@ def test_default_with_excluded_data(mocker):
         assert "my-package-1.2.3/PKG-INFO" in names
         # all last modified times should be set to a valid timestamp
         for tarinfo in tar.getmembers():
+            if tarinfo.name in [
+                "my-package-1.2.3/setup.py",
+                "my-package-1.2.3/PKG-INFO",
+            ]:
+                # generated files have timestamp set to 0
+                assert 0 == tarinfo.mtime
+                continue
             assert 0 < tarinfo.mtime
 
 

@@ -2,7 +2,6 @@ import logging
 import os
 import re
 import tarfile
-import time
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -97,14 +96,16 @@ class SdistBuilder(Builder):
                 setup = self.build_setup()
                 tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
                 tar_info.size = len(setup)
-                tar_info.mtime = time.time()
+                tar_info.mtime = 0
+                tar_info = self.clean_tarinfo(tar_info)
                 tar.addfile(tar_info, BytesIO(setup))
 
             pkg_info = self.build_pkg_info()
 
             tar_info = tarfile.TarInfo(pjoin(tar_dir, "PKG-INFO"))
             tar_info.size = len(pkg_info)
-            tar_info.mtime = time.time()
+            tar_info.mtime = 0
+            tar_info = self.clean_tarinfo(tar_info)
             tar.addfile(tar_info, BytesIO(pkg_info))
         finally:
             tar.close()
