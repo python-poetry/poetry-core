@@ -40,26 +40,51 @@ def test_parse_invalid(input):
         Version.parse(input)
 
 
-def test_comparison():
-    versions = [
-        "1.0.0-alpha",
-        "1.0.0-alpha.1",
-        "1.0.0-beta.2",
-        "1.0.0-beta.11",
-        "1.0.0-rc.1",
-        "1.0.0-rc.1+build.1",
-        "1.0.0",
-        "1.0.0+0.3.7",
-        "1.3.7+build",
-        "1.3.7+build.2.b8f12d7",
-        "1.3.7+build.11.e0f985a",
-        "2.0.0",
-        "2.1.0",
-        "2.2.0",
-        "2.11.0",
-        "2.11.1",
-    ]
-
+@pytest.mark.parametrize(
+    "versions",
+    [
+        [
+            "1.0.0-alpha",
+            "1.0.0-alpha.1",
+            "1.0.0-beta.2",
+            "1.0.0-beta.11",
+            "1.0.0-rc.1",
+            "1.0.0-rc.1+build.1",
+            "1.0.0",
+            "1.0.0+0.3.7",
+            "1.3.7+build",
+            "1.3.7+build.2.b8f12d7",
+            "1.3.7+build.11.e0f985a",
+            "2.0.0",
+            "2.1.0",
+            "2.2.0",
+            "2.11.0",
+            "2.11.1",
+        ],
+        # PEP 440 example comparisons
+        [
+            "1.0.dev456",
+            "1.0a1",
+            "1.0a2.dev456",
+            "1.0a12.dev456",
+            "1.0a12",
+            "1.0b1.dev456",
+            "1.0b2",
+            "1.0b2.post345.dev456",
+            "1.0b2.post345",
+            "1.0rc1.dev456",
+            "1.0rc1",
+            "1.0",
+            "1.0+abc.5",
+            "1.0+abc.7",
+            "1.0+5",
+            "1.0.post456.dev34",
+            "1.0.post456",
+            "1.1.dev1",
+        ],
+    ],
+)
+def test_comparison(versions):
     for i in range(len(versions)):
         for j in range(len(versions)):
             a = Version.parse(versions[i])
