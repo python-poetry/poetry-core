@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .constraints import BaseConstraint  # noqa
 
 from .dependency import Dependency
+from .utils.utils import path_to_url
 
 
 class DirectoryDependency(Dependency):
@@ -121,7 +122,8 @@ class DirectoryDependency(Dependency):
         if self.extras:
             requirement += "[{}]".format(",".join(self.extras))
 
-        requirement += " @ {}".format(self._path.as_posix())
+        path = path_to_url(self.path) if self.path.is_absolute() else self.path
+        requirement += " @ {}".format(path)
 
         return requirement
 
