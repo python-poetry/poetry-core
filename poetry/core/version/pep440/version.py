@@ -5,6 +5,9 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ALPHA
+from poetry.core.version.pep440.segments import RELEASE_PHASE_DEV
+from poetry.core.version.pep440.segments import RELEASE_PHASE_POST
 from poetry.core.version.pep440.segments import LocalSegmentType
 from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
@@ -32,8 +35,12 @@ class PEP440Version:
     def __post_init__(self):
         if self.local is not None and not isinstance(self.local, tuple):
             object.__setattr__(self, "local", (self.local,))
-        if not self.text:
-            object.__setattr__(self, "text", self.to_string())
+
+        # we do this here to handle both None and tomlkit string values
+        object.__setattr__(
+            self, "text", self.to_string() if not self.text else str(self.text)
+        )
+
         object.__setattr__(self, "_compare_key", self._make_compare_key())
 
     def _make_compare_key(self):
@@ -121,26 +128,66 @@ class PEP440Version:
 
         return parse_pep440(value, cls)
 
-    def is_pre_release(self) -> bool:
+    def is_prerelease(self) -> bool:
         return self.pre is not None
 
-    def is_post_release(self) -> bool:
+    def is_postrelease(self) -> bool:
         return self.post is not None
 
-    def is_developmental_release(self) -> bool:
+    def is_devrelease(self) -> bool:
         return self.dev is not None
 
     def is_no_suffix_release(self) -> bool:
         return not (self.pre or self.post or self.dev)
 
-    def is_stable_release(self) -> bool:
-        return not (self.is_pre_release() or self.is_developmental_release())
+    def is_unstable(self) -> bool:
+        return self.is_prerelease() or self.is_devrelease()
+
+    def is_stable(self) -> bool:
+        return not self.is_unstable()
 
     def next_major(self) -> "PEP440Version":
-        return self.__class__(release=self.release.next_major())
+        release = self.release
+        if self.is_stable() or Release(self.release.major, 0, 0) < self.release:
+            release = self.release.next_major()
+        return self.__class__(release=release)
 
     def next_minor(self) -> "PEP440Version":
-        return self.__class__(release=self.release.next_minor())
+        release = self.release
+        if (
+            self.is_stable()
+            or Release(self.release.major, self.release.minor, 0) < self.release
+        ):
+            release = self.release.next_minor()
+        return self.__class__(release=release)
 
     def next_patch(self) -> "PEP440Version":
-        return self.__class__(release=self.release.next_patch())
+        return self.__class__(
+            release=self.release.next_patch() if self.is_stable() else self.release
+        )
+
+    def next_prerelease(self, next_phase: bool = False) -> "PEP440Version":
+        if self.is_prerelease():
+            pre = self.pre.next_phase() if next_phase else self.pre.next()
+        else:
+            pre = ReleaseTag(RELEASE_PHASE_ALPHA)
+        return self.__class__(release=self.release, pre=pre)
+
+    def next_postrelease(self) -> "PEP440Version":
+        if self.is_prerelease():
+            post = self.post.next()
+        else:
+            post = ReleaseTag(RELEASE_PHASE_POST)
+        return self.__class__(
+            release=self.release, pre=self.pre, dev=self.dev, post=post
+        )
+
+    def next_devrelease(self) -> "PEP440Version":
+        if self.is_prerelease():
+            dev = self.dev.next()
+        else:
+            dev = ReleaseTag(RELEASE_PHASE_DEV)
+        return self.__class__(release=self.release, pre=self.pre, dev=dev)
+
+    def first_prerelease(self) -> "PEP440Version":
+        return self.__class__(release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA))

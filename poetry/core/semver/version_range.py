@@ -27,13 +27,9 @@ class VersionRange(VersionRangeConstraint):
             not always_include_max_prerelease
             and not include_max
             and full_max is not None
-            and not full_max.is_pre_release()
-            and not full_max.is_post_release()
-            and (
-                min is None
-                or not min.is_pre_release()
-                or min.release != full_max.release
-            )
+            and full_max.is_stable()
+            and not full_max.is_postrelease()
+            and (min is None or min.is_stable() or min.release != full_max.release)
         ):
             full_max = full_max.first_pre_release()
 
