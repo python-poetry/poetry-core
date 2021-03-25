@@ -31,7 +31,7 @@ class Version(PEP440Version, VersionRangeConstraint):
 
     @property
     def stable(self) -> "Version":
-        if self.is_stable_release():
+        if self.is_stable():
             return self
 
         return self.next_patch()
