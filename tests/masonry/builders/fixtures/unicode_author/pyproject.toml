@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "unicode-author"
+version = "0.1"
+description = "Some description."
+authors = [
+    "ஜூலீஎன் மலர் ஆதாம் <user@example.com>"
+]
+
+readme = "README.rst"
+
+
+[tool.poetry.dependencies]
+python = "3.6"

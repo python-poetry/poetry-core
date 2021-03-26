@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "unicode-email"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Julien Malard Adam <ஜூலீஎன்.மலர்_அதாம்@உதாரணம்.இந்தியா>"
+]
+
+readme = "README.rst"
+
+
+[tool.poetry.dependencies]
+python = "3.6"

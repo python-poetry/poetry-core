@@ -123,6 +123,24 @@ def test_metadata_homepage_default():
 
     assert metadata["Home-page"] is None
 
+def test_unicode_author_name():
+    builder = Builder(
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "unicode_author")
+    )
+
+    metadata = Parser().parsestr(builder.get_metadata_content())
+
+    assert metadata["author"] == "ஜூலீஎன் மலர் ஆதாம்"
+
+
+def test_unicode_author_email():
+    builder = Builder(
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "unicode_email")
+    )
+
+    metadata = Parser().parsestr(builder.get_metadata_content())
+
+    assert metadata["author-email"] == "ஜூலீஎன்.மலர்_அதாம்@உதாரணம்.இந்தியா"
 
 def test_metadata_with_vcs_dependencies():
     builder = Builder(
