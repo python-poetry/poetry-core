@@ -1,5 +1,4 @@
 import copy
-import regex as re
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
@@ -7,6 +6,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
+
+import regex as re
 
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
