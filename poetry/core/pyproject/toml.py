@@ -6,11 +6,12 @@ from typing import Union
 
 
 if TYPE_CHECKING:
+    from tomlkit.container import Container
+    from tomlkit.items import Item
     from tomlkit.toml_document import TOMLDocument
 
+    from poetry.core.pyproject.tables import BuildSystem
     from poetry.core.toml import TOMLFile
-
-    from .tables import BuildSystem
 
 
 class PyProjectTOML:
@@ -20,7 +21,6 @@ class PyProjectTOML:
         self._file = TOMLFile(path=path)
         self._data: Optional["TOMLDocument"] = None
         self._build_system: Optional["BuildSystem"] = None
-        self._poetry_config: Optional["TOMLDocument"] = None
 
     @property
     def file(self) -> "TOMLFile":
@@ -40,7 +40,7 @@ class PyProjectTOML:
 
     @property
     def build_system(self) -> "BuildSystem":
-        from .tables import BuildSystem
+        from poetry.core.pyproject.tables import BuildSystem
 
         if self._build_system is None:
             build_backend = None
@@ -59,17 +59,17 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Optional["TOMLDocument"]:
-        from .exceptions import PyProjectException
+    def poetry_config(self) -> Optional[Union["Item", "Container"]]:
+        from tomlkit.exceptions import NonExistentKey
 
-        if self._poetry_config is None:
-            self._poetry_config = self.data.get("tool", {}).get("poetry")
-            if self._poetry_config is None:
-                raise PyProjectException(
-                    "[tool.poetry] section not found in {}".format(self._file)
-                )
+        try:
+            return self.data["tool"]["poetry"]
+        except NonExistentKey as e:
+            from poetry.core.pyproject.exceptions import PyProjectException
 
-        return self._poetry_config
+            raise PyProjectException(
+                "[tool.poetry] section not found in {}".format(self._file)
+            ) from e
 
     def is_poetry_project(self) -> bool:
         from .exceptions import PyProjectException
@@ -91,9 +91,6 @@ class PyProjectTOML:
 
         data = self.data
 
-        if self._poetry_config is not None:
-            data["tool"]["poetry"] = self._poetry_config
-
         if self._build_system is not None:
             if "build-system" not in data:
                 data["build-system"] = Container()
@@ -106,4 +103,3 @@ class PyProjectTOML:
     def reload(self) -> None:
         self._data = None
         self._build_system = None
-        self._poetry_config = None
