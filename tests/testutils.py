@@ -12,6 +12,7 @@ from typing import List
 from typing import Optional
 
 from poetry.core.toml import TOMLFile
+from poetry.core.utils._compat import PY37
 
 
 try:
@@ -60,8 +61,9 @@ def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.Completed
     """
     Helper method to run a subprocess. Asserts for success.
     """
+    compat_kwargs = {"text" if PY37 else "universal_newlines": True}
     result = subprocess.run(
-        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+        args, **compat_kwargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
     )
     assert result.returncode == 0
     return result
