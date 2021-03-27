@@ -150,7 +150,7 @@ class PEP440Version:
         release = self.release
         if self.is_stable() or Release(self.release.major, 0, 0) < self.release:
             release = self.release.next_major()
-        return self.__class__(release=release)
+        return self.__class__(epoch=self.epoch, release=release)
 
     def next_minor(self) -> "PEP440Version":
         release = self.release
@@ -159,11 +159,12 @@ class PEP440Version:
             or Release(self.release.major, self.release.minor, 0) < self.release
         ):
             release = self.release.next_minor()
-        return self.__class__(release=release)
+        return self.__class__(epoch=self.epoch, release=release)
 
     def next_patch(self) -> "PEP440Version":
         return self.__class__(
-            release=self.release.next_patch() if self.is_stable() else self.release
+            epoch=self.epoch,
+            release=self.release.next_patch() if self.is_stable() else self.release,
         )
 
     def next_prerelease(self, next_phase: bool = False) -> "PEP440Version":
@@ -171,7 +172,7 @@ class PEP440Version:
             pre = self.pre.next_phase() if next_phase else self.pre.next()
         else:
             pre = ReleaseTag(RELEASE_PHASE_ALPHA)
-        return self.__class__(release=self.release, pre=pre)
+        return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
 
     def next_postrelease(self) -> "PEP440Version":
         if self.is_prerelease():
@@ -179,7 +180,11 @@ class PEP440Version:
         else:
             post = ReleaseTag(RELEASE_PHASE_POST)
         return self.__class__(
-            release=self.release, pre=self.pre, dev=self.dev, post=post
+            epoch=self.epoch,
+            release=self.release,
+            pre=self.pre,
+            dev=self.dev,
+            post=post,
         )
 
     def next_devrelease(self) -> "PEP440Version":
@@ -187,7 +192,11 @@ class PEP440Version:
             dev = self.dev.next()
         else:
             dev = ReleaseTag(RELEASE_PHASE_DEV)
-        return self.__class__(release=self.release, pre=self.pre, dev=dev)
+        return self.__class__(
+            epoch=self.epoch, release=self.release, pre=self.pre, dev=dev
+        )
 
     def first_prerelease(self) -> "PEP440Version":
-        return self.__class__(release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA))
+        return self.__class__(
+            epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
+        )
