@@ -38,6 +38,7 @@ class Package(PackageSpecification):
         "3.7",
         "3.8",
         "3.9",
+        "3.10",
     }
 
     def __init__(
@@ -270,24 +271,45 @@ class Package(PackageSpecification):
         else:
             python_constraint = self.python_constraint
 
-        for version in sorted(self.AVAILABLE_PYTHONS):
+        python_classifier_prefix = "Programming Language :: Python"
+        python_classifiers = []
+
+        # we sort python versions by sorting an int tuple of (major, minor) version
+        # to ensure we sort 3.10 after 3.9
+        for version in sorted(
+            self.AVAILABLE_PYTHONS, key=lambda x: tuple(map(int, x.split(".")))
+        ):
             if len(version) == 1:
                 constraint = parse_constraint(version + ".*")
             else:
                 constraint = Version.parse(version)
 
             if python_constraint.allows_any(constraint):
-                classifiers.append(
-                    "Programming Language :: Python :: {}".format(version)
-                )
+                classifier = "{} :: {}".format(python_classifier_prefix, version)
+                if classifier not in python_classifiers:
+                    python_classifiers.append(classifier)
 
         # Automatically set license classifiers
         if self.license:
             classifiers.append(self.license.classifier)
 
-        classifiers = set(classifiers)
+        # Sort classifiers and insert python classifiers at the right location. We do
+        # it like this so that 3.10 is sorted after 3.9.
+        sorted_classifiers = []
+        python_classifiers_inserted = False
+        for classifier in sorted(set(classifiers)):
+            if (
+                not python_classifiers_inserted
+                and classifier > python_classifier_prefix
+            ):
+                sorted_classifiers.extend(python_classifiers)
+                python_classifiers_inserted = True
+            sorted_classifiers.append(classifier)
 
-        return sorted(classifiers)
+        if not python_classifiers_inserted:
+            sorted_classifiers.extend(python_classifiers)
+
+        return sorted_classifiers
 
     @property
     def urls(self) -> Dict[str, str]:
