@@ -595,9 +595,9 @@ def test_sdist_package_pep_561_stub_only():
 
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
-        assert "pep-561-stubs-0.1/pkg-stubs/__init__.pyi" in names
-        assert "pep-561-stubs-0.1/pkg-stubs/module.pyi" in names
-        assert "pep-561-stubs-0.1/pkg-stubs/subpkg/__init__.pyi" in names
+        assert "pep-561-stubs-0.1/pep_561-stubs/__init__.pyi" in names
+        assert "pep-561-stubs-0.1/pep_561-stubs/module.pyi" in names
+        assert "pep-561-stubs-0.1/pep_561-stubs/subpkg/__init__.pyi" in names
 
 
 def test_sdist_disable_setup_py():

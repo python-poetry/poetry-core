@@ -7,7 +7,7 @@ authors = [
 ]
 license = "MIT"
 packages = [
-    {include = "pkg-stubs"}
+    {include = "pep_561-stubs"}
 ]
 
 [tool.poetry.dependencies]

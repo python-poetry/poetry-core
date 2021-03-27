@@ -27,7 +27,11 @@ class Module:
         from poetry.core.masonry.utils.package_include import PackageInclude
         from poetry.core.utils.helpers import module_name
 
-        self._name = module_name(name)
+        if name.endswith("-stubs"):
+            self._name = f"{module_name(name.replace('-stubs', ''))}-stubs"
+        else:
+            self._name = module_name(name)
+
         self._in_src = False
         self._is_package = False
         self._path = Path(directory)

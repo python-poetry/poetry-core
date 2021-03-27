@@ -6,9 +6,6 @@ authors = [
     "Oleg Höfling <oleg.hoefling@gmail.com>"
 ]
 license = "MIT"
-packages = [
-    {include = "pep_561-stubs"}
-]
 
 [tool.poetry.dependencies]
 python = "^3.6"
