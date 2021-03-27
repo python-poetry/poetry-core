@@ -39,14 +39,14 @@ dataclasses = {version = "^0.8", python = "~3.6"}
 [tool.poetry.dev-dependencies]
 pre-commit = {version = "^2.10.0", python = "^3.6.1"}
 pyrsistent = "^0.16.0"
-pytest = "^4.6"
+pytest = "^6.2"
 pytest-cov = "^2.8"
-pytest-mock = "^2.0"
+pytest-mock = "^3.5"
 tox = "^3.0"
 vendoring = {version = "^0.3", python = "^3.8"}
 pep517 = "^0.8.2"
 black = {version = "^20.8b1", markers = "python_version >= '3.6' and python_version < '4.0' and implementation_name != 'pypy'"}
-isort = "^5.7.0"
+isort = "^5.8.0"
 
 [tool.black]
 line-length = 88
