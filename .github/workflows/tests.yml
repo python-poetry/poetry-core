@@ -37,10 +37,7 @@ jobs:
 
       - name: Install poetry
         shell: bash
-        run: |
-          curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          python get-poetry.py --preview -y
-          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+        run: pip install poetry
 
       - name: Configure poetry
         shell: bash
