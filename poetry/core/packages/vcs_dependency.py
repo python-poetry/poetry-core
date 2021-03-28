@@ -34,8 +34,8 @@ class VCSDependency(Dependency):
         self._source = source
 
         if not any([branch, tag, rev]):
-            # If nothing has been specified, we assume nothing and use default branch
-            branch = ""
+            # If nothing has been specified, we assume master
+            branch = "master"
 
         self._branch = branch
         self._tag = tag
@@ -107,12 +107,6 @@ class VCSDependency(Dependency):
         if self.extras:
             requirement += "[{}]".format(",".join(self.extras))
 
-        if self.branch == "":
-            if parsed_url.protocol is not None:
-                requirement += " @ {}+{}".format(self._vcs, self._source)
-            else:
-                requirement += " @ {}+ssh://{}".format(self._vcs, parsed_url.format())
-            return requirement
         if parsed_url.protocol is not None:
             requirement += " @ {}+{}@{}".format(self._vcs, self._source, self.reference)
         else:
