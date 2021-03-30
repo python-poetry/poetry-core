@@ -34,10 +34,10 @@ def test_parse_valid(text, version):
     assert parsed.text == text
 
 
-@pytest.mark.parametrize("input", [(None, "example")])
-def test_parse_invalid(input):
+@pytest.mark.parametrize("value", [None, "example"])
+def test_parse_invalid(value):
     with pytest.raises(InvalidVersion):
-        Version.parse(input)
+        Version.parse(value)
 
 
 @pytest.mark.parametrize(
