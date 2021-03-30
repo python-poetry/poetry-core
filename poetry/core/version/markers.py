@@ -7,7 +7,8 @@ from typing import Iterator
 from typing import List
 from typing import Union
 
-from .grammars.parser import PARSER_PEP_508_MARKERS
+from .grammars import GRAMMAR_PEP_508_MARKERS
+from .parser import Parser
 
 
 if TYPE_CHECKING:
@@ -49,7 +50,8 @@ ALIASES = {
 }
 
 
-_parser = PARSER_PEP_508_MARKERS
+# Parser: PEP 508 Environment Markers
+_parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
 
 class BaseMarker(object):
