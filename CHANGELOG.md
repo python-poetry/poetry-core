@@ -1,5 +1,30 @@
 # Change Log
 
+## [1.1.0a1] - 2021-03-30
+
+This version is the first to drop support for Python 2.7 and 3.5.
+
+If you are still using these versions you should update the `requires` property of the `build-system` section
+to restrict the version of `poetry-core`:
+
+```toml
+[build-system]
+requires = ["poetry-core<1.1.0"]
+build-backend = "poetry.core.masonry.api"
+```
+
+### Changed
+
+- Dropped support for Python 2.7 and 3.5 ([#131](https://github.com/python-poetry/poetry-core/pull/131)).
+- Reorganized imports internally to improve performances ([#131](https://github.com/python-poetry/poetry-core/pull/131)).
+- Directory dependencies are now in non-develop mode by default ([#98](https://github.com/python-poetry/poetry-core/pull/98)).
+- Improved support for PEP 440 specific versions that do not abide by semantic versioning ([#140](https://github.com/python-poetry/poetry-core/pull/140)).
+
+### Fixed
+
+- Fixed path dependencies PEP 508 representation ([#141](https://github.com/python-poetry/poetry-core/pull/141)).
+
+
 ## [1.0.2] - 2021-02-05
 
 ### Fixed
@@ -139,7 +164,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.2...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a1...master
+[1.1.0a1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a1
 [1.0.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.2
 [1.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.1
 [1.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0
