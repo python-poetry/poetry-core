@@ -3,8 +3,9 @@ import urllib.parse as urlparse
 from poetry.core.semver.exceptions import ParseConstraintError
 from poetry.core.semver.helpers import parse_constraint
 
-from .grammars.parser import PARSER_PEP_508_CONSTRAINTS
+from .grammars import GRAMMAR_PEP_508_CONSTRAINTS
 from .markers import _compact_markers
+from .parser import Parser
 
 
 class InvalidRequirement(ValueError):
@@ -13,7 +14,8 @@ class InvalidRequirement(ValueError):
     """
 
 
-_parser = PARSER_PEP_508_CONSTRAINTS
+# Parser: PEP 508 Constraints
+_parser = Parser(GRAMMAR_PEP_508_CONSTRAINTS, "lalr")
 
 
 class Requirement(object):

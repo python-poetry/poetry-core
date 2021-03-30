@@ -7,13 +7,18 @@ from lark import LarkError
 from lark import Transformer
 
 from poetry.core.version.exceptions import InvalidVersion
-from poetry.core.version.grammars.parser import PARSER_PEP_440
+from poetry.core.version.grammars import GRAMMAR_PEP_440
+from poetry.core.version.parser import Parser
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440 import ReleaseTag
 
 
 if TYPE_CHECKING:
     from poetry.core.version.pep440.version import PEP440Version
+
+# Parser: PEP 440
+# we use earley because the grammar is ambiguous
+PARSER_PEP_440 = Parser(GRAMMAR_PEP_440, "earley", False)
 
 
 class _Transformer(Transformer):
