@@ -36,6 +36,9 @@ class PEP440Version:
         if self.local is not None and not isinstance(self.local, tuple):
             object.__setattr__(self, "local", (self.local,))
 
+        if isinstance(self.release, tuple):
+            object.__setattr__(self, "release", Release(*self.release))
+
         # we do this here to handle both None and tomlkit string values
         object.__setattr__(
             self, "text", self.to_string() if not self.text else str(self.text)
