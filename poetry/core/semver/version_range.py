@@ -74,10 +74,20 @@ class VersionRange(VersionRangeConstraint):
                 return False
 
         if self.full_max is not None:
-            if other > self.full_max:
+            _this, _other = self.full_max, other
+
+            if not _this.is_local() and _other.is_local():
+                # allow weak equality to allow `3.0.0+local.1` for `<=3.0.0`
+                _other = _other.without_local()
+
+            if not _this.is_postrelease() and _other.is_postrelease():
+                # allow weak equality to allow `3.0.0-1` for `<=3.0.0`
+                _other = _other.without_postrelease()
+
+            if _other > _this:
                 return False
 
-            if not self._include_max and other == self.full_max:
+            if not self._include_max and _other == _this:
                 return False
 
         return True

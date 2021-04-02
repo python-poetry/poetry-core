@@ -75,7 +75,135 @@ def v300b1():
     return Version.parse("3.0.0b1")
 
 
-def test_allows_all(v003, v010, v080, v114, v123, v124, v140, v200, v234, v250, v300):
+@pytest.mark.parametrize(
+    "base,other",
+    [
+        pytest.param(Version.parse("3.0.0"), Version.parse("3.0.0-1"), id="post"),
+        pytest.param(
+            Version.parse("3.0.0"), Version.parse("3.0.0+local.1"), id="local"
+        ),
+    ],
+)
+def test_allows_post_releases_with_max(base, other):
+    range = VersionRange(max=base, include_max=True)
+    assert range.allows(other)
+
+
+@pytest.mark.parametrize(
+    "base,other",
+    [
+        pytest.param(Version.parse("3.0.0"), Version.parse("3.0.0-1"), id="post"),
+        pytest.param(
+            Version.parse("3.0.0"), Version.parse("3.0.0+local.1"), id="local"
+        ),
+    ],
+)
+def test_allows_post_releases_with_min(base, other):
+    range = VersionRange(min=base, include_min=True)
+    assert range.allows(other)
+
+
+def test_allows_post_releases_with_post_and_local_min():
+    one = Version.parse("3.0.0+local.1")
+    two = Version.parse("3.0.0-1")
+    three = Version.parse("3.0.0-1+local.1")
+    four = Version.parse("3.0.0+local.2")
+
+    assert VersionRange(min=one, include_min=True).allows(two)
+    assert VersionRange(min=one, include_min=True).allows(three)
+    assert VersionRange(min=one, include_min=True).allows(four)
+
+    assert not VersionRange(min=two, include_min=True).allows(one)
+    assert VersionRange(min=two, include_min=True).allows(three)
+    assert not VersionRange(min=two, include_min=True).allows(four)
+
+    assert not VersionRange(min=three, include_min=True).allows(one)
+    assert not VersionRange(min=three, include_min=True).allows(two)
+    assert not VersionRange(min=three, include_min=True).allows(four)
+
+    assert not VersionRange(min=four, include_min=True).allows(one)
+    assert VersionRange(min=four, include_min=True).allows(two)
+    assert VersionRange(min=four, include_min=True).allows(three)
+
+
+def test_allows_post_releases_with_post_and_local_max():
+    one = Version.parse("3.0.0+local.1")
+    two = Version.parse("3.0.0-1")
+    three = Version.parse("3.0.0-1+local.1")
+    four = Version.parse("3.0.0+local.2")
+
+    assert VersionRange(max=one, include_max=True).allows(two)
+    assert VersionRange(max=one, include_max=True).allows(three)
+    assert not VersionRange(max=one, include_max=True).allows(four)
+
+    assert VersionRange(max=two, include_max=True).allows(one)
+    assert VersionRange(max=two, include_max=True).allows(three)
+    assert VersionRange(max=two, include_max=True).allows(four)
+
+    assert VersionRange(max=three, include_max=True).allows(one)
+    assert VersionRange(max=three, include_max=True).allows(two)
+    assert VersionRange(max=three, include_max=True).allows(four)
+
+    assert VersionRange(max=four, include_max=True).allows(one)
+    assert VersionRange(max=four, include_max=True).allows(two)
+    assert VersionRange(max=four, include_max=True).allows(three)
+
+
+@pytest.mark.parametrize(
+    "base,one,two",
+    [
+        pytest.param(
+            Version.parse("3.0.0"),
+            Version.parse("3.0.0-1"),
+            Version.parse("3.0.0-2"),
+            id="post",
+        ),
+        pytest.param(
+            Version.parse("3.0.0"),
+            Version.parse("3.0.0+local.1"),
+            Version.parse("3.0.0+local.2"),
+            id="local",
+        ),
+    ],
+)
+def test_allows_post_releases_explicit_with_max(base, one, two):
+    range = VersionRange(max=one, include_max=True)
+    assert range.allows(base)
+    assert not range.allows(two)
+
+    range = VersionRange(max=two, include_max=True)
+    assert range.allows(base)
+    assert range.allows(one)
+
+
+@pytest.mark.parametrize(
+    "base,one,two",
+    [
+        pytest.param(
+            Version.parse("3.0.0"),
+            Version.parse("3.0.0-1"),
+            Version.parse("3.0.0-2"),
+            id="post",
+        ),
+        pytest.param(
+            Version.parse("3.0.0"),
+            Version.parse("3.0.0+local.1"),
+            Version.parse("3.0.0+local.2"),
+            id="local",
+        ),
+    ],
+)
+def test_allows_post_releases_explicit_with_min(base, one, two):
+    range = VersionRange(min=one, include_min=True)
+    assert not range.allows(base)
+    assert range.allows(two)
+
+    range = VersionRange(min=two, include_min=True)
+    assert not range.allows(base)
+    assert not range.allows(one)
+
+
+def test_allows_all(v123, v124, v140, v250, v300):
     assert VersionRange(v123, v250).allows_all(EmptyConstraint())
 
     range = VersionRange(v123, v250, include_max=True)
@@ -84,7 +212,8 @@ def test_allows_all(v003, v010, v080, v114, v123, v124, v140, v200, v234, v250, 
     assert range.allows_all(v250)
     assert not range.allows_all(v300)
 
-    # with no min
+
+def test_allows_all_with_no_min(v080, v140, v250, v300):
     range = VersionRange(max=v250)
     assert range.allows_all(VersionRange(v080, v140))
     assert not range.allows_all(VersionRange(v080, v300))
@@ -93,7 +222,8 @@ def test_allows_all(v003, v010, v080, v114, v123, v124, v140, v200, v234, v250, 
     assert range.allows_all(range)
     assert not range.allows_all(VersionRange())
 
-    # with no max
+
+def test_allows_all_with_no_max(v003, v010, v080, v140):
     range = VersionRange(min=v010)
     assert range.allows_all(VersionRange(v080, v140))
     assert not range.allows_all(VersionRange(v003, v140))
@@ -102,6 +232,8 @@ def test_allows_all(v003, v010, v080, v114, v123, v124, v140, v200, v234, v250, 
     assert range.allows_all(range)
     assert not range.allows_all(VersionRange())
 
+
+def test_allows_all_bordering_range_not_more_inclusive(v010, v250):
     # Allows bordering range that is not more inclusive
     exclusive = VersionRange(v010, v250)
     inclusive = VersionRange(v010, v250, True, True)
@@ -110,6 +242,8 @@ def test_allows_all(v003, v010, v080, v114, v123, v124, v140, v200, v234, v250, 
     assert not exclusive.allows_all(inclusive)
     assert exclusive.allows_all(exclusive)
 
+
+def test_allows_all_contained_unions(v010, v114, v123, v124, v140, v200, v234):
     # Allows unions that are completely contained
     range = VersionRange(v114, v200)
     assert range.allows_all(VersionRange(v123, v124).union(v140))
