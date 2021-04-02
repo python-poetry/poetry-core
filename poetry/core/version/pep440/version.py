@@ -36,6 +36,9 @@ class PEP440Version:
         if self.local is not None and not isinstance(self.local, tuple):
             object.__setattr__(self, "local", (self.local,))
 
+        if isinstance(self.release, tuple):
+            object.__setattr__(self, "release", Release(*self.release))
+
         # we do this here to handle both None and tomlkit string values
         object.__setattr__(
             self, "text", self.to_string() if not self.text else str(self.text)
@@ -137,6 +140,9 @@ class PEP440Version:
     def is_devrelease(self) -> bool:
         return self.dev is not None
 
+    def is_local(self) -> bool:
+        return self.local is not None
+
     def is_no_suffix_release(self) -> bool:
         return not (self.pre or self.post or self.dev)
 
@@ -200,3 +206,21 @@ class PEP440Version:
         return self.__class__(
             epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
         )
+
+    def replace(self, **kwargs):
+        return self.__class__(
+            **{
+                **{
+                    k: getattr(self, k)
+                    for k in self.__dataclass_fields__.keys()
+                    if k not in ("_compare_key", "text")
+                },  # setup defaults with current values, excluding compare keys and text
+                **kwargs,  # keys to replace
+            }
+        )
+
+    def without_local(self) -> "PEP440Version":
+        return self.replace(local=None)
+
+    def without_postrelease(self) -> "PEP440Version":
+        return self.replace(post=None)
