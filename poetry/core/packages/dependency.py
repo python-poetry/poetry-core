@@ -276,6 +276,7 @@ class Dependency(PackageSpecification):
     def _create_nested_marker(
         self, name: str, constraint: Union["BaseConstraint", "VersionTypes"]
     ) -> str:
+        from poetry.core.semver.empty_constraint import EmptyConstraint
         from poetry.core.semver.version import Version
         from poetry.core.semver.version_union import VersionUnion
 
@@ -318,6 +319,8 @@ class Dependency(PackageSpecification):
                 name = "python_full_version"
 
             marker = '{} == "{}"'.format(name, constraint.text)
+        elif isinstance(constraint, EmptyConstraint):
+            marker = ""
         else:
             if constraint.min is not None:
                 min_name = name

@@ -272,3 +272,12 @@ def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correc
         str(dep.marker)
         == 'platform_python_implementation != "PyPy" and python_version <= "3.10" and python_version > "3"'
     )
+
+
+def test_dependency_from_pep_508_with_invalid_python_version_constraint():
+    name = 'some-dependency ; python_version >= "3.6" and python_version <= "3.4"'
+    dep = Dependency.create_from_pep_508(name)
+
+    assert dep.name == "some-dependency"
+    assert str(dep.constraint) == "*"
+    assert dep.python_versions == "*"
