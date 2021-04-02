@@ -409,7 +409,6 @@ class Dependency(PackageSpecification):
         path is specified, this is used as the base directory if the identified dependency is
         of file or directory type.
         """
-        from poetry.core.semver.version import Version
         from poetry.core.utils.patterns import wheel_file_re
         from poetry.core.vcs.git import ParsedUrl
         from poetry.core.version.requirements import Requirement
@@ -546,22 +545,6 @@ class Dependency(PackageSpecification):
                         op = ""
                     elif op == "!=":
                         version += ".*"
-                    elif op in ("<=", ">"):
-                        parsed_version = Version.parse(version)
-                        if parsed_version.precision == 1:
-                            if op == "<=":
-                                op = "<"
-                                version = parsed_version.next_major().text
-                            elif op == ">":
-                                op = ">="
-                                version = parsed_version.next_major().text
-                        elif parsed_version.precision == 2:
-                            if op == "<=":
-                                op = "<"
-                                version = parsed_version.next_minor().text
-                            elif op == ">":
-                                op = ">="
-                                version = parsed_version.next_minor().text
                     elif op in ("in", "not in"):
                         versions = []
                         for v in re.split("[ ,]+", version):
