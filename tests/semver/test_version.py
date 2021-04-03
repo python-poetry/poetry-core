@@ -113,7 +113,29 @@ def test_allows():
     assert not v.allows(Version.parse("1.3.3"))
     assert not v.allows(Version.parse("1.2.4"))
     assert not v.allows(Version.parse("1.2.3-dev"))
-    assert not v.allows(Version.parse("1.2.3+build"))
+    assert v.allows(Version.parse("1.2.3+build"))
+    assert v.allows(Version.parse("1.2.3-1"))
+    assert v.allows(Version.parse("1.2.3-1+build"))
+
+
+def test_allows_with_local():
+    v = Version.parse("1.2.3+build.1")
+    assert v.allows(v)
+    assert not v.allows(Version.parse("1.3.3"))
+    assert not v.allows(Version.parse("1.2.3-dev"))
+    assert not v.allows(Version.parse("1.2.3+build.2"))
+    assert v.allows(Version.parse("1.2.3-1"))
+    assert v.allows(Version.parse("1.2.3-1+build.1"))
+
+
+def test_allows_with_post():
+    v = Version.parse("1.2.3-1")
+    assert v.allows(v)
+    assert not v.allows(Version.parse("1.2.3"))
+    assert not v.allows(Version.parse("2.2.3"))
+    assert not v.allows(Version.parse("1.2.3-dev"))
+    assert not v.allows(Version.parse("1.2.3+build.2"))
+    assert v.allows(Version.parse("1.2.3-1+build.1"))
 
 
 def test_allows_all():
