@@ -80,10 +80,29 @@ class Version(PEP440Version, VersionRangeConstraint):
         return False
 
     def allows(self, version: "Version") -> bool:
-        return self == version
+        if version is None:
+            return False
+
+        _this, _other = self, version
+
+        # allow weak equality to allow `3.0.0+local.1` for `3.0.0`
+        if not _this.is_local() and _other.is_local():
+            _other = _other.without_local()
+        elif _this.is_local() and not _other.is_local():
+            _this = _this.without_local()
+
+        # allow weak equality to allow `3.0.0-1` for `3.0.0`
+        if not _this.is_postrelease() and _other.is_postrelease():
+            _other = _other.without_postrelease()
+        elif _this.without_postrelease() and not _other.without_postrelease():
+            _this = _this.without_postrelease()
+
+        return _this == _other
 
     def allows_all(self, other: "VersionTypes") -> bool:
-        return other.is_empty() or other == self
+        return other.is_empty() or (
+            self.allows(other) if isinstance(other, self.__class__) else other == self
+        )
 
     def allows_any(self, other: "VersionTypes") -> bool:
         return other.allows(self)
@@ -101,7 +120,7 @@ class Version(PEP440Version, VersionRangeConstraint):
             return other
 
         if isinstance(other, VersionRangeConstraint):
-            if other.min == self:
+            if self.allows(other.min):
                 return VersionRange(
                     other.min,
                     other.max,
@@ -109,7 +128,7 @@ class Version(PEP440Version, VersionRangeConstraint):
                     include_max=other.include_max,
                 )
 
-            if other.max == self:
+            if self.allows(other.max):
                 return VersionRange(
                     other.min,
                     other.max,
