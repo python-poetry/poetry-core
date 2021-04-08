@@ -5,7 +5,6 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from poetry.core.semver import Version
 from poetry.core.semver import parse_constraint
 from poetry.core.utils._compat import Path
 from poetry.core.utils.patterns import wheel_file_re
@@ -178,22 +177,6 @@ def dependency_from_pep_508(
                     op = ""
                 elif op == "!=":
                     version += ".*"
-                elif op in ("<=", ">"):
-                    parsed_version = Version.parse(version)
-                    if parsed_version.precision == 1:
-                        if op == "<=":
-                            op = "<"
-                            version = parsed_version.next_major.text
-                        elif op == ">":
-                            op = ">="
-                            version = parsed_version.next_major.text
-                    elif parsed_version.precision == 2:
-                        if op == "<=":
-                            op = "<"
-                            version = parsed_version.next_minor.text
-                        elif op == ">":
-                            op = ">="
-                            version = parsed_version.next_minor.text
                 elif op in ("in", "not in"):
                     versions = []
                     for v in re.split("[ ,]+", version):

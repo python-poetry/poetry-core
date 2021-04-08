@@ -1,4 +1,5 @@
 from poetry.core.packages import dependency_from_pep_508
+from poetry.core.semver.version import Version
 
 
 def test_dependency_from_pep_508():
@@ -254,3 +255,20 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.name == "pathlib2"
     assert str(dep.constraint) == "*"
     assert dep.python_versions == "~=3.4 || <3"
+
+
+def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers():
+    name = 'pytest-mypy; python_implementation != "PyPy" and python_version <= "3.10" and python_version > "3"'
+    dep = dependency_from_pep_508(name)
+
+    assert dep.name == "pytest-mypy"
+    assert str(dep.constraint) == "*"
+    assert dep.python_versions == "<=3.10 >3"
+    assert dep.python_constraint.allows(Version.parse("3.6"))
+    assert dep.python_constraint.allows(Version.parse("3.10"))
+    assert not dep.python_constraint.allows(Version.parse("3"))
+    assert dep.python_constraint.allows(Version.parse("3.0.1"))
+    assert (
+        str(dep.marker)
+        == 'platform_python_implementation != "PyPy" and python_version <= "3.10" and python_version > "3"'
+    )
