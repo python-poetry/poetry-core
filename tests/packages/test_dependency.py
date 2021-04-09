@@ -3,6 +3,7 @@ import pytest
 from poetry.core.packages import Dependency
 from poetry.core.packages import Package
 from poetry.core.packages import dependency_from_pep_508
+from poetry.core.version.markers import parse_marker
 
 
 def test_accepts():
@@ -224,3 +225,35 @@ def test_complete_name():
 def test_dependency_string_representation(name, constraint, extras, expected):
     dependency = Dependency(name=name, constraint=constraint, extras=extras)
     assert str(dependency) == expected
+
+
+def test_with_constraint():
+    dependency = Dependency(
+        "foo",
+        "^1.2.3",
+        optional=True,
+        category="dev",
+        allows_prereleases=True,
+        extras=["bar", "baz"],
+    )
+    dependency.marker = parse_marker(
+        'python_version >= "3.6" and python_version < "4.0"'
+    )
+    dependency.transitive_marker = parse_marker(
+        'python_version >= "3.7" and python_version < "4.0"'
+    )
+    dependency.python_versions = "^3.6"
+    dependency.transitive_python_versions = "^3.7"
+
+    new = dependency.with_constraint("^1.2.6")
+
+    assert new.name == dependency.name
+    assert str(new.constraint) == ">=1.2.6,<2.0.0"
+    assert new.is_optional()
+    assert new.category == "dev"
+    assert new.allows_prereleases()
+    assert set(new.extras) == {"bar", "baz"}
+    assert new.marker == dependency.marker
+    assert new.transitive_marker == dependency.transitive_marker
+    assert new.python_constraint == dependency.python_constraint
+    assert new.transitive_python_constraint == dependency.transitive_python_constraint

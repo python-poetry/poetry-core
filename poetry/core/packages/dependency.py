@@ -382,6 +382,9 @@ class Dependency(PackageSpecification):
 
         new.is_root = self.is_root
         new.python_versions = self.python_versions
+        new.transitive_python_versions = self.transitive_python_versions
+        new.marker = self.marker
+        new.transitive_marker = self.transitive_marker
 
         for in_extra in self.in_extras:
             new.in_extras.append(in_extra)
