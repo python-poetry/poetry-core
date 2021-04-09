@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.0.3] - 2021-04-09
+
+### Fixed
+
+- Fixed an error when handling single-digit Python markers ([#156](https://github.com/python-poetry/poetry-core/pull/156)).
+- Fixed dependency markers not being properly copied when changing the constraint ([#163](https://github.com/python-poetry/poetry-core/pull/163)).
+
+
 ## [1.0.2] - 2021-02-05
 
 ### Fixed
@@ -139,7 +147,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.2...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.3...master
+[1.0.3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.3
 [1.0.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.2
 [1.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.1
 [1.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.0
