@@ -82,7 +82,7 @@ class PEP440Version:
             #   match exactly
             _local = tuple(
                 # We typecast strings that are integers so that they can be compared
-                (int(i), "") if isinstance(i, int) or i.isdigit() else (-math.inf, i)
+                (int(i), "") if str(i).isnumeric() else (-math.inf, i)
                 for i in self.local
             )
         return self.epoch, self.release, _pre, _post, _dev, _local
