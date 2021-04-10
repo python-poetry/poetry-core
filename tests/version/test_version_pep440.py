@@ -150,6 +150,14 @@ def test_pep440_release_tag_next(phase):
             "1.2.3.rc1",
             PEP440Version(release=Release.from_parts(1, 2, 3), pre=ReleaseTag("rc", 1)),
         ),
+        (
+            "2.2.0dev0+build.05669607",
+            PEP440Version(
+                release=Release.from_parts(2, 2, 0),
+                dev=ReleaseTag("dev", 0),
+                local=("build", "05669607"),
+            ),
+        ),
     ],
 )
 def test_pep440_parse_text(text, result):

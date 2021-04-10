@@ -81,7 +81,9 @@ class PEP440Version:
             # - Shorter versions sort before longer versions when the prefixes
             #   match exactly
             _local = tuple(
-                (i, "") if isinstance(i, int) else (-math.inf, i) for i in self.local
+                # We typecast strings that are integers so that they can be compared
+                (int(i), "") if str(i).isnumeric() else (-math.inf, i)
+                for i in self.local
             )
         return self.epoch, self.release, _pre, _post, _dev, _local
 
