@@ -56,7 +56,7 @@ class PEP440Parser:
             return None
 
         return tuple(
-            part.lower() if not part.isdigit() else int(part)
+            part.lower() if not part.isdigit() or part.startswith("0") else int(part)
             for part in cls._local_version_separators.split(match.group("local"))
         )
 
