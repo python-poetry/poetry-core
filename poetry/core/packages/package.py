@@ -1,36 +1,32 @@
-# -*- coding: utf-8 -*-
 import copy
-import logging
 import re
 
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
+from typing import Dict
+from typing import List
+from typing import Optional
 from typing import Union
-from warnings import warn
 
-from poetry.core.semver import Version
-from poetry.core.semver import parse_constraint
-from poetry.core.spdx import License
-from poetry.core.spdx import license_by_id
-from poetry.core.utils._compat import Path
-from poetry.core.utils.helpers import canonicalize_name
-from poetry.core.version.markers import AnyMarker
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
-from .constraints import parse_constraint as parse_generic_constraint
-from .dependency import Dependency
-from .directory_dependency import DirectoryDependency
-from .file_dependency import FileDependency
-from .url_dependency import URLDependency
+from .specification import PackageSpecification
 from .utils.utils import create_nested_marker
-from .vcs_dependency import VCSDependency
 
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+)(?: <(?P<email>.+?)>)?$")
+if TYPE_CHECKING:
+    from poetry.core.semver.helpers import VersionTypes  # noqa
+    from poetry.core.semver.version import Version  # noqa
+    from poetry.core.spdx.license import License  # noqa
+    from poetry.core.version.markers import BaseMarker  # noqa
 
-logger = logging.getLogger(__name__)
+    from .types import DependencyTypes
+
+AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
 
-class Package(object):
+class Package(PackageSpecification):
 
     AVAILABLE_PYTHONS = {
         "2",
@@ -42,14 +38,35 @@ class Package(object):
         "3.7",
         "3.8",
         "3.9",
+        "3.10",
     }
 
-    def __init__(self, name, version, pretty_version=None):
+    def __init__(
+        self,
+        name: str,
+        version: Union[str, "Version"],
+        pretty_version: Optional[str] = None,
+        source_type: Optional[str] = None,
+        source_url: Optional[str] = None,
+        source_reference: Optional[str] = None,
+        source_resolved_reference: Optional[str] = None,
+        features: Optional[List[str]] = None,
+        develop: bool = False,
+    ) -> None:
         """
         Creates a new in memory package.
         """
-        self._pretty_name = name
-        self._name = canonicalize_name(name)
+        from poetry.core.semver.version import Version
+        from poetry.core.version.markers import AnyMarker
+
+        super(Package, self).__init__(
+            name,
+            source_type=source_type,
+            source_url=source_url,
+            source_reference=source_reference,
+            source_resolved_reference=source_resolved_reference,
+            features=features,
+        )
 
         if not isinstance(version, Version):
             self._version = Version.parse(version)
@@ -69,11 +86,6 @@ class Package(object):
         self.keywords = []
         self._license = None
         self.readme = None
-
-        self.source_name = ""
-        self.source_type = ""
-        self.source_reference = ""
-        self.source_url = ""
 
         self.requires = []
         self.dev_requires = []
@@ -95,78 +107,89 @@ class Package(object):
 
         self.root_dir = None
 
-        self.develop = True
+        self.develop = develop
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def pretty_name(self):
+    def pretty_name(self) -> str:
         return self._pretty_name
 
     @property
-    def version(self):
+    def version(self) -> "Version":
         return self._version
 
     @property
-    def pretty_version(self):
+    def pretty_version(self) -> str:
         return self._pretty_version
 
     @property
-    def unique_name(self):
+    def unique_name(self) -> str:
         if self.is_root():
             return self._name
 
-        return self.name + "-" + self._version.text
+        return self.complete_name + "-" + self._version.text
 
     @property
-    def pretty_string(self):
+    def pretty_string(self) -> str:
         return self.pretty_name + " " + self.pretty_version
 
     @property
-    def full_pretty_version(self):
+    def full_pretty_version(self) -> str:
         if self.source_type in ["file", "directory", "url"]:
             return "{} {}".format(self._pretty_version, self.source_url)
 
         if self.source_type not in ["hg", "git"]:
             return self._pretty_version
 
+        if self.source_resolved_reference:
+            if len(self.source_resolved_reference) == 40:
+                return "{} {}".format(
+                    self._pretty_version, self.source_resolved_reference[0:7]
+                )
+
         # if source reference is a sha1 hash -- truncate
         if len(self.source_reference) == 40:
             return "{} {}".format(self._pretty_version, self.source_reference[0:7])
 
-        return "{} {}".format(self._pretty_version, self.source_reference)
+        return "{} {}".format(
+            self._pretty_version,
+            self._source_resolved_reference or self._source_reference,
+        )
 
     @property
-    def authors(self):  # type: () -> list
+    def authors(self) -> List[str]:
         return self._authors
 
     @property
-    def author_name(self):  # type: () -> str
+    def author_name(self) -> str:
         return self._get_author()["name"]
 
     @property
-    def author_email(self):  # type: () -> str
+    def author_email(self) -> str:
         return self._get_author()["email"]
 
     @property
-    def maintainers(self):  # type: () -> list
+    def maintainers(self) -> List[str]:
         return self._maintainers
 
     @property
-    def maintainer_name(self):  # type: () -> str
+    def maintainer_name(self) -> str:
         return self._get_maintainer()["name"]
 
     @property
-    def maintainer_email(self):  # type: () -> str
+    def maintainer_email(self) -> str:
         return self._get_maintainer()["email"]
 
     @property
-    def all_requires(self):
+    def all_requires(
+        self,
+    ) -> List[Union["DependencyTypes"]]:
         return self.requires + self.dev_requires
 
-    def _get_author(self):  # type: () -> dict
+    def _get_author(self) -> Dict[str, Optional[str]]:
         if not self._authors:
             return {"name": None, "email": None}
 
@@ -183,7 +206,7 @@ class Package(object):
 
         return {"name": name, "email": email}
 
-    def _get_maintainer(self):  # type: () -> dict
+    def _get_maintainer(self) -> Dict[str, Optional[str]]:
         if not self._maintainers:
             return {"name": None, "email": None}
 
@@ -201,11 +224,11 @@ class Package(object):
         return {"name": name, "email": email}
 
     @property
-    def python_versions(self):
+    def python_versions(self) -> str:
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value):
+    def python_versions(self, value: str) -> None:
         self._python_versions = value
         self._python_constraint = parse_constraint(value)
         self._python_marker = parse_marker(
@@ -213,19 +236,22 @@ class Package(object):
         )
 
     @property
-    def python_constraint(self):
+    def python_constraint(self) -> "VersionTypes":
         return self._python_constraint
 
     @property
-    def python_marker(self):
+    def python_marker(self) -> "BaseMarker":
         return self._python_marker
 
     @property
-    def license(self):
+    def license(self) -> "License":
         return self._license
 
     @license.setter
-    def license(self, value):
+    def license(self, value: Optional[Union[str, "License"]]) -> None:
+        from poetry.core.spdx.helpers import license_by_id
+        from poetry.core.spdx.license import License  # noqa
+
         if value is None:
             self._license = value
         elif isinstance(value, License):
@@ -234,7 +260,9 @@ class Package(object):
             self._license = license_by_id(value)
 
     @property
-    def all_classifiers(self):
+    def all_classifiers(self) -> List[str]:
+        from poetry.core.semver.version import Version  # noqa
+
         classifiers = copy.copy(self.classifiers)
 
         # Automatically set python classifiers
@@ -243,27 +271,48 @@ class Package(object):
         else:
             python_constraint = self.python_constraint
 
-        for version in sorted(self.AVAILABLE_PYTHONS):
+        python_classifier_prefix = "Programming Language :: Python"
+        python_classifiers = []
+
+        # we sort python versions by sorting an int tuple of (major, minor) version
+        # to ensure we sort 3.10 after 3.9
+        for version in sorted(
+            self.AVAILABLE_PYTHONS, key=lambda x: tuple(map(int, x.split(".")))
+        ):
             if len(version) == 1:
                 constraint = parse_constraint(version + ".*")
             else:
                 constraint = Version.parse(version)
 
             if python_constraint.allows_any(constraint):
-                classifiers.append(
-                    "Programming Language :: Python :: {}".format(version)
-                )
+                classifier = "{} :: {}".format(python_classifier_prefix, version)
+                if classifier not in python_classifiers:
+                    python_classifiers.append(classifier)
 
         # Automatically set license classifiers
         if self.license:
             classifiers.append(self.license.classifier)
 
-        classifiers = set(classifiers)
+        # Sort classifiers and insert python classifiers at the right location. We do
+        # it like this so that 3.10 is sorted after 3.9.
+        sorted_classifiers = []
+        python_classifiers_inserted = False
+        for classifier in sorted(set(classifiers)):
+            if (
+                not python_classifiers_inserted
+                and classifier > python_classifier_prefix
+            ):
+                sorted_classifiers.extend(python_classifiers)
+                python_classifiers_inserted = True
+            sorted_classifiers.append(classifier)
 
-        return sorted(classifiers)
+        if not python_classifiers_inserted:
+            sorted_classifiers.extend(python_classifiers)
+
+        return sorted_classifiers
 
     @property
-    def urls(self):
+    def urls(self) -> Dict[str, str]:
         urls = {}
 
         if self.homepage:
@@ -277,150 +326,89 @@ class Package(object):
 
         return urls
 
-    def is_prerelease(self):
-        return self._version.is_prerelease()
+    def is_prerelease(self) -> bool:
+        return self._version.is_unstable()
 
-    def is_root(self):
+    def is_root(self) -> bool:
         return False
 
     def add_dependency(
         self,
-        name,  # type: str
-        constraint=None,  # type: Union[str, dict, None]
-        category="main",  # type: str
-    ):  # type: (...) -> Dependency
-        if constraint is None:
-            constraint = "*"
-
-        if isinstance(constraint, dict):
-            optional = constraint.get("optional", False)
-            python_versions = constraint.get("python")
-            platform = constraint.get("platform")
-            markers = constraint.get("markers")
-            if "allows-prereleases" in constraint:
-                message = (
-                    'The "{}" dependency specifies '
-                    'the "allows-prereleases" property, which is deprecated. '
-                    'Use "allow-prereleases" instead.'.format(name)
-                )
-                warn(message, DeprecationWarning)
-                logger.warning(message)
-
-            allows_prereleases = constraint.get(
-                "allow-prereleases", constraint.get("allows-prereleases", False)
-            )
-
-            if "git" in constraint:
-                # VCS dependency
-                dependency = VCSDependency(
-                    name,
-                    "git",
-                    constraint["git"],
-                    branch=constraint.get("branch", None),
-                    tag=constraint.get("tag", None),
-                    rev=constraint.get("rev", None),
-                    category=category,
-                    optional=optional,
-                    develop=constraint.get("develop", True),
-                )
-            elif "file" in constraint:
-                file_path = Path(constraint["file"])
-
-                dependency = FileDependency(
-                    name, file_path, category=category, base=self.root_dir
-                )
-            elif "path" in constraint:
-                path = Path(constraint["path"])
-
-                if self.root_dir:
-                    is_file = (self.root_dir / path).is_file()
-                else:
-                    is_file = path.is_file()
-
-                if is_file:
-                    dependency = FileDependency(
-                        name,
-                        path,
-                        category=category,
-                        optional=optional,
-                        base=self.root_dir,
-                    )
-                else:
-                    dependency = DirectoryDependency(
-                        name,
-                        path,
-                        category=category,
-                        optional=optional,
-                        base=self.root_dir,
-                        develop=constraint.get("develop", True),
-                    )
-            elif "url" in constraint:
-                dependency = URLDependency(
-                    name, constraint["url"], category=category, optional=optional
-                )
-            else:
-                version = constraint["version"]
-
-                dependency = Dependency(
-                    name,
-                    version,
-                    optional=optional,
-                    category=category,
-                    allows_prereleases=allows_prereleases,
-                    source_name=constraint.get("source"),
-                )
-
-            if not markers:
-                marker = AnyMarker()
-                if python_versions:
-                    dependency.python_versions = python_versions
-                    marker = marker.intersect(
-                        parse_marker(
-                            create_nested_marker(
-                                "python_version", dependency.python_constraint
-                            )
-                        )
-                    )
-
-                if platform:
-                    marker = marker.intersect(
-                        parse_marker(
-                            create_nested_marker(
-                                "sys_platform", parse_generic_constraint(platform)
-                            )
-                        )
-                    )
-            else:
-                marker = parse_marker(markers)
-
-            if not marker.is_any():
-                dependency.marker = marker
-
-            if "extras" in constraint:
-                for extra in constraint["extras"]:
-                    dependency.extras.append(extra)
-        else:
-            dependency = Dependency(name, constraint, category=category)
-
-        if category == "dev":
+        dependency: "DependencyTypes",
+    ) -> "DependencyTypes":
+        if dependency.category == "dev":
             self.dev_requires.append(dependency)
         else:
             self.requires.append(dependency)
 
         return dependency
 
-    def to_dependency(self):
-        from . import dependency_from_pep_508
+    def to_dependency(
+        self,
+    ) -> Union["DependencyTypes"]:
+        from pathlib import Path
 
-        name = "{} (=={})".format(self._name, self._version)
+        from .dependency import Dependency
+        from .directory_dependency import DirectoryDependency
+        from .file_dependency import FileDependency
+        from .url_dependency import URLDependency
+        from .vcs_dependency import VCSDependency
+
+        if self.source_type == "directory":
+            dep = DirectoryDependency(
+                self._name,
+                Path(self._source_url),
+                category=self.category,
+                optional=self.optional,
+                base=self.root_dir,
+                develop=self.develop,
+                extras=self.features,
+            )
+        elif self.source_type == "file":
+            dep = FileDependency(
+                self._name,
+                Path(self._source_url),
+                category=self.category,
+                optional=self.optional,
+                base=self.root_dir,
+                extras=self.features,
+            )
+        elif self.source_type == "url":
+            dep = URLDependency(
+                self._name,
+                self._source_url,
+                category=self.category,
+                optional=self.optional,
+                extras=self.features,
+            )
+        elif self.source_type == "git":
+            dep = VCSDependency(
+                self._name,
+                self.source_type,
+                self.source_url,
+                rev=self.source_reference,
+                resolved_rev=self.source_resolved_reference,
+                category=self.category,
+                optional=self.optional,
+                develop=self.develop,
+                extras=self.features,
+            )
+        else:
+            dep = Dependency(self._name, self._version, extras=self.features)
 
         if not self.marker.is_any():
-            name += " ; {}".format(str(self.marker))
+            dep.marker = self.marker
 
-        return dependency_from_pep_508(name)
+        if not self.python_constraint.is_any():
+            dep.python_versions = self.python_versions
+
+        if self._source_type not in ["directory", "file", "url", "git"]:
+            return dep
+
+        return dep.with_constraint(self._version)
 
     @contextmanager
-    def with_python_versions(self, python_versions):
+    def with_python_versions(self, python_versions: str) -> None:
         original_python_versions = self.python_versions
 
         self.python_versions = python_versions
@@ -429,17 +417,37 @@ class Package(object):
 
         self.python_versions = original_python_versions
 
-    def clone(self):  # type: () -> Package
-        clone = self.__class__(self.pretty_name, self.version)
+    def with_features(self, features: List[str]) -> "Package":
+        package = self.clone()
+
+        package._features = frozenset(features)
+
+        return package
+
+    def without_features(self) -> "Package":
+        return self.with_features([])
+
+    def clone(self) -> "Package":
+        if self.is_root():
+            clone = self.__class__(self.pretty_name, self.version)
+        else:
+            clone = self.__class__(
+                self.pretty_name,
+                self.version,
+                source_type=self._source_type,
+                source_url=self._source_url,
+                source_reference=self._source_reference,
+                features=list(self.features),
+            )
+
         clone.description = self.description
         clone.category = self.category
         clone.optional = self.optional
         clone.python_versions = self.python_versions
         clone.marker = self.marker
         clone.extras = self.extras
-        clone.source_type = self.source_type
-        clone.source_url = self.source_url
-        clone.source_reference = self.source_reference
+        clone.root_dir = self.root_dir
+        clone.develop = self.develop
 
         for dep in self.requires:
             clone.requires.append(dep)
@@ -449,40 +457,36 @@ class Package(object):
 
         return clone
 
-    def __hash__(self):
-        return hash((self._name, self._version))
+    def __hash__(self) -> int:
+        return super(Package, self).__hash__() ^ hash(self._version)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Package") -> bool:
         if not isinstance(other, Package):
             return NotImplemented
 
-        if self.source_type in ["file", "directory", "url", "git"]:
-            if self.source_type != other.source_type:
-                return False
+        return self.is_same_package_as(other) and self._version == other.version
 
-            if self.source_url or other.source_url:
-                if self.source_url != other.source_url:
-                    return False
+    def __str__(self) -> str:
+        return "{} ({})".format(self.complete_name, self.full_pretty_version)
 
-            if self.source_reference or other.source_reference:
-                # special handling for packages with references
-                if not self.source_reference or not other.source_reference:
-                    # case: one reference is defined and is non-empty, but other is not
-                    return False
+    def __repr__(self) -> str:
+        args = [repr(self._name), repr(self._version.text)]
 
-                if not (
-                    self.source_reference == other.source_reference
-                    or self.source_reference.startswith(other.source_reference)
-                    or other.source_reference.startswith(self.source_reference)
-                ):
-                    # case: both references defined, but one is not equal to or a short
-                    # representation of the other
-                    return False
+        if self._features:
+            args.append("features={}".format(repr(self._features)))
 
-        return self._name == other.name and self._version == other.version
+        if self._source_type:
+            args.append("source_type={}".format(repr(self._source_type)))
+            args.append("source_url={}".format(repr(self._source_url)))
 
-    def __str__(self):
-        return self.unique_name
+            if self._source_reference:
+                args.append("source_reference={}".format(repr(self._source_reference)))
 
-    def __repr__(self):
-        return "<Package {} {}>".format(self.name, self.full_pretty_version)
+            if self._source_resolved_reference:
+                args.append(
+                    "source_resolved_reference={}".format(
+                        repr(self._source_resolved_reference)
+                    )
+                )
+
+        return "Package({})".format(", ".join(args))

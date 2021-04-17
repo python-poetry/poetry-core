@@ -563,6 +563,10 @@
                 "trusted": {
                     "type": "boolean",
                     "description": "Declare this repository as trusted even though it does not have valid HTTPS, comparable to the --trusted-host argument in pip."
+                },
+                "links": {
+                    "type": "boolean",
+                    "description": "Declare this as a link source. Links at uri/path can point to sdist or bdist archives."
                 }
             }
         },

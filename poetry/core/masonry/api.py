@@ -3,9 +3,13 @@ PEP-517 compliant buildsystem API
 """
 import logging
 
+from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+
 from poetry.core.factory import Factory
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import unicode
 
 from .builders.sdist import SdistBuilder
 from .builders.wheel import WheelBuilder
@@ -14,7 +18,9 @@ from .builders.wheel import WheelBuilder
 log = logging.getLogger(__name__)
 
 
-def get_requires_for_build_wheel(config_settings=None):
+def get_requires_for_build_wheel(
+    config_settings: Optional[Dict[str, Any]] = None,
+) -> List[str]:
     """
     Returns an additional list of requirements for building, as PEP508 strings,
     above and beyond those specified in the pyproject.toml file.
@@ -30,8 +36,10 @@ def get_requires_for_build_wheel(config_settings=None):
 get_requires_for_build_sdist = get_requires_for_build_wheel
 
 
-def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
-    poetry = Factory().create_poetry(Path(".").resolve())
+def prepare_metadata_for_build_wheel(
+    metadata_directory: str, config_settings: Optional[Dict[str, Any]] = None
+) -> str:
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
     builder = WheelBuilder(poetry)
 
     dist_info = Path(metadata_directory, builder.dist_info)
@@ -50,17 +58,23 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     return dist_info.name
 
 
-def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+def build_wheel(
+    wheel_directory: str,
+    config_settings: Optional[Dict[str, Any]] = None,
+    metadata_directory: Optional[str] = None,
+) -> str:
     """Builds a wheel, places it in wheel_directory"""
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
 
-    return unicode(WheelBuilder.make_in(poetry, Path(wheel_directory)))
+    return WheelBuilder.make_in(poetry, Path(wheel_directory))
 
 
-def build_sdist(sdist_directory, config_settings=None):
+def build_sdist(
+    sdist_directory: str, config_settings: Optional[Dict[str, Any]] = None
+) -> str:
     """Builds an sdist, places it in sdist_directory"""
-    poetry = Factory().create_poetry(Path(".").resolve())
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
 
     path = SdistBuilder(poetry).build(Path(sdist_directory))
 
-    return unicode(path.name)
+    return path.name

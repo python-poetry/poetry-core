@@ -1,4 +1,4 @@
-from poetry.core.packages import URLDependency
+from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.version.markers import SingleMarker
 
 

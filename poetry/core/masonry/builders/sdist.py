@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import logging
 import os
 import re
@@ -10,21 +9,26 @@ from contextlib import contextmanager
 from copy import copy
 from gzip import GzipFile
 from io import BytesIO
+from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-from typing import Iterator
+from tarfile import TarInfo
+from typing import TYPE_CHECKING
+from typing import ContextManager
+from typing import Dict
+from typing import List
+from typing import Optional
 from typing import Set
+from typing import Tuple
 
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
-from poetry.core.utils._compat import encode
-from poetry.core.utils._compat import to_str
-
-from ..utils.helpers import normalize_file_permissions
-from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .builder import BuildIncludeFile
 
+
+if TYPE_CHECKING:
+    from poetry.core.masonry.utils.package_include import PackageInclude  # noqa
+    from poetry.core.packages import Dependency  # noqa
+    from poetry.core.packages import ProjectPackage  # noqa
 
 SETUP = """\
 # -*- coding: utf-8 -*-
@@ -55,7 +59,7 @@ class SdistBuilder(Builder):
 
     format = "sdist"
 
-    def build(self, target_dir=None):  # type: (Path) -> Path
+    def build(self, target_dir: Optional[Path] = None) -> Path:
         logger.info("Building <info>sdist</info>")
         if target_dir is None:
             target_dir = self._path / "dist"
@@ -66,7 +70,7 @@ class SdistBuilder(Builder):
         target = target_dir / "{}-{}.tar.gz".format(
             self._package.pretty_name, self._meta.version
         )
-        gz = GzipFile(target.as_posix(), mode="wb")
+        gz = GzipFile(target.as_posix(), mode="wb", mtime=0)
         tar = tarfile.TarFile(
             target.as_posix(), mode="w", fileobj=gz, format=tarfile.PAX_FORMAT
         )
@@ -109,7 +113,9 @@ class SdistBuilder(Builder):
         logger.info("Built <comment>{}</comment>".format(target.name))
         return target
 
-    def build_setup(self):  # type: () -> bytes
+    def build_setup(self) -> bytes:
+        from poetry.core.masonry.utils.package_include import PackageInclude
+
         before, extra, after = [], [], []
         package_dir = {}
 
@@ -186,25 +192,23 @@ class SdistBuilder(Builder):
 
             extra.append("'python_requires': {!r},".format(python_requires))
 
-        return encode(
-            SETUP.format(
-                before="\n".join(before),
-                name=to_str(self._meta.name),
-                version=to_str(self._meta.version),
-                description=to_str(self._meta.summary),
-                long_description=to_str(self._meta.description),
-                author=to_str(self._meta.author),
-                author_email=to_str(self._meta.author_email),
-                maintainer=to_str(self._meta.maintainer),
-                maintainer_email=to_str(self._meta.maintainer_email),
-                url=to_str(self._meta.home_page),
-                extra="\n    ".join(extra),
-                after="\n".join(after),
-            )
-        )
+        return SETUP.format(
+            before="\n".join(before),
+            name=str(self._meta.name),
+            version=str(self._meta.version),
+            description=str(self._meta.summary),
+            long_description=str(self._meta.description),
+            author=str(self._meta.author),
+            author_email=str(self._meta.author_email),
+            maintainer=str(self._meta.maintainer),
+            maintainer_email=str(self._meta.maintainer_email),
+            url=str(self._meta.home_page),
+            extra="\n    ".join(extra),
+            after="\n".join(after),
+        ).encode()
 
     @contextmanager
-    def setup_py(self):  # type: () -> Iterator[Path]
+    def setup_py(self) -> ContextManager[Path]:
         setup = self._path / "setup.py"
         has_setup = setup.exists()
 
@@ -212,17 +216,17 @@ class SdistBuilder(Builder):
             logger.warning("A setup.py file already exists. Using it.")
         else:
             with setup.open("w", encoding="utf-8") as f:
-                f.write(decode(self.build_setup()))
+                f.write(self.build_setup().decode())
 
         yield setup
 
         if not has_setup:
             setup.unlink()
 
-    def build_pkg_info(self):
-        return encode(self.get_metadata_content())
+    def build_pkg_info(self) -> bytes:
+        return self.get_metadata_content().encode()
 
-    def find_packages(self, include):
+    def find_packages(self, include: "PackageInclude") -> Tuple[str, List[str], dict]:
         """
         Discover subpackages and data.
 
@@ -242,7 +246,7 @@ class SdistBuilder(Builder):
         packages = [pkg_name]
         subpkg_paths = set()
 
-        def find_nearest_pkg(rel_path):
+        def find_nearest_pkg(rel_path: str) -> Tuple[str, str]:
             parts = rel_path.split(os.sep)
             for i in reversed(range(1, len(parts))):
                 ancestor = "/".join(parts[:i])
@@ -301,9 +305,7 @@ class SdistBuilder(Builder):
 
         return pkgdir, sorted(packages), pkg_data
 
-    def find_files_to_add(
-        self, exclude_build=False
-    ):  # type: (bool) -> Set[BuildIncludeFile]
+    def find_files_to_add(self, exclude_build: bool = False) -> Set[BuildIncludeFile]:
         to_add = super(SdistBuilder, self).find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
@@ -319,7 +321,9 @@ class SdistBuilder(Builder):
             additional_files.add(self._poetry.local_config["readme"])
 
         for file in additional_files:
-            file = BuildIncludeFile(path=file, source_root=self._path)
+            file = BuildIncludeFile(
+                path=file, project_root=self._path, source_root=self._path
+            )
             if file.path.exists():
                 logger.debug("Adding: {}".format(file.relative_to_source_root()))
                 to_add.add(file)
@@ -327,7 +331,9 @@ class SdistBuilder(Builder):
         return to_add
 
     @classmethod
-    def convert_dependencies(cls, package, dependencies):
+    def convert_dependencies(
+        cls, package: "ProjectPackage", dependencies: List["Dependency"]
+    ) -> Tuple[List[str], Dict[str, List[str]]]:
         main = []
         extras = defaultdict(list)
         req_regex = re.compile(r"^(.+) \((.+)\)$")
@@ -337,9 +343,7 @@ class SdistBuilder(Builder):
                 for extra_name, reqs in package.extras.items():
                     for req in reqs:
                         if req.name == dependency.name:
-                            requirement = to_str(
-                                dependency.to_pep_508(with_extras=False)
-                            )
+                            requirement = dependency.to_pep_508(with_extras=False)
                             if ";" in requirement:
                                 requirement, conditions = requirement.split(";")
 
@@ -363,7 +367,7 @@ class SdistBuilder(Builder):
                             extras[extra_name].append(requirement)
                 continue
 
-            requirement = to_str(dependency.to_pep_508())
+            requirement = dependency.to_pep_508()
             if ";" in requirement:
                 requirement, conditions = requirement.split(";")
 
@@ -384,7 +388,7 @@ class SdistBuilder(Builder):
         return main, dict(extras)
 
     @classmethod
-    def clean_tarinfo(cls, tar_info):
+    def clean_tarinfo(cls, tar_info: TarInfo) -> TarInfo:
         """
         Clean metadata from a TarInfo object to make it more reproducible.
 
@@ -393,6 +397,8 @@ class SdistBuilder(Builder):
             - Normalise permissions to 644 or 755
             - Set mtime if not None
         """
+        from poetry.core.masonry.utils.helpers import normalize_file_permissions
+
         ti = copy(tar_info)
         ti.uid = 0
         ti.gid = 0

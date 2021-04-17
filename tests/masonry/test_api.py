@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import os
@@ -6,13 +5,12 @@ import platform
 import sys
 
 from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
 from poetry.core.utils.helpers import temporary_directory
 from tests.testutils import validate_sdist_contents
 from tests.testutils import validate_wheel_contents
@@ -65,6 +63,21 @@ def test_build_wheel_with_include():
         )
 
 
+def test_build_wheel_with_bad_path_dev_dep_succeeds():
+    with temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "with_bad_path_dev_dep")
+    ):
+        api.build_wheel(tmp_dir)
+
+
+def test_build_wheel_with_bad_path_dep_fails():
+    with pytest.raises(ValueError) as err, temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "with_bad_path_dep")
+    ):
+        api.build_wheel(tmp_dir)
+    assert "does not exist" in str(err.value)
+
+
 @pytest.mark.skipif(
     sys.platform == "win32"
     and sys.version_info <= (3, 6)
@@ -99,6 +112,21 @@ def test_build_sdist_with_include():
             path=str(os.path.join(tmp_dir, filename)),
             files=["LICENSE"],
         )
+
+
+def test_build_sdist_with_bad_path_dev_dep_succeeds():
+    with temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "with_bad_path_dev_dep")
+    ):
+        api.build_sdist(tmp_dir)
+
+
+def test_build_sdist_with_bad_path_dep_fails():
+    with pytest.raises(ValueError) as err, temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "with_bad_path_dep")
+    ):
+        api.build_sdist(tmp_dir)
+    assert "does not exist" in str(err.value)
 
 
 def test_prepare_metadata_for_build_wheel():
@@ -136,6 +164,7 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Software Development :: Build Tools
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Provides-Extra: time
@@ -163,10 +192,25 @@ My Package
         assert (dist_info / "METADATA").exists()
 
         with (dist_info / "entry_points.txt").open(encoding="utf-8") as f:
-            assert entry_points == decode(f.read())
+            assert entry_points == f.read()
 
         with (dist_info / "WHEEL").open(encoding="utf-8") as f:
-            assert wheel_data == decode(f.read())
+            assert wheel_data == f.read()
 
         with (dist_info / "METADATA").open(encoding="utf-8") as f:
-            assert metadata == decode(f.read())
+            assert metadata == f.read()
+
+
+def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds():
+    with temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "with_bad_path_dev_dep")
+    ):
+        api.prepare_metadata_for_build_wheel(tmp_dir)
+
+
+def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds():
+    with pytest.raises(ValueError) as err, temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "with_bad_path_dep")
+    ):
+        api.prepare_metadata_for_build_wheel(tmp_dir)
+    assert "does not exist" in str(err.value)

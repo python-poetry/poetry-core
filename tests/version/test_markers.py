@@ -572,38 +572,43 @@ def test_exclude(marker, excluded, expected):
 @pytest.mark.parametrize(
     "marker, only, expected",
     [
-        ('python_version >= "3.6"', "python_version", 'python_version >= "3.6"'),
+        ('python_version >= "3.6"', ["python_version"], 'python_version >= "3.6"'),
         (
             'python_version >= "3.6" and extra == "foo"',
-            "python_version",
+            ["python_version"],
             'python_version >= "3.6"',
         ),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar")',
-            "extra",
+            ["extra"],
             '(extra == "foo" or extra == "bar")',
         ),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar") or implementation_name == "pypy"',
-            "implementation_name",
+            ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
             'python_version >= "3.6" and extra == "foo" or implementation_name == "pypy" and extra == "bar"',
-            "implementation_name",
+            ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
             'python_version >= "3.6" or extra == "foo" and implementation_name == "pypy" or extra == "bar"',
-            "implementation_name",
+            ["implementation_name"],
             'implementation_name == "pypy"',
+        ),
+        (
+            'python_version >= "3.6" or extra == "foo" and implementation_name == "pypy" or extra == "bar"',
+            ["implementation_name", "python_version"],
+            'python_version >= "3.6" or implementation_name == "pypy"',
         ),
     ],
 )
 def test_only(marker, only, expected):
     m = parse_marker(marker)
 
-    assert expected == str(m.only(only))
+    assert expected == str(m.only(*only))
 
 
 def test_union_of_a_single_marker_is_the_single_marker():

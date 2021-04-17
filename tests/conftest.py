@@ -1,11 +1,12 @@
 import sys
 
+from pathlib import Path
 from typing import Callable
 
 import pytest
 import virtualenv
 
-from poetry.core.utils._compat import Path
+from poetry.core.factory import Factory
 from tests.testutils import tempfile
 
 
@@ -92,3 +93,8 @@ def venv(temporary_directory):  # type: (Path) -> Path
 @pytest.fixture
 def python(venv):  # type: (Path) -> str
     return (venv / "bin" / "python").as_posix()
+
+
+@pytest.fixture()
+def f():  # type: () -> Factory
+    return Factory()

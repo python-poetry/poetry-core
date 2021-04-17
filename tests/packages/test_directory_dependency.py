@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import pytest
 
-from poetry.core.packages import dependency_from_pep_508
+from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.directory_dependency import DirectoryDependency
-from poetry.core.utils._compat import Path
 
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"
@@ -14,7 +15,9 @@ def test_directory_dependency_must_exist():
 
 
 def _test_directory_dependency_pep_508(name, path, pep_508_input, pep_508_output=None):
-    dep = dependency_from_pep_508(pep_508_input, relative_to=Path(__file__).parent)
+    dep = Dependency.create_from_pep_508(
+        pep_508_input, relative_to=Path(__file__).parent
+    )
 
     assert dep.is_directory()
     assert dep.name == name

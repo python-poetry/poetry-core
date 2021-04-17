@@ -1,4 +1,5 @@
 from collections import namedtuple
+from typing import Optional
 
 
 class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
@@ -130,7 +131,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
     }
 
     @property
-    def classifier(self):
+    def classifier(self) -> str:
         parts = ["License"]
 
         if self.is_osi_approved:
@@ -143,7 +144,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
         return " :: ".join(parts)
 
     @property
-    def classifier_name(self):
+    def classifier_name(self) -> Optional[str]:
         if self.id not in self.CLASSIFIER_SUPPORTED:
             if self.is_osi_approved:
                 return None

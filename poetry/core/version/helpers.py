@@ -1,7 +1,13 @@
-from poetry.core.semver import Version
-from poetry.core.semver import VersionUnion
-from poetry.core.semver import parse_constraint
+from typing import TYPE_CHECKING
+from typing import Union
 
+from poetry.core.semver.helpers import parse_constraint
+from poetry.core.semver.version import Version
+from poetry.core.semver.version_union import VersionUnion
+
+
+if TYPE_CHECKING:
+    from poetry.core.semver.version_constraint import VersionConstraint  # noqa
 
 PYTHON_VERSION = [
     "2.7.*",
@@ -14,10 +20,14 @@ PYTHON_VERSION = [
     "3.6.*",
     "3.7.*",
     "3.8.*",
+    "3.9.*",
+    "3.10.*",
 ]
 
 
-def format_python_constraint(constraint):
+def format_python_constraint(
+    constraint: Union[Version, VersionUnion, "VersionConstraint"],
+) -> str:
     """
     This helper will help in transforming
     disjunctive constraint into proper constraint.

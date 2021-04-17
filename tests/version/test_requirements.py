@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 
@@ -28,12 +28,12 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
         ("name", {"name": "name"}),
         ("foo-bar.quux_baz", {"name": "foo-bar.quux_baz"}),
         ("name>=3", {"name": "name", "constraint": ">=3"}),
-        ("name==1.0.org1", {"name": "name", "constraint": "==1.0.org1"}),
+        ("name==1.0.post1", {"name": "name", "constraint": "==1.0.post1"}),
         (
-            "name>=1.x.y;python_version=='2.6'",
+            "name>=1.2.3;python_version=='2.6'",
             {
                 "name": "name",
-                "constraint": ">=1.x.y",
+                "constraint": ">=1.2.3",
                 "marker": 'python_version == "2.6"',
             },
         ),
@@ -56,7 +56,10 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
             "name @ file:///absolute/path",
             {"name": "name", "url": "file:///absolute/path"},
         ),
-        ("name @ file://.", {"name": "name", "url": "file://."},),
+        (
+            "name @ file://.",
+            {"name": "name", "url": "file://."},
+        ),
         (
             "name [fred,bar] @ http://foo.com ; python_version=='2.7'",
             {

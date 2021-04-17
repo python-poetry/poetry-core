@@ -1,24 +1,35 @@
+from typing import TYPE_CHECKING
+from typing import Tuple
+from typing import Union
+
 from .base_constraint import BaseConstraint
 from .constraint import Constraint
 from .empty_constraint import EmptyConstraint
+from .multi_constraint import MultiConstraint
+
+
+if TYPE_CHECKING:
+    from . import ConstraintTypes  # noqa
 
 
 class UnionConstraint(BaseConstraint):
-    def __init__(self, *constraints):
+    def __init__(self, *constraints: Constraint) -> None:
         self._constraints = constraints
 
     @property
-    def constraints(self):
+    def constraints(self) -> Tuple[Constraint]:
         return self._constraints
 
-    def allows(self, other):
+    def allows(
+        self, other: Union[Constraint, MultiConstraint, "UnionConstraint"]
+    ) -> bool:
         for constraint in self._constraints:
             if constraint.allows(other):
                 return True
 
         return False
 
-    def allows_any(self, other):
+    def allows_any(self, other: "ConstraintTypes") -> bool:
         if other.is_empty():
             return False
 
@@ -37,7 +48,7 @@ class UnionConstraint(BaseConstraint):
 
         return False
 
-    def allows_all(self, other):
+    def allows_all(self, other: "ConstraintTypes") -> bool:
         if other.is_any():
             return False
 
@@ -62,7 +73,7 @@ class UnionConstraint(BaseConstraint):
 
         return their_constraint is None
 
-    def intersect(self, other):
+    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
         if other.is_any():
             return self
 
@@ -88,7 +99,7 @@ class UnionConstraint(BaseConstraint):
 
         return UnionConstraint(*new_constraints)
 
-    def union(self, other):
+    def union(self, other: Constraint) -> "UnionConstraint":
         if isinstance(other, Constraint):
             constraints = self._constraints
             if other not in self._constraints:
@@ -96,7 +107,8 @@ class UnionConstraint(BaseConstraint):
 
             return UnionConstraint(*constraints)
 
-    def __eq__(self, other):
+    def __eq__(self, other: "ConstraintTypes") -> bool:
+
         if not isinstance(other, UnionConstraint):
             return False
 
@@ -104,7 +116,7 @@ class UnionConstraint(BaseConstraint):
             self._constraints, key=lambda c: (c.operator, c.version)
         ) == sorted(other.constraints, key=lambda c: (c.operator, c.version))
 
-    def __str__(self):
+    def __str__(self) -> str:
         constraints = []
         for constraint in self._constraints:
             constraints.append(str(constraint))

@@ -4,14 +4,15 @@ import tarfile
 import zipfile
 
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 from typing import ContextManager
 from typing import Dict
 from typing import List
 from typing import Optional
 
-from poetry.core.pyproject import PyProjectTOMLFile
-from poetry.core.utils._compat import Path
+from poetry.core.toml import TOMLFile
+from poetry.core.utils._compat import PY37
 
 
 try:
@@ -49,7 +50,7 @@ def temporary_project_directory(
     with tempfile.TemporaryDirectory(prefix="poetry-core-pep517") as tmp:
         dst = Path(tmp) / path.name
         shutil.copytree(str(path), dst)
-        toml = PyProjectTOMLFile(str(dst / "pyproject.toml"))
+        toml = TOMLFile(str(dst / "pyproject.toml"))
         data = toml.read()
         data.update(toml_patch or __toml_build_backend_patch__)
         toml.write(data)
@@ -60,8 +61,9 @@ def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.Completed
     """
     Helper method to run a subprocess. Asserts for success.
     """
+    compat_kwargs = {"text" if PY37 else "universal_newlines": True}
     result = subprocess.run(
-        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+        args, **compat_kwargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
     )
     assert result.returncode == 0
     return result

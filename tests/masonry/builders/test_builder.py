@@ -1,14 +1,13 @@
-# -*- coding: utf-8 -*-
 import sys
 
 from email.parser import Parser
+from pathlib import Path
 
 import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.utils._compat import PY37
-from poetry.core.utils._compat import Path
 
 
 def test_builder_find_excluded_files(mocker):
@@ -93,6 +92,7 @@ def test_get_metadata_content():
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Build Tools",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
