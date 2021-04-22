@@ -9,22 +9,23 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+from poetry.core.packages.constraints import (
+    parse_constraint as parse_generic_constraint,
+)
+from poetry.core.packages.specification import PackageSpecification
 from poetry.core.semver.helpers import parse_constraint
+from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.version.markers import parse_marker
-
-from .constraints import parse_constraint as parse_generic_constraint
-from .specification import PackageSpecification
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes  # noqa
-    from poetry.core.version.markers import BaseMarker  # noqa
-
-    from .constraints import BaseConstraint  # noqa
-    from .directory_dependency import DirectoryDependency  # noqa
-    from .file_dependency import FileDependency  # noqa
-    from .package import Package
-    from .types import DependencyTypes
+    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.packages.directory_dependency import DirectoryDependency
+    from poetry.core.packages.file_dependency import FileDependency
+    from poetry.core.packages.package import Package
+    from poetry.core.packages.types import DependencyTypes
+    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.version.markers import BaseMarker
 
 
 class Dependency(PackageSpecification):
@@ -41,7 +42,6 @@ class Dependency(PackageSpecification):
         source_reference: Optional[str] = None,
         source_resolved_reference: Optional[str] = None,
     ):
-        from poetry.core.semver.version_range import VersionRange
         from poetry.core.version.markers import AnyMarker
 
         super(Dependency, self).__init__(
@@ -60,7 +60,10 @@ class Dependency(PackageSpecification):
         self._optional = optional
         self._category = category
 
-        if isinstance(self._constraint, VersionRange) and self._constraint.min:
+        if (
+            isinstance(self._constraint, VersionRangeConstraint)
+            and self._constraint.min
+        ):
             allows_prereleases = (
                 allows_prereleases or self._constraint.min.is_unstable()
             )
