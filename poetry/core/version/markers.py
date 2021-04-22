@@ -325,9 +325,11 @@ class SingleMarker(BaseMarker):
             # This one is more tricky to handle
             # since it's technically a multi marker
             # so the inverse will be a union of inverse
-            from poetry.core.semver.version_range import VersionRange
+            from poetry.core.semver.version_range_constraint import (
+                VersionRangeConstraint,
+            )
 
-            if not isinstance(self._constraint, VersionRange):
+            if not isinstance(self._constraint, VersionRangeConstraint):
                 # The constraint must be a version range, otherwise
                 # it's an internal error
                 raise RuntimeError(
