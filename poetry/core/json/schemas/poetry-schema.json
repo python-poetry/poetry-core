@@ -526,10 +526,10 @@
       "type": "object",
       "oneOf": [
         {
-          "$ref": "#/definitions/extra-script"
+          "$ref": "#/definitions/extra-script-legacy"
         },
         {
-          "$ref": "#/definitions/file-script"
+          "$ref": "#/definitions/extra-scripts"
         }
       ]
     },
@@ -537,35 +537,44 @@
       "type": "string",
       "description": "A simple script pointing to a callable object."
     },
-    "file-script": {
+    "extra-scripts": {
       "type": "object",
-      "description": "A script file that'll be included in the distribution package.",
+      "description": "Either a console entry point or a script file that'll be included in the distribution package.",
       "additionalProperties": false,
       "properties": {
-        "source": {
+        "reference": {
           "type": "string",
-          "description": "The relative path of the script file."
+          "description": "If type is file this is the relative path of the script file, if console it is the module name."
         },
         "type": {
-          "description": "This value can only be 'file' currently.",
+          "description": "Value can be either file or console.",
           "type": "string",
           "enum": [
-            "file"
+            "file",
+            "console"
           ]
+        },
+        "extras": {
+          "type": "array",
+          "description": "The required extras for this script. Only applicable if type is console.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
-        "source"
+        "reference",
+        "type"
       ]
     },
-    "extra-script": {
+    "extra-script-legacy": {
       "type": "object",
       "description": "A script that should be installed only if extras are activated.",
       "additionalProperties": false,
       "properties": {
         "callable": {
-          "$ref": "#/definitions/script",
-          "description": "The entry point of the script."
+          "$ref": "#/definitions/script-legacy",
+          "description": "The entry point of the script. Deprecated in favour of reference."
         },
         "extras": {
           "type": "array",

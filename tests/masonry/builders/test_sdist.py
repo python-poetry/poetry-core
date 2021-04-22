@@ -126,6 +126,7 @@ def test_make_setup():
     assert ns["entry_points"] == {
         "console_scripts": [
             "extra-script = my_package.extra:main[time]",
+            "extra-script-legacy = my_package.extra_legacy:main[time]",
             "my-2nd-script = my_package:main2",
             "my-script = my_package:main",
         ]
@@ -171,7 +172,6 @@ def test_find_files_to_add():
             Path("LICENSE"),
             Path("README.rst"),
             Path("bin/script1.sh"),
-            Path("bin/script2.sh"),
             Path("my_package/__init__.py"),
             Path("my_package/data1/test.json"),
             Path("my_package/sub_pkg1/__init__.py"),

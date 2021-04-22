@@ -48,9 +48,9 @@ time = ["pendulum"]
 [tool.poetry.scripts]
 my-script = "my_package:main"
 my-2nd-script = "my_package:main2"
-extra-script = {callable = "my_package.extra:main", extras = ["time"]}
-sh-script = {source = "bin/script1.sh", type = "file"}
-sh-script2 = {source = "bin/script2.sh" }
+extra-script-legacy = {callable = "my_package.extra_legacy:main", extras = ["time"]}
+extra-script = {reference = "my_package.extra:main", extras = ["time"], type = "console"}
+sh-script = {reference = "bin/script1.sh", type = "file"}
 
 
 [tool.poetry.urls]

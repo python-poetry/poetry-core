@@ -8,7 +8,7 @@ authors = [
 readme = "README.rst"
 
 [tool.poetry.scripts]
-invalid_definition = {source = "bin/script.sh", type = "ffiillee"}
+invalid_definition = {reference = "bin/script.sh", type = "ffiillee"}
 
 
 [tool.poetry.dependencies]
