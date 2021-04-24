@@ -36,6 +36,13 @@ time = [ "pendulum" ]
 pytest = "^3.0"
 pytest-cov = "^2.4"
 
+[tool.poetry.constraint-dependencies]
+files = [
+    "https://example.com/constraints.toml",
+    "file:constraints.toml",
+    "constraints.toml"
+]
+
 [tool.poetry.scripts]
 my-script = 'my_package:main'
 sample_pyscript = { reference = "script-files/sample_script.py", type= "file" }

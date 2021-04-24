@@ -53,6 +53,12 @@ db = [ "orator" ]
 [tool.poetry.dev-dependencies]
 pytest = "~3.4"
 
+[tool.poetry.constraint-dependencies]
+files = [
+    "https://example.com/constraints.toml",
+    "file:/constraints.toml",
+    "constraints.toml"
+]
 
 [tool.poetry.scripts]
 my-script = "my_package:main"

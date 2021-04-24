@@ -136,6 +136,20 @@
       "$ref": "#/definitions/dependencies",
       "additionalProperties": false
     },
+    "constraint-dependencies": {
+      "type": "object",
+      "description": "Constraint dependencies.",
+      "required": [
+        "files"
+      ],
+      "properties": {
+        "files": {
+          "type": "array",
+          "description": "List of constraint dependencies files"
+        }
+      },
+      "additionalProperties": false
+    },
     "extras": {
       "type": "object",
       "patternProperties": {

@@ -104,40 +104,26 @@ class Factory(object):
                     package.python_versions = constraint
                     continue
 
-                if isinstance(constraint, list):
-                    for _constraint in constraint:
-                        package.add_dependency(
-                            cls.create_dependency(
-                                name, _constraint, root_dir=package.root_dir
-                            )
-                        )
-
-                    continue
-
-                package.add_dependency(
-                    cls.create_dependency(name, constraint, root_dir=package.root_dir)
-                )
+                cls.add_dependencies(package, name, constraint)
 
         if with_dev and "dev-dependencies" in config:
             for name, constraint in config["dev-dependencies"].items():
-                if isinstance(constraint, list):
-                    for _constraint in constraint:
-                        package.add_dependency(
-                            cls.create_dependency(
-                                name,
-                                _constraint,
-                                category="dev",
-                                root_dir=package.root_dir,
-                            )
-                        )
+                cls.add_dependencies(package, name, constraint, category="dev")
 
-                    continue
+        if "constraint-dependencies" in config:
+            from .pyproject.constraint_dependencies_toml import (
+                ConstraintDependenciesTOML,
+            )
 
-                package.add_dependency(
-                    cls.create_dependency(
-                        name, constraint, category="dev", root_dir=package.root_dir
+            constraint_dependencies_list = [
+                ConstraintDependenciesTOML(f).dependencies
+                for f in config["constraint-dependencies"].get("files", [])
+            ]
+            for constraint_dependencies in constraint_dependencies_list:
+                for name, constraint in constraint_dependencies.items():
+                    cls.add_dependencies(
+                        package, name, constraint, category="constraint"
                     )
-                )
 
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
@@ -186,11 +172,29 @@ class Factory(object):
 
         return package
 
+    Constraint = Union[str, Dict[str, Any]]
+
+    @classmethod
+    def add_dependencies(
+        cls,
+        package: "ProjectPackage",
+        name: str,
+        constraint: Union[Optional[Constraint], List[Constraint]],
+        category: str = "main",
+    ) -> None:
+        constraints = constraint if isinstance(constraint, list) else [constraint]
+        for _constraint in constraints:
+            package.add_dependency(
+                cls.create_dependency(
+                    name, _constraint, category=category, root_dir=package.root_dir
+                )
+            )
+
     @classmethod
     def create_dependency(
         cls,
         name: str,
-        constraint: Union[str, Dict[str, Any]],
+        constraint: Optional[Constraint],
         category: str = "main",
         root_dir: Optional[Path] = None,
     ) -> "DependencyTypes":

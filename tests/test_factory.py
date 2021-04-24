@@ -6,13 +6,23 @@ from pathlib import Path
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.pyproject.constraint_dependencies_toml import (
+    ConstraintDependenciesTOML,
+)
 from poetry.core.toml import TOMLFile
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
-def test_create_poetry():
+def test_create_poetry(mocker):
+    mocker.patch.object(
+        ConstraintDependenciesTOML, "dependencies", new_callable=mocker.PropertyMock
+    ).side_effect = [
+        {},
+        {"cleo": "0.7"},
+        {"requests": "2.19"},
+    ]
     poetry = Factory().create_poetry(fixtures_dir / "sample_project")
 
     package = poetry.package
@@ -38,6 +48,7 @@ def test_create_poetry():
         dependencies[dep.name] = dep
 
     cleo = dependencies["cleo"]
+    assert cleo.pretty_constraint_category == ""
     assert cleo.pretty_constraint == "^0.6"
     assert not cleo.is_optional()
 
@@ -107,6 +118,20 @@ def test_create_poetry():
         str(dataclasses.marker)
         == 'python_full_version >= "3.6.1" and python_version < "3.7"'
     )
+
+    constraint_dependencies = {}
+    for dep in package.constraint_requires:
+        constraint_dependencies[dep.name] = dep
+
+    cleo = constraint_dependencies["cleo"]
+    assert cleo.pretty_constraint_category == "[constraint dependency]"
+    assert cleo.pretty_constraint == "0.7"
+    assert not cleo.is_optional()
+
+    requests = constraint_dependencies["requests"]
+    assert requests.pretty_constraint_category == "[constraint dependency]"
+    assert requests.pretty_constraint == "2.19"
+    assert not requests.is_optional()
 
     assert "db" in package.extras
 
@@ -198,7 +223,11 @@ The Poetry configuration is invalid:
     assert expected == str(e.value)
 
 
-def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
+def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false(mocker):
+    mocker.patch.object(
+        ConstraintDependenciesTOML, "dependencies", new_callable=mocker.PropertyMock
+    ).return_value = {}
+
     poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_dev=False)
     assert not any(r for r in poetry.package.dev_requires if "pytest" in str(r))
 

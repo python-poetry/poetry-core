@@ -113,6 +113,10 @@ class Dependency(PackageSpecification):
         return self._pretty_name
 
     @property
+    def pretty_constraint_category(self) -> str:
+        return "[constraint dependency]" if self._category == "constraint" else ""
+
+    @property
     def category(self) -> str:
         return self._category
 

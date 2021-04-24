@@ -89,6 +89,7 @@ class Package(PackageSpecification):
 
         self.requires = []
         self.dev_requires = []
+        self.constraint_requires = []
         self.extras = {}
         self.requires_extras = []
 
@@ -338,8 +339,10 @@ class Package(PackageSpecification):
     ) -> "DependencyTypes":
         if dependency.category == "dev":
             self.dev_requires.append(dependency)
-        else:
+        elif dependency.category == "main":
             self.requires.append(dependency)
+        else:
+            self.constraint_requires.append(dependency)
 
         return dependency
 
