@@ -67,7 +67,7 @@ def test_file_dependency_pep_508_local_file_relative_path(mocker):
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
 
-def test_to_pep_508_with_marker(mocker):
+def test_absolute_file_dependency_to_pep_508_with_marker(mocker):
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     abs_path = DIST_PATH / wheel
@@ -81,6 +81,10 @@ def test_to_pep_508_with_marker(mocker):
         requirement,
         marker=SingleMarker("sys.platform", "linux"),
     )
+
+
+def test_relative_file_dependency_to_pep_508_with_marker(mocker):
+    wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
     requirement = '{} @ {} ; sys_platform == "linux"'.format(
