@@ -262,7 +262,7 @@ class Dependency(PackageSpecification):
             )
 
         if markers:
-            if self.is_vcs() or self.is_url():
+            if self.is_vcs() or self.is_url() or self.is_file():
                 requirement += " "
 
             if len(markers) > 1:
