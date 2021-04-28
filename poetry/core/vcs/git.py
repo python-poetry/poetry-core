@@ -102,14 +102,14 @@ logger = logging.getLogger(__name__)
 class ParsedUrl:
     def __init__(
         self,
-        protocol: Optional[str],
-        resource: Optional[str],
-        pathname: Optional[str],
-        user: Optional[str],
-        password: Optional[str],
-        port: Optional[str],
-        name: Optional[str],
-        rev: Optional[str],
+        protocol: Optional[str] = None,
+        resource: Optional[str] = None,
+        pathname: Optional[str] = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        port: Optional[str] = None,
+        name: Optional[str] = None,
+        rev: Optional[str] = None,
     ):
         self.protocol = protocol
         self.resource = resource
