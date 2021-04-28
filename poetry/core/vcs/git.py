@@ -148,7 +148,7 @@ class ParsedUrl:
 
     @property
     def url(self) -> str:
-        return "{}{}{}{}{}".format(
+        return "{}{}{}{}{}{}{}".format(
             "{}://".format(self.protocol) if self.protocol else "",
             "{}".format(self.user) if self.user else "",
             ":{}".format(self.password) if self.password else "",
