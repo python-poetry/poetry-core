@@ -207,7 +207,10 @@ def test_normalize_url(url, normalized):
         (
             "git@github.com:org/repo",
             ParsedUrl(
-                resource="github.com", pathname=":org/repo", user="git", name="repo",
+                resource="github.com",
+                pathname=":org/repo",
+                user="git",
+                name="repo",
             ),
         ),
         (
@@ -253,7 +256,11 @@ def test_normalize_url(url, normalized):
         ),
         (
             "git+file:///foo/bar.git",
-            ParsedUrl(protocol="file", pathname="/foo/bar.git", name="bar",),
+            ParsedUrl(
+                protocol="file",
+                pathname="/foo/bar.git",
+                name="bar",
+            ),
         ),
         (
             "git+file://C:\\Users\\hello\\testing.git#zkat/windows-files",
