@@ -104,7 +104,7 @@ class VersionRange(VersionRangeConstraint):
         if isinstance(other, VersionUnion):
             return all([self.allows_all(constraint) for constraint in other.ranges])
 
-        if isinstance(other, VersionRange):
+        if isinstance(other, VersionRangeConstraint):
             return not other.allows_lower(self) and not other.allows_higher(self)
 
         raise ValueError("Unknown VersionConstraint type {}.".format(other))
@@ -121,7 +121,7 @@ class VersionRange(VersionRangeConstraint):
         if isinstance(other, VersionUnion):
             return any([self.allows_any(constraint) for constraint in other.ranges])
 
-        if isinstance(other, VersionRange):
+        if isinstance(other, VersionRangeConstraint):
             return not other.is_strictly_lower(self) and not other.is_strictly_higher(
                 self
             )
@@ -144,7 +144,7 @@ class VersionRange(VersionRangeConstraint):
 
             return EmptyConstraint()
 
-        if not isinstance(other, VersionRange):
+        if not isinstance(other, VersionRangeConstraint):
             raise ValueError("Unknown VersionConstraint type {}.".format(other))
 
         if self.allows_lower(other):
@@ -202,7 +202,7 @@ class VersionRange(VersionRangeConstraint):
 
             return VersionUnion.of(self, other)
 
-        if isinstance(other, VersionRange):
+        if isinstance(other, VersionRangeConstraint):
             # If the two ranges don't overlap, we won't be able to create a single
             # VersionRange for both of them.
             edges_touch = (
@@ -261,7 +261,7 @@ class VersionRange(VersionRangeConstraint):
                 VersionRange(self.min, other, self.include_min, False),
                 VersionRange(other, self.max, False, self.include_max),
             )
-        elif isinstance(other, VersionRange):
+        elif isinstance(other, VersionRangeConstraint):
             if not self.allows_any(other):
                 return self
 
@@ -326,7 +326,7 @@ class VersionRange(VersionRangeConstraint):
         raise ValueError("Unknown VersionConstraint type {}.".format(other))
 
     def __eq__(self, other: Any) -> int:
-        if not isinstance(other, VersionRange):
+        if not isinstance(other, VersionRangeConstraint):
             return False
 
         return (
@@ -336,19 +336,19 @@ class VersionRange(VersionRangeConstraint):
             and self._include_max == other.include_max
         )
 
-    def __lt__(self, other: "VersionRange") -> int:
+    def __lt__(self, other: "VersionRangeConstraint") -> int:
         return self._cmp(other) < 0
 
-    def __le__(self, other: "VersionRange") -> int:
+    def __le__(self, other: "VersionRangeConstraint") -> int:
         return self._cmp(other) <= 0
 
-    def __gt__(self, other: "VersionRange") -> int:
+    def __gt__(self, other: "VersionRangeConstraint") -> int:
         return self._cmp(other) > 0
 
-    def __ge__(self, other: "VersionRange") -> int:
+    def __ge__(self, other: "VersionRangeConstraint") -> int:
         return self._cmp(other) >= 0
 
-    def _cmp(self, other: "VersionRange") -> int:
+    def _cmp(self, other: "VersionRangeConstraint") -> int:
         if self.min is None:
             if other.min is None:
                 return self._compare_max(other)
