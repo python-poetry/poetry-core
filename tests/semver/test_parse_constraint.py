@@ -4,6 +4,7 @@ from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version import Version
 from poetry.core.semver.version_range import VersionRange
 from poetry.core.semver.version_union import VersionUnion
+from poetry.core.version.pep440 import ReleaseTag
 
 
 @pytest.mark.parametrize(
@@ -169,6 +170,22 @@ from poetry.core.semver.version_union import VersionUnion
                     max=Version.from_parts(3, 9),
                     include_min=True,
                 ),
+            ),
+        ),
+        (
+            "^1.0.0a1",
+            VersionRange(
+                min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
+                max=Version.from_parts(2, 0, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            "~1.0.0a1",
+            VersionRange(
+                min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
+                max=Version.from_parts(1, 1, 0),
+                include_min=True,
             ),
         ),
     ],
