@@ -21,7 +21,7 @@ classifiers = [
 packages = [
     {include = "poetry"},
 ]
-include = ["tests"]
+include = [{ path = "tests", format = "sdist" }]
 exclude = [
     "**/*.pyc",
     "**/*.pyi",
