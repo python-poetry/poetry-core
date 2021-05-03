@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.1.0a4] - 2021-04-30
+
+### Changed
+
+- Files in source distributions now have a deterministic time to improve reproducibility. ([#142](https://github.com/python-poetry/poetry-core/pull/142))
+
+### Fixed
+
+- Fixed an error where leading zeros in the local build part of version specifications were discarded. ([#167](https://github.com/python-poetry/poetry-core/pull/167))
+- Fixed the PEP 508 representation of file dependencies. ([#153](https://github.com/python-poetry/poetry-core/pull/153))
+- Fixed the copy of `Package` instances which led to file hashes not being available. ([#159](https://github.com/python-poetry/poetry-core/pull/159))
+- Fixed an error in the parsing of caret requirements with a pre-release lower bound. ([#171](https://github.com/python-poetry/poetry-core/pull/171))
+- Fixed an error where some pre-release versions were not flagged as pre-releases. ([#170](https://github.com/python-poetry/poetry-core/pull/170))
+
+
 ## [1.1.0a3] - 2021-04-09
 
 ### Fixed
@@ -180,7 +195,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a3...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a4...master
+[1.1.0a4]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a4
 [1.1.0a3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a3
 [1.1.0a2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a2
 [1.1.0a1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a1
