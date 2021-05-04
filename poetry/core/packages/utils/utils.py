@@ -244,6 +244,9 @@ def create_nested_marker(
 
         marker = glue.join(parts)
     elif isinstance(constraint, Version):
+        if name == "python_version" and constraint.precision >= 3:
+            name = "python_full_version"
+
         marker = '{} == "{}"'.format(name, constraint.text)
     else:
         if constraint.min is not None:
@@ -251,9 +254,16 @@ def create_nested_marker(
             if not constraint.include_min:
                 op = ">"
 
-            version = constraint.min.text
+            version = constraint.min
             if constraint.max is not None:
-                text = '{} {} "{}"'.format(name, op, version)
+                min_name = max_name = name
+                if min_name == "python_version" and constraint.min.precision >= 3:
+                    min_name = "python_full_version"
+
+                if max_name == "python_version" and constraint.max.precision >= 3:
+                    max_name = "python_full_version"
+
+                text = '{} {} "{}"'.format(min_name, op, version)
 
                 op = "<="
                 if not constraint.include_max:
@@ -261,7 +271,7 @@ def create_nested_marker(
 
                 version = constraint.max
 
-                text += ' and {} {} "{}"'.format(name, op, version)
+                text += ' and {} {} "{}"'.format(max_name, op, version)
 
                 return text
         elif constraint.max is not None:
@@ -272,6 +282,9 @@ def create_nested_marker(
             version = constraint.max
         else:
             return ""
+
+        if name == "python_version" and version.precision >= 3:
+            name = "python_full_version"
 
         marker = '{} {} "{}"'.format(name, op, version)
 
