@@ -3,6 +3,7 @@ import re
 import shutil
 import sys
 import tempfile
+import warnings
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -285,12 +286,43 @@ class Builder(object):
 
         # Scripts -> Entry points
         for name, ep in self._poetry.local_config.get("scripts", {}).items():
-            extras = ""
-            if isinstance(ep, dict):
-                extras = "[{}]".format(", ".join(ep["extras"]))
-                ep = ep["callable"]
+            extras: str = ""
+            module_path: str = ""
 
-            result["console_scripts"].append("{} = {}{}".format(name, ep, extras))
+            # Currently we support 2 legacy and 1 new format:
+            # (legacy)    my_script = 'my_package.main:entry'
+            # (legacy)    my_script = { callable = 'my_package.main:entry' }
+            # (supported) my_script = { reference = 'my_package.main:entry', type = "console" }
+
+            if isinstance(ep, str):
+                warnings.warn(
+                    "This way of declaring console scripts is deprecated and will be removed in a future version. "
+                    'Use reference = "{}", type = "console" instead.'.format(ep),
+                    DeprecationWarning,
+                )
+                extras = ""
+                module_path = ep
+            elif isinstance(ep, dict) and (
+                ep.get("type") == "console"
+                or "callable" in ep  # Supporting both new and legacy format for now
+            ):
+                if "callable" in ep:
+                    warnings.warn(
+                        "Using the keyword callable is deprecated and will be removed in a future version. "
+                        'Use reference = "{}", type = "console" instead.'.format(
+                            ep["callable"]
+                        ),
+                        DeprecationWarning,
+                    )
+
+                extras = "[{}]".format(", ".join(ep["extras"]))
+                module_path = ep.get("reference", ep.get("callable"))
+            else:
+                continue
+
+            result["console_scripts"].append(
+                "{} = {}{}".format(name, module_path, extras)
+            )
 
         # Plugins -> entry points
         plugins = self._poetry.local_config.get("plugins", {})
@@ -302,6 +334,29 @@ class Builder(object):
             result[groupname] = sorted(result[groupname])
 
         return dict(result)
+
+    def convert_script_files(self) -> List[Path]:
+        script_files: List[Path] = []
+
+        for _, ep in self._poetry.local_config.get("scripts", {}).items():
+            if isinstance(ep, dict) and ep.get("type") == "file":
+                source = ep["reference"]
+
+                if Path(source).is_absolute():
+                    raise RuntimeError(
+                        "{} is an absolute path. Expected relative path.".format(source)
+                    )
+
+                abs_path = Path.joinpath(self._path, source)
+
+                if not abs_path.exists():
+                    raise RuntimeError("{} file-script is not found.".format(abs_path))
+                if not abs_path.is_file():
+                    raise RuntimeError("{} file-script is not a file.".format(abs_path))
+
+                script_files.append(abs_path)
+
+        return script_files
 
     @classmethod
     def convert_author(cls, author: str) -> Dict[str, str]:

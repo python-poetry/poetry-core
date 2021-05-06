@@ -107,6 +107,7 @@ class WheelBuilder(Builder):
                     self._copy_module(zip_file)
                     self._build(zip_file)
 
+                self._copy_file_scripts(zip_file)
                 self._write_metadata(zip_file)
                 self._write_record(zip_file)
 
@@ -163,6 +164,16 @@ class WheelBuilder(Builder):
                         logger.debug("Adding: {}".format(rel_path))
 
                         self._add_file(wheel, pkg, rel_path)
+
+    def _copy_file_scripts(self, wheel: zipfile.ZipFile) -> None:
+        file_scripts = self.convert_script_files()
+
+        for abs_path in file_scripts:
+            self._add_file(
+                wheel,
+                abs_path,
+                Path.joinpath(Path(self.wheel_data_folder), "scripts", abs_path.name),
+            )
 
     def _run_build_command(self, setup: Path) -> None:
         subprocess.check_call(
@@ -237,6 +248,10 @@ class WheelBuilder(Builder):
     @property
     def dist_info(self) -> str:
         return self.dist_info_name(self._package.name, self._meta.version)
+
+    @property
+    def wheel_data_folder(self) -> str:
+        return "{}-{}.data".format(self._package.name, self._meta.version)
 
     @property
     def wheel_filename(self) -> str:

@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "script_file_invalid_definition"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
+readme = "README.rst"
+
+[tool.poetry.scripts]
+invalid_definition = {reference = "bin/script.sh", type = "ffiillee"}
+
+
+[tool.poetry.dependencies]
+python = "3.6"
