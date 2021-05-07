@@ -45,7 +45,7 @@ def test_constraints_url_error(mocker):
         RuntimeError,
         match=r"Poetry could not load constraint dependencies file constraints\.toml",
     ) as e:
-        constraints = toml.dependencies
+        toml.dependencies
 
     assert e.value.__cause__ == url_error
 
@@ -64,6 +64,6 @@ def test_constraints_key_error(mocker):
         RuntimeError,
         match=r"\[poetry.constraint-dependencies\] section not found in constraints\.toml",
     ) as e:
-        constraints = toml.dependencies
+        toml.dependencies
 
     assert type(e.value.__cause__) == NonExistentKey

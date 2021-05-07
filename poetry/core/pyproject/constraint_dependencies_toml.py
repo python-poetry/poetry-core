@@ -47,8 +47,6 @@ class ConstraintDependenciesTOML:
                 try:
                     return data["poetry"]["constraint-dependencies"]
                 except NonExistentKey as e:
-                    from poetry.core.pyproject.exceptions import PyProjectException
-
                     raise RuntimeError(
                         "[poetry.constraint-dependencies] section not found in {}".format(
                             self._path_or_url
