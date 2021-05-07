@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "Poetry Maintainers <noreply@python-poetry.org>"
+]
+license = "MIT"
+readme = "README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.extras]
+
+[tool.poetry.scripts]
+script-legacy = "my_package:main"

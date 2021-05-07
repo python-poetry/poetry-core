@@ -191,7 +191,7 @@ class SdistBuilder(Builder):
         script_files = self.convert_script_files()
         if script_files:
             rel_paths = [str(p.relative_to(self._path)) for p in script_files]
-            before.append('scripts = \\\n["{}"]\n'.format('", "'.join(rel_paths)))
+            before.append("scripts = \\\n{}\n".format(pformat(rel_paths)))
             extra.append("'scripts': scripts,")
 
         if self._package.python_versions != "*":

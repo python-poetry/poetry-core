@@ -285,50 +285,36 @@ class Builder(object):
         result = defaultdict(list)
 
         # Scripts -> Entry points
-        for name, ep in self._poetry.local_config.get("scripts", {}).items():
-            extras: str = ""
-            module_path: str = ""
+        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+            if isinstance(specification, str):
+                # TODO: deprecate this in favour or reference
+                specification = {"reference": specification, "type": "console"}
 
-            # Currently we support 2 legacy and 1 new format:
-            # (legacy)    my_script = 'my_package.main:entry'
-            # (legacy)    my_script = { callable = 'my_package.main:entry' }
-            # (supported) my_script = { reference = 'my_package.main:entry', type = "console" }
-
-            if isinstance(ep, str):
+            if "callable" in specification:
                 warnings.warn(
-                    "This way of declaring console scripts is deprecated and will be removed in a future version. "
-                    'Use reference = "{}", type = "console" instead.'.format(ep),
+                    f"Use of callable in script specification ({name}) is deprecated. Use reference instead.",
                     DeprecationWarning,
                 )
-                extras = ""
-                module_path = ep
-            elif isinstance(ep, dict) and (
-                ep.get("type") == "console"
-                or "callable" in ep  # Supporting both new and legacy format for now
-            ):
-                if "callable" in ep:
-                    warnings.warn(
-                        "Using the keyword callable is deprecated and will be removed in a future version. "
-                        'Use reference = "{}", type = "console" instead.'.format(
-                            ep["callable"]
-                        ),
-                        DeprecationWarning,
-                    )
+                specification = {
+                    "reference": specification["callable"],
+                    "type": "console",
+                }
 
-                extras = "[{}]".format(", ".join(ep["extras"]))
-                module_path = ep.get("reference", ep.get("callable"))
-            else:
+            if specification.get("type") != "console":
                 continue
 
-            result["console_scripts"].append(
-                "{} = {}{}".format(name, module_path, extras)
-            )
+            extras = specification.get("extras", [])
+            extras = f"[{', '.join(extras)}]" if extras else ""
+            reference = specification.get("reference")
+
+            if reference:
+                result["console_scripts"].append(f"{name} = {reference}{extras}")
 
         # Plugins -> entry points
         plugins = self._poetry.local_config.get("plugins", {})
         for groupname, group in plugins.items():
-            for name, ep in sorted(group.items()):
-                result[groupname].append("{} = {}".format(name, ep))
+            for name, specification in sorted(group.items()):
+                result[groupname].append(f"{name} = {specification}")
 
         for groupname in result:
             result[groupname] = sorted(result[groupname])
@@ -338,21 +324,26 @@ class Builder(object):
     def convert_script_files(self) -> List[Path]:
         script_files: List[Path] = []
 
-        for _, ep in self._poetry.local_config.get("scripts", {}).items():
-            if isinstance(ep, dict) and ep.get("type") == "file":
-                source = ep["reference"]
+        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+            if isinstance(specification, dict) and specification.get("type") == "file":
+                source = specification["reference"]
 
                 if Path(source).is_absolute():
                     raise RuntimeError(
-                        "{} is an absolute path. Expected relative path.".format(source)
+                        f"{source} in {name} is an absolute path. Expected relative path."
                     )
 
                 abs_path = Path.joinpath(self._path, source)
 
                 if not abs_path.exists():
-                    raise RuntimeError("{} file-script is not found.".format(abs_path))
+                    raise RuntimeError(
+                        f"{abs_path} in script specification ({name}) is not found."
+                    )
+
                 if not abs_path.is_file():
-                    raise RuntimeError("{} file-script is not a file.".format(abs_path))
+                    raise RuntimeError(
+                        f"{abs_path} in script specification ({name}) is not a file."
+                    )
 
                 script_files.append(abs_path)
 
