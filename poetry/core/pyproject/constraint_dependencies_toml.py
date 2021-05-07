@@ -1,16 +1,14 @@
+import os
 import urllib.request
 
-from tempfile import NamedTemporaryFile
+from tempfile import mkstemp
 from typing import TYPE_CHECKING
-from typing import Optional
-from typing import Union
 from urllib.error import URLError
 from urllib.parse import urlparse
 
 
 if TYPE_CHECKING:
     from tomlkit.container import Container
-    from tomlkit.items import Item
 
 
 class ConstraintDependenciesTOML:
@@ -18,7 +16,7 @@ class ConstraintDependenciesTOML:
         self._path_or_url = path_or_url
 
     @property
-    def dependencies(self) -> Optional[Union["Item", "Container"]]:
+    def dependencies(self) -> "Container":
         from tomlkit.exceptions import NonExistentKey
 
         from poetry.core.toml import TOMLFile
@@ -29,7 +27,7 @@ class ConstraintDependenciesTOML:
             else "file:" + self._path_or_url
         )
         try:
-            response = urllib.request.urlopen(url)
+            content = urllib.request.urlopen(url).read()
         except URLError as e:
             raise RuntimeError(
                 "Poetry could not load constraint dependencies file {}".format(
@@ -37,11 +35,13 @@ class ConstraintDependenciesTOML:
                 )
             ) from e
         else:
-            with NamedTemporaryFile(
-                prefix="poetry-constraint-dependencies-", buffering=0
-            ) as fp:
-                fp.write(response.read())
-                constraint_dependencies_file = TOMLFile(fp.name)
+            fd, path = mkstemp(prefix="poetry-constraint-dependencies-")
+            with open(path, mode="w+b") as f:
+                f.write(content)
+
+            constraint_dependencies_file = TOMLFile(f.name)
+
+            try:
                 data = constraint_dependencies_file.read()
 
                 try:
@@ -52,3 +52,6 @@ class ConstraintDependenciesTOML:
                             self._path_or_url
                         )
                     ) from e
+            finally:
+                os.close(fd)
+                os.unlink(path)
