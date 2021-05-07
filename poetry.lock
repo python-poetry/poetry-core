@@ -207,6 +207,7 @@ python-versions = "*"
 
 [package.dependencies]
 attrs = ">=17.4.0"
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 pyrsistent = ">=0.14.0"
 six = ">=1.11.0"
 
@@ -528,7 +529,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "99ce5f04445fc917015b1703c90e88ad9695db1c466e775cad1caea231e1d35a"
+content-hash = "b32f0571590c57077d864e4bca6adef82d6af64e7654215319d43a04a4d30128"
 
 [metadata.files]
 appdirs = [
