@@ -18,7 +18,7 @@ class InvalidRequirement(ValueError):
 _parser = Parser(GRAMMAR_PEP_508_CONSTRAINTS, "lalr")
 
 
-class Requirement(object):
+class Requirement:
     """
     Parse a requirement.
 
@@ -49,14 +49,14 @@ class Requirement(object):
             if parsed_url.scheme == "file":
                 if urlparse.urlunparse(parsed_url) != url:
                     raise InvalidRequirement(
-                        'The requirement is invalid: invalid URL "{0}"'.format(url)
+                        f'The requirement is invalid: invalid URL "{url}"'
                     )
             elif (
                 not (parsed_url.scheme and parsed_url.netloc)
                 or (not parsed_url.scheme and not parsed_url.netloc)
             ) and not parsed_url.path:
                 raise InvalidRequirement(
-                    'The requirement is invalid: invalid URL "{0}"'.format(url)
+                    f'The requirement is invalid: invalid URL "{url}"'
                 )
             self.url = url
         else:
@@ -92,18 +92,18 @@ class Requirement(object):
         parts = [self.name]
 
         if self.extras:
-            parts.append("[{0}]".format(",".join(sorted(self.extras))))
+            parts.append("[{}]".format(",".join(sorted(self.extras))))
 
         if self.pretty_constraint:
             parts.append(self.pretty_constraint)
 
         if self.url:
-            parts.append("@ {0}".format(self.url))
+            parts.append(f"@ {self.url}")
 
         if self.marker:
-            parts.append("; {0}".format(self.marker))
+            parts.append(f"; {self.marker}")
 
         return "".join(parts)
 
     def __repr__(self) -> str:
-        return "<Requirement({0!r})>".format(str(self))
+        return f"<Requirement({str(self)!r})>"

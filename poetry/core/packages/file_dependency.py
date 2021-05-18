@@ -35,15 +35,15 @@ class FileDependency(Dependency):
             try:
                 self._full_path = self._base.joinpath(self._path).resolve()
             except FileNotFoundError:
-                raise ValueError("Directory {} does not exist".format(self._path))
+                raise ValueError(f"Directory {self._path} does not exist")
 
         if not self._full_path.exists():
-            raise ValueError("File {} does not exist".format(self._path))
+            raise ValueError(f"File {self._path} does not exist")
 
         if self._full_path.is_dir():
-            raise ValueError("{} is a directory, expected a file".format(self._path))
+            raise ValueError(f"{self._path} is a directory, expected a file")
 
-        super(FileDependency, self).__init__(
+        super().__init__(
             name,
             "*",
             category=category,
@@ -108,7 +108,7 @@ class FileDependency(Dependency):
             requirement += "[{}]".format(",".join(self.extras))
 
         path = path_to_url(self.path) if self.path.is_absolute() else self.path
-        requirement += " @ {}".format(path)
+        requirement += f" @ {path}"
 
         return requirement
 

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import contextlib
 import csv
 import hashlib
@@ -55,7 +53,7 @@ class WheelBuilder(Builder):
         original: Optional[Path] = None,
         executable: Optional[str] = None,
     ) -> None:
-        super(WheelBuilder, self).__init__(poetry, executable=executable)
+        super().__init__(poetry, executable=executable)
 
         self._records = []
         self._original_path = self._path
@@ -116,7 +114,7 @@ class WheelBuilder(Builder):
             wheel_path.unlink()
         shutil.move(temp_path, str(wheel_path))
 
-        logger.info("Built {}".format(self.wheel_filename))
+        logger.info(f"Built {self.wheel_filename}")
 
     def _build(self, wheel: zipfile.ZipFile) -> None:
         if self._package.build_script:
@@ -161,7 +159,7 @@ class WheelBuilder(Builder):
                         if rel_path in wheel.namelist():
                             continue
 
-                        logger.debug("Adding: {}".format(rel_path))
+                        logger.debug(f"Adding: {rel_path}")
 
                         self._add_file(wheel, pkg, rel_path)
 
@@ -187,7 +185,7 @@ class WheelBuilder(Builder):
         )
 
     def _run_build_script(self, build_script: str) -> None:
-        logger.debug("Executing build script: {}".format(build_script))
+        logger.debug(f"Executing build script: {build_script}")
         subprocess.check_call([self.executable.as_posix(), build_script])
 
     def _copy_module(self, wheel: zipfile.ZipFile) -> None:
@@ -215,10 +213,10 @@ class WheelBuilder(Builder):
 
         for path in set(license_files_to_add):
             if path.is_file():
-                relative_path = "%s/%s" % (self.dist_info, path.relative_to(self._path))
+                relative_path = f"{self.dist_info}/{path.relative_to(self._path)}"
                 self._add_file(wheel, path, relative_path)
             else:
-                logger.debug("Skipping: {}".format(path.as_posix()))
+                logger.debug(f"Skipping: {path.as_posix()}")
 
         with self._write_to_zip(wheel, self.dist_info + "/WHEEL") as f:
             self._write_wheel_file(f)
@@ -238,7 +236,7 @@ class WheelBuilder(Builder):
                 lineterminator="\n",
             )
             for path, hash, size in self._records:
-                csv_writer.writerow((path, "sha256={}".format(hash), size))
+                csv_writer.writerow((path, f"sha256={hash}", size))
 
             # RECORD itself is recorded with no hash or size
             csv_writer.writerow((self.dist_info + "/RECORD", "", ""))
@@ -251,7 +249,7 @@ class WheelBuilder(Builder):
 
     @property
     def wheel_data_folder(self) -> str:
-        return "{}-{}.data".format(self._package.name, self._meta.version)
+        return f"{self._package.name}-{self._meta.version}.data"
 
     @property
     def wheel_filename(self) -> str:
@@ -270,7 +268,7 @@ class WheelBuilder(Builder):
         escaped_name = escape_name(distribution)
         escaped_version = escape_version(version)
 
-        return "{}-{}.dist-info".format(escaped_name, escaped_version)
+        return f"{escaped_name}-{escaped_version}.dist-info"
 
     @property
     def tag(self) -> str:
@@ -353,7 +351,7 @@ class WheelBuilder(Builder):
         entry_points = self.convert_entry_points()
 
         for group_name in sorted(entry_points):
-            fp.write("[{}]\n".format(group_name))
+            fp.write(f"[{group_name}]\n")
             for ep in sorted(entry_points[group_name]):
                 fp.write(ep.replace(" ", "") + "\n")
 

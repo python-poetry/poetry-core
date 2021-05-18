@@ -1,7 +1,6 @@
 import json
 import os
 
-from io import open
 from typing import TYPE_CHECKING
 from typing import Dict
 from typing import Optional

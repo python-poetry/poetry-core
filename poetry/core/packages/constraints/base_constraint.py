@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from . import ConstraintTypes  # noqa
 
 
-class BaseConstraint(object):
+class BaseConstraint:
     def allows_all(self, other: "ConstraintTypes") -> bool:
         raise NotImplementedError()
 
@@ -28,7 +28,7 @@ class BaseConstraint(object):
         return False
 
     def __repr__(self) -> str:
-        return "<{} {}>".format(self.__class__.__name__, str(self))
+        return f"<{self.__class__.__name__} {str(self)}>"
 
     def __eq__(self, other: "ConstraintTypes") -> bool:
         raise NotImplementedError()

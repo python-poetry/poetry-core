@@ -124,15 +124,15 @@ class ParsedUrl:
                     groups.get("rev"),
                 )
 
-        raise ValueError('Invalid git url "{}"'.format(url))
+        raise ValueError(f'Invalid git url "{url}"')
 
     @property
     def url(self) -> str:
         return "{}{}{}{}{}".format(
-            "{}://".format(self.protocol) if self.protocol else "",
-            "{}@".format(self.user) if self.user else "",
+            f"{self.protocol}://" if self.protocol else "",
+            f"{self.user}@" if self.user else "",
             self.resource,
-            ":{}".format(self.port) if self.port else "",
+            f":{self.port}" if self.port else "",
             "/" + self.pathname.lstrip(":/"),
         )
 
@@ -181,7 +181,7 @@ class Git:
 
         formatted = re.sub(r"^git\+", "", url)
         if parsed.rev:
-            formatted = re.sub(r"[#@]{}$".format(parsed.rev), "", formatted)
+            formatted = re.sub(fr"[#@]{parsed.rev}$", "", formatted)
 
         altered = parsed.format() != formatted
 

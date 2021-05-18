@@ -34,16 +34,16 @@ class DirectoryDependency(Dependency):
             try:
                 self._full_path = self._base.joinpath(self._path).resolve()
             except FileNotFoundError:
-                raise ValueError("Directory {} does not exist".format(self._path))
+                raise ValueError(f"Directory {self._path} does not exist")
 
         self._develop = develop
         self._supports_poetry = False
 
         if not self._full_path.exists():
-            raise ValueError("Directory {} does not exist".format(self._path))
+            raise ValueError(f"Directory {self._path} does not exist")
 
         if self._full_path.is_file():
-            raise ValueError("{} is a file, expected a directory".format(self._path))
+            raise ValueError(f"{self._path} is a file, expected a directory")
 
         # Checking content to determine actions
         setup = self._full_path / "setup.py"
@@ -58,7 +58,7 @@ class DirectoryDependency(Dependency):
                 )
             )
 
-        super(DirectoryDependency, self).__init__(
+        super().__init__(
             name,
             "*",
             category=category,
@@ -123,7 +123,7 @@ class DirectoryDependency(Dependency):
             requirement += "[{}]".format(",".join(self.extras))
 
         path = path_to_url(self.path) if self.path.is_absolute() else self.path
-        requirement += " @ {}".format(path)
+        requirement += f" @ {path}"
 
         return requirement
 

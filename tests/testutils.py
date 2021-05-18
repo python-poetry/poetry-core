@@ -72,14 +72,14 @@ def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.Completed
 def validate_wheel_contents(
     name, version, path, files=None
 ):  # type: (str, str, str, Optional[List[str]]) -> None
-    dist_info = "{}-{}.dist-info".format(name, version)
+    dist_info = f"{name}-{version}.dist-info"
     files = files or []
 
     with zipfile.ZipFile(path) as z:
         namelist = z.namelist()
         # we use concatenation here for PY2 compat
         for filename in ["WHEEL", "METADATA", "RECORD"] + files:
-            assert "{}/{}".format(dist_info, filename) in namelist
+            assert f"{dist_info}/{filename}" in namelist
 
 
 def validate_sdist_contents(
@@ -88,4 +88,4 @@ def validate_sdist_contents(
     with tarfile.open(path) as tar:
         namelist = tar.getnames()
         for filename in files:
-            assert "{}-{}/{}".format(name, version, filename) in namelist
+            assert f"{name}-{version}/{filename}" in namelist

@@ -54,7 +54,7 @@ ALIASES = {
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
 
-class BaseMarker(object):
+class BaseMarker:
     def intersect(self, other: "BaseMarker") -> "BaseMarker":
         raise NotImplementedError()
 
@@ -83,7 +83,7 @@ class BaseMarker(object):
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return "<{} {}>".format(self.__class__.__name__, str(self))
+        return f"<{self.__class__.__name__} {str(self)}>"
 
 
 class AnyMarker(BaseMarker):
@@ -233,7 +233,7 @@ class SingleMarker(BaseMarker):
     @property
     def constraint_string(self) -> str:
         if self._operator in {"in", "not in"}:
-            return "{} {}".format(self._operator, self._value)
+            return f"{self._operator} {self._value}"
 
         return self._constraint_string
 
@@ -342,14 +342,14 @@ class SingleMarker(BaseMarker):
             max_operator = "<=" if self._constraint.include_max else "<"
 
             return MultiMarker.of(
-                SingleMarker(self._name, "{} {}".format(min_operator, min_)),
-                SingleMarker(self._name, "{} {}".format(max_operator, max_)),
+                SingleMarker(self._name, f"{min_operator} {min_}"),
+                SingleMarker(self._name, f"{max_operator} {max_}"),
             ).invert()
         else:
             # We should never go there
-            raise RuntimeError("Invalid marker operator '{}'".format(self._operator))
+            raise RuntimeError(f"Invalid marker operator '{self._operator}'")
 
-        return parse_marker("{} {} '{}'".format(self._name, operator, self._value))
+        return parse_marker(f"{self._name} {operator} '{self._value}'")
 
     def __eq__(self, other: MarkerTypes) -> bool:
         if not isinstance(other, SingleMarker):
@@ -361,7 +361,7 @@ class SingleMarker(BaseMarker):
         return hash((self._name, self._constraint_string))
 
     def __str__(self) -> str:
-        return '{} {} "{}"'.format(self._name, self._operator, self._value)
+        return f'{self._name} {self._operator} "{self._value}"'
 
 
 def _flatten_markers(
@@ -518,7 +518,7 @@ class MultiMarker(BaseMarker):
             elif isinstance(m, MultiMarker):
                 elements.append(str(m))
             else:
-                elements.append("({})".format(str(m)))
+                elements.append(f"({str(m)})")
 
         return " and ".join(elements)
 
@@ -706,7 +706,7 @@ def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> MarkerType
     groups = [MultiMarker()]
     for token in tree_elements:
         if isinstance(token, Token):
-            if token.type == "{}BOOL_OP".format(tree_prefix) and token.value == "or":
+            if token.type == f"{tree_prefix}BOOL_OP" and token.value == "or":
                 groups.append(MultiMarker())
 
             continue
@@ -715,19 +715,17 @@ def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> MarkerType
             groups[-1] = MultiMarker.of(
                 groups[-1], _compact_markers(token.children, tree_prefix=tree_prefix)
             )
-        elif token.data == "{}item".format(tree_prefix):
+        elif token.data == f"{tree_prefix}item":
             name, op, value = token.children
-            if value.type == "{}MARKER_NAME".format(tree_prefix):
+            if value.type == f"{tree_prefix}MARKER_NAME":
                 name, value, = (
                     value,
                     name,
                 )
 
             value = value[1:-1]
-            groups[-1] = MultiMarker.of(
-                groups[-1], SingleMarker(name, "{}{}".format(op, value))
-            )
-        elif token.data == "{}BOOL_OP".format(tree_prefix):
+            groups[-1] = MultiMarker.of(groups[-1], SingleMarker(name, f"{op}{value}"))
+        elif token.data == f"{tree_prefix}BOOL_OP":
             if token.children[0] == "or":
                 groups.append(MultiMarker())
 

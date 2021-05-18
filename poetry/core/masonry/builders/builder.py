@@ -34,7 +34,7 @@ Summary: {summary}
 logger = logging.getLogger(__name__)
 
 
-class Builder(object):
+class Builder:
     format: Optional[str] = None
 
     def __init__(
@@ -212,7 +212,7 @@ class Builder(object):
                     # Skip duplicates
                     continue
 
-                logger.debug("Adding: {}".format(str(file)))
+                logger.debug(f"Adding: {str(file)}")
                 to_add.add(include_file)
 
         # add build script if it is specified and explicitly required
@@ -236,40 +236,40 @@ class Builder(object):
 
         # Optional fields
         if self._meta.home_page:
-            content += "Home-page: {}\n".format(self._meta.home_page)
+            content += f"Home-page: {self._meta.home_page}\n"
 
         if self._meta.license:
-            content += "License: {}\n".format(self._meta.license)
+            content += f"License: {self._meta.license}\n"
 
         if self._meta.keywords:
-            content += "Keywords: {}\n".format(self._meta.keywords)
+            content += f"Keywords: {self._meta.keywords}\n"
 
         if self._meta.author:
-            content += "Author: {}\n".format(str(self._meta.author))
+            content += f"Author: {str(self._meta.author)}\n"
 
         if self._meta.author_email:
-            content += "Author-email: {}\n".format(str(self._meta.author_email))
+            content += f"Author-email: {str(self._meta.author_email)}\n"
 
         if self._meta.maintainer:
-            content += "Maintainer: {}\n".format(str(self._meta.maintainer))
+            content += f"Maintainer: {str(self._meta.maintainer)}\n"
 
         if self._meta.maintainer_email:
-            content += "Maintainer-email: {}\n".format(str(self._meta.maintainer_email))
+            content += f"Maintainer-email: {str(self._meta.maintainer_email)}\n"
 
         if self._meta.requires_python:
-            content += "Requires-Python: {}\n".format(self._meta.requires_python)
+            content += f"Requires-Python: {self._meta.requires_python}\n"
 
         for classifier in self._meta.classifiers:
-            content += "Classifier: {}\n".format(classifier)
+            content += f"Classifier: {classifier}\n"
 
         for extra in sorted(self._meta.provides_extra):
-            content += "Provides-Extra: {}\n".format(extra)
+            content += f"Provides-Extra: {extra}\n"
 
         for dep in sorted(self._meta.requires_dist):
-            content += "Requires-Dist: {}\n".format(dep)
+            content += f"Requires-Dist: {dep}\n"
 
         for url in sorted(self._meta.project_urls, key=lambda u: u[0]):
-            content += "Project-URL: {}\n".format(str(url))
+            content += f"Project-URL: {str(url)}\n"
 
         if self._meta.description_content_type:
             content += "Description-Content-Type: {}\n".format(
