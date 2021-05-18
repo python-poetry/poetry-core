@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "Poetry Maintainers <noreply@python-poetry.org>"
+]
+license = "MIT"
+readme = "README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.extras]
+time = []
+
+[tool.poetry.scripts]
+script = { reference = "my_package.extra:main", type = "console" }
+extra-script = { reference = "my_package.extra:main", extras = ["time"], type = "console" }
