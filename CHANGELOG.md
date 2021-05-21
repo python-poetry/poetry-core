@@ -1,5 +1,16 @@
 # Change Log
 
+## [1.1.0a5] - 2021-05-21
+
+### Added
+
+- Added support for script files in addition to standard entry points. ([#40](https://github.com/python-poetry/poetry-core/pull/40))
+
+### Fixed
+
+- Fixed an error in the way python markers with a precision >= 3 were handled. ([#178](https://github.com/python-poetry/poetry-core/pull/178))
+
+
 ## [1.1.0a4] - 2021-04-30
 
 ### Changed
@@ -195,7 +206,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a4...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a5...master
+[1.1.0a5]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a5
 [1.1.0a4]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a4
 [1.1.0a3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a3
 [1.1.0a2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a2

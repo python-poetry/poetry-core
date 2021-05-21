@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 
-__version__ = "1.1.0a4"
+__version__ = "1.1.0a5"
 
 __vendor_site__ = (Path(__file__).parent / "_vendor").as_posix()
 
