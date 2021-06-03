@@ -644,4 +644,4 @@ def test_split_source():
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
     ns = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
-    assert "module_a" in ns["package_dir"] or "module_b" in ns["package_dir"]
+    assert ns["package_dir"] == {"": "lib_a", "module_b": "lib_b/module_b"}
