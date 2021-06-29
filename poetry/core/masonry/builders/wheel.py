@@ -28,6 +28,7 @@ from poetry.core.semver.helpers import parse_constraint
 from ..utils.helpers import escape_name
 from ..utils.helpers import escape_version
 from ..utils.helpers import normalize_file_permissions
+from ..utils.package_include import PackageInclude
 from .builder import Builder
 from .sdist import SdistBuilder
 
@@ -54,6 +55,7 @@ class WheelBuilder(Builder):
         target_dir: Optional[Path] = None,
         original: Optional[Path] = None,
         executable: Optional[str] = None,
+        editable: bool = False,
     ) -> None:
         super(WheelBuilder, self).__init__(poetry, executable=executable)
 
@@ -62,6 +64,7 @@ class WheelBuilder(Builder):
         self._target_dir = target_dir or (self._poetry.file.parent / "dist")
         if original:
             self._original_path = original.parent
+        self._editable = editable
 
     @classmethod
     def make_in(
@@ -70,9 +73,14 @@ class WheelBuilder(Builder):
         directory: Optional[Path] = None,
         original: Optional[Path] = None,
         executable: Optional[str] = None,
+        editable: bool = False,
     ) -> str:
         wb = WheelBuilder(
-            poetry, target_dir=directory, original=original, executable=executable
+            poetry,
+            target_dir=directory,
+            original=original,
+            executable=executable,
+            editable=editable,
         )
         wb.build()
 
@@ -100,12 +108,16 @@ class WheelBuilder(Builder):
             with zipfile.ZipFile(
                 fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
             ) as zip_file:
-                if not self._poetry.package.build_should_generate_setup():
-                    self._build(zip_file)
-                    self._copy_module(zip_file)
+                if not self._editable:
+                    if not self._poetry.package.build_should_generate_setup():
+                        self._build(zip_file)
+                        self._copy_module(zip_file)
+                    else:
+                        self._copy_module(zip_file)
+                        self._build(zip_file)
                 else:
-                    self._copy_module(zip_file)
                     self._build(zip_file)
+                    self._add_pth(zip_file)
 
                 self._copy_file_scripts(zip_file)
                 self._write_metadata(zip_file)
@@ -117,6 +129,23 @@ class WheelBuilder(Builder):
         shutil.move(temp_path, str(wheel_path))
 
         logger.info("Built {}".format(self.wheel_filename))
+
+    def _add_pth(self, wheel: zipfile.ZipFile) -> None:
+        paths = set()
+        for include in self._module.includes:
+            if isinstance(include, PackageInclude) and (
+                include.is_module() or include.is_package()
+            ):
+                paths.add(include.base.resolve().as_posix())
+
+        content = ""
+        for path in paths:
+            content += path + os.linesep
+
+        pth_file = Path(self._module.name).with_suffix(".pth")
+
+        with self._write_to_zip(wheel, str(pth_file)) as f:
+            f.write(content)
 
     def _build(self, wheel: zipfile.ZipFile) -> None:
         if self._package.build_script:
