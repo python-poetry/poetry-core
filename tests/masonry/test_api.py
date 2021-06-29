@@ -235,3 +235,4 @@ def test_build_editable_wheel():
 
             assert "my_package.pth" in namelist
             assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
+            assert not any(file for file in namelist if file.startswith("my_package/"))
