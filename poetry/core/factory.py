@@ -27,7 +27,7 @@ class Factory(object):
     """
 
     def create_poetry(
-        self, cwd: Optional[Path] = None, with_dev: bool = True
+        self, cwd: Optional[Path] = None, with_groups: bool = True
     ) -> "Poetry":
         from .poetry import Poetry
         from .pyproject.toml import PyProjectTOML
@@ -49,7 +49,7 @@ class Factory(object):
         version = local_config["version"]
         package = self.get_package(name, version)
         package = self.configure_package(
-            package, local_config, poetry_file.parent, with_dev=with_dev
+            package, local_config, poetry_file.parent, with_groups=with_groups
         )
 
         return Poetry(poetry_file, local_config, package)
@@ -66,9 +66,10 @@ class Factory(object):
         package: "ProjectPackage",
         config: Dict[str, Any],
         root: Path,
-        with_dev: bool = True,
+        with_groups: bool = True,
     ) -> "ProjectPackage":
         from .packages.dependency import Dependency
+        from .packages.dependency_group import DependencyGroup
         from .spdx.helpers import license_by_id
 
         package.root_dir = root
@@ -99,6 +100,7 @@ class Factory(object):
             package.platform = config["platform"]
 
         if "dependencies" in config:
+            group = DependencyGroup("default")
             for name, constraint in config["dependencies"].items():
                 if name.lower() == "python":
                     package.python_versions = constraint
@@ -106,7 +108,7 @@ class Factory(object):
 
                 if isinstance(constraint, list):
                     for _constraint in constraint:
-                        package.add_dependency(
+                        group.add_dependency(
                             cls.create_dependency(
                                 name, _constraint, root_dir=package.root_dir
                             )
@@ -114,30 +116,65 @@ class Factory(object):
 
                     continue
 
-                package.add_dependency(
+                group.add_dependency(
                     cls.create_dependency(name, constraint, root_dir=package.root_dir)
                 )
 
-        if with_dev and "dev-dependencies" in config:
+            package.add_dependency_group(group)
+
+        if with_groups and "group" in config:
+            for group_name, group_config in config["group"].items():
+                group = DependencyGroup(
+                    group_name, optional=group_config.get("optional", False)
+                )
+                for name, constraint in group_config["dependencies"].items():
+                    if isinstance(constraint, list):
+                        for _constraint in constraint:
+                            group.add_dependency(
+                                cls.create_dependency(
+                                    name,
+                                    _constraint,
+                                    groups=[group_name],
+                                    root_dir=package.root_dir,
+                                )
+                            )
+
+                        continue
+
+                    group.add_dependency(
+                        cls.create_dependency(
+                            name,
+                            constraint,
+                            groups=[group_name],
+                            root_dir=package.root_dir,
+                        )
+                    )
+
+                package.add_dependency_group(group)
+
+        if with_groups and "dev-dependencies" in config:
+            group = DependencyGroup("dev")
             for name, constraint in config["dev-dependencies"].items():
                 if isinstance(constraint, list):
                     for _constraint in constraint:
-                        package.add_dependency(
+                        group.add_dependency(
                             cls.create_dependency(
                                 name,
                                 _constraint,
-                                category="dev",
+                                groups=["dev"],
                                 root_dir=package.root_dir,
                             )
                         )
 
                     continue
 
-                package.add_dependency(
+                group.add_dependency(
                     cls.create_dependency(
-                        name, constraint, category="dev", root_dir=package.root_dir
+                        name, constraint, groups=["dev"], root_dir=package.root_dir
                     )
                 )
+
+            package.add_dependency_group(group)
 
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
@@ -191,7 +228,7 @@ class Factory(object):
         cls,
         name: str,
         constraint: Union[str, Dict[str, Any]],
-        category: str = "main",
+        groups: Optional[List[str]] = None,
         root_dir: Optional[Path] = None,
     ) -> "DependencyTypes":
         from .packages.constraints import parse_constraint as parse_generic_constraint
@@ -203,6 +240,9 @@ class Factory(object):
         from .packages.vcs_dependency import VCSDependency
         from .version.markers import AnyMarker
         from .version.markers import parse_marker
+
+        if groups is None:
+            groups = ["default"]
 
         if constraint is None:
             constraint = "*"
@@ -234,7 +274,7 @@ class Factory(object):
                     branch=constraint.get("branch", None),
                     tag=constraint.get("tag", None),
                     rev=constraint.get("rev", None),
-                    category=category,
+                    groups=groups,
                     optional=optional,
                     develop=constraint.get("develop", False),
                     extras=constraint.get("extras", []),
@@ -245,7 +285,7 @@ class Factory(object):
                 dependency = FileDependency(
                     name,
                     file_path,
-                    category=category,
+                    groups=groups,
                     base=root_dir,
                     extras=constraint.get("extras", []),
                 )
@@ -261,7 +301,7 @@ class Factory(object):
                     dependency = FileDependency(
                         name,
                         path,
-                        category=category,
+                        groups=groups,
                         optional=optional,
                         base=root_dir,
                         extras=constraint.get("extras", []),
@@ -270,7 +310,7 @@ class Factory(object):
                     dependency = DirectoryDependency(
                         name,
                         path,
-                        category=category,
+                        groups=groups,
                         optional=optional,
                         base=root_dir,
                         develop=constraint.get("develop", False),
@@ -280,7 +320,7 @@ class Factory(object):
                 dependency = URLDependency(
                     name,
                     constraint["url"],
-                    category=category,
+                    groups=groups,
                     optional=optional,
                     extras=constraint.get("extras", []),
                 )
@@ -291,7 +331,7 @@ class Factory(object):
                     name,
                     version,
                     optional=optional,
-                    category=category,
+                    groups=groups,
                     allows_prereleases=allows_prereleases,
                     extras=constraint.get("extras", []),
                 )
@@ -324,7 +364,7 @@ class Factory(object):
 
             dependency.source_name = constraint.get("source")
         else:
-            dependency = Dependency(name, constraint, category=category)
+            dependency = Dependency(name, constraint, groups=groups)
 
         return dependency
 

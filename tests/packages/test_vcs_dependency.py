@@ -59,15 +59,15 @@ def test_to_pep_508_in_extras():
     assert expected == dependency.to_pep_508()
 
 
-@pytest.mark.parametrize("category", ["main", "dev"])
-def test_category(category):
+@pytest.mark.parametrize("groups", [["main"], ["dev"]])
+def test_category(groups):
     dependency = VCSDependency(
         "poetry",
         "git",
         "https://github.com/python-poetry/poetry.git",
-        category=category,
+        groups=groups,
     )
-    assert category == dependency.category
+    assert dependency.groups == frozenset(groups)
 
 
 def test_vcs_dependency_can_have_resolved_reference_specified():
