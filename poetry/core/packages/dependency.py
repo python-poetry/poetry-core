@@ -435,7 +435,7 @@ class Dependency(PackageSpecification):
         from .vcs_dependency import VCSDependency
 
         # Removing comments
-        parts = name.split("#", 1)
+        parts = name.split(" #", 1)
         name = parts[0].strip()
         if len(parts) > 1:
             rest = parts[1]
@@ -497,7 +497,12 @@ class Dependency(PackageSpecification):
             if link.scheme.startswith("git+"):
                 url = ParsedUrl.parse(link.url)
                 dep = VCSDependency(
-                    name, "git", url.url, rev=url.rev, extras=req.extras
+                    name,
+                    "git",
+                    url.url,
+                    rev=url.rev,
+                    directory=url.subdirectory,
+                    extras=req.extras,
                 )
             elif link.scheme == "git":
                 dep = VCSDependency(

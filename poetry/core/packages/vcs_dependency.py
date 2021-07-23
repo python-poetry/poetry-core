@@ -25,6 +25,7 @@ class VCSDependency(Dependency):
         tag: Optional[str] = None,
         rev: Optional[str] = None,
         resolved_rev: Optional[str] = None,
+        directory: Optional[str] = None,
         groups: Optional[List[str]] = None,
         optional: bool = False,
         develop: bool = False,
@@ -36,6 +37,7 @@ class VCSDependency(Dependency):
         self._branch = branch
         self._tag = tag
         self._rev = rev
+        self._directory = directory
         self._develop = develop
 
         super(VCSDependency, self).__init__(
@@ -70,6 +72,10 @@ class VCSDependency(Dependency):
     @property
     def rev(self) -> Optional[str]:
         return self._rev
+
+    @property
+    def directory(self) -> Optional[str]:
+        return self._directory
 
     @property
     def develop(self) -> bool:
@@ -110,6 +116,9 @@ class VCSDependency(Dependency):
 
         if self.reference:
             requirement += f"@{self.reference}"
+
+        if self._directory:
+            requirement += f"#subdirectory{self._directory}"
 
         return requirement
 
