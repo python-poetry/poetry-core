@@ -86,3 +86,22 @@ def test_vcs_dependency_can_have_resolved_reference_specified():
     assert dependency.branch == "develop"
     assert dependency.source_reference == "develop"
     assert dependency.source_resolved_reference == "123456"
+
+
+def test_vcs_dependencies_are_equal_if_resolved_references_match():
+    dependency1 = VCSDependency(
+        "poetry",
+        "git",
+        "https://github.com/python-poetry/poetry.git",
+        branch="develop",
+        resolved_rev="123456",
+    )
+    dependency2 = VCSDependency(
+        "poetry",
+        "git",
+        "https://github.com/python-poetry/poetry.git",
+        rev="123",
+        resolved_rev="123456",
+    )
+
+    assert dependency1 == dependency2

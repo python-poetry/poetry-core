@@ -76,6 +76,18 @@ class PackageSpecification(object):
                 if self._source_url != other.source_url:
                     return False
 
+            # We check the resolved reference first:
+            # if they match we assume equality regardless
+            # of their source reference.
+            # This is important when comparing a resolved branch VCS
+            # dependency to a direct commit reference VCS dependency
+            if (
+                self._source_resolved_reference
+                and other.source_resolved_reference
+                and self._source_resolved_reference == other.source_resolved_reference
+            ):
+                return True
+
             if self._source_reference or other.source_reference:
                 # special handling for packages with references
                 if not self._source_reference or not other.source_reference:
