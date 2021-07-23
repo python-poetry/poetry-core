@@ -34,7 +34,7 @@ class Dependency(PackageSpecification):
         name: str,
         constraint: Union[str, "VersionTypes"],
         optional: bool = False,
-        category: str = "main",
+        groups: Optional[List[str]] = None,
         allows_prereleases: bool = False,
         extras: Union[List[str], FrozenSet[str]] = None,
         source_type: Optional[str] = None,
@@ -58,7 +58,11 @@ class Dependency(PackageSpecification):
 
         self._pretty_constraint = str(constraint)
         self._optional = optional
-        self._category = category
+
+        if not groups:
+            groups = ["default"]
+
+        self._groups = frozenset(groups)
 
         if (
             isinstance(self._constraint, VersionRangeConstraint)
@@ -113,8 +117,8 @@ class Dependency(PackageSpecification):
         return self._pretty_name
 
     @property
-    def category(self) -> str:
-        return self._category
+    def groups(self) -> FrozenSet[str]:
+        return self._groups
 
     @property
     def python_versions(self) -> str:
@@ -387,7 +391,7 @@ class Dependency(PackageSpecification):
             self.pretty_name,
             constraint,
             optional=self.is_optional(),
-            category=self.category,
+            groups=list(self._groups),
             allows_prereleases=self.allows_prereleases(),
             extras=self._extras,
             source_type=self._source_type,

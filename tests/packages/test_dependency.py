@@ -250,7 +250,7 @@ def test_with_constraint():
         "foo",
         "^1.2.3",
         optional=True,
-        category="dev",
+        groups=["dev"],
         allows_prereleases=True,
         extras=["bar", "baz"],
     )
@@ -268,7 +268,7 @@ def test_with_constraint():
     assert new.name == dependency.name
     assert str(new.constraint) == ">=1.2.6,<2.0.0"
     assert new.is_optional()
-    assert new.category == "dev"
+    assert new.groups == frozenset(["dev"])
     assert new.allows_prereleases()
     assert set(new.extras) == {"bar", "baz"}
     assert new.marker == dependency.marker

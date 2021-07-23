@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 from typing import FrozenSet
 from typing import List
+from typing import Optional
 from typing import Union
 from urllib.parse import urlparse
 
@@ -16,7 +17,7 @@ class URLDependency(Dependency):
         self,
         name: str,
         url: str,
-        category: str = "main",
+        groups: Optional[List[str]] = None,
         optional: bool = False,
         extras: Union[List[str], FrozenSet[str]] = None,
     ):
@@ -29,7 +30,7 @@ class URLDependency(Dependency):
         super(URLDependency, self).__init__(
             name,
             "*",
-            category=category,
+            groups=groups,
             optional=optional,
             allows_prereleases=True,
             source_type="url",
@@ -60,7 +61,7 @@ class URLDependency(Dependency):
             self.pretty_name,
             url=self._url,
             optional=self.is_optional(),
-            category=self.category,
+            groups=list(self._groups),
             extras=self._extras,
         )
 

@@ -25,7 +25,7 @@ class VCSDependency(Dependency):
         tag: Optional[str] = None,
         rev: Optional[str] = None,
         resolved_rev: Optional[str] = None,
-        category: str = "main",
+        groups: Optional[List[str]] = None,
         optional: bool = False,
         develop: bool = False,
         extras: Union[List[str], FrozenSet[str]] = None,
@@ -45,7 +45,7 @@ class VCSDependency(Dependency):
         super(VCSDependency, self).__init__(
             name,
             "*",
-            category=category,
+            groups=groups,
             optional=optional,
             allows_prereleases=True,
             source_type=self._vcs.lower(),
@@ -132,7 +132,7 @@ class VCSDependency(Dependency):
             rev=self._rev,
             resolved_rev=self._source_resolved_reference,
             optional=self.is_optional(),
-            category=self.category,
+            groups=list(self._groups),
             develop=self._develop,
             extras=self._extras,
         )

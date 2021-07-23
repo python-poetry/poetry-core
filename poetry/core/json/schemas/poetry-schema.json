@@ -147,6 +147,32 @@
         }
       }
     },
+    "group": {
+      "type": "object",
+      "description": "This represents groups of dependencies",
+      "patternProperties": {
+        "^[a-zA-Z-_.0-9]+$": {
+          "type": "object",
+          "description": "This represents a single dependency group",
+          "required": [
+            "dependencies"
+          ],
+          "properties": {
+            "optional": {
+              "type": "boolean",
+              "description": "Whether the dependency group is optional or not"
+            },
+            "dependencies": {
+              "type": "object",
+              "description": "The dependencies of this dependency group",
+              "$ref": "#/definitions/dependencies",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
     "build": {
       "$ref": "#/definitions/build-section"
     },
