@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.0a6] - 2021-07-30
+
+### Added
+
+- Added support for dependency groups. ([#183](https://github.com/python-poetry/poetry-core/pull/183))
+
+
 ## [1.1.0a5] - 2021-05-21
 
 ### Added
@@ -206,7 +213,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a5...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a6...master
+[1.1.0a6]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a6
 [1.1.0a5]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a5
 [1.1.0a4]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a4
 [1.1.0a3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a3
