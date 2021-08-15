@@ -223,6 +223,25 @@ class Git:
 
         return self.run(*args)
 
+    def get_current_branch(self, folder=None):
+        args = []
+
+        if folder is None and self._work_dir:
+            folder = self._work_dir
+
+        if folder:
+            print("folder is not empty string 2")
+            args += [
+                "--git-dir",
+                (folder / ".git").as_posix(),
+                "--work-tree",
+                folder.as_posix(),
+            ]
+
+        args += ["rev-parse", "--abbrev-ref", "HEAD"]
+
+        return self.run(*args)
+
     def rev_parse(self, rev: str, folder: Optional[Path] = None) -> str:
         args = []
         if folder is None and self._work_dir:
