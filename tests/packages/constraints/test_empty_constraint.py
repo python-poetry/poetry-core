@@ -47,13 +47,13 @@ def test_union():
     c = EmptyConstraint()
 
     union = c.union(Constraint("linux"))
-    assert union == EmptyConstraint()
+    assert union == Constraint("linux")
 
     union = c.union(UnionConstraint(Constraint("win32"), Constraint("linux")))
-    assert union == EmptyConstraint()
+    assert union == UnionConstraint(Constraint("win32"), Constraint("linux"))
 
     union = c.union(UnionConstraint(Constraint("darwin"), Constraint("linux2")))
-    assert union == EmptyConstraint()
+    assert union == UnionConstraint(Constraint("darwin"), Constraint("linux2"))
 
 
 def test_difference():
@@ -66,10 +66,10 @@ def test_difference():
 def test_is_any():
     c = EmptyConstraint()
 
-    assert c.is_any() == False
+    assert c.is_any() is False
 
 
 def test_is_empty():
     c = EmptyConstraint()
 
-    assert c.is_empty() == True
+    assert c.is_empty() is True
