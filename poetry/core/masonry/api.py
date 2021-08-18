@@ -85,7 +85,7 @@ def build_editable(
     config_settings: Optional[Dict[str, Any]] = None,
     metadata_directory: Optional[str] = None,
 ) -> str:
-    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
+    poetry = Factory().create_poetry(Path(".").resolve())
 
     return WheelBuilder.make_in(poetry, Path(wheel_directory), editable=True)
 
