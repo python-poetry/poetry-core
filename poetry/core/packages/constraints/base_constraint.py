@@ -6,6 +6,9 @@ if TYPE_CHECKING:
 
 
 class BaseConstraint(object):
+    def allows(self, other: "ConstraintTypes") -> bool:
+        raise NotImplementedError()
+
     def allows_all(self, other: "ConstraintTypes") -> bool:
         raise NotImplementedError()
 
