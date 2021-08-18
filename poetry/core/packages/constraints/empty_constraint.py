@@ -17,6 +17,9 @@ class EmptyConstraint(BaseConstraint):
     def is_empty(self) -> bool:
         return True
 
+    def allows(self, other: "ConstraintTypes") -> bool:
+        return True
+
     def allows_all(self, other: "ConstraintTypes") -> bool:
         return True
 
@@ -28,6 +31,9 @@ class EmptyConstraint(BaseConstraint):
 
     def difference(self, other: "ConstraintTypes") -> None:
         return
+
+    def union(self, other: "ConstraintTypes") -> "ConstraintTypes":
+        return other
 
     def __eq__(self, other: "ConstraintTypes") -> bool:
         return other.is_empty()
