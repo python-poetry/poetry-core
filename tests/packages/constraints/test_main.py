@@ -37,6 +37,21 @@ def test_parse_constraint(input, constraint):
                 Constraint("linux2", "!="),
             ),
         ),
+        (
+            'not in "x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32"',
+            MultiConstraint(
+                Constraint("x86_64", "!="),
+                Constraint("X86_64", "!="),
+                Constraint("aarch64", "!="),
+                Constraint("AARCH64", "!="),
+                Constraint("ppc64le", "!="),
+                Constraint("PPC64LE", "!="),
+                Constraint("amd64", "!="),
+                Constraint("AMD64", "!="),
+                Constraint("win32", "!="),
+                Constraint("WIN32", "!="),
+            )
+        ),
     ],
 )
 def test_parse_constraint_multi(input, constraint):
@@ -50,6 +65,21 @@ def test_parse_constraint_multi(input, constraint):
         (
             "win32 || !=linux2",
             UnionConstraint(Constraint("win32"), Constraint("linux2", "!=")),
+        ),
+        (
+            'in "x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32"',
+            UnionConstraint(
+                Constraint("x86_64", "="),
+                Constraint("X86_64", "="),
+                Constraint("aarch64", "="),
+                Constraint("AARCH64", "="),
+                Constraint("ppc64le", "="),
+                Constraint("PPC64LE", "="),
+                Constraint("amd64", "="),
+                Constraint("AMD64", "="),
+                Constraint("win32", "="),
+                Constraint("WIN32", "="),
+            )
         ),
     ],
 )
