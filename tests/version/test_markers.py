@@ -36,6 +36,34 @@ def test_single_marker():
     assert m.constraint_string == "not in 2.7, 3.0, 3.1"
     assert str(m.constraint) == "<2.7.0 || >=2.8.0,<3.0.0 || >=3.2.0"
 
+    m = parse_marker(
+        "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'"
+    )
+
+    assert isinstance(m, SingleMarker)
+    assert m.name == "platform_machine"
+    assert (
+        m.constraint_string
+        == "in x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32"
+    )
+    assert str(m.constraint) == (
+        "x86_64 || X86_64 || aarch64 || AARCH64 || ppc64le || PPC64LE || amd64 || AMD64 || win32 || WIN32"
+    )
+
+    m = parse_marker(
+        "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'"
+    )
+
+    assert isinstance(m, SingleMarker)
+    assert m.name == "platform_machine"
+    assert (
+        m.constraint_string
+        == "not in x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32"
+    )
+    assert str(m.constraint) == (
+        "!=x86_64, !=X86_64, !=aarch64, !=AARCH64, !=ppc64le, !=PPC64LE, !=amd64, !=AMD64, !=win32, !=WIN32"
+    )
+
 
 def test_single_marker_intersect():
     m = parse_marker('sys_platform == "darwin"')
@@ -474,6 +502,26 @@ def test_multi_marker_removes_duplicates():
         (
             "python_version == '2.5' and platform.python_implementation" "!= 'Jython'",
             {"python_version": "2.7"},
+            False,
+        ),
+        (
+            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            {"platform_machine": "foo"},
+            False,
+        ),
+        (
+            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            {"platform_machine": "x86_64"},
+            True,
+        ),
+        (
+            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            {"platform_machine": "foo"},
+            True,
+        ),
+        (
+            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            {"platform_machine": "x86_64"},
             False,
         ),
     ],
