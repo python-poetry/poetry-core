@@ -17,6 +17,9 @@ class EmptyConstraint(BaseConstraint):
     def is_empty(self) -> bool:
         return True
 
+    def allows(self, other: "ConstraintTypes") -> bool:
+        return False
+
     def allows_all(self, other: "ConstraintTypes") -> bool:
         return True
 
