@@ -50,7 +50,7 @@ jobs:
     - name: Install and set up Poetry
       run: |
         curl -fsS -o get-poetry.py https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py
-        python get-poetry.py --preview -y
+        python get-poetry.py -y
     - name: Build distributions
       run: |
         source $HOME/.poetry/env
@@ -78,7 +78,7 @@ jobs:
     - name: Install and setup Poetry
       run: |
         Invoke-WebRequest https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py -O get-poetry.py
-        python get-poetry.py --preview -y
+        python get-poetry.py -y
     - name: Build distributions
       run: |
         $env:Path += ";$env:Userprofile\.poetry\bin"
@@ -108,7 +108,7 @@ jobs:
       - name: Install and set up Poetry
         run: |
           curl -fsS -o get-poetry.py https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py
-          python get-poetry.py --preview -y
+          python get-poetry.py -y
       - name: Check distributions
         run: |
           ls -la dist
