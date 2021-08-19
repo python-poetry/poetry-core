@@ -38,6 +38,8 @@ pytest-cov = "^2.4"
 
 [tool.poetry.scripts]
 my-script = 'my_package:main'
+sample_pyscript = { reference = "script-files/sample_script.py", type= "file" }
+sample_shscript = { reference = "script-files/sample_script.sh", type= "file" }
 
 
 [[tool.poetry.source]]

@@ -1,10 +1,29 @@
 from __future__ import unicode_literals
 
+import random
+
 from pathlib import Path
 
 import pytest
 
+from poetry.core.factory import Factory
+from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.package import Package
+
+
+@pytest.fixture()
+def package_with_groups():
+    package = Package("foo", "1.2.3")
+
+    optional_group = DependencyGroup("optional", optional=True)
+    optional_group.add_dependency(Factory.create_dependency("bam", "^3.0.0"))
+
+    package.add_dependency(Factory.create_dependency("bar", "^1.0.0"))
+    package.add_dependency(Factory.create_dependency("baz", "^1.1.0"))
+    package.add_dependency(Factory.create_dependency("bim", "^2.0.0", groups=["dev"]))
+    package.add_dependency_group(optional_group)
+
+    return package
 
 
 def test_package_authors():
@@ -32,21 +51,21 @@ def test_package_authors_invalid():
     )
 
 
-@pytest.mark.parametrize("category", ["main", "dev"])
-def test_package_add_dependency_vcs_category(category, f):
+@pytest.mark.parametrize("groups", [["default"], ["dev"]])
+def test_package_add_dependency_vcs_groups(groups, f):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
         f.create_dependency(
             "poetry",
             {"git": "https://github.com/python-poetry/poetry.git"},
-            category=category,
+            groups=groups,
         )
     )
-    assert dependency.category == category
+    assert dependency.groups == frozenset(groups)
 
 
-def test_package_add_dependency_vcs_category_default_main(f):
+def test_package_add_dependency_vcs_groups_default_main(f):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -54,12 +73,12 @@ def test_package_add_dependency_vcs_category_default_main(f):
             "poetry", {"git": "https://github.com/python-poetry/poetry.git"}
         )
     )
-    assert dependency.category == "main"
+    assert dependency.groups == frozenset(["default"])
 
 
-@pytest.mark.parametrize("category", ["main", "dev"])
+@pytest.mark.parametrize("groups", [["default"], ["dev"]])
 @pytest.mark.parametrize("optional", [True, False])
-def test_package_url_category_optional(category, optional, f):
+def test_package_url_groups_optional(groups, optional, f):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -69,10 +88,10 @@ def test_package_url_category_optional(category, optional, f):
                 "url": "https://github.com/python-poetry/poetry/releases/download/1.0.5/poetry-1.0.5-linux.tar.gz",
                 "optional": optional,
             },
-            category=category,
+            groups=groups,
         )
     )
-    assert dependency.category == category
+    assert dependency.groups == frozenset(groups)
     assert dependency.is_optional() == optional
 
 
@@ -280,3 +299,87 @@ def test_to_dependency_for_url():
     assert "https://example.com/path.tar.gz" == dep.url
     assert "url" == dep.source_type
     assert "https://example.com/path.tar.gz" == dep.source_url
+
+
+def test_package_clone(f):
+    # TODO(nic): this test is not future-proof, in that any attributes added
+    #  to the Package object and not filled out in this test setup might
+    #  cause comparisons to match that otherwise should not.  A factory method
+    #  to create a Package object with all fields fully randomized would be the
+    #  most rigorous test for this, but that's likely overkill.
+    p = Package(
+        "lol_wut",
+        "3.141.5926535",
+        pretty_version="③.⑭.⑮",
+        source_type="git",
+        source_url="http://some.url",
+        source_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",
+        source_resolved_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",
+        features=["abc", "def"],
+        develop=random.choice((True, False)),
+    )
+    p.add_dependency(Factory.create_dependency("foo", "^1.2.3"))
+    p.add_dependency(Factory.create_dependency("foo", "^1.2.3", groups=["dev"]))
+    p.files = (["file1", "file2", "file3"],)
+    p.homepage = "https://some.other.url"
+    p.repository_url = "http://bug.farm"
+    p.documentation_url = "http://lorem.ipsum/dolor/sit.amet"
+    p2 = p.clone()
+
+    assert p == p2
+    assert p.__dict__ == p2.__dict__
+    assert len(p2.requires) == 1
+    assert len(p2.all_requires) == 2
+
+
+def test_dependency_groups(package_with_groups):
+    assert len(package_with_groups.requires) == 2
+    assert len(package_with_groups.all_requires) == 4
+
+
+def test_without_dependency_groups(package_with_groups):
+    package = package_with_groups.without_dependency_groups(["dev"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 3
+
+    package = package_with_groups.without_dependency_groups(["dev", "optional"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 2
+
+
+def test_with_dependency_groups(package_with_groups):
+    package = package_with_groups.with_dependency_groups([])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 3
+
+    package = package_with_groups.with_dependency_groups(["optional"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 4
+
+
+def test_without_optional_dependency_groups(package_with_groups):
+    package = package_with_groups.without_optional_dependency_groups()
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 3
+
+
+def test_only_with_dependency_groups(package_with_groups):
+    package = package_with_groups.with_dependency_groups(["dev"], only=True)
+
+    assert len(package.requires) == 0
+    assert len(package.all_requires) == 1
+
+    package = package_with_groups.with_dependency_groups(["dev", "optional"], only=True)
+
+    assert len(package.requires) == 0
+    assert len(package.all_requires) == 2
+
+    package = package_with_groups.with_dependency_groups(["default"], only=True)
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 2

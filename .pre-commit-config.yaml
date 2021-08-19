@@ -6,7 +6,7 @@ repos:
         exclude: ^poetry/core/_vendor
 
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.4
+    rev: 3.9.1
     hooks:
       - id: flake8
         exclude: |
@@ -44,3 +44,12 @@ repos:
           )
       - id: debug-statements
         exclude: ^poetry/core/_vendor
+
+      - id: check-json
+        exclude: ^poetry/core/_vendor
+
+      - id: pretty-format-json
+        exclude: ^poetry/core/_vendor
+        args:
+          - --no-sort-keys
+          - --autofix

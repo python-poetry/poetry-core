@@ -15,7 +15,6 @@ from poetry.core.version.pep440.version import PEP440Version
 
 if TYPE_CHECKING:
     from poetry.core.semver.helpers import VersionTypes
-    from poetry.core.semver.version_range import VersionRange
     from poetry.core.version.pep440 import LocalSegmentType
 
 
@@ -48,7 +47,7 @@ class Version(PEP440Version, VersionRangeConstraint):
 
             return self.next_patch()
 
-        return self.next_major()
+        return self.stable.next_major()
 
     def first_pre_release(self) -> "Version":
         return self.__class__(release=self.release, pre=ReleaseTag("alpha"))
@@ -150,7 +149,7 @@ class Version(PEP440Version, VersionRangeConstraint):
     def __repr__(self) -> str:
         return "<Version {}>".format(str(self))
 
-    def __eq__(self, other: Union["Version", "VersionRange"]) -> bool:
+    def __eq__(self, other: Union["Version", "VersionRangeConstraint"]) -> bool:
         from poetry.core.semver.version_range import VersionRange
 
         if isinstance(other, VersionRange):

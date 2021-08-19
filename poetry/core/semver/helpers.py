@@ -130,6 +130,13 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
         op = m.group(1)
         version = m.group(2)
 
+        # Technically invalid constraints like `>= 3.*` will appear
+        # here as `3.`.
+        # Pip currently supports these and to avoid breaking existing
+        # users workflows we need to support them as well. To do so,
+        # we just remove the inconsequential part.
+        version = version.rstrip(".")
+
         if version == "dev":
             version = "0.0-dev"
 

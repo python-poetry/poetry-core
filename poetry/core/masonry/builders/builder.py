@@ -3,6 +3,7 @@ import re
 import shutil
 import sys
 import tempfile
+import warnings
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -284,24 +285,69 @@ class Builder(object):
         result = defaultdict(list)
 
         # Scripts -> Entry points
-        for name, ep in self._poetry.local_config.get("scripts", {}).items():
-            extras = ""
-            if isinstance(ep, dict):
-                extras = "[{}]".format(", ".join(ep["extras"]))
-                ep = ep["callable"]
+        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+            if isinstance(specification, str):
+                # TODO: deprecate this in favour or reference
+                specification = {"reference": specification, "type": "console"}
 
-            result["console_scripts"].append("{} = {}{}".format(name, ep, extras))
+            if "callable" in specification:
+                warnings.warn(
+                    f"Use of callable in script specification ({name}) is deprecated. Use reference instead.",
+                    DeprecationWarning,
+                )
+                specification = {
+                    "reference": specification["callable"],
+                    "type": "console",
+                }
+
+            if specification.get("type") != "console":
+                continue
+
+            extras = specification.get("extras", [])
+            extras = f"[{', '.join(extras)}]" if extras else ""
+            reference = specification.get("reference")
+
+            if reference:
+                result["console_scripts"].append(f"{name} = {reference}{extras}")
 
         # Plugins -> entry points
         plugins = self._poetry.local_config.get("plugins", {})
         for groupname, group in plugins.items():
-            for name, ep in sorted(group.items()):
-                result[groupname].append("{} = {}".format(name, ep))
+            for name, specification in sorted(group.items()):
+                result[groupname].append(f"{name} = {specification}")
 
         for groupname in result:
             result[groupname] = sorted(result[groupname])
 
         return dict(result)
+
+    def convert_script_files(self) -> List[Path]:
+        script_files: List[Path] = []
+
+        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+            if isinstance(specification, dict) and specification.get("type") == "file":
+                source = specification["reference"]
+
+                if Path(source).is_absolute():
+                    raise RuntimeError(
+                        f"{source} in {name} is an absolute path. Expected relative path."
+                    )
+
+                abs_path = Path.joinpath(self._path, source)
+
+                if not abs_path.exists():
+                    raise RuntimeError(
+                        f"{abs_path} in script specification ({name}) is not found."
+                    )
+
+                if not abs_path.is_file():
+                    raise RuntimeError(
+                        f"{abs_path} in script specification ({name}) is not a file."
+                    )
+
+                script_files.append(abs_path)
+
+        return script_files
 
     @classmethod
     def convert_author(cls, author: str) -> Dict[str, str]:

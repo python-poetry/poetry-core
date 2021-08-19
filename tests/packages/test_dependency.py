@@ -12,6 +12,23 @@ def test_accepts():
     assert dependency.accepts(package)
 
 
+@pytest.mark.parametrize(
+    "constraint,result",
+    [
+        ("^1.0", False),
+        ("^1.0.dev0", True),
+        ("^1.0.0", False),
+        ("^1.0.0.dev0", True),
+        ("^1.0.0.alpha0", True),
+        ("^1.0.0.alpha0+local", True),
+        ("^1.0.0.rc0+local", True),
+        ("^1.0.0-1", False),
+    ],
+)
+def test_allows_prerelease(constraint, result):
+    assert Dependency("A", constraint).allows_prereleases() == result
+
+
 def test_accepts_prerelease():
     dependency = Dependency("A", "^1.0", allows_prereleases=True)
     package = Package("A", "1.4-beta.1")
@@ -233,7 +250,7 @@ def test_with_constraint():
         "foo",
         "^1.2.3",
         optional=True,
-        category="dev",
+        groups=["dev"],
         allows_prereleases=True,
         extras=["bar", "baz"],
     )
@@ -251,7 +268,7 @@ def test_with_constraint():
     assert new.name == dependency.name
     assert str(new.constraint) == ">=1.2.6,<2.0.0"
     assert new.is_optional()
-    assert new.category == "dev"
+    assert new.groups == frozenset(["dev"])
     assert new.allows_prereleases()
     assert set(new.extras) == {"bar", "baz"}
     assert new.marker == dependency.marker

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from poetry.core.spdx.license import License  # noqa
     from poetry.core.version.markers import BaseMarker  # noqa
 
+    from .dependency_group import DependencyGroup
     from .types import DependencyTypes
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
@@ -87,11 +88,12 @@ class Package(PackageSpecification):
         self._license = None
         self.readme = None
 
-        self.requires = []
-        self.dev_requires = []
         self.extras = {}
         self.requires_extras = []
 
+        self._dependency_groups: Dict[str, "DependencyGroup"] = {}
+
+        # For compatibility with previous version, we keep the category
         self.category = "main"
         self.files = []
         self.optional = False
@@ -184,10 +186,28 @@ class Package(PackageSpecification):
         return self._get_maintainer()["email"]
 
     @property
+    def requires(self) -> List["DependencyTypes"]:
+        """
+        Returns the default dependencies
+        """
+        if not self._dependency_groups or "default" not in self._dependency_groups:
+            return []
+
+        return self._dependency_groups["default"].dependencies
+
+    @property
     def all_requires(
         self,
     ) -> List[Union["DependencyTypes"]]:
-        return self.requires + self.dev_requires
+        """
+        Returns the default dependencies and group dependencies.
+        """
+        return self.requires + [
+            dependency
+            for group in self._dependency_groups.values()
+            for dependency in group.dependencies
+            if group.name != "default"
+        ]
 
     def _get_author(self) -> Dict[str, Optional[str]]:
         if not self._authors:
@@ -332,16 +352,76 @@ class Package(PackageSpecification):
     def is_root(self) -> bool:
         return False
 
+    def add_dependency_group(self, group: "DependencyGroup") -> None:
+        self._dependency_groups[group.name] = group
+
+    def dependency_group(self, name: str) -> "DependencyGroup":
+        if name not in self._dependency_groups:
+            raise ValueError(f'The dependency group "{name}" does not exist.')
+
+        return self._dependency_groups[name]
+
     def add_dependency(
         self,
         dependency: "DependencyTypes",
     ) -> "DependencyTypes":
-        if dependency.category == "dev":
-            self.dev_requires.append(dependency)
-        else:
-            self.requires.append(dependency)
+        from .dependency_group import DependencyGroup
+
+        for group_name in dependency.groups:
+            if group_name not in self._dependency_groups:
+                # Dynamically add the dependency group
+                self.add_dependency_group(DependencyGroup(group_name))
+
+            self._dependency_groups[group_name].add_dependency(dependency)
 
         return dependency
+
+    def without_dependency_groups(self, groups: List[str]) -> "Package":
+        """
+        Returns a clone of the package with the given dependency groups excluded.
+        """
+        package = self.clone()
+
+        for group_name in groups:
+            if group_name in package._dependency_groups:
+                del package._dependency_groups[group_name]
+
+        return package
+
+    def without_optional_dependency_groups(self) -> "Package":
+        """
+        Returns a clone of the package without optional dependency groups.
+        """
+        package = self.clone()
+
+        for group_name, group in self._dependency_groups.items():
+            if group.is_optional():
+                del package._dependency_groups[group_name]
+
+        return package
+
+    def with_dependency_groups(
+        self, groups: List[str], only: bool = False
+    ) -> "Package":
+        """
+        Returns a clone of the package with the given dependency groups opted in.
+
+        Note that it will return all dependencies across all groups
+        more the given, optional, groups.
+
+        If `only` is set to True, then only the given groups will be selected.
+        """
+        package = self.clone()
+
+        for group_name, group in self._dependency_groups.items():
+            if only:
+                if group_name not in groups:
+                    del package._dependency_groups[group_name]
+            else:
+                if group.is_optional() and group_name not in groups:
+                    del package._dependency_groups[group_name]
+
+        return package
 
     def to_dependency(
         self,
@@ -358,7 +438,7 @@ class Package(PackageSpecification):
             dep = DirectoryDependency(
                 self._name,
                 Path(self._source_url),
-                category=self.category,
+                groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
                 develop=self.develop,
@@ -368,7 +448,7 @@ class Package(PackageSpecification):
             dep = FileDependency(
                 self._name,
                 Path(self._source_url),
-                category=self.category,
+                groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
                 extras=self.features,
@@ -377,7 +457,7 @@ class Package(PackageSpecification):
             dep = URLDependency(
                 self._name,
                 self._source_url,
-                category=self.category,
+                groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,
             )
@@ -388,7 +468,7 @@ class Package(PackageSpecification):
                 self.source_url,
                 rev=self.source_reference,
                 resolved_rev=self.source_resolved_reference,
-                category=self.category,
+                groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 develop=self.develop,
                 extras=self.features,
@@ -428,33 +508,8 @@ class Package(PackageSpecification):
         return self.with_features([])
 
     def clone(self) -> "Package":
-        if self.is_root():
-            clone = self.__class__(self.pretty_name, self.version)
-        else:
-            clone = self.__class__(
-                self.pretty_name,
-                self.version,
-                source_type=self._source_type,
-                source_url=self._source_url,
-                source_reference=self._source_reference,
-                features=list(self.features),
-            )
-
-        clone.description = self.description
-        clone.category = self.category
-        clone.optional = self.optional
-        clone.python_versions = self.python_versions
-        clone.marker = self.marker
-        clone.extras = self.extras
-        clone.root_dir = self.root_dir
-        clone.develop = self.develop
-
-        for dep in self.requires:
-            clone.requires.append(dep)
-
-        for dep in self.dev_requires:
-            clone.dev_requires.append(dep)
-
+        clone = self.__class__(self.pretty_name, self.version)
+        clone.__dict__ = copy.deepcopy(self.__dict__)
         return clone
 
     def __hash__(self) -> int:

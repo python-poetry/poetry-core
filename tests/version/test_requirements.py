@@ -28,6 +28,9 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
         ("name", {"name": "name"}),
         ("foo-bar.quux_baz", {"name": "foo-bar.quux_baz"}),
         ("name>=3", {"name": "name", "constraint": ">=3"}),
+        ("name>=3.*", {"name": "name", "constraint": ">=3.0"}),
+        ("name<3.*", {"name": "name", "constraint": "<3.0"}),
+        ("name>3.5.*", {"name": "name", "constraint": ">3.5"}),
         ("name==1.0.post1", {"name": "name", "constraint": "==1.0.post1"}),
         (
             "name>=1.2.3;python_version=='2.6'",

@@ -36,7 +36,7 @@ cachy = { version = "^0.2.0", extras = ["msgpack"] }
 
 [tool.poetry.dependencies.pendulum]
 version = "^1.4"
-markers= 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
+markers = 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
 optional = true
 
 [tool.poetry.dev-dependencies]
@@ -48,7 +48,9 @@ time = ["pendulum"]
 [tool.poetry.scripts]
 my-script = "my_package:main"
 my-2nd-script = "my_package:main2"
-extra-script = {callable = "my_package.extra:main", extras = ["time"]}
+file-script = { reference = "bin/script.sh", type = "file" }
+extra-script = { reference = "my_package.extra:main", extras = ["time"], type = "console" }
+
 
 [tool.poetry.urls]
 "Issue Tracker" = "https://github.com/python-poetry/poetry/issues"

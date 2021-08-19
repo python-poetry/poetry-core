@@ -99,6 +99,15 @@ def test_create_poetry():
         == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
     )
 
+    dataclasses = dependencies["dataclasses"]
+    assert dataclasses.name == "dataclasses"
+    assert dataclasses.pretty_constraint == "^0.7"
+    assert dataclasses.python_versions == ">=3.6.1,<3.7"
+    assert (
+        str(dataclasses.marker)
+        == 'python_full_version >= "3.6.1" and python_version < "3.7"'
+    )
+
     assert "db" in package.extras
 
     classifiers = package.classifiers
@@ -190,11 +199,11 @@ The Poetry configuration is invalid:
 
 
 def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
-    poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_dev=False)
-    assert not any(r for r in poetry.package.dev_requires if "pytest" in str(r))
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_groups=False)
+    assert not any("dev" in r.groups for r in poetry.package.all_requires)
 
     poetry = Factory().create_poetry(fixtures_dir / "sample_project")
-    assert any(r for r in poetry.package.dev_requires if "pytest" in str(r))
+    assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
 def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true():
@@ -203,5 +212,5 @@ def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true(
     assert "does not exist" in str(err.value)
 
     Factory().create_poetry(
-        fixtures_dir / "project_with_invalid_dev_deps", with_dev=False
+        fixtures_dir / "project_with_invalid_dev_deps", with_groups=False
     )
