@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.0.4] - 2021-08-19
+
+### Fixed
+
+- Fixed an error in the way python markers with a precision >= 3 were handled. ([#180](https://github.com/python-poetry/poetry-core/pull/180))
+- Fixed an error in the evaluation of `in/not in` markers ([#189](https://github.com/python-poetry/poetry-core/pull/189))
+
+
 ## [1.0.3] - 2021-04-09
 
 ### Fixed
@@ -147,7 +155,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.3...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.4...1.1
+[1.0.4]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.4
 [1.0.3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.3
 [1.0.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.2
 [1.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.1
