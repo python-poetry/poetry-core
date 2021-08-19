@@ -224,7 +224,17 @@ class SingleMarker(BaseMarker):
             else:
                 self._constraint = self._parser(self._constraint_string)
         else:
-            self._constraint = self._parser(self._constraint_string)
+            # if we have a in/not in operator we split the constraint
+            # into a union/multi-constraint of single constraint
+            constraint_string = self._constraint_string
+            if self._operator in {"in", "not in"}:
+                op, glue = ("==", " || ") if self._operator == "in" else ("!=", ", ")
+                values = re.split("[ ,]+", self._value)
+                constraint_string = glue.join(
+                    ("{} {}".format(op, value) for value in values)
+                )
+
+            self._constraint = self._parser(constraint_string)
 
     @property
     def name(self) -> str:
