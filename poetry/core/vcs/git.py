@@ -267,14 +267,6 @@ class Git:
         if folder is None and self._work_dir:
             folder = self._work_dir
 
-        if folder:
-            args += [
-                "--git-dir",
-                (folder / ".git").as_posix(),
-                "--work-tree",
-                folder.as_posix(),
-            ]
-
         # We need "^0" (an alternative to "^{commit}") to ensure that the
         # commit SHA of the commit the tag points to is returned, even in
         # the case of annotated tags.
@@ -285,7 +277,15 @@ class Git:
         # they should not be escaped.
         args += ["rev-parse", rev + "^0"]
 
-        return self.run(*args)
+        return self.run(*args, folder=folder)
+
+    def get_current_branch(self, folder: Optional[Path] = None) -> str:
+        if folder is None and self._work_dir:
+            folder = self._work_dir
+
+        output = self.run("symbolic-ref", "--short", "HEAD", folder=folder)
+
+        return output.strip()
 
     def get_ignored_files(self, folder: Optional[Path] = None) -> list:
         args = []
