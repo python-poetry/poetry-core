@@ -41,6 +41,7 @@ class Dependency(PackageSpecification):
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
         source_resolved_reference: Optional[str] = None,
+        source_subdirectory: Optional[str] = None,
     ):
         from poetry.core.version.markers import AnyMarker
 
@@ -50,6 +51,7 @@ class Dependency(PackageSpecification):
             source_url=source_url,
             source_reference=source_reference,
             source_resolved_reference=source_resolved_reference,
+            source_subdirectory=source_subdirectory,
             features=extras,
         )
 

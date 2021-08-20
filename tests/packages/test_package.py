@@ -301,6 +301,32 @@ def test_to_dependency_for_url():
     assert "https://example.com/path.tar.gz" == dep.source_url
 
 
+def test_to_dependency_for_vcs():
+    package = Package(
+        "foo",
+        "1.2.3",
+        source_type="git",
+        source_url="https://github.com/foo/foo.git",
+        source_reference="master",
+        source_resolved_reference="123456",
+        source_subdirectory="baz",
+        features=["baz", "bar"],
+    )
+    dep = package.to_dependency()
+
+    assert "foo" == dep.name
+    assert package.version == dep.constraint
+    assert frozenset({"bar", "baz"}) == dep.features
+    assert dep.is_vcs()
+    assert "git" == dep.source_type
+    assert "https://github.com/foo/foo.git" == dep.source
+    assert "master" == dep.reference
+    assert "master" == dep.source_reference
+    assert "123456" == dep.source_resolved_reference
+    assert "baz" == dep.directory
+    assert "baz" == dep.source_subdirectory
+
+
 def test_package_clone(f):
     # TODO(nic): this test is not future-proof, in that any attributes added
     #  to the Package object and not filled out in this test setup might

@@ -11,6 +11,7 @@ class PackageSpecification(object):
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
         source_resolved_reference: Optional[str] = None,
+        source_subdirectory: Optional[str] = None,
         features: Optional[List[str]] = None,
     ):
         from poetry.core.utils.helpers import canonicalize_name
@@ -21,6 +22,7 @@ class PackageSpecification(object):
         self._source_url = source_url
         self._source_reference = source_reference
         self._source_resolved_reference = source_resolved_reference
+        self._source_subdirectory = source_subdirectory
 
         if not features:
             features = []
@@ -59,6 +61,10 @@ class PackageSpecification(object):
     @property
     def source_resolved_reference(self) -> Optional[str]:
         return self._source_resolved_reference
+
+    @property
+    def source_subdirectory(self) -> Optional[str]:
+        return self._source_subdirectory
 
     @property
     def features(self) -> FrozenSet[str]:

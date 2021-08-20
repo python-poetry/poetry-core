@@ -50,6 +50,7 @@ class VCSDependency(Dependency):
             source_url=self._source,
             source_reference=branch or tag or rev,
             source_resolved_reference=resolved_rev,
+            source_subdirectory=directory,
             extras=extras,
         )
 
@@ -137,6 +138,7 @@ class VCSDependency(Dependency):
             tag=self._tag,
             rev=self._rev,
             resolved_rev=self._source_resolved_reference,
+            directory=self.directory,
             optional=self.is_optional(),
             groups=list(self._groups),
             develop=self._develop,
