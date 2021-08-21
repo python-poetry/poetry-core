@@ -297,7 +297,6 @@ def test_package_clone(f):
         source_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",
         source_resolved_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",
         features=["abc", "def"],
-        develop=random.choice((True, False)),
     )
     p.files = (["file1", "file2", "file3"],)
     p.homepage = "https://some.other.url"

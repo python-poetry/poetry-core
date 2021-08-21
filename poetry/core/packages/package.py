@@ -404,7 +404,7 @@ class Package(PackageSpecification):
     def without_features(self):  # type: () -> "Package"
         return self.with_features([])
 
-    def clone(self) -> "Package":
+    def clone(self):  # type: () -> "Package"
         clone = self.__class__(self.pretty_name, self.version)
         clone.__dict__ = copy.deepcopy(self.__dict__)
         return clone
