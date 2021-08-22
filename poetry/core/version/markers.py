@@ -297,6 +297,9 @@ class SingleMarker(BaseMarker):
         if self._name not in environment:
             return True
 
+        if self._constraint.is_empty():
+            return True
+
         return self._constraint.allows(self._parser(environment[self._name]))
 
     def without_extras(self) -> MarkerTypes:
