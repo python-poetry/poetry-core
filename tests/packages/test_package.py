@@ -280,3 +280,29 @@ def test_to_dependency_for_url():
     assert "https://example.com/path.tar.gz" == dep.url
     assert "url" == dep.source_type
     assert "https://example.com/path.tar.gz" == dep.source_url
+
+
+def test_package_clone(f):
+    # TODO(nic): this test is not future-proof, in that any attributes added
+    #  to the Package object and not filled out in this test setup might
+    #  cause comparisons to match that otherwise should not.  A factory method
+    #  to create a Package object with all fields fully randomized would be the
+    #  most rigorous test for this, but that's likely overkill.
+    p = Package(
+        "lol_wut",
+        "3.141.5926535",
+        pretty_version="③.⑭.⑮",
+        source_type="git",
+        source_url="http://some.url",
+        source_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",
+        source_resolved_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",
+        features=["abc", "def"],
+    )
+    p.files = (["file1", "file2", "file3"],)
+    p.homepage = "https://some.other.url"
+    p.repository_url = "http://bug.farm"
+    p.documentation_url = "http://lorem.ipsum/dolor/sit.amet"
+    p2 = p.clone()
+
+    assert p == p2
+    assert p.__dict__ == p2.__dict__

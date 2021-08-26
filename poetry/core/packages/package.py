@@ -405,33 +405,8 @@ class Package(PackageSpecification):
         return self.with_features([])
 
     def clone(self):  # type: () -> "Package"
-        if self.is_root():
-            clone = self.__class__(self.pretty_name, self.version)
-        else:
-            clone = self.__class__(
-                self.pretty_name,
-                self.version,
-                source_type=self._source_type,
-                source_url=self._source_url,
-                source_reference=self._source_reference,
-                features=list(self.features),
-            )
-
-        clone.description = self.description
-        clone.category = self.category
-        clone.optional = self.optional
-        clone.python_versions = self.python_versions
-        clone.marker = self.marker
-        clone.extras = self.extras
-        clone.root_dir = self.root_dir
-        clone.develop = self.develop
-
-        for dep in self.requires:
-            clone.requires.append(dep)
-
-        for dep in self.dev_requires:
-            clone.dev_requires.append(dep)
-
+        clone = self.__class__(self.pretty_name, self.version)
+        clone.__dict__ = copy.deepcopy(self.__dict__)
         return clone
 
     def __hash__(self):  # type: () -> int
