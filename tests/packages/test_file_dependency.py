@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -97,3 +99,28 @@ def test_relative_file_dependency_to_pep_508_with_marker(mocker):
         requirement,
         marker=SingleMarker("sys.platform", "linux"),
     )
+
+
+@pytest.mark.parametrize(
+    "algorithm, content, file_hash",
+    [
+        (
+            "sha256",
+            b"file contents",
+            "7bb6f9f7a47a63e684925af3608c059edcc371eb81188c48c9714896fb1091fd",
+        ),
+        ("md5", b"file contents", "4a8ec4fa5f01b4ab1a0ab8cbccb709f0"),
+    ],
+)
+def test_file_dependency_hash(mocker, algorithm, content, file_hash):
+    @contextmanager
+    def mock_file_contents(*_):
+        yield BytesIO(content)
+
+    path = DIST_PATH / "demo-0.2.0.tar.gz"
+    mocker.patch.object(Path, "exists").return_value = True
+    mocker.patch.object(Path, "is_file").return_value = True
+    mocker.patch.object(Path, "open", mock_file_contents)
+
+    file_dep = FileDependency("demo", path)
+    assert file_dep.hash(algorithm) == file_hash
