@@ -295,6 +295,10 @@ class WheelBuilder(Builder):
         rel_path: Union[Path, str],
     ) -> None:
         full_path, rel_path = str(full_path), str(rel_path)
+
+        if Path(rel_path).parent.as_posix() == ".":
+            rel_path = self.dist_info + f"/{rel_path}"
+
         if os.sep != "/":
             # We always want to have /-separated paths in the zip file and in
             # RECORD

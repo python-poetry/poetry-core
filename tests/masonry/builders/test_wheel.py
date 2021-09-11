@@ -307,3 +307,20 @@ def test_wheel_file_is_closed(monkeypatch):
 
     assert fd_file[0] is not None
     assert fd_file[0].closed
+
+
+def test_include_root_files():
+    module_path = fixtures_dir / "default_with_include_root_files"
+    poetry = Factory().create_poetry(module_path)
+    wb = WheelBuilder(poetry)
+    wb.build()
+    whl = module_path / "dist" / wb.wheel_filename
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "my_package/__init__.py" in z.namelist()
+        assert "my_package-1.2.3.dist-info/LICENSE" in z.namelist()
+        assert "my_package-1.2.3.dist-info/AUTHORS" in z.namelist()
+        assert "AUTHORS" not in z.namelist()
+        assert "my_package-1.2.3.dist-info/README.rst" in z.namelist()
+        assert "README.rst" not in z.namelist()
