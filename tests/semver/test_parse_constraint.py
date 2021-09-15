@@ -188,6 +188,22 @@ from poetry.core.version.pep440 import ReleaseTag
                 include_min=True,
             ),
         ),
+        (
+            "^0",
+            VersionRange(
+                min=Version.from_parts(0),
+                max=Version.from_parts(1),
+                include_min=True,
+            ),
+        ),
+        (
+            "^0.0",
+            VersionRange(
+                min=Version.from_parts(0, 0),
+                max=Version.from_parts(0, 1),
+                include_min=True,
+            ),
+        ),
     ],
 )
 def test_parse_constraint(constraint, version):

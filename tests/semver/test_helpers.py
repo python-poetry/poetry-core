@@ -191,7 +191,7 @@ def test_parse_constraint_tilde(input, constraint):
                 Version.from_parts(1, 0, 0), Version.from_parts(2, 0, 0), True
             ),
         ),
-        ("^0", VersionRange(Version.from_parts(0), Version.from_parts(0, 1), True)),
+        ("^0", VersionRange(Version.from_parts(0), Version.from_parts(1), True)),
         (
             "^0.0",
             VersionRange(
