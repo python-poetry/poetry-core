@@ -37,7 +37,7 @@ class Version(PEP440Version, VersionRangeConstraint):
 
     def next_breaking(self) -> "Version":
         if self.major == 0:
-            if self.minor != 0:
+            if self.minor is not None and self.minor != 0:
                 return self.next_minor()
 
             if self.precision == 1:
