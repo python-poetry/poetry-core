@@ -8,7 +8,7 @@ def test_to_pep_508():
         "poetry", "git", "https://github.com/python-poetry/poetry.git"
     )
 
-    expected = "poetry @ git+https://github.com/python-poetry/poetry.git@master"
+    expected = "poetry @ git+https://github.com/python-poetry/poetry.git"
 
     assert expected == dependency.to_pep_508()
 
@@ -16,7 +16,7 @@ def test_to_pep_508():
 def test_to_pep_508_ssh():
     dependency = VCSDependency("poetry", "git", "git@github.com:sdispater/poetry.git")
 
-    expected = "poetry @ git+ssh://git@github.com/sdispater/poetry.git@master"
+    expected = "poetry @ git+ssh://git@github.com/sdispater/poetry.git"
 
     assert expected == dependency.to_pep_508()
 
@@ -26,7 +26,7 @@ def test_to_pep_508_with_extras():
         "poetry", "git", "https://github.com/python-poetry/poetry.git", extras=["foo"]
     )
 
-    expected = "poetry[foo] @ git+https://github.com/python-poetry/poetry.git@master"
+    expected = "poetry[foo] @ git+https://github.com/python-poetry/poetry.git"
 
     assert expected == dependency.to_pep_508()
 
@@ -37,7 +37,9 @@ def test_to_pep_508_in_extras():
     )
     dependency.in_extras.append("foo")
 
-    expected = 'poetry @ git+https://github.com/python-poetry/poetry.git@master ; extra == "foo"'
+    expected = (
+        'poetry @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
+    )
     assert expected == dependency.to_pep_508()
 
     dependency = VCSDependency(
@@ -45,7 +47,9 @@ def test_to_pep_508_in_extras():
     )
     dependency.in_extras.append("foo")
 
-    expected = 'poetry[bar] @ git+https://github.com/python-poetry/poetry.git@master ; extra == "foo"'
+    expected = (
+        'poetry[bar] @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
+    )
 
     assert expected == dependency.to_pep_508()
 
@@ -82,3 +86,22 @@ def test_vcs_dependency_can_have_resolved_reference_specified():
     assert dependency.branch == "develop"
     assert dependency.source_reference == "develop"
     assert dependency.source_resolved_reference == "123456"
+
+
+def test_vcs_dependencies_are_equal_if_resolved_references_match():
+    dependency1 = VCSDependency(
+        "poetry",
+        "git",
+        "https://github.com/python-poetry/poetry.git",
+        branch="develop",
+        resolved_rev="123456",
+    )
+    dependency2 = VCSDependency(
+        "poetry",
+        "git",
+        "https://github.com/python-poetry/poetry.git",
+        rev="123",
+        resolved_rev="123456",
+    )
+
+    assert dependency1 == dependency2

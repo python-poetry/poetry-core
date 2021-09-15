@@ -51,6 +51,7 @@ class Package(PackageSpecification):
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
         source_resolved_reference: Optional[str] = None,
+        source_subdirectory: Optional[str] = None,
         features: Optional[List[str]] = None,
         develop: bool = False,
     ) -> None:
@@ -66,6 +67,7 @@ class Package(PackageSpecification):
             source_url=source_url,
             source_reference=source_reference,
             source_resolved_reference=source_resolved_reference,
+            source_subdirectory=source_subdirectory,
             features=features,
         )
 
@@ -468,6 +470,7 @@ class Package(PackageSpecification):
                 self.source_url,
                 rev=self.source_reference,
                 resolved_rev=self.source_resolved_reference,
+                directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 develop=self.develop,

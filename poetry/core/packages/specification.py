@@ -11,6 +11,7 @@ class PackageSpecification(object):
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
         source_resolved_reference: Optional[str] = None,
+        source_subdirectory: Optional[str] = None,
         features: Optional[List[str]] = None,
     ):
         from poetry.core.utils.helpers import canonicalize_name
@@ -21,6 +22,7 @@ class PackageSpecification(object):
         self._source_url = source_url
         self._source_reference = source_reference
         self._source_resolved_reference = source_resolved_reference
+        self._source_subdirectory = source_subdirectory
 
         if not features:
             features = []
@@ -61,6 +63,10 @@ class PackageSpecification(object):
         return self._source_resolved_reference
 
     @property
+    def source_subdirectory(self) -> Optional[str]:
+        return self._source_subdirectory
+
+    @property
     def features(self) -> FrozenSet[str]:
         return self._features
 
@@ -75,6 +81,18 @@ class PackageSpecification(object):
             if self._source_url or other.source_url:
                 if self._source_url != other.source_url:
                     return False
+
+            # We check the resolved reference first:
+            # if they match we assume equality regardless
+            # of their source reference.
+            # This is important when comparing a resolved branch VCS
+            # dependency to a direct commit reference VCS dependency
+            if (
+                self._source_resolved_reference
+                and other.source_resolved_reference
+                and self._source_resolved_reference == other.source_resolved_reference
+            ):
+                return True
 
             if self._source_reference or other.source_reference:
                 # special handling for packages with references

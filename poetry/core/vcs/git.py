@@ -14,7 +14,8 @@ pattern_formats = {
     "port": r"\d+",
     "path": r"[\w~.\-/\\]+",
     "name": r"[\w~.\-]+",
-    "rev": r"[^@#]+",
+    "rev": r"[^@#]+?",
+    "subdir": r"[\w\-/\\]+",
 }
 
 PATTERNS = [
@@ -26,7 +27,13 @@ PATTERNS = [
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>[:/\\]({path}[/\\])?"
         r"((?P<name>{name}?)(\.git|[/\\])?)?)"
-        r"([@#](?P<rev>{rev}))?"
+        r"(?:"
+        r"#egg=?.+"
+        r"|"
+        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        r"|"
+        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir})))?"
+        r")?"
         r"$".format(
             user=pattern_formats["user"],
             resource=pattern_formats["resource"],
@@ -34,6 +41,7 @@ PATTERNS = [
             path=pattern_formats["path"],
             name=pattern_formats["name"],
             rev=pattern_formats["rev"],
+            subdir=pattern_formats["subdir"],
         )
     ),
     re.compile(
@@ -44,7 +52,13 @@ PATTERNS = [
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>({path})"
         r"(?P<name>{name})(\.git|/)?)"
-        r"([@#](?P<rev>{rev}))?"
+        r"(?:"
+        r"#egg=?.+"
+        r"|"
+        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        r"|"
+        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir})))?"
+        r")?"
         r"$".format(
             protocol=pattern_formats["protocol"],
             user=pattern_formats["user"],
@@ -53,6 +67,7 @@ PATTERNS = [
             path=pattern_formats["path"],
             name=pattern_formats["name"],
             rev=pattern_formats["rev"],
+            subdir=pattern_formats["subdir"],
         )
     ),
     re.compile(
@@ -61,7 +76,13 @@ PATTERNS = [
         r"(:(?P<port>{port}))?"
         r"(?P<pathname>([:/]{path}/)"
         r"(?P<name>{name})(\.git|/)?)"
-        r"([@#](?P<rev>{rev}))?"
+        r"(?:"
+        r"#egg=.+?"
+        r"|"
+        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        r"|"
+        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir}))?"
+        r")?"
         r"$".format(
             user=pattern_formats["user"],
             resource=pattern_formats["resource"],
@@ -69,6 +90,7 @@ PATTERNS = [
             path=pattern_formats["path"],
             name=pattern_formats["name"],
             rev=pattern_formats["rev"],
+            subdir=pattern_formats["subdir"],
         )
     ),
     re.compile(
@@ -77,13 +99,20 @@ PATTERNS = [
         r"[:/]{{1,2}}"
         r"(?P<pathname>({path})"
         r"(?P<name>{name})(\.git|/)?)"
-        r"([@#](?P<rev>{rev}))?"
+        r"(?:"
+        r"#egg=?.+"
+        r"|"
+        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        r"|"
+        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir})))?"
+        r")?"
         r"$".format(
             user=pattern_formats["user"],
             resource=pattern_formats["resource"],
             path=pattern_formats["path"],
             name=pattern_formats["name"],
             rev=pattern_formats["rev"],
+            subdir=pattern_formats["subdir"],
         )
     ),
 ]
@@ -99,6 +128,7 @@ class ParsedUrl:
         port: Optional[str],
         name: Optional[str],
         rev: Optional[str],
+        subdirectory: Optional[str] = None,
     ):
         self.protocol = protocol
         self.resource = resource
@@ -107,6 +137,7 @@ class ParsedUrl:
         self.port = port
         self.name = name
         self.rev = rev
+        self.subdirectory = subdirectory
 
     @classmethod
     def parse(cls, url: str) -> "ParsedUrl":
@@ -122,6 +153,7 @@ class ParsedUrl:
                     groups.get("port"),
                     groups.get("name"),
                     groups.get("rev"),
+                    groups.get("rev_subdirectory") or groups.get("subdirectory"),
                 )
 
         raise ValueError('Invalid git url "{}"'.format(url))
@@ -143,7 +175,7 @@ class ParsedUrl:
         return self.format()
 
 
-GitUrl = namedtuple("GitUrl", ["url", "revision"])
+GitUrl = namedtuple("GitUrl", ["url", "revision", "subdirectory"])
 
 
 class GitConfig:
@@ -183,6 +215,11 @@ class Git:
         if parsed.rev:
             formatted = re.sub(r"[#@]{}$".format(parsed.rev), "", formatted)
 
+        if parsed.subdirectory:
+            formatted = re.sub(
+                r"[#&]subdirectory={}$".format(parsed.subdirectory), "", formatted
+            )
+
         altered = parsed.format() != formatted
 
         if altered:
@@ -197,7 +234,9 @@ class Git:
         else:
             normalized = parsed.format()
 
-        return GitUrl(re.sub(r"#[^#]*$", "", normalized), parsed.rev)
+        return GitUrl(
+            re.sub(r"#[^#]*$", "", normalized), parsed.rev, parsed.subdirectory
+        )
 
     @property
     def config(self) -> GitConfig:
@@ -228,14 +267,6 @@ class Git:
         if folder is None and self._work_dir:
             folder = self._work_dir
 
-        if folder:
-            args += [
-                "--git-dir",
-                (folder / ".git").as_posix(),
-                "--work-tree",
-                folder.as_posix(),
-            ]
-
         # We need "^0" (an alternative to "^{commit}") to ensure that the
         # commit SHA of the commit the tag points to is returned, even in
         # the case of annotated tags.
@@ -246,7 +277,15 @@ class Git:
         # they should not be escaped.
         args += ["rev-parse", rev + "^0"]
 
-        return self.run(*args)
+        return self.run(*args, folder=folder)
+
+    def get_current_branch(self, folder: Optional[Path] = None) -> str:
+        if folder is None and self._work_dir:
+            folder = self._work_dir
+
+        output = self.run("symbolic-ref", "--short", "HEAD", folder=folder)
+
+        return output.strip()
 
     def get_ignored_files(self, folder: Optional[Path] = None) -> list:
         args = []

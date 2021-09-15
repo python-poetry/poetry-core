@@ -184,6 +184,19 @@ def test_dependency_from_pep_508_with_git_url():
     assert "1.2" == dep.reference
 
 
+def test_dependency_from_pep_508_with_git_url_and_subdirectory():
+    name = "django-utils @ git+ssh://git@corp-gitlab.com/corp-utils.git@1.2#subdirectory=package-dir"
+
+    dep = Dependency.create_from_pep_508(name)
+
+    assert "django-utils" == dep.name
+    assert dep.is_vcs()
+    assert "git" == dep.vcs
+    assert "ssh://git@corp-gitlab.com/corp-utils.git" == dep.source
+    assert "1.2" == dep.reference
+    assert "package-dir" == dep.directory
+
+
 def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
     name = (
         "poetry @ git+https://github.com/python-poetry/poetry.git@b;ar;#egg=poetry"

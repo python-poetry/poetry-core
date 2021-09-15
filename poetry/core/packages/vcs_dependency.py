@@ -25,6 +25,7 @@ class VCSDependency(Dependency):
         tag: Optional[str] = None,
         rev: Optional[str] = None,
         resolved_rev: Optional[str] = None,
+        directory: Optional[str] = None,
         groups: Optional[List[str]] = None,
         optional: bool = False,
         develop: bool = False,
@@ -33,13 +34,10 @@ class VCSDependency(Dependency):
         self._vcs = vcs
         self._source = source
 
-        if not any([branch, tag, rev]):
-            # If nothing has been specified, we assume master
-            branch = "master"
-
         self._branch = branch
         self._tag = tag
         self._rev = rev
+        self._directory = directory
         self._develop = develop
 
         super(VCSDependency, self).__init__(
@@ -52,6 +50,7 @@ class VCSDependency(Dependency):
             source_url=self._source,
             source_reference=branch or tag or rev,
             source_resolved_reference=resolved_rev,
+            source_subdirectory=directory,
             extras=extras,
         )
 
@@ -74,6 +73,10 @@ class VCSDependency(Dependency):
     @property
     def rev(self) -> Optional[str]:
         return self._rev
+
+    @property
+    def directory(self) -> Optional[str]:
+        return self._directory
 
     @property
     def develop(self) -> bool:
@@ -108,11 +111,15 @@ class VCSDependency(Dependency):
             requirement += "[{}]".format(",".join(self.extras))
 
         if parsed_url.protocol is not None:
-            requirement += " @ {}+{}@{}".format(self._vcs, self._source, self.reference)
+            requirement += " @ {}+{}".format(self._vcs, self._source)
         else:
-            requirement += " @ {}+ssh://{}@{}".format(
-                self._vcs, parsed_url.format(), self.reference
-            )
+            requirement += " @ {}+ssh://{}".format(self._vcs, parsed_url.format())
+
+        if self.reference:
+            requirement += f"@{self.reference}"
+
+        if self._directory:
+            requirement += f"#subdirectory{self._directory}"
 
         return requirement
 
@@ -131,6 +138,7 @@ class VCSDependency(Dependency):
             tag=self._tag,
             rev=self._rev,
             resolved_rev=self._source_resolved_reference,
+            directory=self.directory,
             optional=self.is_optional(),
             groups=list(self._groups),
             develop=self._develop,
