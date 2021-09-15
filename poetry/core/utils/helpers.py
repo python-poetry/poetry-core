@@ -4,20 +4,16 @@ import shutil
 import stat
 import tempfile
 
+from collections.abc import Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 from typing import Iterator
 from typing import List
 from typing import Union
+from typing import no_type_check
 
 from poetry.core.version.pep440 import PEP440Version
-
-
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
 
 
 _canonicalize_regex = re.compile(r"[-_]+")
@@ -42,6 +38,7 @@ def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
     safe_rmtree(name)
 
 
+@no_type_check
 def parse_requires(requires: str) -> List[str]:
     lines = requires.split("\n")
 

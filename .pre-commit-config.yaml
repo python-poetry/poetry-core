@@ -16,6 +16,21 @@ repos:
               | ^poetry/core/_vendor
           )
 
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.910
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+        files: |
+          (?x)(
+            ^poetry
+          )
+        exclude: |
+          (?x)(
+              ^poetry/core/_vendor
+          )
+
   - repo: https://github.com/pycqa/isort
     rev: 5.9.3
     hooks:
