@@ -91,6 +91,6 @@ class Metadata:
                 if name == "Homepage" and meta.home_page == url:
                     continue
 
-                meta.project_urls += ("{}, {}".format(name, url),)
+                meta.project_urls += (f"{name}, {url}",)
 
         return meta

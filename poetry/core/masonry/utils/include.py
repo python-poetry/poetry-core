@@ -3,7 +3,7 @@ from typing import List
 from typing import Optional
 
 
-class Include(object):
+class Include:
     """
     Represents an "include" entry.
 

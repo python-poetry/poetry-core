@@ -75,7 +75,7 @@ class SdistBuilder(Builder):
         )
 
         try:
-            tar_dir = "{}-{}".format(self._package.pretty_name, self._meta.version)
+            tar_dir = f"{self._package.pretty_name}-{self._meta.version}"
 
             files_to_add = self.find_files_to_add(exclude_build=False)
 
@@ -111,7 +111,7 @@ class SdistBuilder(Builder):
             tar.close()
             gz.close()
 
-        logger.info("Built <comment>{}</comment>".format(target.name))
+        logger.info(f"Built <comment>{target.name}</comment>")
         return target
 
     def build_setup(self) -> bytes:
@@ -155,49 +155,47 @@ class SdistBuilder(Builder):
                 pass
 
         if package_dir:
-            before.append("package_dir = \\\n{}\n".format(pformat(package_dir)))
+            before.append(f"package_dir = \\\n{pformat(package_dir)}\n")
             extra.append("'package_dir': package_dir,")
 
         if packages:
-            before.append("packages = \\\n{}\n".format(pformat(sorted(packages))))
+            before.append(f"packages = \\\n{pformat(sorted(packages))}\n")
             extra.append("'packages': packages,")
 
         if package_data:
-            before.append("package_data = \\\n{}\n".format(pformat(package_data)))
+            before.append(f"package_data = \\\n{pformat(package_data)}\n")
             extra.append("'package_data': package_data,")
 
         if modules:
-            before.append("modules = \\\n{}".format(pformat(modules)))
-            extra.append("'py_modules': modules,".format())
+            before.append(f"modules = \\\n{pformat(modules)}")
+            extra.append("'py_modules': modules,")
 
         dependencies, extras = self.convert_dependencies(
             self._package, self._package.requires
         )
         if dependencies:
-            before.append(
-                "install_requires = \\\n{}\n".format(pformat(sorted(dependencies)))
-            )
+            before.append(f"install_requires = \\\n{pformat(sorted(dependencies))}\n")
             extra.append("'install_requires': install_requires,")
 
         if extras:
-            before.append("extras_require = \\\n{}\n".format(pformat(extras)))
+            before.append(f"extras_require = \\\n{pformat(extras)}\n")
             extra.append("'extras_require': extras_require,")
 
         entry_points = self.convert_entry_points()
         if entry_points:
-            before.append("entry_points = \\\n{}\n".format(pformat(entry_points)))
+            before.append(f"entry_points = \\\n{pformat(entry_points)}\n")
             extra.append("'entry_points': entry_points,")
 
         script_files = self.convert_script_files()
         if script_files:
             rel_paths = [str(p.relative_to(self._path)) for p in script_files]
-            before.append("scripts = \\\n{}\n".format(pformat(rel_paths)))
+            before.append(f"scripts = \\\n{pformat(rel_paths)}\n")
             extra.append("'scripts': scripts,")
 
         if self._package.python_versions != "*":
             python_requires = self._meta.requires_python
 
-            extra.append("'python_requires': {!r},".format(python_requires))
+            extra.append(f"'python_requires': {python_requires!r},")
 
         return SETUP.format(
             before="\n".join(before),
@@ -313,7 +311,7 @@ class SdistBuilder(Builder):
         return pkgdir, sorted(packages), pkg_data
 
     def find_files_to_add(self, exclude_build: bool = False) -> Set[BuildIncludeFile]:
-        to_add = super(SdistBuilder, self).find_files_to_add(exclude_build)
+        to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
         additional_files = {
@@ -335,7 +333,7 @@ class SdistBuilder(Builder):
                 path=file, project_root=self._path, source_root=self._path
             )
             if file.path.exists():
-                logger.debug("Adding: {}".format(file.relative_to_source_root()))
+                logger.debug(f"Adding: {file.relative_to_source_root()}")
                 to_add.add(file)
 
         return to_add

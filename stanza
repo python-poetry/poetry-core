@@ -32,7 +32,7 @@ def extract_license(
 ) -> None:
     def extract_from_source_tarfile(sdist: Path) -> bool:
         ext = sdist.suffixes[-1][1:]
-        with tarfile.open(sdist, mode="r:{}".format(ext)) as tar:
+        with tarfile.open(sdist, mode=f"r:{ext}") as tar:
             return find_and_extract_license(
                 destination,
                 tar,

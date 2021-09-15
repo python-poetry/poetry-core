@@ -40,7 +40,7 @@ class VCSDependency(Dependency):
         self._directory = directory
         self._develop = develop
 
-        super(VCSDependency, self).__init__(
+        super().__init__(
             name,
             "*",
             groups=groups,
@@ -98,7 +98,7 @@ class VCSDependency(Dependency):
             what = "rev"
             version = self._rev
 
-        return "{} {}".format(what, version)
+        return f"{what} {version}"
 
     @property
     def base_pep_508_name(self) -> str:
@@ -111,9 +111,9 @@ class VCSDependency(Dependency):
             requirement += "[{}]".format(",".join(self.extras))
 
         if parsed_url.protocol is not None:
-            requirement += " @ {}+{}".format(self._vcs, self._source)
+            requirement += f" @ {self._vcs}+{self._source}"
         else:
-            requirement += " @ {}+ssh://{}".format(self._vcs, parsed_url.format())
+            requirement += f" @ {self._vcs}+ssh://{parsed_url.format()}"
 
         if self.reference:
             requirement += f"@{self.reference}"
@@ -161,13 +161,13 @@ class VCSDependency(Dependency):
     def __str__(self) -> str:
         reference = self._vcs
         if self._branch:
-            reference += " branch {}".format(self._branch)
+            reference += f" branch {self._branch}"
         elif self._tag:
-            reference += " tag {}".format(self._tag)
+            reference += f" tag {self._tag}"
         elif self._rev:
-            reference += " rev {}".format(self._rev)
+            reference += f" rev {self._rev}"
 
-        return "{} ({} {})".format(self._pretty_name, self._constraint, reference)
+        return f"{self._pretty_name} ({self._constraint} {reference})"
 
     def __hash__(self) -> int:
         return hash((self._name, self._vcs, self._branch, self._tag, self._rev))

@@ -44,7 +44,7 @@ class Link:
         else:
             rp = ""
         if self.comes_from:
-            return "%s (from %s)%s" % (self.url, self.comes_from, rp)
+            return f"{self.url} (from {self.comes_from}){rp}"
         else:
             return str(self.url)
 

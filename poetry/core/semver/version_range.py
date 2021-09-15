@@ -107,7 +107,7 @@ class VersionRange(VersionRangeConstraint):
         if isinstance(other, VersionRangeConstraint):
             return not other.allows_lower(self) and not other.allows_higher(self)
 
-        raise ValueError("Unknown VersionConstraint type {}.".format(other))
+        raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def allows_any(self, other: "VersionTypes") -> bool:
         from .version import Version
@@ -126,7 +126,7 @@ class VersionRange(VersionRangeConstraint):
                 self
             )
 
-        raise ValueError("Unknown VersionConstraint type {}.".format(other))
+        raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def intersect(self, other: "VersionTypes") -> "VersionTypes":
         from .version import Version
@@ -145,7 +145,7 @@ class VersionRange(VersionRangeConstraint):
             return EmptyConstraint()
 
         if not isinstance(other, VersionRangeConstraint):
-            raise ValueError("Unknown VersionConstraint type {}.".format(other))
+            raise ValueError(f"Unknown VersionConstraint type {other}.")
 
         if self.allows_lower(other):
             if self.is_strictly_lower(other):
@@ -323,7 +323,7 @@ class VersionRange(VersionRangeConstraint):
 
             return VersionUnion.of(*(ranges + [current]))
 
-        raise ValueError("Unknown VersionConstraint type {}.".format(other))
+        raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def __eq__(self, other: Any) -> int:
         if not isinstance(other, VersionRangeConstraint):
@@ -405,7 +405,7 @@ class VersionRange(VersionRangeConstraint):
         return text
 
     def __repr__(self) -> str:
-        return "<VersionRange ({})>".format(str(self))
+        return f"<VersionRange ({str(self)})>"
 
     def __hash__(self) -> int:
         return (

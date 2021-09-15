@@ -61,7 +61,7 @@ class Package(PackageSpecification):
         from poetry.core.semver.version import Version
         from poetry.core.version.markers import AnyMarker
 
-        super(Package, self).__init__(
+        super().__init__(
             name,
             source_type=source_type,
             source_url=source_url,
@@ -143,7 +143,7 @@ class Package(PackageSpecification):
     @property
     def full_pretty_version(self) -> str:
         if self.source_type in ["file", "directory", "url"]:
-            return "{} {}".format(self._pretty_version, self.source_url)
+            return f"{self._pretty_version} {self.source_url}"
 
         if self.source_type not in ["hg", "git"]:
             return self._pretty_version
@@ -156,7 +156,7 @@ class Package(PackageSpecification):
 
         # if source reference is a sha1 hash -- truncate
         if len(self.source_reference) == 40:
-            return "{} {}".format(self._pretty_version, self.source_reference[0:7])
+            return f"{self._pretty_version} {self.source_reference[0:7]}"
 
         return "{} {}".format(
             self._pretty_version,
@@ -307,7 +307,7 @@ class Package(PackageSpecification):
                 constraint = Version.parse(version)
 
             if python_constraint.allows_any(constraint):
-                classifier = "{} :: {}".format(python_classifier_prefix, version)
+                classifier = f"{python_classifier_prefix} :: {version}"
                 if classifier not in python_classifiers:
                     python_classifiers.append(classifier)
 
@@ -516,7 +516,7 @@ class Package(PackageSpecification):
         return clone
 
     def __hash__(self) -> int:
-        return super(Package, self).__hash__() ^ hash(self._version)
+        return super().__hash__() ^ hash(self._version)
 
     def __eq__(self, other: "Package") -> bool:
         if not isinstance(other, Package):
@@ -525,20 +525,20 @@ class Package(PackageSpecification):
         return self.is_same_package_as(other) and self._version == other.version
 
     def __str__(self) -> str:
-        return "{} ({})".format(self.complete_name, self.full_pretty_version)
+        return f"{self.complete_name} ({self.full_pretty_version})"
 
     def __repr__(self) -> str:
         args = [repr(self._name), repr(self._version.text)]
 
         if self._features:
-            args.append("features={}".format(repr(self._features)))
+            args.append(f"features={repr(self._features)}")
 
         if self._source_type:
-            args.append("source_type={}".format(repr(self._source_type)))
-            args.append("source_url={}".format(repr(self._source_url)))
+            args.append(f"source_type={repr(self._source_type)}")
+            args.append(f"source_url={repr(self._source_url)}")
 
             if self._source_reference:
-                args.append("source_reference={}".format(repr(self._source_reference)))
+                args.append(f"source_reference={repr(self._source_reference)}")
 
             if self._source_resolved_reference:
                 args.append(

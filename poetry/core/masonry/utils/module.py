@@ -36,7 +36,7 @@ class Module:
             pkg_dir = Path(directory, self._name)
             py_file = Path(directory, self._name + ".py")
             if pkg_dir.is_dir() and py_file.is_file():
-                raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
+                raise ValueError(f"Both {pkg_dir} and {py_file} exist")
             elif pkg_dir.is_dir():
                 packages = [{"include": str(pkg_dir.relative_to(self._path))}]
             elif py_file.is_file():
@@ -48,7 +48,7 @@ class Module:
                 src_py_file = src / (self._name + ".py")
 
                 if src_pkg_dir.is_dir() and src_py_file.is_file():
-                    raise ValueError("Both {} and {} exist".format(pkg_dir, py_file))
+                    raise ValueError(f"Both {pkg_dir} and {py_file} exist")
                 elif src_pkg_dir.is_dir():
                     packages = [
                         {
@@ -65,7 +65,7 @@ class Module:
                     ]
                 else:
                     raise ModuleOrPackageNotFound(
-                        "No file/folder found for package {}".format(name)
+                        f"No file/folder found for package {name}"
                     )
 
         for package in packages:
