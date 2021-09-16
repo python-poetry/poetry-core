@@ -6,6 +6,8 @@ from collections import namedtuple
 from typing import Any
 from typing import Optional
 
+from poetry.core.utils._compat import PY36
+from poetry.core.utils._compat import WINDOWS
 from poetry.core.utils._compat import Path
 from poetry.core.utils._compat import decode
 
@@ -154,6 +156,47 @@ class ParsedUrl:
 GitUrl = namedtuple("GitUrl", ["url", "revision"])
 
 
+_executable = None
+
+
+def executable():
+    global _executable
+
+    if _executable is not None:
+        return _executable
+
+    if WINDOWS and PY36:
+        # Finding git via where.exe
+        where = "%WINDIR%\\System32\\where.exe"
+        paths = decode(
+            subprocess.check_output([where, "git"], shell=True, encoding="oem")
+        ).split("\n")
+        for path in paths:
+            if not path:
+                continue
+
+            path = Path(path.strip())
+            try:
+                path.relative_to(Path.cwd())
+            except ValueError:
+                _executable = str(path)
+
+                break
+    else:
+        _executable = "git"
+
+    if _executable is None:
+        raise RuntimeError("Unable to find a valid git executable")
+
+    return _executable
+
+
+def _reset_executable():
+    global _executable
+
+    _executable = None
+
+
 class GitConfig:
     def __init__(self, requires_git_presence=False):  # type: (bool) -> None
         self._config = {}
@@ -161,7 +204,7 @@ class GitConfig:
         try:
             config_list = decode(
                 subprocess.check_output(
-                    ["git", "config", "-l"], stderr=subprocess.STDOUT
+                    [executable(), "config", "-l"], stderr=subprocess.STDOUT
                 )
             )
 
@@ -310,7 +353,9 @@ class Git:
             ) + args
 
         return decode(
-            subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT)
+            subprocess.check_output(
+                [executable()] + list(args), stderr=subprocess.STDOUT
+            )
         ).strip()
 
     def _check_parameter(self, parameter):  # type: (str) -> None
