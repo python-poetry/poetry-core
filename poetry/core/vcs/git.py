@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any
 from typing import Optional
 
+from poetry.core.utils._compat import WINDOWS
+
 
 pattern_formats = {
     "protocol": r"\w+",
@@ -183,13 +185,54 @@ class ParsedUrl:
 GitUrl = namedtuple("GitUrl", ["url", "revision", "subdirectory"])
 
 
+_executable: Optional[str] = None
+
+
+def executable():
+    global _executable
+
+    if _executable is not None:
+        return _executable
+
+    if WINDOWS:
+        # Finding git via where.exe
+        where = "%WINDIR%\\System32\\where.exe"
+        paths = subprocess.check_output(
+            [where, "git"], shell=True, encoding="oem"
+        ).split("\n")
+        for path in paths:
+            if not path:
+                continue
+
+            path = Path(path.strip())
+            try:
+                path.relative_to(Path.cwd())
+            except ValueError:
+                _executable = str(path)
+
+                break
+    else:
+        _executable = "git"
+
+    if _executable is None:
+        raise RuntimeError("Unable to find a valid git executable")
+
+    return _executable
+
+
+def _reset_executable():
+    global _executable
+
+    _executable = None
+
+
 class GitConfig:
     def __init__(self, requires_git_presence: bool = False) -> None:
         self._config = {}
 
         try:
             config_list = subprocess.check_output(
-                ["git", "config", "-l"], stderr=subprocess.STDOUT
+                [executable(), "config", "-l"], stderr=subprocess.STDOUT
             ).decode()
 
             m = re.findall("(?ms)^([^=]+)=(.*?)$", config_list)
@@ -344,7 +387,9 @@ class Git:
             ) + args
 
         return (
-            subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT)
+            subprocess.check_output(
+                [executable()] + list(args), stderr=subprocess.STDOUT
+            )
             .decode()
             .strip()
         )
