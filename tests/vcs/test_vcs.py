@@ -1,10 +1,15 @@
+import subprocess
+
 import pytest
 
+from poetry.core.utils._compat import PY36
+from poetry.core.utils._compat import WINDOWS
 from poetry.core.utils._compat import Path
 from poetry.core.vcs.git import Git
 from poetry.core.vcs.git import GitError
 from poetry.core.vcs.git import GitUrl
 from poetry.core.vcs.git import ParsedUrl
+from poetry.core.vcs.git import _reset_executable
 
 
 @pytest.mark.parametrize(
@@ -276,3 +281,43 @@ def test_git_checkout_raises_error_on_invalid_repository():
 def test_git_rev_parse_raises_error_on_invalid_repository():
     with pytest.raises(GitError):
         Git().rev_parse("-u./payload")
+
+
+@pytest.mark.skipif(
+    not WINDOWS or not PY36,
+    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+)
+def test_ensure_absolute_path_to_git(mocker):
+    _reset_executable()
+
+    def checkout_output(cmd, *args, **kwargs):
+        if Path(cmd[0]).name == "where.exe":
+            return "\n".join(
+                [str(Path.cwd().joinpath("git.exe")), "C:\\Git\\cmd\\git.exe"]
+            )
+
+        return b""
+
+    mock = mocker.patch.object(subprocess, "check_output", side_effect=checkout_output)
+
+    Git().run("config")
+
+    assert mock.call_args_list[-1][0][0] == [
+        "C:\\Git\\cmd\\git.exe",
+        "config",
+    ]
+
+
+@pytest.mark.skipif(
+    not WINDOWS or not PY36,
+    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+)
+def test_ensure_existing_git_executable_is_found(mocker):
+    mock = mocker.patch.object(subprocess, "check_output", return_value=b"")
+
+    Git().run("config")
+
+    cmd = Path(mock.call_args_list[-1][0][0][0])
+
+    assert cmd.is_absolute()
+    assert cmd.name == "git.exe"
