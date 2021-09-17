@@ -92,6 +92,11 @@ PATTERNS = [
 ]
 
 
+class GitError(RuntimeError):
+
+    pass
+
+
 class ParsedUrl:
     def __init__(
         self,
@@ -209,7 +214,9 @@ class Git:
         return self._config
 
     def clone(self, repository, dest):  # type: (str, Path) -> str
-        return self.run("clone", "--recurse-submodules", repository, str(dest))
+        self._check_parameter(repository)
+
+        return self.run("clone", "--recurse-submodules", "--", repository, str(dest))
 
     def checkout(self, rev, folder=None):  # type: (str, Optional[Path]) -> str
         args = []
@@ -223,6 +230,8 @@ class Git:
                 "--work-tree",
                 folder.as_posix(),
             ]
+
+        self._check_parameter(rev)
 
         args += ["checkout", rev]
 
@@ -240,6 +249,8 @@ class Git:
                 "--work-tree",
                 folder.as_posix(),
             ]
+
+        self._check_parameter(rev)
 
         # We need "^0" (an alternative to "^{commit}") to ensure that the
         # commit SHA of the commit the tag points to is returned, even in
@@ -301,3 +312,10 @@ class Git:
         return decode(
             subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT)
         ).strip()
+
+    def _check_parameter(self, parameter):  # type: (str) -> None
+        """
+        Checks a git parameter to avoid unwanted code execution.
+        """
+        if parameter.strip().startswith("-"):
+            raise GitError("Invalid Git parameter: {}".format(parameter))
