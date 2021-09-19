@@ -275,3 +275,11 @@ def test_with_constraint():
     assert new.transitive_marker == dependency.transitive_marker
     assert new.python_constraint == dependency.python_constraint
     assert new.transitive_python_constraint == dependency.transitive_python_constraint
+
+
+def test_marker_properly_sets_python_constraint():
+    dependency = Dependency("foo", "^1.2.3")
+
+    dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'
+
+    assert str(dependency.python_constraint) == ">=3.6,<4.0"

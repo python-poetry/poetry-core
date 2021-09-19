@@ -88,7 +88,7 @@ class Dependency(PackageSpecification):
         self._activated = not self._optional
 
         self.is_root = False
-        self.marker = AnyMarker()
+        self._marker = AnyMarker()
         self.source_name = None
 
     @property
@@ -131,7 +131,7 @@ class Dependency(PackageSpecification):
         self._python_versions = value
         self._python_constraint = parse_constraint(value)
         if not self._python_constraint.is_any():
-            self.marker = self.marker.intersect(
+            self._marker = self._marker.intersect(
                 parse_marker(
                     self._create_nested_marker(
                         "python_version", self._python_constraint
@@ -150,6 +150,69 @@ class Dependency(PackageSpecification):
     def transitive_python_versions(self, value: str) -> None:
         self._transitive_python_versions = value
         self._transitive_python_constraint = parse_constraint(value)
+
+    @property
+    def marker(self) -> "BaseMarker":
+        return self._marker
+
+    @marker.setter
+    def marker(self, marker: Union[str, "BaseMarker"]) -> None:
+        from poetry.core.semver.helpers import parse_constraint
+        from poetry.core.version.markers import BaseMarker
+        from poetry.core.version.markers import parse_marker
+
+        from .utils.utils import convert_markers
+
+        if not isinstance(marker, BaseMarker):
+            marker = parse_marker(marker)
+
+        self._marker = marker
+
+        markers = convert_markers(marker)
+
+        if "extra" in markers:
+            # If we have extras, the dependency is optional
+            self.deactivate()
+
+            for or_ in markers["extra"]:
+                for _, extra in or_:
+                    self.in_extras.append(extra)
+
+        if "python_version" in markers:
+            ors = []
+            for or_ in markers["python_version"]:
+                ands = []
+                for op, version in or_:
+                    # Expand python version
+                    if op == "==" and "*" not in version:
+                        version = "~" + version
+                        op = ""
+                    elif op == "!=":
+                        version += ".*"
+                    elif op in ("in", "not in"):
+                        versions = []
+                        for v in re.split("[ ,]+", version):
+                            split = v.split(".")
+                            if len(split) in [1, 2]:
+                                split.append("*")
+                                op_ = "" if op == "in" else "!="
+                            else:
+                                op_ = "==" if op == "in" else "!="
+
+                            versions.append(op_ + ".".join(split))
+
+                        glue = " || " if op == "in" else ", "
+                        if versions:
+                            ands.append(glue.join(versions))
+
+                        continue
+
+                    ands.append("{}{}".format(op, version))
+
+                ors.append(" ".join(ands))
+
+            self._python_versions = " || ".join(ors)
+            self._python_constraint = parse_constraint(self._python_versions)
 
     @property
     def transitive_marker(self) -> "BaseMarker":
@@ -427,7 +490,6 @@ class Dependency(PackageSpecification):
 
         from .url_dependency import URLDependency
         from .utils.link import Link
-        from .utils.utils import convert_markers
         from .utils.utils import is_archive_file
         from .utils.utils import is_installable_dir
         from .utils.utils import is_url
@@ -445,11 +507,6 @@ class Dependency(PackageSpecification):
                 name += " ;" + rest.split(" ;", 1)[1]
 
         req = Requirement(name)
-
-        if req.marker:
-            markers = convert_markers(req.marker)
-        else:
-            markers = {}
 
         name = req.name
         path = os.path.normpath(os.path.abspath(name))
@@ -542,49 +599,6 @@ class Dependency(PackageSpecification):
                 constraint = "*"
 
             dep = Dependency(name, constraint, extras=req.extras)
-
-        if "extra" in markers:
-            # If we have extras, the dependency is optional
-            dep.deactivate()
-
-            for or_ in markers["extra"]:
-                for _, extra in or_:
-                    dep.in_extras.append(extra)
-
-        if "python_version" in markers:
-            ors = []
-            for or_ in markers["python_version"]:
-                ands = []
-                for op, version in or_:
-                    # Expand python version
-                    if op == "==" and "*" not in version:
-                        version = "~" + version
-                        op = ""
-                    elif op == "!=":
-                        version += ".*"
-                    elif op in ("in", "not in"):
-                        versions = []
-                        for v in re.split("[ ,]+", version):
-                            split = v.split(".")
-                            if len(split) in [1, 2]:
-                                split.append("*")
-                                op_ = "" if op == "in" else "!="
-                            else:
-                                op_ = "==" if op == "in" else "!="
-
-                            versions.append(op_ + ".".join(split))
-
-                        glue = " || " if op == "in" else ", "
-                        if versions:
-                            ands.append(glue.join(versions))
-
-                        continue
-
-                    ands.append("{}{}".format(op, version))
-
-                ors.append(" ".join(ands))
-
-            dep.python_versions = " || ".join(ors)
 
         if req.marker:
             dep.marker = req.marker

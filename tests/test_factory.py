@@ -68,7 +68,7 @@ def test_create_poetry():
 
     pathlib2 = dependencies["pathlib2"]
     assert pathlib2.pretty_constraint == "^2.2"
-    assert pathlib2.python_versions == "~2.7"
+    assert pathlib2.python_versions == ">=2.7 <2.8"
     assert not pathlib2.is_optional()
 
     demo = dependencies["demo"]
@@ -102,7 +102,7 @@ def test_create_poetry():
     dataclasses = dependencies["dataclasses"]
     assert dataclasses.name == "dataclasses"
     assert dataclasses.pretty_constraint == "^0.7"
-    assert dataclasses.python_versions == ">=3.6.1,<3.7"
+    assert dataclasses.python_versions == ">=3.6.1 <3.7"
     assert (
         str(dataclasses.marker)
         == 'python_full_version >= "3.6.1" and python_version < "3.7"'
