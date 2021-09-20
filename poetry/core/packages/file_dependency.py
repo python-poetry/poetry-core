@@ -68,7 +68,7 @@ class FileDependency(Dependency):
     def is_file(self):  # type: () -> bool
         return True
 
-    def hash(self, hash_name = "sha256"):  # type: (str) -> str
+    def hash(self, hash_name="sha256"):  # type: (str) -> str
         h = hashlib.new(hash_name)
         with self._full_path.open("rb") as fp:
             for content in iter(lambda: fp.read(io.DEFAULT_BUFFER_SIZE), b""):
