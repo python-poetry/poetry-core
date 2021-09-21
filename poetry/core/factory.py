@@ -238,6 +238,7 @@ class Factory(object):
         from .packages.url_dependency import URLDependency
         from .packages.utils.utils import create_nested_marker
         from .packages.vcs_dependency import VCSDependency
+        from .semver.helpers import parse_constraint
         from .version.markers import AnyMarker
         from .version.markers import parse_marker
 
@@ -340,11 +341,10 @@ class Factory(object):
             if not markers:
                 marker = AnyMarker()
                 if python_versions:
-                    dependency.python_versions = python_versions
                     marker = marker.intersect(
                         parse_marker(
                             create_nested_marker(
-                                "python_version", dependency.python_constraint
+                                "python_version", parse_constraint(python_versions)
                             )
                         )
                     )
