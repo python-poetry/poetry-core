@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.6] - 2021-09-21
+
+### Added
+
+- Added support for more hash types gen generating hashes. ([#207](https://github.com/python-poetry/poetry-core/pull/207))
+
+
 ## [1.0.5] - 2021-09-18
 
 ### Fixed
@@ -164,7 +171,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.5...1.1
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.6...1.1
+[1.0.6]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.6
 [1.0.5]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.5
 [1.0.4]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.4
 [1.0.3]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.3
