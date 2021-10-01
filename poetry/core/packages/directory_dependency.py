@@ -1,4 +1,6 @@
+import logging
 from pathlib import Path
+import sys
 from typing import TYPE_CHECKING
 from typing import FrozenSet
 from typing import List
@@ -11,6 +13,9 @@ if TYPE_CHECKING:
 
 from .dependency import Dependency
 from .utils.utils import path_to_url
+
+
+logger = logging.getLogger(__name__)
 
 
 class DirectoryDependency(Dependency):
@@ -30,20 +35,31 @@ class DirectoryDependency(Dependency):
         self._base = base or Path.cwd()
         self._full_path = path
 
+        dir_doesnt_exist_msg = "Directory {} does not exist".format(self._path)
+        dir_doesnt_exist_warning_only = bool(
+            groups and "dev" in groups and '--no-dev' in sys.argv
+        )
+
         if not self._path.is_absolute():
             try:
                 self._full_path = self._base.joinpath(self._path).resolve()
             except FileNotFoundError:
-                raise ValueError("Directory {} does not exist".format(self._path))
-
-        self._develop = develop
-        self._supports_poetry = False
+                if dir_doesnt_exist_warning_only:
+                    logger.warning(dir_doesnt_exist_msg)
+                else:
+                    raise ValueError(dir_doesnt_exist_msg)
 
         if not self._full_path.exists():
-            raise ValueError("Directory {} does not exist".format(self._path))
+            if dir_doesnt_exist_warning_only:
+                logger.warning(dir_doesnt_exist_msg)
+            else:
+                raise ValueError(dir_doesnt_exist_msg)
 
         if self._full_path.is_file():
             raise ValueError("{} is a file, expected a directory".format(self._path))
+
+        self._develop = develop
+        self._supports_poetry = False
 
         # Checking content to determine actions
         setup = self._full_path / "setup.py"
