@@ -12,15 +12,17 @@ def get_vcs(directory):  # type: (Path) -> Git
     os.chdir(str(directory.resolve()))
 
     try:
+        from .git import executable
+
         git_dir = decode(
             subprocess.check_output(
-                ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.STDOUT
+                [executable(), "rev-parse", "--show-toplevel"], stderr=subprocess.STDOUT
             )
         ).strip()
 
         vcs = Git(Path(git_dir))
 
-    except (subprocess.CalledProcessError, OSError):
+    except (subprocess.CalledProcessError, OSError, RuntimeError):
         vcs = None
     finally:
         os.chdir(str(working_dir))
