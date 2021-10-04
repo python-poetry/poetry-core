@@ -20,3 +20,7 @@
 5. If all tests pass for all Python versions, you're in great shape!
    If tests pass for just one and not the others because you've not installed that Python version, you're
    probably OK, but keep an eye out for problems when you submit the PR.
+
+6. Install the git pre-commit hooks with [`pre-commit`](https://pre-commit.com/):
+
+       pre-commit install --install-hooks
