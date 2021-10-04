@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.0.7] - 2021-10-04
+
+### Fixed
+
+- Fixed an issue where the wrong `git` executable could be used on Windows. ([#213](https://github.com/python-poetry/poetry-core/pull/213))
+- Fixed an issue where the Python 3.10 classifier was not automatically added. ([#215](https://github.com/python-poetry/poetry-core/pull/215))
+
+
 ## [1.0.6] - 2021-09-21
 
 ### Added
@@ -171,7 +179,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.6...1.1
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.7...1.0
+[1.0.7]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.7
 [1.0.6]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.6
 [1.0.5]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.5
 [1.0.4]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.4
