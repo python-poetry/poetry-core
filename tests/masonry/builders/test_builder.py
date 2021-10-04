@@ -89,6 +89,7 @@ def test_get_metadata_content():
     assert classifiers == [
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
