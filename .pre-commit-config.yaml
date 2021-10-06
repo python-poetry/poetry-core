@@ -16,7 +16,7 @@ repos:
               | ^poetry/core/_vendor
           )
 
-  - repo: https://github.com/timothycrosley/isort
+  - repo: https://github.com/pycqa/isort
     rev: 5.9.3
     hooks:
       - id: isort
