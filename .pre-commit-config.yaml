@@ -25,6 +25,7 @@ repos:
           (?x)(
               ^.*/?setup\.py$
               | ^poetry/core/_vendor
+              | tests/.*\.pyi$
           )
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
