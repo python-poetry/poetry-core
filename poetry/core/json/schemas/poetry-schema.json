@@ -19,7 +19,8 @@
     },
     "description": {
       "type": "string",
-      "description": "Short package description."
+      "description": "Short package description.",
+      "pattern": "^[^\n]*$"
     },
     "keywords": {
       "type": "array",
