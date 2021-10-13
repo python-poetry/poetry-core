@@ -26,13 +26,13 @@ class DependencyGroup:
     def add_dependency(self, dependency: "DependencyTypes") -> None:
         self._dependencies.append(dependency)
 
-    def remove_dependency(self, name: "str") -> None:
+    def remove_dependency(self, name: str) -> None:
         from poetry.core.utils.helpers import canonicalize_name
 
         name = canonicalize_name(name)
 
         dependencies = []
-        for dependency in dependencies:
+        for dependency in self.dependencies:
             if dependency.name == name:
                 continue
 
