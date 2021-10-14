@@ -51,8 +51,7 @@ class PackageInclude(Include):
         # returns `True` if this a PEP 561 stub-only package,
         # see [PEP 561](https://www.python.org/dev/peps/pep-0561/#stub-only-packages)
         return (self.package or "").endswith("-stubs") and all(
-            el.suffix == ".pyi"
-            or (el.parent.name == self.package and el.name == "py.typed")
+            el.suffix == ".pyi" or el.name == "py.typed"
             for el in self.elements
             if el.is_file()
         )
