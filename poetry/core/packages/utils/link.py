@@ -6,7 +6,7 @@ from typing import Any
 from typing import Optional
 from typing import Tuple
 
-from .utils import path_to_url
+from .utils import path_to_url, url_to_path
 from .utils import splitext
 
 
@@ -102,7 +102,12 @@ class Link:
 
     @property
     def path(self) -> str:
-        return urlparse.unquote(urlparse.urlsplit(self.url)[2])
+        # Properly handle file:// paths https://github.com/python-poetry/poetry/issues/4163
+        if self.url.startswith("file:"):
+            p = str(url_to_path(self.url))
+        else:
+            p = urlparse.unquote(urlparse.urlsplit(self.url)[2])
+        return p
 
     def splitext(self) -> Tuple[str, str]:
         return splitext(posixpath.basename(self.path.rstrip("/")))
