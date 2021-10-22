@@ -76,3 +76,6 @@ class ProjectPackage(Package):
 
     def build_should_generate_setup(self) -> bool:
         return self.build_config.get("generate-setup-file", True)
+
+    def build_wheel_tag_regex(self):  # type: () -> str
+        return self.build_config.get("wheel-tag-regex", ".*")
