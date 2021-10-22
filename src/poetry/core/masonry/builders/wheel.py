@@ -17,8 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from packaging.tags import sys_tags
-
+from poetry.core import __vendor_site__
 from poetry.core import __version__
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.masonry.builders.builder import Builder
@@ -327,16 +326,49 @@ class WheelBuilder(Builder):
         escaped_name = distribution_name(name)
         return f"{escaped_name}-{version}.dist-info"
 
+    def get_tags(self) -> list[str]:
+        env = os.environ
+        pythonpath = env.get("PYTHONPATH", "").strip()
+        if pythonpath == "":
+            env["PYTHONPATH"] = __vendor_site__
+        else:
+            env["PYTHONPATH"] = os.pathsep.join([__vendor_site__, pythonpath])
+        try:
+            tags = (
+                subprocess.check_output(
+                    [
+                        self.executable.as_posix(),
+                        "-c",
+                        """
+from packaging.tags import sys_tags
+for tag in sys_tags():
+  print(tag)
+                        """,
+                    ],
+                    env=env,
+                    stderr=subprocess.STDOUT,
+                )
+                .decode("utf-8")
+                .strip()
+                .splitlines()
+            )
+        except subprocess.CalledProcessError as cpe:
+            raise RuntimeError(
+                "get_tags failed to get sys_tags for python interpreter"
+                f" '{self.executable.as_posix()}' using PYTHONPATH='{pythonpath}'"
+                " to supply packaging.tags package: script exited"
+                f" {cpe.returncode} with output '{cpe.output}'"
+            )
+        return tags
+
     @property
     def tag(self) -> str:
         if self._package.build_script:
-            sys_tag = next(sys_tags())
-            tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
+            return self.get_tags()[0]
         else:
             platform = "any"
             impl = "py2.py3" if self.supports_python2() else "py3"
             tag = (impl, "none", platform)
-
         return "-".join(tag)
 
     def _add_file(
