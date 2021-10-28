@@ -2,13 +2,14 @@ import hashlib
 import io
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from typing import FrozenSet
 from typing import List
 from typing import Optional
 from typing import Union
 
 from poetry.core.packages.utils.utils import path_to_url
+from poetry.core.packages.utils.link import Link
 
 from .dependency import Dependency
 
@@ -30,6 +31,12 @@ class FileDependency(Dependency):
         self._path = path
         self._base = base or Path.cwd()
         self._full_path = path
+
+        if isinstance(self._path, Link):
+            link = cast(Link, self._path)
+            self._path = Path(link.filename)
+            if self._path.is_absolute():
+                self._full_path = self._path
 
         if not self._path.is_absolute():
             try:
