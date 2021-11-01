@@ -132,6 +132,24 @@ def test_single_marker_intersect_with_multi_compacts_constraint():
     )
 
 
+def test_single_marker_intersect_with_union_leads_to_single_marker():
+    m = parse_marker('python_version >= "3.6"')
+
+    intersection = m.intersect(
+        parse_marker('python_version < "3.6" or python_version >= "3.7"')
+    )
+    assert str(intersection) == 'python_version >= "3.7"'
+
+
+def test_single_marker_intersect_with_union_leads_to_empty():
+    m = parse_marker('python_version == "3.7"')
+
+    intersection = m.intersect(
+        parse_marker('python_version < "3.7" or python_version >= "3.8"')
+    )
+    assert intersection.is_empty()
+
+
 def test_single_marker_not_in_python_intersection():
     m = parse_marker('python_version not in "2.7, 3.0, 3.1"')
 
@@ -271,6 +289,36 @@ def test_multi_marker_intersect_multi_with_overlapping_constraints():
         == 'sys_platform == "darwin" and python_version <= "3.4" and os_name =='
         ' "Windows"'
     )
+
+
+def test_multi_marker_intersect_with_union_drops_union():
+    m = parse_marker('python_version >= "3" and python_version < "4"')
+    m2 = parse_marker('python_version < "2" or python_version >= "3"')
+    assert str(m.intersect(m2)) == str(m)
+    assert str(m2.intersect(m)) == str(m)
+
+
+def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_one_step():
+    # empty marker in one step
+    # py == 2 and (py < 2 or py >= 3) -> empty
+    m = parse_marker('sys_platform == "darwin" and python_version == "2"')
+    m2 = parse_marker(
+        'sys_platform == "darwin" and (python_version < "2" or python_version >= "3")'
+    )
+    assert m.intersect(m2).is_empty()
+    assert m2.intersect(m).is_empty()
+
+
+def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_two_steps():
+    # empty marker in two steps
+    # py >= 2 and (py < 2 or py >= 3) -> py >= 3
+    # py < 3 and py >= 3 -> empty
+    m = parse_marker('python_version >= "2" and python_version < "3"')
+    m2 = parse_marker(
+        'sys_platform == "darwin" and (python_version < "2" or python_version >= "3")'
+    )
+    assert m.intersect(m2).is_empty()
+    assert m2.intersect(m).is_empty()
 
 
 def test_multi_marker_union_multi():
