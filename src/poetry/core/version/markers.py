@@ -397,39 +397,51 @@ class MultiMarker(BaseMarker):
 
     @classmethod
     def of(cls, *markers: MarkerTypes) -> MarkerTypes:
-        new_markers = []
-        markers = _flatten_markers(markers, MultiMarker)
+        new_markers = _flatten_markers(markers, MultiMarker)
+        markers = []
 
-        for marker in markers:
-            if marker in new_markers:
-                continue
-
-            if marker.is_any():
-                continue
-
-            if isinstance(marker, SingleMarker):
-                intersected = False
-                for i, mark in enumerate(new_markers):
-                    if (
-                        not isinstance(mark, SingleMarker)
-                        or isinstance(mark, SingleMarker)
-                        and mark.name != marker.name
-                    ):
-                        continue
-
-                    intersection = mark.constraint.intersect(marker.constraint)
-                    if intersection == mark.constraint:
-                        intersected = True
-                    elif intersection == marker.constraint:
-                        new_markers[i] = marker
-                        intersected = True
-                    elif intersection.is_empty():
-                        return EmptyMarker()
-
-                if intersected:
+        while markers != new_markers:
+            markers = new_markers
+            new_markers = []
+            for marker in markers:
+                if marker in new_markers:
                     continue
 
-            new_markers.append(marker)
+                if marker.is_any():
+                    continue
+
+                if isinstance(marker, SingleMarker):
+                    intersected = False
+                    for i, mark in enumerate(new_markers):
+                        if isinstance(mark, SingleMarker) and mark.name == marker.name:
+                            intersection = mark.constraint.intersect(marker.constraint)
+                            if intersection == mark.constraint:
+                                intersected = True
+                            elif intersection == marker.constraint:
+                                new_markers[i] = marker
+                                intersected = True
+                            elif intersection.is_empty():
+                                return EmptyMarker()
+                        elif isinstance(mark, MarkerUnion):
+                            intersection = mark.intersect(marker)
+                            if isinstance(intersection, SingleMarker):
+                                new_markers[i] = intersection
+                            elif intersection.is_empty():
+                                return EmptyMarker()
+                    if intersected:
+                        continue
+
+                elif isinstance(marker, MarkerUnion):
+                    for mark in new_markers:
+                        if isinstance(mark, SingleMarker):
+                            intersection = marker.intersect(mark)
+                            if isinstance(intersection, SingleMarker):
+                                marker = intersection
+                                break
+                            elif intersection.is_empty():
+                                return EmptyMarker()
+
+                new_markers.append(marker)
 
         if any(m.is_empty() for m in new_markers) or not new_markers:
             return EmptyMarker()
@@ -576,7 +588,7 @@ class MarkerUnion(BaseMarker):
             return AnyMarker()
 
         if not markers:
-            return AnyMarker()
+            return EmptyMarker()
 
         if len(markers) == 1:
             return markers[0]
