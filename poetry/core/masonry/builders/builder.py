@@ -104,7 +104,7 @@ class Builder(object):
     def build(self) -> None:
         raise NotImplementedError()
 
-    def find_excluded_files(self) -> Set[str]:
+    def find_excluded_files(self, fmt: Optional[str] = None) -> Set[str]:
         if self._excluded_files is None:
             from poetry.core.vcs import get_vcs
 
@@ -124,6 +124,9 @@ class Builder(object):
 
             explicitely_included = set()
             for inc in self._package.include:
+                if fmt and inc["format"] and fmt not in inc["format"]:
+                    continue
+
                 included_glob = inc["path"]
                 for included in self._path.glob(str(included_glob)):
                     explicitely_included.add(
@@ -146,7 +149,7 @@ class Builder(object):
         exclude_path = Path(filepath)
 
         while True:
-            if exclude_path.as_posix() in self.find_excluded_files():
+            if exclude_path.as_posix() in self.find_excluded_files(fmt=self.format):
                 return True
 
             if len(exclude_path.parts) > 1:
