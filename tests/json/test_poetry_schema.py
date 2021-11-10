@@ -42,3 +42,12 @@ def test_path_dependencies(base_object):
 
 def test_multi_url_dependencies(multi_url_object):
     assert len(validate_object(multi_url_object, "poetry-schema")) == 0
+
+
+def test_multiline_description(base_object):
+    bad_description = "Some multi-\nline string"
+    base_object["description"] = bad_description
+
+    errors = validate_object(base_object, "poetry-schema")
+    assert len(errors) == 1
+    assert errors[0] == "[description] %r does not match '^[^\\n]*$'" % bad_description
