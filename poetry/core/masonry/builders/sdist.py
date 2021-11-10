@@ -139,7 +139,14 @@ class SdistBuilder(Builder):
                     pkg_dir, _packages, _package_data = self.find_packages(include)
 
                     if pkg_dir is not None:
-                        package_dir[""] = os.path.relpath(pkg_dir, str(self._path))
+                        pkg_root = os.path.relpath(pkg_dir, str(self._path))
+                        if "" in package_dir:
+                            package_dir.update(
+                                (p, os.path.join(pkg_root, p.replace(".", "/")))
+                                for p in _packages
+                            )
+                        else:
+                            package_dir[""] = pkg_root
 
                     packages += [p for p in _packages if p not in packages]
                     package_data.update(_package_data)
