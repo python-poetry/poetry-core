@@ -29,7 +29,7 @@ def test_pyproject_toml_file_invalid(pyproject_toml: "Path"):
     with pytest.raises(PoetryCoreException) as excval:
         _ = TOMLFile(pyproject_toml).read()
 
-    assert "Invalid TOML file {}".format(pyproject_toml.as_posix()) in str(excval.value)
+    assert f"Invalid TOML file {pyproject_toml.as_posix()}" in str(excval.value)
 
 
 def test_pyproject_toml_file_getattr(tmp_path: "Path", pyproject_toml: "Path"):

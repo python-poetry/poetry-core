@@ -125,7 +125,7 @@ class PEP440Version:
 
         if self.epoch:
             # if epoch is non-zero we should include it
-            version_string = "{}!{}".format(self.epoch, version_string)
+            version_string = f"{self.epoch}!{version_string}"
 
         if self.local:
             version_string += "+{}".format(".".join(map(str, self.local)))

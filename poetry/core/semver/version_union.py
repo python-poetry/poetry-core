@@ -57,7 +57,7 @@ class VersionUnion(VersionConstraint):
             if isinstance(constraint, VersionRangeConstraint):
                 continue
 
-            raise ValueError("Unknown VersionConstraint type {}.".format(constraint))
+            raise ValueError(f"Unknown VersionConstraint type {constraint}.")
 
         flattened.sort()
 
@@ -233,7 +233,7 @@ class VersionUnion(VersionConstraint):
         if isinstance(constraint, VersionRangeConstraint):
             return [constraint]
 
-        raise ValueError("Unknown VersionConstraint type {}".format(constraint))
+        raise ValueError(f"Unknown VersionConstraint type {constraint}")
 
     def excludes_single_version(self) -> bool:
         from .version import Version
@@ -259,9 +259,9 @@ class VersionUnion(VersionConstraint):
         from .version_range import VersionRange
 
         if self.excludes_single_version():
-            return "!={}".format(VersionRange().difference(self))
+            return f"!={VersionRange().difference(self)}"
 
         return " || ".join([str(r) for r in self._ranges])
 
     def __repr__(self) -> str:
-        return "<VersionUnion {}>".format(str(self))
+        return f"<VersionUnion {str(self)}>"

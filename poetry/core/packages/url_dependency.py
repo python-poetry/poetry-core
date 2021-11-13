@@ -25,9 +25,9 @@ class URLDependency(Dependency):
 
         parsed = urlparse(url)
         if not parsed.scheme or not parsed.netloc:
-            raise ValueError("{} does not seem like a valid url".format(url))
+            raise ValueError(f"{url} does not seem like a valid url")
 
-        super(URLDependency, self).__init__(
+        super().__init__(
             name,
             "*",
             groups=groups,
@@ -49,7 +49,7 @@ class URLDependency(Dependency):
         if self.extras:
             requirement += "[{}]".format(",".join(self.extras))
 
-        requirement += " @ {}".format(self._url)
+        requirement += f" @ {self._url}"
 
         return requirement
 
@@ -79,7 +79,7 @@ class URLDependency(Dependency):
         return new
 
     def __str__(self) -> str:
-        return "{} ({} url)".format(self._pretty_name, self._pretty_constraint)
+        return f"{self._pretty_name} ({self._pretty_constraint} url)"
 
     def __hash__(self) -> int:
         return hash((self._name, self._url))

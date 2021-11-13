@@ -45,7 +45,7 @@ class Dependency(PackageSpecification):
     ):
         from poetry.core.version.markers import AnyMarker
 
-        super(Dependency, self).__init__(
+        super().__init__(
             name,
             source_type=source_type,
             source_url=source_url,
@@ -207,7 +207,7 @@ class Dependency(PackageSpecification):
 
                         continue
 
-                    ands.append("{}{}".format(op, version))
+                    ands.append(f"{op}{version}")
 
                 ors.append(" ".join(ands))
 
@@ -256,14 +256,14 @@ class Dependency(PackageSpecification):
 
         if isinstance(self.constraint, VersionUnion):
             if self.constraint.excludes_single_version():
-                requirement += " ({})".format(str(self.constraint))
+                requirement += f" ({str(self.constraint)})"
             else:
                 constraints = self.pretty_constraint.split(",")
                 constraints = [parse_constraint(c) for c in constraints]
                 constraints = [str(c) for c in constraints]
                 requirement += " ({})".format(",".join(constraints))
         elif isinstance(self.constraint, Version):
-            requirement += " (=={})".format(self.constraint.text)
+            requirement += f" (=={self.constraint.text})"
         elif not self.constraint.is_any():
             requirement += " ({})".format(str(self.constraint).replace(" ", ""))
 
@@ -338,10 +338,10 @@ class Dependency(PackageSpecification):
                 requirement += " "
 
             if len(markers) > 1:
-                markers = ["({})".format(m) for m in markers]
+                markers = [f"({m})" for m in markers]
                 requirement += "; {}".format(" and ".join(markers))
             else:
-                requirement += "; {}".format(markers[0])
+                requirement += f"; {markers[0]}"
 
         return requirement
 
@@ -366,30 +366,28 @@ class Dependency(PackageSpecification):
 
             glue = " and "
             if isinstance(constraint, UnionConstraint):
-                parts = [
-                    "({})".format(part[1]) if part[0] else part[1] for part in parts
-                ]
+                parts = [f"({part[1]})" if part[0] else part[1] for part in parts]
                 glue = " or "
             else:
                 parts = [part[1] for part in parts]
 
             marker = glue.join(parts)
         elif isinstance(constraint, Constraint):
-            marker = '{} {} "{}"'.format(name, constraint.operator, constraint.version)
+            marker = f'{name} {constraint.operator} "{constraint.version}"'
         elif isinstance(constraint, VersionUnion):
             parts = []
             for c in constraint.ranges:
                 parts.append(self._create_nested_marker(name, c))
 
             glue = " or "
-            parts = ["({})".format(part) for part in parts]
+            parts = [f"({part})" for part in parts]
 
             marker = glue.join(parts)
         elif isinstance(constraint, Version):
             if constraint.precision >= 3 and name == "python_version":
                 name = "python_full_version"
 
-            marker = '{} == "{}"'.format(name, constraint.text)
+            marker = f'{name} == "{constraint.text}"'
         else:
             if constraint.min is not None:
                 min_name = name
@@ -409,7 +407,7 @@ class Dependency(PackageSpecification):
                     if constraint.max.precision >= 3 and name == "python_version":
                         max_name = "python_full_version"
 
-                    text = '{} {} "{}"'.format(min_name, op, version)
+                    text = f'{min_name} {op} "{version}"'
 
                     op = "<="
                     if not constraint.include_max:
@@ -417,7 +415,7 @@ class Dependency(PackageSpecification):
 
                     version = constraint.max
 
-                    text += ' and {} {} "{}"'.format(max_name, op, version)
+                    text += f' and {max_name} {op} "{version}"'
 
                     return text
             elif constraint.max is not None:
@@ -432,7 +430,7 @@ class Dependency(PackageSpecification):
             else:
                 return ""
 
-            marker = '{} {} "{}"'.format(name, op, version)
+            marker = f'{name} {op} "{version}"'
 
         return marker
 
@@ -546,7 +544,7 @@ class Dependency(PackageSpecification):
             if link.is_wheel:
                 m = wheel_file_re.match(link.filename)
                 if not m:
-                    raise ValueError("Invalid wheel name: {}".format(link.filename))
+                    raise ValueError(f"Invalid wheel name: {link.filename}")
                 name = m.group("name")
                 version = m.group("ver")
 
@@ -619,11 +617,7 @@ class Dependency(PackageSpecification):
         return not self == other
 
     def __hash__(self) -> int:
-        return (
-            super(Dependency, self).__hash__()
-            ^ hash(self._constraint)
-            ^ hash(self._extras)
-        )
+        return super().__hash__() ^ hash(self._constraint) ^ hash(self._extras)
 
     def __str__(self) -> str:
         if self.is_root:
@@ -631,7 +625,7 @@ class Dependency(PackageSpecification):
         return self.base_pep_508_name
 
     def __repr__(self) -> str:
-        return "<{} {}>".format(self.__class__.__name__, str(self))
+        return f"<{self.__class__.__name__} {str(self)}>"
 
 
 def _make_file_or_dir_dep(

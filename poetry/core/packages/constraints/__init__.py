@@ -63,4 +63,4 @@ def parse_single_constraint(constraint: str) -> Constraint:
 
         return Constraint(version, op)
 
-    raise ValueError("Could not parse version constraint: {}".format(constraint))
+    raise ValueError(f"Could not parse version constraint: {constraint}")

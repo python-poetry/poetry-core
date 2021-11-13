@@ -2,7 +2,6 @@ import functools
 import json
 import os
 
-from io import open
 from typing import Dict
 
 from .license import License

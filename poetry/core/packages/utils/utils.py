@@ -63,7 +63,7 @@ def url_to_path(url: str) -> Path:
     https://github.com/pypa/pip/blob/4d1932fcdd1974c820ea60b3286984ebb0c3beaa/src/pip/_internal/utils/urls.py#L31
     """
     if not url.startswith("file:"):
-        raise ValueError("{} is not a valid file URI".format(url))
+        raise ValueError(f"{url} is not a valid file URI")
 
     _, netloc, path, _, _ = urlsplit(url)
 
@@ -75,7 +75,7 @@ def url_to_path(url: str) -> Path:
         netloc = "\\\\" + netloc
     else:
         raise ValueError(
-            "non-local file URIs are not supported on this platform: {}".format(url)
+            f"non-local file URIs are not supported on this platform: {url}"
         )
 
     return Path(url2pathname(netloc + unquote(path)))
@@ -229,28 +229,28 @@ def create_nested_marker(
 
         glue = " and "
         if isinstance(constraint, UnionConstraint):
-            parts = ["({})".format(part[1]) if part[0] else part[1] for part in parts]
+            parts = [f"({part[1]})" if part[0] else part[1] for part in parts]
             glue = " or "
         else:
             parts = [part[1] for part in parts]
 
         marker = glue.join(parts)
     elif isinstance(constraint, Constraint):
-        marker = '{} {} "{}"'.format(name, constraint.operator, constraint.version)
+        marker = f'{name} {constraint.operator} "{constraint.version}"'
     elif isinstance(constraint, VersionUnion):
         parts = []
         for c in constraint.ranges:
             parts.append(create_nested_marker(name, c))
 
         glue = " or "
-        parts = ["({})".format(part) for part in parts]
+        parts = [f"({part})" for part in parts]
 
         marker = glue.join(parts)
     elif isinstance(constraint, Version):
         if name == "python_version" and constraint.precision >= 3:
             name = "python_full_version"
 
-        marker = '{} == "{}"'.format(name, constraint.text)
+        marker = f'{name} == "{constraint.text}"'
     else:
         if constraint.min is not None:
             op = ">="
@@ -266,7 +266,7 @@ def create_nested_marker(
                 if max_name == "python_version" and constraint.max.precision >= 3:
                     max_name = "python_full_version"
 
-                text = '{} {} "{}"'.format(min_name, op, version)
+                text = f'{min_name} {op} "{version}"'
 
                 op = "<="
                 if not constraint.include_max:
@@ -274,7 +274,7 @@ def create_nested_marker(
 
                 version = constraint.max
 
-                text += ' and {} {} "{}"'.format(max_name, op, version)
+                text += f' and {max_name} {op} "{version}"'
 
                 return text
         elif constraint.max is not None:
@@ -289,7 +289,7 @@ def create_nested_marker(
         if name == "python_version" and version.precision >= 3:
             name = "python_full_version"
 
-        marker = '{} {} "{}"'.format(name, op, version)
+        marker = f'{name} {op} "{version}"'
 
     return marker
 
@@ -355,7 +355,7 @@ def get_python_constraint_from_marker(
 
                 continue
 
-            ands.append("{}{}".format(op, version))
+            ands.append(f"{op}{version}")
 
         ors.append(" ".join(ands))
 

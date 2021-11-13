@@ -68,7 +68,7 @@ class PyProjectTOML:
             from poetry.core.pyproject.exceptions import PyProjectException
 
             raise PyProjectException(
-                "[tool.poetry] section not found in {}".format(self._file)
+                f"[tool.poetry] section not found in {self._file}"
             ) from e
 
     def is_poetry_project(self) -> bool:

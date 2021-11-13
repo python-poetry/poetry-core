@@ -32,6 +32,14 @@ repos:
               | tests/.*\.pyi$
           )
 
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.29.1
+    hooks:
+      - id: pyupgrade
+        args:
+          - --py36-plus
+        exclude: ^poetry/core/_vendor
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:

@@ -63,9 +63,9 @@ def parse_requires(requires: str) -> List[str]:
 
             if extra:
                 if marker:
-                    marker = '{} and extra == "{}"'.format(marker, extra)
+                    marker = f'{marker} and extra == "{extra}"'
                 else:
-                    marker = 'extra == "{}"'.format(extra)
+                    marker = f'extra == "{extra}"'
 
             if marker:
                 current_marker = marker
@@ -73,7 +73,7 @@ def parse_requires(requires: str) -> List[str]:
             continue
 
         if current_marker:
-            line = "{} ; {}".format(line, current_marker)
+            line = f"{line} ; {current_marker}"
 
         requires_dist.append(line)
 

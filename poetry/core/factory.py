@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import logging
 
 from pathlib import Path
@@ -23,7 +20,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Factory(object):
+class Factory:
     """
     Factory class to create various elements needed by Poetry.
     """
@@ -42,7 +39,7 @@ class Factory(object):
         if check_result["errors"]:
             message = ""
             for error in check_result["errors"]:
-                message += "  - {}\n".format(error)
+                message += f"  - {error}\n"
 
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
