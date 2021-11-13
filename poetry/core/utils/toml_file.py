@@ -18,4 +18,4 @@ class TomlFile(TOMLFile):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        return super(TomlFile, cls).__new__(cls)
+        return super().__new__(cls)

@@ -143,9 +143,7 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
         try:
             version = Version.parse(version)
         except ValueError:
-            raise ValueError(
-                "Could not parse version constraint: {}".format(constraint)
-            )
+            raise ValueError(f"Could not parse version constraint: {constraint}")
 
         if op == "<":
             return VersionRange(max=version)
@@ -162,6 +160,4 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
 
     from .exceptions import ParseConstraintError
 
-    raise ParseConstraintError(
-        "Could not parse version constraint: {}".format(constraint)
-    )
+    raise ParseConstraintError(f"Could not parse version constraint: {constraint}")

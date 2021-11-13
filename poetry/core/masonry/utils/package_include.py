@@ -21,7 +21,7 @@ class PackageInclude(Include):
         if source is not None:
             base = base / source
 
-        super(PackageInclude, self).__init__(base, include, formats=formats)
+        super().__init__(base, include, formats=formats)
         self.check_elements()
 
     @property
@@ -39,7 +39,7 @@ class PackageInclude(Include):
         return self._is_module
 
     def refresh(self) -> "PackageInclude":
-        super(PackageInclude, self).refresh()
+        super().refresh()
 
         return self.check_elements()
 
@@ -61,7 +61,7 @@ class PackageInclude(Include):
     def check_elements(self) -> "PackageInclude":
         if not self._elements:
             raise ValueError(
-                "{} does not contain any element".format(self._base / self._include)
+                f"{self._base / self._include} does not contain any element"
             )
 
         root = self._elements[0]
@@ -71,7 +71,7 @@ class PackageInclude(Include):
             self._package = root.parent.name
 
             if not self.is_stub_only() and not self.has_modules():
-                raise ValueError("{} is not a package.".format(root.name))
+                raise ValueError(f"{root.name} is not a package.")
 
         else:
             if root.is_dir():
@@ -80,7 +80,7 @@ class PackageInclude(Include):
                 self._elements: List[Path] = sorted(root.glob("**/*"))
 
                 if not self.is_stub_only() and not self.has_modules():
-                    raise ValueError("{} is not a package.".format(root.name))
+                    raise ValueError(f"{root.name} is not a package.")
 
                 self._is_package = True
             else:

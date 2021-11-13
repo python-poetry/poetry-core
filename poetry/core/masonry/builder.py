@@ -26,7 +26,7 @@ class Builder:
         elif fmt == "all":
             builders = list(self._formats.values())
         else:
-            raise ValueError("Invalid format: {}".format(fmt))
+            raise ValueError(f"Invalid format: {fmt}")
 
         for builder in builders:
             builder(self._poetry, executable=executable).build()

@@ -467,7 +467,7 @@ def test_multi_marker_removes_duplicates():
 @pytest.mark.parametrize(
     ("marker_string", "environment", "expected"),
     [
-        ("os_name == '{0}'".format(os.name), None, True),
+        (f"os_name == '{os.name}'", None, True),
         ("os_name == 'foo'", {"os_name": "foo"}, True),
         ("os_name == 'foo'", {"os_name": "bar"}, False),
         ("'2.7' in python_version", {"python_version": "2.7.5"}, True),
@@ -494,7 +494,7 @@ def test_multi_marker_removes_duplicates():
         ),
         ("extra == 'security'", {"extra": "quux"}, False),
         ("extra == 'security'", {"extra": "security"}, True),
-        ("os.name == '{0}'".format(os.name), None, True),
+        (f"os.name == '{os.name}'", None, True),
         ("sys.platform == 'win32'", {"sys_platform": "linux2"}, False),
         ("platform.version in 'Ubuntu'", {"platform_version": "#39"}, False),
         ("platform.machine=='x86_64'", {"platform_machine": "x86_64"}, True),

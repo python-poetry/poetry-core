@@ -34,16 +34,14 @@ def format_python_constraint(
     """
     if isinstance(constraint, Version):
         if constraint.precision >= 3:
-            return "=={}".format(str(constraint))
+            return f"=={str(constraint)}"
 
         # Transform 3.6 or 3
         if constraint.precision == 2:
             # 3.6
-            constraint = parse_constraint(
-                "~{}.{}".format(constraint.major, constraint.minor)
-            )
+            constraint = parse_constraint(f"~{constraint.major}.{constraint.minor}")
         else:
-            constraint = parse_constraint("^{}.0".format(constraint.major))
+            constraint = parse_constraint(f"^{constraint.major}.0")
 
     if not isinstance(constraint, VersionUnion):
         return str(constraint)

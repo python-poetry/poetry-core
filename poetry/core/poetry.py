@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -13,7 +10,7 @@ if TYPE_CHECKING:
     from poetry.core.toml import TOMLFile
 
 
-class Poetry(object):
+class Poetry:
     def __init__(
         self,
         file: "Path",

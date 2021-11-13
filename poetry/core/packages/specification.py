@@ -3,7 +3,7 @@ from typing import List
 from typing import Optional
 
 
-class PackageSpecification(object):
+class PackageSpecification:
     def __init__(
         self,
         name: str,

@@ -124,6 +124,6 @@ def test_requirement(string: str, expected: Dict[str, str]):
 def test_invalid_requirement(string: str, exception: str):
     with pytest.raises(
         InvalidRequirement,
-        match=re.escape("The requirement is invalid: {}".format(exception)),
+        match=re.escape(f"The requirement is invalid: {exception}"),
     ):
         Requirement(string)

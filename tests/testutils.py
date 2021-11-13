@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 import tarfile
+import tempfile
 import zipfile
 
 from contextlib import contextmanager
@@ -13,12 +14,6 @@ from typing import Optional
 
 from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import PY37
-
-
-try:
-    from backports import tempfile
-except ImportError:
-    import tempfile
 
 
 __toml_build_backend_patch__ = {
@@ -72,14 +67,14 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
 def validate_wheel_contents(
     name: str, version: str, path: str, files: Optional[List[str]] = None
 ) -> None:
-    dist_info = "{}-{}.dist-info".format(name, version)
+    dist_info = f"{name}-{version}.dist-info"
     files = files or []
 
     with zipfile.ZipFile(path) as z:
         namelist = z.namelist()
         # we use concatenation here for PY2 compat
         for filename in ["WHEEL", "METADATA", "RECORD"] + files:
-            assert "{}/{}".format(dist_info, filename) in namelist
+            assert f"{dist_info}/{filename}" in namelist
 
 
 def validate_sdist_contents(
@@ -88,4 +83,4 @@ def validate_sdist_contents(
     with tarfile.open(path) as tar:
         namelist = tar.getnames()
         for filename in files:
-            assert "{}-{}/{}".format(name, version, filename) in namelist
+            assert f"{name}-{version}/{filename}" in namelist

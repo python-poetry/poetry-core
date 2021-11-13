@@ -14,7 +14,7 @@ class TOMLFile(BaseTOMLFile):
     def __init__(self, path: Union[str, Path]) -> None:
         if isinstance(path, str):
             path = Path(path)
-        super(TOMLFile, self).__init__(path.as_posix())
+        super().__init__(path.as_posix())
         self.__path = path
 
     @property
@@ -30,9 +30,9 @@ class TOMLFile(BaseTOMLFile):
         from poetry.core.toml import TOMLError
 
         try:
-            return super(TOMLFile, self).read()
+            return super().read()
         except (ValueError, TOMLKitError) as e:
-            raise TOMLError("Invalid TOML file {}: {}".format(self.path.as_posix(), e))
+            raise TOMLError(f"Invalid TOML file {self.path.as_posix()}: {e}")
 
     def __getattr__(self, item: str) -> Any:
         return getattr(self.__path, item)

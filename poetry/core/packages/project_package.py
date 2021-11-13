@@ -23,7 +23,7 @@ class ProjectPackage(Package):
         version: Union[str, "VersionTypes"],
         pretty_version: Optional[str] = None,
     ) -> None:
-        super(ProjectPackage, self).__init__(name, version, pretty_version)
+        super().__init__(name, version, pretty_version)
 
         self.build_config = {}
         self.packages = []
@@ -42,7 +42,7 @@ class ProjectPackage(Package):
         return True
 
     def to_dependency(self) -> Union["DependencyTypes"]:
-        dependency = super(ProjectPackage, self).to_dependency()
+        dependency = super().to_dependency()
 
         dependency.is_root = True
 
@@ -68,7 +68,7 @@ class ProjectPackage(Package):
 
     @property
     def urls(self) -> Dict[str, Any]:
-        urls = super(ProjectPackage, self).urls
+        urls = super().urls
 
         urls.update(self.custom_urls)
 
