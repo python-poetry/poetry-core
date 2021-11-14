@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture
-def pyproject_toml(tmp_path):  # type: (Path) -> Path
+def pyproject_toml(tmp_path: Path) -> Path:
     path = tmp_path / "pyproject.toml"
     with path.open(mode="w"):
         pass
@@ -12,7 +12,7 @@ def pyproject_toml(tmp_path):  # type: (Path) -> Path
 
 
 @pytest.fixture
-def build_system_section(pyproject_toml):  # type: (Path) -> str
+def build_system_section(pyproject_toml: Path) -> str:
     content = """
 [build-system]
 requires = ["poetry-core"]
@@ -24,7 +24,7 @@ build-backend = "poetry.core.masonry.api"
 
 
 @pytest.fixture
-def poetry_section(pyproject_toml):  # type: (Path) -> str
+def poetry_section(pyproject_toml: Path) -> str:
     content = """
 [tool.poetry]
 name = "poetry"
