@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import pytest
 
@@ -14,7 +15,9 @@ def test_directory_dependency_must_exist():
         DirectoryDependency("demo", DIST_PATH / "invalid")
 
 
-def _test_directory_dependency_pep_508(name, path, pep_508_input, pep_508_output=None):
+def _test_directory_dependency_pep_508(
+    name: str, path: Path, pep_508_input: str, pep_508_output: Optional[str] = None
+) -> None:
     dep = Dependency.create_from_pep_508(
         pep_508_input, relative_to=Path(__file__).parent
     )

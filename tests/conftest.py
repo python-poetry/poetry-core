@@ -1,6 +1,7 @@
 import sys
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Callable
 
 import pytest
@@ -10,7 +11,12 @@ from poetry.core.factory import Factory
 from tests.testutils import tempfile
 
 
-def pytest_addoption(parser):
+if TYPE_CHECKING:
+    from _pytest.config import Config
+    from _pytest.config.argparsing import Parser
+
+
+def pytest_addoption(parser: "Parser") -> None:
     parser.addoption(
         "--integration",
         action="store_true",
@@ -20,7 +26,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: "Config") -> None:
     config.addinivalue_line("markers", "integration: mark integration tests")
 
     if not config.option.integration:

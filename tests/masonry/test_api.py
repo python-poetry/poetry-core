@@ -7,6 +7,8 @@ import zipfile
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
+from typing import Union
 
 import pytest
 
@@ -18,7 +20,7 @@ from tests.testutils import validate_wheel_contents
 
 
 @contextmanager
-def cwd(directory):
+def cwd(directory: Union[str, Path]) -> Iterator[None]:
     prev = os.getcwd()
     os.chdir(str(directory))
     try:

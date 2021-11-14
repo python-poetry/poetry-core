@@ -2,6 +2,9 @@ import sys
 
 from email.parser import Parser
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Dict
+from typing import List
 
 import pytest
 
@@ -10,7 +13,11 @@ from poetry.core.masonry.builders.builder import Builder
 from poetry.core.utils._compat import PY37
 
 
-def test_builder_find_excluded_files(mocker):
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
+
+def test_builder_find_excluded_files(mocker: "MockerFixture"):
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
@@ -25,7 +32,7 @@ def test_builder_find_excluded_files(mocker):
     sys.platform == "win32" and not PY37,
     reason="Windows is case insensitive for the most part",
 )
-def test_builder_find_case_sensitive_excluded_files(mocker):
+def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
@@ -50,7 +57,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker):
     sys.platform == "win32" and not PY37,
     reason="Windows is case insensitive for the most part",
 )
-def test_builder_find_invalid_case_sensitive_excluded_files(mocker):
+def test_builder_find_invalid_case_sensitive_excluded_files(mocker: "MockerFixture"):
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
@@ -189,7 +196,7 @@ def test_invalid_script_files_definition():
         "script_callable_legacy_table",
     ],
 )
-def test_entrypoint_scripts_legacy_warns(fixture):
+def test_entrypoint_scripts_legacy_warns(fixture: str):
     with pytest.warns(DeprecationWarning):
         Builder(
             Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
@@ -228,7 +235,7 @@ def test_entrypoint_scripts_legacy_warns(fixture):
     ],
 )
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_builder_convert_entry_points(fixture, result):
+def test_builder_convert_entry_points(fixture: str, result: Dict[str, List[str]]):
     entry_points = Builder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
     ).convert_entry_points()
@@ -256,7 +263,7 @@ def test_builder_convert_entry_points(fixture, result):
         ),
     ],
 )
-def test_builder_convert_script_files(fixture, result):
+def test_builder_convert_script_files(fixture: str, result: List[Path]):
     project_root = Path(__file__).parent / "fixtures" / fixture
     script_files = Builder(Factory().create_poetry(project_root)).convert_script_files()
     assert [p.relative_to(project_root) for p in script_files] == result

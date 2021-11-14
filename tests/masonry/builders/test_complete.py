@@ -11,6 +11,7 @@ import tempfile
 import zipfile
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -19,11 +20,14 @@ from poetry.core.factory import Factory
 from poetry.core.masonry.builder import Builder
 
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> None:
     clear_samples_dist()
 
     yield
@@ -31,7 +35,7 @@ def setup():
     clear_samples_dist()
 
 
-def clear_samples_dist():
+def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
@@ -473,7 +477,7 @@ def test_package_src():
         zip.close()
 
 
-def test_package_with_include(mocker):
+def test_package_with_include(mocker: "MockerFixture"):
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
