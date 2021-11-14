@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import Optional
 
 
@@ -17,7 +18,7 @@ class Parser:
         self._debug = debug
         self._lark: Optional["Lark"] = None
 
-    def parse(self, text: str, **kwargs) -> "Tree":
+    def parse(self, text: str, **kwargs: Any) -> "Tree":
         from lark import Lark
 
         if self._lark is None:

@@ -61,7 +61,9 @@ class PEP440Parser:
         )
 
     @classmethod
-    def parse(cls, value: str, version_class: Optional[Type["PEP440Version"]] = None):
+    def parse(
+        cls, value: str, version_class: Optional[Type["PEP440Version"]] = None
+    ) -> "PEP440Version":
         match = cls._regex.search(value) if value else None
         if not match:
             raise InvalidVersion(f"Invalid PEP 440 version: '{value}'")

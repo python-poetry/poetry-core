@@ -188,7 +188,7 @@ GitUrl = namedtuple("GitUrl", ["url", "revision", "subdirectory"])
 _executable: Optional[str] = None
 
 
-def executable():
+def executable() -> str:
     global _executable
 
     if _executable is not None:
@@ -220,7 +220,7 @@ def executable():
     return _executable
 
 
-def _reset_executable():
+def _reset_executable() -> None:
     global _executable
 
     _executable = None
