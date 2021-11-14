@@ -50,6 +50,7 @@ vendoring = {version = "^0.3", python = "^3.8"}
 pep517 = "^0.11.0"
 black = {version = "^21.9b0", markers = "python_version >= '3.6.2' and python_version < '4.0' and implementation_name != 'pypy'"}
 isort = {version = "^5.9.3", python = "^3.6.1"}
+mypy = "^0.910"
 
 [tool.black]
 line-length = 88
@@ -83,6 +84,35 @@ filter_files = true
 
 known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
+
+[tool.mypy]
+python_version = "3.6"
+check_untyped_defs = true
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+files = "poetry"
+
+# The following whitelist is used to allow for incremental adoption
+# of Mypy. Modules should be removed from this whitelist as and when
+# their respective type errors have been addressed. No new modules
+# should be added to this whitelist.
+# see https://github.com/python-poetry/poetry/pull/4510.
+
+[[tool.mypy.overrides]]
+module = [
+  'poetry.core.factory.*',
+  'poetry.core.masonry.*',
+  'poetry.core.packages.*',
+  'poetry.core.poetry.*',
+  'poetry.core.pyproject.*',
+  'poetry.core.semver.*',
+  'poetry.core.spdx.*',
+  'poetry.core.vcs.*',
+  'poetry.core.version.*',
+]
+ignore_errors = true
 
 [tool.vendoring]
 destination = "poetry/core/_vendor/"
