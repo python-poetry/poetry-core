@@ -88,7 +88,8 @@ class Package(PackageSpecification):
         self.documentation_url = None
         self.keywords = []
         self._license = None
-        self.readme = None
+        self.readmes = ()
+        self.description_type = None
 
         self.extras = {}
         self.requires_extras = []
