@@ -102,7 +102,6 @@ module = [
   'poetry.core.factory.*',
   'poetry.core.masonry.*',
   'poetry.core.packages.*',
-  'poetry.core.poetry.*',
   'poetry.core.pyproject.*',
   'poetry.core.semver.*',
   'poetry.core.spdx.*',
