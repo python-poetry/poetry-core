@@ -84,6 +84,33 @@ filter_files = true
 known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
+[tool.mypy]
+python_version = "3.6"
+follow_imports = "silent"
+ignore_missing_imports = true
+files = "poetry"
+exclude = "poetry/core/_vendor"
+
+# The following whitelist is used to allow for incremental adoption
+# of Mypy. Modules should be removed from this whitelist as and when
+# their respective type errors have been addressed. No new modules
+# should be added to this whitelist.
+# see https://github.com/python-poetry/poetry-core/pull/199.
+
+[[tool.mypy.overrides]]
+module = [
+  'poetry.core.factory.*',
+  'poetry.core.masonry.*',
+  'poetry.core.packages.*',
+  'poetry.core.poetry.*',
+  'poetry.core.pyproject.*',
+  'poetry.core.semver.*',
+  'poetry.core.spdx.*',
+  'poetry.core.vcs.*',
+  'poetry.core.version.*',
+]
+ignore_errors = true
+
 [tool.vendoring]
 destination = "poetry/core/_vendor/"
 requirements = "poetry/core/_vendor/vendor.txt"
