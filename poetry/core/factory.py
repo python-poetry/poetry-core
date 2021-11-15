@@ -94,10 +94,10 @@ class Factory(object):
         package.classifiers = config.get("classifiers", [])
 
         if "readme" in config:
-            if isinstance(config["readme"], list):
-                package.readmes = tuple(root / readme for readme in config["readme"])
-            else:
+            if isinstance(config["readme"], str):
                 package.readmes = (root / config["readme"],)
+            else:
+                package.readmes = tuple(root / readme for readme in config["readme"])
 
             package.description_type = cls._readme_content_type(package.readmes[0])
 
@@ -424,8 +424,8 @@ class Factory(object):
                                 )
                             )
 
-            # Checking readme file types (must match)
-            if "readme" in config and isinstance(config["readme"], list):
+            # Checking types of all readme files (must match)
+            if "readme" in config and not isinstance(config["readme"], str):
                 readme_types = [cls._readme_content_type(r) for r in config["readme"]]
                 if len(set(readme_types)) > 1:
                     result["errors"].append(
