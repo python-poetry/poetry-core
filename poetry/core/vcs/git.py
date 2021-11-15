@@ -172,7 +172,7 @@ class ParsedUrl:
             "{}@".format(self.user) if self.user else "",
             self.resource,
             ":{}".format(self.port) if self.port else "",
-            "/" + self.pathname.lstrip(":/"),
+            "/" + (self.pathname or "").lstrip(":/"),
         )
 
     def format(self) -> str:
@@ -204,11 +204,11 @@ def executable():
             if not path:
                 continue
 
-            path = Path(path.strip())
+            _path = Path(path.strip())
             try:
-                path.relative_to(Path.cwd())
+                _path.relative_to(Path.cwd())
             except ValueError:
-                _executable = str(path)
+                _executable = str(_path)
 
                 break
     else:
@@ -272,7 +272,7 @@ class Git:
 
         if altered:
             if re.match(r"^git\+https?", url) and re.match(
-                r"^/?:[^0-9]", parsed.pathname
+                r"^/?:[^0-9]", parsed.pathname or ""
             ):
                 normalized = re.sub(r"git\+(.*:[^:]+):(.*)", "\\1/\\2", url)
             elif re.match(r"^git\+file", url):
@@ -394,7 +394,7 @@ class Git:
             .strip()
         )
 
-    def _check_parameter(self, parameter: str) -> str:
+    def _check_parameter(self, parameter: str) -> None:
         """
         Checks a git parameter to avoid unwanted code execution.
         """

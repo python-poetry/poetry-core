@@ -2,13 +2,16 @@ import os
 import subprocess
 
 from pathlib import Path
+from typing import Optional
 
 from .git import Git
 
 
-def get_vcs(directory: Path) -> Git:
+def get_vcs(directory: Path) -> Optional[Git]:
     working_dir = Path.cwd()
     os.chdir(str(directory.resolve()))
+
+    vcs: Optional[Git]
 
     try:
         from .git import executable
