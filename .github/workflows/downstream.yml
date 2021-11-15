@@ -56,6 +56,11 @@ jobs:
         working-directory: ./poetry
         run: timeout 10s poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
 
+      - name: Install dependencies
+        shell: bash
+        working-directory: ./poetry
+        run: poetry install
+
       - name: Update poetry-core version
         shell: bash
         working-directory: ./poetry
