@@ -2,6 +2,7 @@ import copy
 import re
 
 from contextlib import contextmanager
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Dict
 from typing import List
@@ -109,7 +110,7 @@ class Package(PackageSpecification):
         self.platform = None
         self.marker = AnyMarker()
 
-        self.root_dir = None
+        self.root_dir: Optional[Path] = None
 
         self.develop = develop
 
@@ -266,7 +267,7 @@ class Package(PackageSpecification):
         return self._python_marker
 
     @property
-    def license(self) -> "License":
+    def license(self) -> Optional["License"]:
         return self._license
 
     @license.setter

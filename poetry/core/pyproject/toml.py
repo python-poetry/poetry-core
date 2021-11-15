@@ -59,7 +59,7 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Optional[Union["Item", "Container"]]:
+    def poetry_config(self) -> Union["Item", "Container"]:
         from tomlkit.exceptions import NonExistentKey
 
         try:
