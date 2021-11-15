@@ -2,42 +2,45 @@ import json
 import os
 
 from io import open
-from typing import TYPE_CHECKING
 from typing import Dict
 from typing import Optional
 
-
-if TYPE_CHECKING:
-    from .license import License  # noqa
+from .license import License
 
 
-_licenses: Optional[Dict[str, "License"]] = None
+_licenses: Optional[Dict[str, License]] = None
 
 
-def license_by_id(identifier: str) -> "License":
-    from .license import License  # noqa
+def license_by_id(identifier: str) -> License:
 
-    if _licenses is None:
-        load_licenses()
+    licenses = _lazy_load_licenses()
 
     id = identifier.lower()
 
-    if id not in _licenses:
+    if id not in licenses:
         if not identifier:
             raise ValueError("A license identifier is required")
 
         return License(identifier, identifier, False, False)
 
-    return _licenses[id]
+    return licenses[id]
 
 
-def load_licenses() -> None:
-    from .license import License  # noqa
+def _lazy_load_licenses() -> Dict[str, License]:
 
     global _licenses
 
-    _licenses = {}
+    if _licenses is None:
+        licenses = _load_licenses()
+        _licenses = licenses
+        return licenses
+    else:
+        return _licenses
 
+
+def _load_licenses() -> Dict[str, License]:
+
+    licenses = {}
     licenses_file = os.path.join(os.path.dirname(__file__), "data", "licenses.json")
 
     with open(licenses_file, encoding="utf-8") as f:
@@ -45,18 +48,20 @@ def load_licenses() -> None:
 
     for name, license_info in data.items():
         license = License(name, license_info[0], license_info[1], license_info[2])
-        _licenses[name.lower()] = license
+        licenses[name.lower()] = license
 
         full_name = license_info[0].lower()
-        if full_name in _licenses:
-            existing_license = _licenses[full_name]
+        if full_name in licenses:
+            existing_license = licenses[full_name]
             if not existing_license.is_deprecated:
                 continue
 
-        _licenses[full_name] = license
+        licenses[full_name] = license
 
     # Add a Proprietary license for non-standard licenses
-    _licenses["proprietary"] = License("Proprietary", "Proprietary", False, False)
+    licenses["proprietary"] = License("Proprietary", "Proprietary", False, False)
+
+    return licenses
 
 
 if __name__ == "__main__":
