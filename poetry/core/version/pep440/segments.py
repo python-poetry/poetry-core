@@ -1,5 +1,6 @@
 import dataclasses
 
+from typing import Iterable
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -30,20 +31,17 @@ class Release:
     minor: Optional[int] = dataclasses.field(default=None, compare=False)
     patch: Optional[int] = dataclasses.field(default=None, compare=False)
     # some projects use non-semver versioning schemes, eg: 1.2.3.4
-    extra: Optional[Union[int, Tuple[int, ...]]] = dataclasses.field(
-        default=None, compare=False
+    # (this appears to trigger a mypy false positive)
+    extra: Union[int, Tuple[int, ...]] = dataclasses.field(  # type: ignore
+        default_factory=tuple, compare=False
     )
-    precision: int = dataclasses.field(default=None, init=False, compare=False)
-    text: str = dataclasses.field(default=None, init=False, compare=False)
+    precision: int = dataclasses.field(default=0, init=False, compare=False)
     _compare_key: Tuple[int, ...] = dataclasses.field(
-        default=None, init=False, compare=True
+        default_factory=tuple, init=False, compare=True
     )
+    text: str = ""
 
     def __post_init__(self):
-        if self.extra is None:
-            object.__setattr__(self, "extra", tuple())
-        elif not isinstance(self.extra, tuple):
-            object.__setattr__(self, "extra", (self.extra,))
 
         parts = list(
             map(
@@ -74,6 +72,14 @@ class Release:
             extra=parts[3:] if len(parts) > 3 else tuple(),
         )
 
+    def _extras(self) -> Iterable[int]:
+        """Return an 'Iterable' over the 'extra' segments"""
+
+        if isinstance(self.extra, int):
+            return (self.extra,)
+        else:
+            return self.extra
+
     def to_string(self) -> str:
         return self.text
 
@@ -83,7 +89,7 @@ class Release:
             major=self.major + 1,
             minor=0 if self.minor is not None else None,
             patch=0 if self.patch is not None else None,
-            extra=tuple(0 for _ in self.extra),
+            extra=tuple(0 for _ in self._extras()),
         )
 
     def next_minor(self) -> "Release":
@@ -92,7 +98,7 @@ class Release:
             major=self.major,
             minor=self.minor + 1 if self.minor is not None else 1,
             patch=0 if self.patch is not None else None,
-            extra=tuple(0 for _ in self.extra),
+            extra=tuple(0 for _ in self._extras()),
         )
 
     def next_patch(self) -> "Release":
@@ -101,7 +107,7 @@ class Release:
             major=self.major,
             minor=self.minor if self.minor is not None else 0,
             patch=self.patch + 1 if self.patch is not None else 1,
-            extra=tuple(0 for _ in self.extra),
+            extra=tuple(0 for _ in self._extras()),
         )
 
 

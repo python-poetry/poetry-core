@@ -85,7 +85,6 @@ known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
-python_version = "3.6"
 follow_imports = "silent"
 ignore_missing_imports = true
 files = "poetry"
@@ -107,7 +106,9 @@ module = [
   'poetry.core.semver.*',
   'poetry.core.spdx.*',
   'poetry.core.vcs.*',
-  'poetry.core.version.*',
+  'poetry.core.version.markers.*',
+  'poetry.core.version.pep440.parser.*',
+  'poetry.core.version.pep440.version.*',
 ]
 ignore_errors = true
 
