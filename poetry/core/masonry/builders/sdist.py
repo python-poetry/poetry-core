@@ -271,7 +271,7 @@ class SdistBuilder(Builder):
             # Relative to the top-level package
             return pkg_name, Path(rel_path).as_posix()
 
-        for path, dirnames, filenames in os.walk(str(base), topdown=True):
+        for path, _dirnames, filenames in os.walk(str(base), topdown=True):
             if os.path.basename(path) == "__pycache__":
                 continue
 

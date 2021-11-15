@@ -24,7 +24,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark integration tests")
 
     if not config.option.integration:
-        setattr(config.option, "markexpr", "not integration")
+        config.option.markexpr = "not integration"
 
 
 def get_project_from_dir(base_directory):  # type: (Path) -> Callable[[str], Path]
