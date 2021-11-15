@@ -105,7 +105,6 @@ module = [
   'poetry.core.masonry.utils.package_include',
   'poetry.core.masonry.metadata',
   'poetry.core.packages.*',
-  'poetry.core.poetry.*',
   'poetry.core.pyproject.*',
   'poetry.core.semver.*',
   'poetry.core.spdx.*',

@@ -8,9 +8,9 @@ from typing import Any
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from poetry.core.packages import ProjectPackage  # noqa
-    from poetry.core.pyproject.toml import PyProjectTOML  # noqa
-    from poetry.core.pyproject.toml import PyProjectTOMLFile  # noqa
+    from poetry.core.packages.project_package import ProjectPackage
+    from poetry.core.pyproject.toml import PyProjectTOML
+    from poetry.core.toml import TOMLFile
 
 
 class Poetry(object):
@@ -20,7 +20,7 @@ class Poetry(object):
         local_config: dict,
         package: "ProjectPackage",
     ) -> None:
-        from poetry.core.pyproject.toml import PyProjectTOML  # noqa
+        from poetry.core.pyproject.toml import PyProjectTOML
 
         self._pyproject = PyProjectTOML(file)
         self._package = package
@@ -31,7 +31,7 @@ class Poetry(object):
         return self._pyproject
 
     @property
-    def file(self) -> "PyProjectTOMLFile":
+    def file(self) -> "TOMLFile":
         return self._pyproject.file
 
     @property
