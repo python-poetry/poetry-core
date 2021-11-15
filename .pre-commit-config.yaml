@@ -20,16 +20,7 @@ repos:
     rev: v0.910
     hooks:
       - id: mypy
-        additional_dependencies:
-          - types-requests
-        files: |
-          (?x)(
-            ^poetry
-          )
-        exclude: |
-          (?x)(
-              ^poetry/core/_vendor
-          )
+        pass_filenames: false
 
   - repo: https://github.com/pycqa/isort
     rev: 5.9.3

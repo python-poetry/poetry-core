@@ -87,18 +87,16 @@ known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
 python_version = "3.6"
-check_untyped_defs = true
+follow_imports = "silent"
 ignore_missing_imports = true
-warn_redundant_casts = true
-warn_unused_configs = true
-warn_unused_ignores = true
 files = "poetry"
+exclude = "poetry/core/_vendor"
 
 # The following whitelist is used to allow for incremental adoption
 # of Mypy. Modules should be removed from this whitelist as and when
 # their respective type errors have been addressed. No new modules
 # should be added to this whitelist.
-# see https://github.com/python-poetry/poetry/pull/4510.
+# see https://github.com/python-poetry/poetry-core/pull/199.
 
 [[tool.mypy.overrides]]
 module = [
