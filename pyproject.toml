@@ -106,7 +106,6 @@ module = [
   'poetry.core.pyproject.*',
   'poetry.core.semver.*',
   'poetry.core.spdx.*',
-  'poetry.core.vcs.*',
   'poetry.core.version.*',
 ]
 ignore_errors = true
