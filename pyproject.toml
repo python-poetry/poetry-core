@@ -102,7 +102,6 @@ module = [
   'poetry.core.factory.*',
   'poetry.core.masonry.builders.*',
   'poetry.core.masonry.utils.*',
-  'poetry.core.masonry.api',
   'poetry.core.masonry.metadata',
   'poetry.core.packages.*',
   'poetry.core.poetry.*',
