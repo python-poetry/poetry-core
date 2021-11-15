@@ -33,5 +33,5 @@ class BaseConstraint(object):
     def __repr__(self) -> str:
         return "<{} {}>".format(self.__class__.__name__, str(self))
 
-    def __eq__(self, other: "ConstraintTypes") -> bool:
+    def __eq__(self, other: object) -> bool:
         raise NotImplementedError()

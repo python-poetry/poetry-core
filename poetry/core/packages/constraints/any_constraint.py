@@ -39,5 +39,5 @@ class AnyConstraint(BaseConstraint):
     def __str__(self) -> str:
         return "*"
 
-    def __eq__(self, other: "ConstraintTypes") -> bool:
-        return other.is_any()
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, BaseConstraint) and other.is_any()
