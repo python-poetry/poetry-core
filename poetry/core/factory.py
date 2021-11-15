@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from .packages.project_package import ProjectPackage
     from .packages.types import DependencyTypes
     from .poetry import Poetry
+    from .spdx.license import License
+    from .version.markers import MarkerTypes
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +87,7 @@ class Factory(object):
         package.repository_url = config.get("repository")
         package.documentation_url = config.get("documentation")
         try:
-            license_ = license_by_id(config.get("license", ""))
+            license_: Optional["License"] = license_by_id(config.get("license", ""))
         except ValueError:
             license_ = None
 
@@ -266,6 +268,7 @@ class Factory(object):
                 "allow-prereleases", constraint.get("allows-prereleases", False)
             )
 
+            dependency: Dependency
             if "git" in constraint:
                 # VCS dependency
                 dependency = VCSDependency(
@@ -339,7 +342,7 @@ class Factory(object):
                 )
 
             if not markers:
-                marker = AnyMarker()
+                marker: "MarkerTypes" = AnyMarker()
                 if python_versions:
                     marker = marker.intersect(
                         parse_marker(
@@ -376,7 +379,7 @@ class Factory(object):
         """
         from .json import validate_object
 
-        result = {"errors": [], "warnings": []}
+        result: Dict[str, List[str]] = {"errors": [], "warnings": []}
         # Schema validation errors
         validation_errors = validate_object(config, "poetry-schema")
 
@@ -422,9 +425,10 @@ class Factory(object):
         return result
 
     @classmethod
-    def locate(cls, cwd: Path) -> Path:
-        candidates = [Path(cwd)]
-        candidates.extend(Path(cwd).parents)
+    def locate(cls, cwd: Optional[Path] = None) -> Path:
+        cwd = Path(cwd or Path.cwd())
+        candidates = [cwd]
+        candidates.extend(cwd.parents)
 
         for path in candidates:
             poetry_file = path / "pyproject.toml"

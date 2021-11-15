@@ -99,7 +99,6 @@ exclude = "poetry/core/_vendor"
 
 [[tool.mypy.overrides]]
 module = [
-  'poetry.core.factory.*',
   'poetry.core.masonry.builders.*',
   'poetry.core.masonry.utils.module',
   'poetry.core.masonry.utils.package_include',
