@@ -1,5 +1,6 @@
 import contextlib
 import csv
+import datetime
 import hashlib
 import logging
 import os
@@ -60,6 +61,7 @@ class WheelBuilder(Builder):
         self._records = []
         self._original_path = self._path
         self._target_dir = target_dir or (self._poetry.file.parent / "dist")
+        self.highest_timestamp_zipdate = (0,) * 6
         if original:
             self._original_path = original.parent
         self._editable = editable
@@ -327,10 +329,16 @@ class WheelBuilder(Builder):
             # RECORD
             rel_path = rel_path.replace(os.sep, "/")
 
-        zinfo = zipfile.ZipInfo(rel_path)
+        file_stat = os.stat(full_path)
+        file_mtime = file_stat.st_mtime
+        file_zipdate = datetime.datetime.fromtimestamp(file_mtime).timetuple()[:-3]
+        if file_zipdate > self.highest_timestamp_zipdate:
+            self.highest_timestamp_zipdate = file_zipdate
+
+        zinfo = zipfile.ZipInfo(rel_path, file_zipdate)
 
         # Normalize permission bits to either 755 (executable) or 644
-        st_mode = os.stat(full_path).st_mode
+        st_mode = file_stat.st_mode
         new_mode = normalize_file_permissions(st_mode)
         zinfo.external_attr = (new_mode & 0xFFFF) << 16  # Unix attributes
 
@@ -348,7 +356,7 @@ class WheelBuilder(Builder):
             src.seek(0)
             wheel.writestr(zinfo, src.read(), compress_type=zipfile.ZIP_DEFLATED)
 
-        size = os.stat(full_path).st_size
+        size = file_stat.st_size
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode("ascii").rstrip("=")
 
         self._records.append((rel_path, hash_digest, size))
@@ -360,11 +368,10 @@ class WheelBuilder(Builder):
         sio = StringIO()
         yield sio
 
-        # The default is a fixed timestamp rather than the current time, so
-        # that building a wheel twice on the same computer can automatically
+        # Use the highest file modified timestamp for metadata writing so
+        # building a wheel twice on the same computer can automatically
         # give you the exact same result.
-        date_time = (2016, 1, 1, 0, 0, 0)
-        zi = zipfile.ZipInfo(rel_path, date_time)
+        zi = zipfile.ZipInfo(rel_path, self.highest_timestamp_zipdate)
         zi.external_attr = (0o644 & 0xFFFF) << 16  # Unix attributes
         b = sio.getvalue().encode("utf-8")
         hashsum = hashlib.sha256(b)
