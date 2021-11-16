@@ -1,43 +1,24 @@
+import functools
 import json
 import os
 
 from io import open
 from typing import Dict
-from typing import Optional
 
 from .license import License
 
 
-_licenses: Optional[Dict[str, License]] = None
-
-
 def license_by_id(identifier: str) -> License:
+    if not identifier:
+        raise ValueError("A license identifier is required")
 
-    licenses = _lazy_load_licenses()
-
-    id = identifier.lower()
-
-    if id not in licenses:
-        if not identifier:
-            raise ValueError("A license identifier is required")
-
-        return License(identifier, identifier, False, False)
-
-    return licenses[id]
+    licenses = _load_licenses()
+    return licenses.get(
+        identifier.lower(), License(identifier, identifier, False, False)
+    )
 
 
-def _lazy_load_licenses() -> Dict[str, License]:
-
-    global _licenses
-
-    if _licenses is None:
-        licenses = _load_licenses()
-        _licenses = licenses
-        return licenses
-    else:
-        return _licenses
-
-
+@functools.lru_cache()
 def _load_licenses() -> Dict[str, License]:
 
     licenses = {}
