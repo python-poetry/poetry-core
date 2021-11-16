@@ -40,7 +40,7 @@ class DependencyGroup:
 
         self._dependencies = dependencies
 
-    def __eq__(self, other: "DependencyGroup") -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, DependencyGroup):
             return NotImplemented
 
