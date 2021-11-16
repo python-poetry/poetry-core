@@ -84,7 +84,7 @@ class Metadata:
             else:
                 meta.description_content_type = "text/plain"
 
-        meta.provides_extra = [e for e in package.extras]
+        meta.provides_extra = list(package.extras)
 
         if package.urls:
             for name, url in package.urls.items():

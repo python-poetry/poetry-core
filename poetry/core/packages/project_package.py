@@ -25,7 +25,7 @@ class ProjectPackage(Package):
     ) -> None:
         super(ProjectPackage, self).__init__(name, version, pretty_version)
 
-        self.build_config = dict()
+        self.build_config = {}
         self.packages = []
         self.include = []
         self.exclude = []

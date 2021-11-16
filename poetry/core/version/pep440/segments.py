@@ -41,7 +41,7 @@ class Release:
 
     def __post_init__(self):
         if self.extra is None:
-            object.__setattr__(self, "extra", tuple())
+            object.__setattr__(self, "extra", ())
         elif not isinstance(self.extra, tuple):
             object.__setattr__(self, "extra", (self.extra,))
 
@@ -71,7 +71,7 @@ class Release:
             major=parts[0],
             minor=parts[1] if len(parts) > 1 else None,
             patch=parts[2] if len(parts) > 2 else None,
-            extra=parts[3:] if len(parts) > 3 else tuple(),
+            extra=parts[3:] if len(parts) > 3 else (),
         )
 
     def to_string(self) -> str:
