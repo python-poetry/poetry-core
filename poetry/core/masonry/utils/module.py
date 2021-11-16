@@ -27,7 +27,7 @@ class Module:
         self._in_src = False
         self._is_package = False
         self._path = Path(directory)
-        self._includes = []
+        self._includes: List[Include] = []
         packages = packages or []
         includes = includes or []
 

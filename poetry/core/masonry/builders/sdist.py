@@ -25,9 +25,9 @@ from .builder import BuildIncludeFile
 
 
 if TYPE_CHECKING:
-    from poetry.core.masonry.utils.package_include import PackageInclude  # noqa
-    from poetry.core.packages import Dependency  # noqa
-    from poetry.core.packages import ProjectPackage  # noqa
+    from poetry.core.masonry.utils.package_include import PackageInclude
+    from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.project_package import ProjectPackage
 
 SETUP = """\
 # -*- coding: utf-8 -*-

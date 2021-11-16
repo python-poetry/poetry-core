@@ -101,9 +101,6 @@ exclude = "poetry/core/_vendor"
 module = [
   'poetry.core.factory.*',
   'poetry.core.masonry.builders.*',
-  'poetry.core.masonry.utils.module',
-  'poetry.core.masonry.utils.package_include',
-  'poetry.core.masonry.metadata',
   'poetry.core.packages.*',
   'poetry.core.pyproject.*',
   'poetry.core.semver.*',

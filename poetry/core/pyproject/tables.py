@@ -7,7 +7,7 @@ from poetry.core.utils.helpers import canonicalize_name
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages import Dependency  # noqa
+    from poetry.core.packages.dependency import Dependency
 
 
 # TODO: Convert to dataclass once python 2.7, 3.5 is dropped
@@ -21,7 +21,7 @@ class BuildSystem:
             else "setuptools.build_meta:__legacy__"
         )
         self.requires = requires if requires is not None else ["setuptools", "wheel"]
-        self._dependencies = None
+        self._dependencies: Optional[List["Dependency"]] = None
 
     @property
     def dependencies(self) -> List["Dependency"]:
