@@ -85,9 +85,7 @@ known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
-python_version = "3.6"
 follow_imports = "silent"
-ignore_missing_imports = true
 files = "poetry"
 exclude = "poetry/core/_vendor"
 
