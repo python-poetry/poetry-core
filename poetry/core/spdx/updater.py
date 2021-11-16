@@ -5,12 +5,7 @@ from io import open
 from typing import Any
 from typing import Dict
 from typing import Optional
-
-
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
+from urllib.request import urlopen
 
 
 class Updater:
