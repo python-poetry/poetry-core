@@ -408,3 +408,22 @@ def test_only_with_dependency_groups(package_with_groups: Package):
 
     assert len(package.requires) == 2
     assert len(package.all_requires) == 2
+
+
+def test_get_readme_property_with_multiple_readme_files():
+    package = Package("foo", "0.1.0")
+
+    package.readmes = ("README.md", "HISTORY.md")
+    with pytest.deprecated_call():
+        assert package.readme == "README.md"
+
+
+def test_set_readme_property():
+    package = Package("foo", "0.1.0")
+
+    with pytest.deprecated_call():
+        package.readme = "README.md"
+
+    assert package.readmes == ("README.md",)
+    with pytest.deprecated_call():
+        assert package.readme == "README.md"

@@ -267,3 +267,16 @@ def test_builder_convert_script_files(fixture: str, result: List[Path]):
     project_root = Path(__file__).parent / "fixtures" / fixture
     script_files = Builder(Factory().create_poetry(project_root)).convert_script_files()
     assert [p.relative_to(project_root) for p in script_files] == result
+
+
+def test_metadata_with_readme_files():
+    test_path = Path(__file__).parent.parent.parent / "fixtures" / "with_readme_files"
+    builder = Builder(Factory().create_poetry(test_path))
+
+    metadata = Parser().parsestr(builder.get_metadata_content())
+
+    readme1 = test_path / "README-1.rst"
+    readme2 = test_path / "README-2.rst"
+    description = "\n".join([readme1.read_text(), readme2.read_text(), ""])
+
+    assert metadata.get_payload() == description

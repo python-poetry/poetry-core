@@ -93,7 +93,12 @@ class Factory:
         package.classifiers = config.get("classifiers", [])
 
         if "readme" in config:
-            package.readme = root / config["readme"]
+            if isinstance(config["readme"], str):
+                package.readmes = (root / config["readme"],)
+            else:
+                package.readmes = tuple(root / readme for readme in config["readme"])
+
+            package.description_type = cls._readme_content_type(package.readmes[0])
 
         if "platform" in config:
             package.platform = config["platform"]
@@ -421,6 +426,14 @@ class Factory:
                                 )
                             )
 
+            # Checking types of all readme files (must match)
+            if "readme" in config and not isinstance(config["readme"], str):
+                readme_types = [cls._readme_content_type(r) for r in config["readme"]]
+                if len(set(readme_types)) > 1:
+                    result["errors"].append(
+                        f"Declared README files must be of same type: found {', '.join(readme_types)}"
+                    )
+
         return result
 
     @classmethod
@@ -441,3 +454,13 @@ class Factory:
                     cwd
                 )
             )
+
+    @staticmethod
+    def _readme_content_type(path: Union[str, Path]) -> str:
+        suffix = Path(path).suffix
+        if suffix == ".rst":
+            return "text/x-rst"
+        elif suffix in [".md", ".markdown"]:
+            return "text/markdown"
+        else:
+            return "text/plain"
