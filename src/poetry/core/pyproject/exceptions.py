@@ -1,5 +1,5 @@
-from poetry.core.exceptions import PoetryCoreException
+from poetry.core.exceptions import PoetryCoreError
 
 
-class PyProjectException(PoetryCoreException):
+class PyProjectError(PoetryCoreError):
     pass

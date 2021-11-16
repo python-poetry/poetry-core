@@ -7,7 +7,7 @@ import pytest
 from tomlkit.toml_document import TOMLDocument
 from tomlkit.toml_file import TOMLFile
 
-from poetry.core.pyproject.exceptions import PyProjectException
+from poetry.core.pyproject.exceptions import PyProjectError
 from poetry.core.pyproject.toml import PyProjectTOML
 
 
@@ -23,7 +23,7 @@ def test_pyproject_toml_no_poetry_config(pyproject_toml: Path):
 
     assert not pyproject.is_poetry_project()
 
-    with pytest.raises(PyProjectException) as excval:
+    with pytest.raises(PyProjectError) as excval:
         _ = pyproject.poetry_config
 
     assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(

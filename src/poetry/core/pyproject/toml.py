@@ -65,20 +65,20 @@ class PyProjectTOML:
         try:
             return self.data["tool"]["poetry"]
         except NonExistentKey as e:
-            from poetry.core.pyproject.exceptions import PyProjectException
+            from poetry.core.pyproject.exceptions import PyProjectError
 
-            raise PyProjectException(
+            raise PyProjectError(
                 f"[tool.poetry] section not found in {self._file}"
             ) from e
 
     def is_poetry_project(self) -> bool:
-        from poetry.core.pyproject.exceptions import PyProjectException
+        from poetry.core.pyproject.exceptions import PyProjectError
 
         if self.file.exists():
             try:
                 _ = self.poetry_config
                 return True
-            except PyProjectException:
+            except PyProjectError:
                 pass
 
         return False

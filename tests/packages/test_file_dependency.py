@@ -31,14 +31,16 @@ def test_file_dependency_dir():
 def test_default_hash():
     path = DIST_PATH / TEST_FILE
     dep = FileDependency("demo", path)
-    SHA_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
-    assert dep.hash() == SHA_256
+    sha_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
+    assert dep.hash() == sha_256
 
 
 try:
-    from hashlib import algorithms_guaranteed as ALGORITHMS_GUARANTEED
+    from hashlib import algorithms_guaranteed as ALGORITHMS_GUARANTEED  # noqa: N812
 except ImportError:
-    ALGORITHMS_GUARANTEED = "md5,sha1,sha224,sha256,sha384,sha512".split(",")
+    ALGORITHMS_GUARANTEED = "md5,sha1,sha224,sha256,sha384,sha512".split(
+        ","
+    )  # noqa: N812
 
 
 @pytest.mark.parametrize(
