@@ -24,7 +24,7 @@ class Builder:
         if fmt in self._formats:
             builders = [self._formats[fmt]]
         elif fmt == "all":
-            builders = self._formats.values()
+            builders = list(self._formats.values())
         else:
             raise ValueError("Invalid format: {}".format(fmt))
 
