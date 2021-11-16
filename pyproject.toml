@@ -89,8 +89,8 @@ follow_imports = "silent"
 explicit_package_bases = true
 namespace_packages = true
 mypy_path = "src"
-files = "src"
-exclude = "src/poetry/core/_vendor"
+files = "src, tests"
+exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 
 # The following whitelist is used to allow for incremental adoption
 # of Mypy. Modules should be removed from this whitelist as and when
@@ -100,6 +100,7 @@ exclude = "src/poetry/core/_vendor"
 
 [[tool.mypy.overrides]]
 module = [
+  # src modules
   'poetry.core.masonry.builders.*',
   'poetry.core.packages.constraints',
   'poetry.core.packages.constraints.constraint',
@@ -117,6 +118,13 @@ module = [
   'poetry.core.pyproject.*',
   'poetry.core.semver.*',
   'poetry.core.version.*',
+  # test modules
+  'tests.masonry.*',
+  'tests.packages.*',
+  'tests.semver.*',
+  'tests.version.*',
+  'tests.testutils.*',
+  'tests.integration/test_pep517',
 ]
 ignore_errors = true
 
