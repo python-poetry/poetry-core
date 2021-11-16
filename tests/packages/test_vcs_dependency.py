@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 from poetry.core.packages.vcs_dependency import VCSDependency
@@ -64,7 +66,7 @@ def test_to_pep_508_in_extras():
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
-def test_category(groups):
+def test_category(groups: List[str]):
     dependency = VCSDependency(
         "poetry",
         "git",

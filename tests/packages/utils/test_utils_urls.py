@@ -4,6 +4,7 @@
 import sys
 
 from pathlib import Path
+from typing import Optional
 
 import pytest
 
@@ -40,7 +41,7 @@ def test_path_to_url_win():
         ("file:///c:/tmp/file", r"C:\tmp\file", "/c:/tmp/file"),
     ],
 )
-def test_url_to_path(url, win_expected, non_win_expected):
+def test_url_to_path(url: str, win_expected: str, non_win_expected: Optional[str]):
     if sys.platform == "win32":
         expected_path = win_expected
     else:

@@ -39,7 +39,7 @@ class Release:
         default=None, init=False, compare=True
     )
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.extra is None:
             object.__setattr__(self, "extra", ())
         elif not isinstance(self.extra, tuple):
@@ -110,7 +110,7 @@ class ReleaseTag:
     phase: str
     number: int = dataclasses.field(default=0)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "phase", self.expand(self.phase))
 
     @classmethod

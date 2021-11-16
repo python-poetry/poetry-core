@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import random
 
 from pathlib import Path
+from typing import List
 
 import pytest
 
@@ -12,7 +13,7 @@ from poetry.core.packages.package import Package
 
 
 @pytest.fixture()
-def package_with_groups():
+def package_with_groups() -> Package:
     package = Package("foo", "1.2.3")
 
     optional_group = DependencyGroup("optional", optional=True)
@@ -52,7 +53,7 @@ def test_package_authors_invalid():
 
 
 @pytest.mark.parametrize("groups", [["default"], ["dev"]])
-def test_package_add_dependency_vcs_groups(groups, f):
+def test_package_add_dependency_vcs_groups(groups: List[str], f: Factory):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -65,7 +66,7 @@ def test_package_add_dependency_vcs_groups(groups, f):
     assert dependency.groups == frozenset(groups)
 
 
-def test_package_add_dependency_vcs_groups_default_main(f):
+def test_package_add_dependency_vcs_groups_default_main(f: Factory):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -78,7 +79,7 @@ def test_package_add_dependency_vcs_groups_default_main(f):
 
 @pytest.mark.parametrize("groups", [["default"], ["dev"]])
 @pytest.mark.parametrize("optional", [True, False])
-def test_package_url_groups_optional(groups, optional, f):
+def test_package_url_groups_optional(groups: List[str], optional: bool, f: Factory):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -327,7 +328,7 @@ def test_to_dependency_for_vcs():
     assert "baz" == dep.source_subdirectory
 
 
-def test_package_clone(f):
+def test_package_clone(f: Factory):
     # TODO(nic): this test is not future-proof, in that any attributes added
     #  to the Package object and not filled out in this test setup might
     #  cause comparisons to match that otherwise should not.  A factory method
@@ -358,12 +359,12 @@ def test_package_clone(f):
     assert len(p2.all_requires) == 2
 
 
-def test_dependency_groups(package_with_groups):
+def test_dependency_groups(package_with_groups: Package):
     assert len(package_with_groups.requires) == 2
     assert len(package_with_groups.all_requires) == 4
 
 
-def test_without_dependency_groups(package_with_groups):
+def test_without_dependency_groups(package_with_groups: Package):
     package = package_with_groups.without_dependency_groups(["dev"])
 
     assert len(package.requires) == 2
@@ -375,7 +376,7 @@ def test_without_dependency_groups(package_with_groups):
     assert len(package.all_requires) == 2
 
 
-def test_with_dependency_groups(package_with_groups):
+def test_with_dependency_groups(package_with_groups: Package):
     package = package_with_groups.with_dependency_groups([])
 
     assert len(package.requires) == 2
@@ -387,14 +388,14 @@ def test_with_dependency_groups(package_with_groups):
     assert len(package.all_requires) == 4
 
 
-def test_without_optional_dependency_groups(package_with_groups):
+def test_without_optional_dependency_groups(package_with_groups: Package):
     package = package_with_groups.without_optional_dependency_groups()
 
     assert len(package.requires) == 2
     assert len(package.all_requires) == 3
 
 
-def test_only_with_dependency_groups(package_with_groups):
+def test_only_with_dependency_groups(package_with_groups: Package):
     package = package_with_groups.with_dependency_groups(["dev"], only=True)
 
     assert len(package.requires) == 0

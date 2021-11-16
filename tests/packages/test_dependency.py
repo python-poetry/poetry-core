@@ -1,3 +1,6 @@
+from typing import List
+from typing import Optional
+
 import pytest
 
 from poetry.core.packages.dependency import Dependency
@@ -25,7 +28,7 @@ def test_accepts():
         ("^1.0.0-1", False),
     ],
 )
-def test_allows_prerelease(constraint, result):
+def test_allows_prerelease(constraint: str, result: bool):
     assert Dependency("A", constraint).allows_prereleases() == result
 
 
@@ -162,7 +165,7 @@ def test_to_pep_508_with_single_version_excluded():
         ("== 3.5.4", 'python_full_version == "3.5.4"'),
     ],
 )
-def test_to_pep_508_with_patch_python_version(python_versions, marker):
+def test_to_pep_508_with_patch_python_version(python_versions: str, marker: str):
     dependency = Dependency("Django", "^1.23")
     dependency.python_versions = python_versions
 
@@ -240,7 +243,9 @@ def test_complete_name():
         ),
     ],
 )
-def test_dependency_string_representation(name, constraint, extras, expected):
+def test_dependency_string_representation(
+    name: str, constraint: str, extras: Optional[List[str]], expected: str
+):
     dependency = Dependency(name=name, constraint=constraint, extras=extras)
     assert str(dependency) == expected
 

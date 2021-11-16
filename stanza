@@ -123,7 +123,7 @@ class VendorUpdateCommand(Command):
         argument("packages", "The packages to vendor.", optional=True, multiple=True)
     ]
 
-    def handle(self):
+    def handle(self) -> None:
         packages = self.argument("packages")
         current_dir = os.getcwd()
         base = os.path.dirname(__file__)
@@ -182,7 +182,7 @@ class VendorCommand(Command):
 
     commands = [VendorUpdateCommand()]
 
-    def handle(self):
+    def handle(self) -> int:
         return self.call("help", self.name)
 
 

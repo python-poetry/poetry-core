@@ -1,6 +1,7 @@
 import dataclasses
 import math
 
+from typing import Any
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -32,7 +33,7 @@ class PEP440Version:
         int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Union[int, str], ...]
     ] = dataclasses.field(default=None, init=False, compare=True)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.local is not None and not isinstance(self.local, tuple):
             object.__setattr__(self, "local", (self.local,))
 
@@ -46,7 +47,11 @@ class PEP440Version:
 
         object.__setattr__(self, "_compare_key", self._make_compare_key())
 
-    def _make_compare_key(self):
+    def _make_compare_key(
+        self,
+    ) -> Tuple[
+        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Tuple[float, str], ...]
+    ]:
         """
         This code is based on the implementation of packaging.version._cmpkey(..)
         """
@@ -103,7 +108,7 @@ class PEP440Version:
     def non_semver_parts(self) -> Optional[Tuple[int]]:
         return self.release.extra
 
-    def to_string(self, short=False):
+    def to_string(self, short: bool = False) -> str:
         dash = "-" if not short else ""
 
         version_string = dash.join(
@@ -209,7 +214,7 @@ class PEP440Version:
             epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
         )
 
-    def replace(self, **kwargs):
+    def replace(self, **kwargs: Any) -> "PEP440Version":
         return self.__class__(
             **{
                 **{

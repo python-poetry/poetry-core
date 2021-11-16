@@ -1,5 +1,10 @@
 import re
 
+from typing import TYPE_CHECKING
+from typing import Dict
+from typing import List
+from typing import Optional
+
 import pytest
 
 from poetry.core.semver.helpers import parse_constraint
@@ -7,7 +12,18 @@ from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 
 
-def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=None):
+if TYPE_CHECKING:
+    from poetry.core.version.markers import MarkerTypes
+
+
+def assert_requirement(
+    req: Requirement,
+    name: str,
+    url: Optional[str] = None,
+    extras: Optional[List[str]] = None,
+    constraint: str = "*",
+    marker: Optional["MarkerTypes"] = None,
+):
     if extras is None:
         extras = []
 
@@ -90,7 +106,7 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
         ),
     ],
 )
-def test_requirement(string, expected):
+def test_requirement(string: str, expected: Dict[str, str]):
     req = Requirement(string)
 
     assert_requirement(req, **expected)
@@ -105,7 +121,7 @@ def test_requirement(string, expected):
         ("name @ file:/.", "invalid URL"),
     ],
 )
-def test_invalid_requirement(string, exception):
+def test_invalid_requirement(string: str, exception: str):
     with pytest.raises(
         InvalidRequirement,
         match=re.escape("The requirement is invalid: {}".format(exception)),

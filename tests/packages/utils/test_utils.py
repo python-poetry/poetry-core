@@ -37,7 +37,7 @@ def test_convert_markers():
         ),
     ],
 )
-def test_get_python_constraint_from_marker(marker, constraint):
+def test_get_python_constraint_from_marker(marker: str, constraint: str):
     marker = parse_marker(marker)
     constraint = parse_constraint(constraint)
     assert constraint == get_python_constraint_from_marker(marker)

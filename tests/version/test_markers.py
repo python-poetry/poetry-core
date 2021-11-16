@@ -1,5 +1,9 @@
 import os
 
+from typing import Dict
+from typing import List
+from typing import Optional
+
 import pytest
 
 from poetry.core.version.markers import MarkerUnion
@@ -526,7 +530,9 @@ def test_multi_marker_removes_duplicates():
         ),
     ],
 )
-def test_validate(marker_string, environment, expected):
+def test_validate(
+    marker_string: str, environment: Optional[Dict[str, str]], expected: bool
+):
     m = parse_marker(marker_string)
 
     assert m.validate(environment) is expected
@@ -541,7 +547,7 @@ def test_validate(marker_string, environment, expected):
         )
     ],
 )
-def test_parse_version_like_markers(marker, env):
+def test_parse_version_like_markers(marker: str, env: Dict[str, str]):
     m = parse_marker(marker)
 
     assert m.validate(env)
@@ -570,7 +576,7 @@ def test_parse_version_like_markers(marker, env):
         ),
     ],
 )
-def test_without_extras(marker, expected):
+def test_without_extras(marker: str, expected: str):
     m = parse_marker(marker)
 
     assert expected == str(m.without_extras())
@@ -608,7 +614,7 @@ def test_without_extras(marker, expected):
         ),
     ],
 )
-def test_exclude(marker, excluded, expected):
+def test_exclude(marker: str, excluded: str, expected: str):
     m = parse_marker(marker)
 
     if expected == "*":
@@ -653,7 +659,7 @@ def test_exclude(marker, excluded, expected):
         ),
     ],
 )
-def test_only(marker, only, expected):
+def test_only(marker: str, only: List[str], expected: str):
     m = parse_marker(marker)
 
     assert expected == str(m.only(*only))
@@ -695,7 +701,7 @@ def test_union_of_a_single_marker_is_the_single_marker():
         ),
     ],
 )
-def test_invert(marker, inverse):
+def test_invert(marker: str, inverse: str):
     m = parse_marker(marker)
 
     assert parse_marker(inverse) == m.invert()
@@ -710,7 +716,9 @@ def test_invert(marker, inverse):
         ),
     ],
 )
-def test_union_should_drop_markers_if_their_complement_is_present(marker, expected):
+def test_union_should_drop_markers_if_their_complement_is_present(
+    marker: str, expected: str
+):
     m = parse_marker(marker)
 
     assert parse_marker(expected) == m
