@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING
+from typing import List
+from typing import Tuple
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages import Package  # noqa
+    from poetry.core.packages.package import Package
 
 
 class Metadata:
@@ -22,7 +24,7 @@ class Metadata:
     author_email = None
     license = None
     # version 1.1
-    classifiers = ()
+    classifiers: Tuple[str, ...] = ()
     requires = ()
     provides = ()
     obsoletes = ()
@@ -31,14 +33,14 @@ class Metadata:
     maintainer_email = None
     requires_python = None
     requires_external = ()
-    requires_dist = []
+    requires_dist: List[str] = []
     provides_dist = ()
     obsoletes_dist = ()
-    project_urls = ()
+    project_urls: Tuple[str, ...] = ()
 
     # Version 2.1
     description_content_type = None
-    provides_extra = []
+    provides_extra: List[str] = []
 
     @classmethod
     def from_package(cls, package: "Package") -> "Metadata":
@@ -63,7 +65,7 @@ class Metadata:
         if package.license:
             meta.license = package.license.id
 
-        meta.classifiers = package.all_classifiers
+        meta.classifiers = tuple(package.all_classifiers)
 
         # Version 1.2
         meta.maintainer = package.maintainer_name
