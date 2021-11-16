@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Callable
+from typing import Iterator
 
 import pytest
 import virtualenv
@@ -76,7 +77,7 @@ def masonry_project(
 
 
 @pytest.fixture
-def temporary_directory() -> Path:
+def temporary_directory() -> Iterator[Path]:
     with tempfile.TemporaryDirectory(prefix="poetry-core") as tmp:
         yield Path(tmp)
 
