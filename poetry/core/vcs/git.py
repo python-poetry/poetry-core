@@ -356,8 +356,9 @@ class Git:
 
         args += ["ls-files", "--others", "-i", "--exclude-standard"]
         output = self.run(*args)
+        dotgit = list(str(path.relative_to(folder)) for path in folder.rglob(".git/*"))
 
-        return output.strip().split("\n")
+        return dotgit + output.strip().split("\n")
 
     def remote_urls(self, folder: Optional[Path] = None) -> dict:
         output = self.run(

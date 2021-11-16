@@ -170,8 +170,10 @@ class Builder:
                 if "__pycache__" in str(file):
                     continue
 
+                # this should be moved to Include.check_elements(), similar
+                # to PackageInclude.check_elements()
                 if file.is_dir():
-                    if self.format in formats:
+                    if self.format in formats:  # why check this only for dirs?
                         for current_file in file.glob("**/*"):
                             include_file = BuildIncludeFile(
                                 path=current_file,
@@ -180,8 +182,9 @@ class Builder:
                             )
 
                             if not current_file.is_dir() and not self.is_excluded(
-                                include_file.relative_to_source_root()
+                                current_file.relative_to(self._path)
                             ):
+                                logger.debug("Adding: {}".format(str(current_file)))
                                 to_add.add(include_file)
                     continue
 
@@ -198,9 +201,7 @@ class Builder:
                     path=file, project_root=self._path, source_root=source_root
                 )
 
-                if self.is_excluded(
-                    include_file.relative_to_project_root()
-                ) and isinstance(include, PackageInclude):
+                if self.is_excluded(file.relative_to(source_root)):
                     continue
 
                 if file.suffix == ".pyc":
