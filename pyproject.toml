@@ -86,6 +86,9 @@ known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
 follow_imports = "silent"
+explicit_package_bases = true
+namespace_packages = true
+mypy_path = "src"
 files = "src"
 exclude = "src/poetry/core/_vendor"
 
