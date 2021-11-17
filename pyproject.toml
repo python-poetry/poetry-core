@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 packages = [
-    {include = "poetry"},
+    { include = "poetry", from = "src" },
 ]
 include = [
     { path = "tests", format = "sdist" },
@@ -66,7 +66,7 @@ exclude = '''
   | buck-out
   | build
   | dist
-  | poetry/core/_vendor/*
+  | src/poetry/core/_vendor/*
 )/
 '''
 
@@ -86,8 +86,8 @@ known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
 follow_imports = "silent"
-files = "poetry"
-exclude = "poetry/core/_vendor"
+files = "src"
+exclude = "src/poetry/core/_vendor"
 
 # The following whitelist is used to allow for incremental adoption
 # of Mypy. Modules should be removed from this whitelist as and when
@@ -118,8 +118,8 @@ module = [
 ignore_errors = true
 
 [tool.vendoring]
-destination = "poetry/core/_vendor/"
-requirements = "poetry/core/_vendor/vendor.txt"
+destination = "src/poetry/core/_vendor/"
+requirements = "src/poetry/core/_vendor/vendor.txt"
 namespace = ""
 
 protected-files = ["__init__.py", "README.md", "vendor.txt"]
@@ -147,4 +147,4 @@ pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.
 [build-system]
 requires = ["dataclasses>=0.6;python_version < '3.7'"]
 build-backend = "poetry.core.masonry.api"
-backend-path = ["."]
+backend-path = ["src"]

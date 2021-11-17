@@ -16,6 +16,6 @@ exclude =
     .tox
     .pytest_cache
     .github
-    poetry/core/_vendor/*
+    src/poetry/core/_vendor/*
     tests/fixtures/*
     tests/**/fixtures/*
