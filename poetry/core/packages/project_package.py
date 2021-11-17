@@ -9,11 +9,11 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
-    from .types import DependencyTypes
+    from poetry.core.packages.types import DependencyTypes
     from poetry.core.semver.helpers import VersionTypes
 
-from .package import Package
-from .utils.utils import create_nested_marker
+from poetry.core.packages.package import Package
+from poetry.core.packages.utils.utils import create_nested_marker
 
 
 class ProjectPackage(Package):

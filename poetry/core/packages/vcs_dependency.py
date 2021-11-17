@@ -4,11 +4,11 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from .dependency import Dependency
+from poetry.core.packages.dependency import Dependency
 
 
 if TYPE_CHECKING:
-    from .constraints import BaseConstraint
+    from poetry.core.packages.constraints import BaseConstraint
 
 
 class VCSDependency(Dependency):

@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Union
 
-from .base_constraint import BaseConstraint
-from .empty_constraint import EmptyConstraint
+from poetry.core.packages.constraints.base_constraint import BaseConstraint
+from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 
 
 if TYPE_CHECKING:
-    from . import ConstraintTypes  # noqa
+    from poetry.core.packages.constraints import ConstraintTypes  # noqa
 
 
 class Constraint(BaseConstraint):
@@ -83,7 +83,7 @@ class Constraint(BaseConstraint):
         return self
 
     def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
-        from .multi_constraint import MultiConstraint
+        from poetry.core.packages.constraints.multi_constraint import MultiConstraint
 
         if isinstance(other, Constraint):
             if other == self:
@@ -104,7 +104,9 @@ class Constraint(BaseConstraint):
 
     def union(self, other: "ConstraintTypes") -> "ConstraintTypes":
         if isinstance(other, Constraint):
-            from .union_constraint import UnionConstraint
+            from poetry.core.packages.constraints.union_constraint import (
+                UnionConstraint,
+            )
 
             return UnionConstraint(self, other)
 

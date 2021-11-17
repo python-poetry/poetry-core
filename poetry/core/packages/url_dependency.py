@@ -5,11 +5,11 @@ from typing import Optional
 from typing import Union
 from urllib.parse import urlparse
 
-from .dependency import Dependency
+from poetry.core.packages.dependency import Dependency
 
 
 if TYPE_CHECKING:
-    from .constraints import BaseConstraint
+    from poetry.core.packages.constraints import BaseConstraint
 
 
 class URLDependency(Dependency):

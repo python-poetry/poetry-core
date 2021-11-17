@@ -21,14 +21,13 @@ from typing import Union
 from packaging.tags import sys_tags
 
 from poetry.core import __version__
+from poetry.core.masonry.builders.builder import Builder
+from poetry.core.masonry.builders.sdist import SdistBuilder
+from poetry.core.masonry.utils.helpers import escape_name
+from poetry.core.masonry.utils.helpers import escape_version
+from poetry.core.masonry.utils.helpers import normalize_file_permissions
+from poetry.core.masonry.utils.package_include import PackageInclude
 from poetry.core.semver.helpers import parse_constraint
-
-from ..utils.helpers import escape_name
-from ..utils.helpers import escape_version
-from ..utils.helpers import normalize_file_permissions
-from ..utils.package_include import PackageInclude
-from .builder import Builder
-from .sdist import SdistBuilder
 
 
 if TYPE_CHECKING:

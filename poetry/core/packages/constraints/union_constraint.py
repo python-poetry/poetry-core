@@ -2,14 +2,14 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
-from .base_constraint import BaseConstraint
-from .constraint import Constraint
-from .empty_constraint import EmptyConstraint
-from .multi_constraint import MultiConstraint
+from poetry.core.packages.constraints.base_constraint import BaseConstraint
+from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
+from poetry.core.packages.constraints.multi_constraint import MultiConstraint
 
 
 if TYPE_CHECKING:
-    from . import ConstraintTypes  # noqa
+    from poetry.core.packages.constraints import ConstraintTypes  # noqa
 
 
 class UnionConstraint(BaseConstraint):

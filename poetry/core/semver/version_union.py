@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import List
 
-from .empty_constraint import EmptyConstraint
-from .version_constraint import VersionConstraint
-from .version_range_constraint import VersionRangeConstraint
+from poetry.core.semver.empty_constraint import EmptyConstraint
+from poetry.core.semver.version_constraint import VersionConstraint
+from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class VersionUnion(VersionConstraint):
 
     @classmethod
     def of(cls, *ranges: "VersionTypes") -> "VersionTypes":
-        from .version_range import VersionRange
+        from poetry.core.semver.version_range import VersionRange
 
         flattened = []
         for constraint in ranges:
@@ -236,8 +236,8 @@ class VersionUnion(VersionConstraint):
         raise ValueError(f"Unknown VersionConstraint type {constraint}")
 
     def excludes_single_version(self) -> bool:
-        from .version import Version
-        from .version_range import VersionRange
+        from poetry.core.semver.version import Version
+        from poetry.core.semver.version_range import VersionRange
 
         return isinstance(VersionRange().difference(self), Version)
 
@@ -256,7 +256,7 @@ class VersionUnion(VersionConstraint):
         return h
 
     def __str__(self) -> str:
-        from .version_range import VersionRange
+        from poetry.core.semver.version_range import VersionRange
 
         if self.excludes_single_version():
             return f"!={VersionRange().difference(self)}"

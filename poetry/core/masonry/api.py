@@ -10,9 +10,8 @@ from typing import List
 from typing import Optional
 
 from poetry.core.factory import Factory
-
-from .builders.sdist import SdistBuilder
-from .builders.wheel import WheelBuilder
+from poetry.core.masonry.builders.sdist import SdistBuilder
+from poetry.core.masonry.builders.wheel import WheelBuilder
 
 
 log = logging.getLogger(__name__)

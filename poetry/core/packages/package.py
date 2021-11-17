@@ -9,21 +9,19 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+from poetry.core.packages.specification import PackageSpecification
+from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
-from .specification import PackageSpecification
-from .utils.utils import create_nested_marker
-
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency_group import DependencyGroup
+    from poetry.core.packages.types import DependencyTypes
     from poetry.core.semver.helpers import VersionTypes  # noqa
     from poetry.core.semver.version import Version  # noqa
     from poetry.core.spdx.license import License  # noqa
     from poetry.core.version.markers import BaseMarker  # noqa
-
-    from .dependency_group import DependencyGroup
-    from .types import DependencyTypes
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
@@ -368,7 +366,7 @@ class Package(PackageSpecification):
         self,
         dependency: "DependencyTypes",
     ) -> "DependencyTypes":
-        from .dependency_group import DependencyGroup
+        from poetry.core.packages.dependency_group import DependencyGroup
 
         for group_name in dependency.groups:
             if group_name not in self._dependency_groups:
@@ -431,11 +429,11 @@ class Package(PackageSpecification):
     ) -> Union["DependencyTypes"]:
         from pathlib import Path
 
-        from .dependency import Dependency
-        from .directory_dependency import DirectoryDependency
-        from .file_dependency import FileDependency
-        from .url_dependency import URLDependency
-        from .vcs_dependency import VCSDependency
+        from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.directory_dependency import DirectoryDependency
+        from poetry.core.packages.file_dependency import FileDependency
+        from poetry.core.packages.url_dependency import URLDependency
+        from poetry.core.packages.vcs_dependency import VCSDependency
 
         if self.source_type == "directory":
             dep = DirectoryDependency(

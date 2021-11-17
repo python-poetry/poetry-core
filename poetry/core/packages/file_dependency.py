@@ -8,13 +8,12 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
-
-from .dependency import Dependency
 
 
 if TYPE_CHECKING:
-    from .constraints import BaseConstraint
+    from poetry.core.packages.constraints import BaseConstraint
 
 
 class FileDependency(Dependency):
