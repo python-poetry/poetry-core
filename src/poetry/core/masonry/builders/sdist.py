@@ -66,9 +66,7 @@ class SdistBuilder(Builder):
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
 
-        target = target_dir / "{}-{}.tar.gz".format(
-            self._package.pretty_name, self._meta.version
-        )
+        target = target_dir / f"{self._package.pretty_name}-{self._meta.version}.tar.gz"
         gz = GzipFile(target.as_posix(), mode="wb", mtime=0)
         tar = tarfile.TarFile(
             target.as_posix(), mode="w", fileobj=gz, format=tarfile.PAX_FORMAT
@@ -122,10 +120,8 @@ class SdistBuilder(Builder):
 
         # If we have a build script, use it
         if self._package.build_script:
-            after += [
-                "from {} import *".format(self._package.build_script.split(".")[0]),
-                "build(setup_kwargs)",
-            ]
+            import_name = self._package.build_script.split(".")[0]
+            after += [f"from {import_name} import *", "build(setup_kwargs)"]
 
         modules = []
         packages = []

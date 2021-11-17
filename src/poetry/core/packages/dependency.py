@@ -251,7 +251,8 @@ class Dependency(PackageSpecification):
         requirement = self.pretty_name
 
         if self.extras:
-            requirement += "[{}]".format(",".join(self.extras))
+            extras = ",".join(self.extras)
+            requirement += f"[{extras}]"
 
         if isinstance(self.constraint, VersionUnion):
             if self.constraint.excludes_single_version():
@@ -259,12 +260,12 @@ class Dependency(PackageSpecification):
             else:
                 constraints = self.pretty_constraint.split(",")
                 constraints = [parse_constraint(c) for c in constraints]
-                constraints = [str(c) for c in constraints]
-                requirement += " ({})".format(",".join(constraints))
+                constraints = ",".join(str(c) for c in constraints)
+                requirement += f" ({constraints})"
         elif isinstance(self.constraint, Version):
             requirement += f" (=={self.constraint.text})"
         elif not self.constraint.is_any():
-            requirement += " ({})".format(str(self.constraint).replace(" ", ""))
+            requirement += f" ({str(self.constraint).replace(' ', '')})"
 
         return requirement
 
@@ -337,8 +338,8 @@ class Dependency(PackageSpecification):
                 requirement += " "
 
             if len(markers) > 1:
-                markers = [f"({m})" for m in markers]
-                requirement += "; {}".format(" and ".join(markers))
+                markers = " and ".join(f"({m})" for m in markers)
+                requirement += f"; {markers}"
             else:
                 requirement += f"; {markers[0]}"
 
@@ -517,8 +518,8 @@ class Dependency(PackageSpecification):
 
                 if not is_installable_dir(p):
                     raise ValueError(
-                        "Directory {!r} is not installable. File 'setup.py' "
-                        "not found.".format(name)
+                        f"Directory {name!r} is not installable. File 'setup.py' "
+                        "not found."
                     )
                 link = Link(path_to_url(p))
             elif is_archive_file(p):

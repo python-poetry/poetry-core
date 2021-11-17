@@ -149,18 +149,15 @@ class Package(PackageSpecification):
 
         if self.source_resolved_reference:
             if len(self.source_resolved_reference) == 40:
-                return "{} {}".format(
-                    self._pretty_version, self.source_resolved_reference[0:7]
-                )
+                ref = self.source_resolved_reference[0:7]
+                return f"{self._pretty_version} {ref}"
 
         # if source reference is a sha1 hash -- truncate
         if len(self.source_reference) == 40:
             return f"{self._pretty_version} {self.source_reference[0:7]}"
 
-        return "{} {}".format(
-            self._pretty_version,
-            self._source_resolved_reference or self._source_reference,
-        )
+        ref = self._source_resolved_reference or self._source_reference
+        return f"{self._pretty_version} {ref}"
 
     @property
     def authors(self) -> List[str]:
@@ -541,9 +538,8 @@ class Package(PackageSpecification):
 
             if self._source_resolved_reference:
                 args.append(
-                    "source_resolved_reference={}".format(
-                        repr(self._source_resolved_reference)
-                    )
+                    f"source_resolved_reference={repr(self._source_resolved_reference)}"
                 )
 
-        return "Package({})".format(", ".join(args))
+        args = ", ".join(args)
+        return f"Package({args})"

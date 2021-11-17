@@ -42,7 +42,8 @@ class PackageSpecification:
         name = self._name
 
         if self._features:
-            name = "{}[{}]".format(name, ",".join(sorted(self._features)))
+            features = ",".join(sorted(self._features))
+            name = f"{name}[{features}]"
 
         return name
 

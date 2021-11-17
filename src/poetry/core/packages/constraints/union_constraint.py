@@ -121,4 +121,4 @@ class UnionConstraint(BaseConstraint):
         for constraint in self._constraints:
             constraints.append(str(constraint))
 
-        return "{}".format(" || ").join(constraints)
+        return " || ".join(constraints)

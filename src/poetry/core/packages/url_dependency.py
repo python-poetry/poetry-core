@@ -47,7 +47,8 @@ class URLDependency(Dependency):
         requirement = self.pretty_name
 
         if self.extras:
-            requirement += "[{}]".format(",".join(self.extras))
+            extras = ",".join(self.extras)
+            requirement += f"[{extras}]"
 
         requirement += f" @ {self._url}"
 

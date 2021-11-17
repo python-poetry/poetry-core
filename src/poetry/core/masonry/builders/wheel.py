@@ -281,11 +281,9 @@ class WheelBuilder(Builder):
 
     @property
     def wheel_filename(self) -> str:
-        return "{}-{}-{}.whl".format(
-            escape_name(self._package.pretty_name),
-            escape_version(self._meta.version),
-            self.tag,
-        )
+        name = escape_name(self._package.pretty_name)
+        version = escape_version(self._meta.version)
+        return f"{name}-{version}-{self.tag}.whl"
 
     def supports_python2(self) -> bool:
         return self._package.python_constraint.allows_any(

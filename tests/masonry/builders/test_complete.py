@@ -76,14 +76,12 @@ def test_wheel_c_extension():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -133,14 +131,12 @@ def test_wheel_c_extension_with_no_setup():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -190,14 +186,12 @@ def test_wheel_c_extension_src_layout():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -247,14 +241,12 @@ my-script=my_package:main
 
         assert (
             wheel_data
-            == """\
+            == f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-                __version__
-            )
+"""
         )
         wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
@@ -373,14 +365,12 @@ my-script=my_package:main
 
         assert (
             wheel_data
-            == """\
+            == f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-                __version__
-            )
+"""
         )
         wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 

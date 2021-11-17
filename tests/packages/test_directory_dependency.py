@@ -34,10 +34,10 @@ def test_directory_dependency_pep_508_local_absolute():
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = "{} @ file://{}".format("demo", path.as_posix())
+    requirement = f"demo @ file://{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
+    requirement = f"demo @ {path}"
     _test_directory_dependency_pep_508("demo", path, requirement)
 
 
@@ -47,8 +47,8 @@ def test_directory_dependency_pep_508_localhost():
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = "{} @ file://localhost{}".format("demo", path.as_posix())
-    requirement_expected = "{} @ file://{}".format("demo", path.as_posix())
+    requirement = f"demo @ file://localhost{path.as_posix()}"
+    requirement_expected = f"demo @ file://{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
 
 
@@ -56,8 +56,8 @@ def test_directory_dependency_pep_508_local_relative():
     path = Path("..") / "fixtures" / "project_with_multi_constraints_dependency"
 
     with pytest.raises(ValueError):
-        requirement = "{} @ file://{}".format("demo", path.as_posix())
+        requirement = f"demo @ file://{path.as_posix()}"
         _test_directory_dependency_pep_508("demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
+    requirement = f"demo @ {path}"
     _test_directory_dependency_pep_508("demo", path, requirement)

@@ -40,7 +40,7 @@ class Link:
 
     def __str__(self) -> str:
         if self.requires_python:
-            rp = " (requires-python:%s)" % self.requires_python
+            rp = f" (requires-python:{self.requires_python})"
         else:
             rp = ""
         if self.comes_from:
@@ -49,7 +49,7 @@ class Link:
             return str(self.url)
 
     def __repr__(self) -> str:
-        return "<Link %s>" % self
+        return f"<Link {self!s}>"
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Link):

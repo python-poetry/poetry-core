@@ -53,9 +53,7 @@ class DirectoryDependency(Dependency):
 
         if not setup.exists() and not self._supports_poetry:
             raise ValueError(
-                "Directory {} does not seem to be a Python package".format(
-                    self._full_path
-                )
+                f"Directory {self._full_path} does not seem to be a Python package"
             )
 
         super().__init__(
@@ -120,7 +118,8 @@ class DirectoryDependency(Dependency):
         requirement = self.pretty_name
 
         if self.extras:
-            requirement += "[{}]".format(",".join(self.extras))
+            extras = ",".join(self.extras)
+            requirement += f"[{extras}]"
 
         path = path_to_url(self.path) if self.path.is_absolute() else self.path
         requirement += f" @ {path}"
@@ -131,9 +130,8 @@ class DirectoryDependency(Dependency):
         if self.is_root:
             return self._pretty_name
 
-        return "{} ({} {})".format(
-            self._pretty_name, self._pretty_constraint, self._path.as_posix()
-        )
+        path = self._path.as_posix()
+        return f"{self._pretty_name} ({self._pretty_constraint} {path})"
 
     def __hash__(self) -> int:
         return hash((self._name, self._full_path.as_posix()))
