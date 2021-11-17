@@ -49,6 +49,5 @@ class DependencyGroup:
         )
 
     def __repr__(self) -> str:
-        return "{}({}, optional={})".format(
-            self.__class__.__name__, self._name, self._optional
-        )
+        cls = self.__class__.__name__
+        return f"{cls}({self._name}, optional={self._optional})"

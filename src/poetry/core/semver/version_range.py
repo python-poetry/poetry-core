@@ -397,7 +397,8 @@ class VersionRange(VersionRangeConstraint):
             if self.min is not None:
                 text += ","
 
-            text += "{}{}".format("<=" if self.include_max else "<", self.max.text)
+            op = "<=" if self.include_max else "<"
+            text += f"{op}{self.max.text}"
 
         if self.min is None and self.max is None:
             return "*"

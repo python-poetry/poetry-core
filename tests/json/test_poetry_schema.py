@@ -52,4 +52,4 @@ def test_multiline_description(base_object: Dict):
 
     errors = validate_object(base_object, "poetry-schema")
     assert len(errors) == 1
-    assert errors[0] == "[description] %r does not match '^[^\\n]*$'" % bad_description
+    assert errors[0] == f"[description] {bad_description!r} does not match '^[^\\n]*$'"

@@ -256,9 +256,9 @@ class Factory:
             markers = constraint.get("markers")
             if "allows-prereleases" in constraint:
                 message = (
-                    'The "{}" dependency specifies '
+                    f'The "{name}" dependency specifies '
                     'the "allows-prereleases" property, which is deprecated. '
-                    'Use "allow-prereleases" instead.'.format(name)
+                    'Use "allow-prereleases" instead.'
                 )
                 warn(message, DeprecationWarning)
                 logger.warning(message)
@@ -400,9 +400,9 @@ class Factory:
 
                     if "allows-prereleases" in constraint:
                         result["warnings"].append(
-                            'The "{}" dependency specifies '
+                            f'The "{name}" dependency specifies '
                             'the "allows-prereleases" property, which is deprecated. '
-                            'Use "allow-prereleases" instead.'.format(name)
+                            'Use "allow-prereleases" instead.'
                         )
 
             # Checking for scripts with extras
@@ -416,9 +416,7 @@ class Factory:
                     for extra in extras:
                         if extra not in config["extras"]:
                             result["errors"].append(
-                                'Script "{}" requires extra "{}" which is not defined.'.format(
-                                    name, extra
-                                )
+                                f'Script "{name}" requires extra "{extra}" which is not defined.'
                             )
 
         return result
@@ -437,7 +435,5 @@ class Factory:
 
         else:
             raise RuntimeError(
-                "Poetry could not find a pyproject.toml file in {} or its parents".format(
-                    cwd
-                )
+                f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
             )

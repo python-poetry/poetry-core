@@ -26,9 +26,9 @@ def test_pyproject_toml_no_poetry_config(pyproject_toml: Path):
     with pytest.raises(PyProjectException) as excval:
         _ = pyproject.poetry_config
 
-    assert "[tool.poetry] section not found in {}".format(
-        pyproject_toml.as_posix()
-    ) in str(excval.value)
+    assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
+        excval.value
+    )
 
 
 def test_pyproject_toml_poetry_config(pyproject_toml: Path, poetry_section: str):

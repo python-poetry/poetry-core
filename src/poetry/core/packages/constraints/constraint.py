@@ -128,6 +128,5 @@ class Constraint(BaseConstraint):
         return hash((self._operator, self._version))
 
     def __str__(self) -> str:
-        return "{}{}".format(
-            self._operator if self._operator != "==" else "", self._version
-        )
+        op = self._operator if self._operator != "==" else ""
+        return f"{op}{self._version}"

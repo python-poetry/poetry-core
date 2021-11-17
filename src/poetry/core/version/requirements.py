@@ -34,9 +34,7 @@ class Requirement:
             parsed = _parser.parse(requirement_string)
         except (UnexpectedCharacters, UnexpectedToken) as e:
             raise InvalidRequirement(
-                "The requirement is invalid: Unexpected character at column {}\n\n{}".format(
-                    e.column, e.get_context(requirement_string)
-                )
+                f"The requirement is invalid: Unexpected character at column {e.column}\n\n{e.get_context(requirement_string)}"
             )
 
         self.name = next(parsed.scan_values(lambda t: t.type == "NAME")).value
@@ -72,9 +70,7 @@ class Requirement:
             self.constraint = parse_constraint(constraint)
         except ParseConstraintError:
             raise InvalidRequirement(
-                'The requirement is invalid: invalid version constraint "{}"'.format(
-                    constraint
-                )
+                f'The requirement is invalid: invalid version constraint "{constraint}"'
             )
 
         self.pretty_constraint = constraint
@@ -91,7 +87,8 @@ class Requirement:
         parts = [self.name]
 
         if self.extras:
-            parts.append("[{}]".format(",".join(sorted(self.extras))))
+            extras = ",".join(sorted(self.extras))
+            parts.append(f"[{extras}]")
 
         if self.pretty_constraint:
             parts.append(self.pretty_constraint)

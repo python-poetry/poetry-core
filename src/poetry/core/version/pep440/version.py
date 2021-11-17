@@ -128,7 +128,7 @@ class PEP440Version:
             version_string = f"{self.epoch}!{version_string}"
 
         if self.local:
-            version_string += "+{}".format(".".join(map(str, self.local)))
+            version_string += "+" + ".".join(map(str, self.local))
 
         return version_string
 

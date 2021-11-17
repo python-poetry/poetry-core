@@ -9,113 +9,79 @@ from typing import Optional
 from poetry.core.utils._compat import WINDOWS
 
 
-pattern_formats = {
-    "protocol": r"\w+",
-    "user": r"[a-zA-Z0-9_.-]+",
-    "resource": r"[a-zA-Z0-9_.-]+",
-    "port": r"\d+",
-    "path": r"[\w~.\-/\\]+",
-    "name": r"[\w~.\-]+",
-    "rev": r"[^@#]+?",
-    "subdir": r"[\w\-/\\]+",
-}
+PROTOCOL = r"\w+"
+USER = r"[a-zA-Z0-9_.-]+"
+RESOURCE = r"[a-zA-Z0-9_.-]+"
+PORT = r"\d+"
+PATH = r"[\w~.\-/\\]+"
+NAME = r"[\w~.\-]+"
+REV = r"[^@#]+?"
+SUBDIR = r"[\w\-/\\]+"
 
 PATTERNS = [
     re.compile(
         r"^(git\+)?"
         r"(?P<protocol>https?|git|ssh|rsync|file)://"
-        r"(?:(?P<user>{user})@)?"
-        r"(?P<resource>{resource})?"
-        r"(:(?P<port>{port}))?"
-        r"(?P<pathname>[:/\\]({path}[/\\])?"
-        r"((?P<name>{name}?)(\.git|[/\\])?)?)"
+        rf"(?:(?P<user>{USER})@)?"
+        rf"(?P<resource>{RESOURCE})?"
+        rf"(:(?P<port>{PORT}))?"
+        rf"(?P<pathname>[:/\\]({PATH}[/\\])?"
+        rf"((?P<name>{NAME}?)(\.git|[/\\])?)?)"
         r"(?:"
         r"#egg=?.+"
         r"|"
-        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
         r"|"
-        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir})))?"
+        rf"[@#](?P<rev>{REV})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})))?"
         r")?"
-        r"$".format(
-            user=pattern_formats["user"],
-            resource=pattern_formats["resource"],
-            port=pattern_formats["port"],
-            path=pattern_formats["path"],
-            name=pattern_formats["name"],
-            rev=pattern_formats["rev"],
-            subdir=pattern_formats["subdir"],
-        )
+        r"$"
     ),
     re.compile(
         r"(git\+)?"
-        r"((?P<protocol>{protocol})://)"
-        r"(?:(?P<user>{user})@)?"
-        r"(?P<resource>{resource}:?)"
-        r"(:(?P<port>{port}))?"
-        r"(?P<pathname>({path})"
-        r"(?P<name>{name})(\.git|/)?)"
+        rf"((?P<protocol>{PROTOCOL})://)"
+        rf"(?:(?P<user>{USER})@)?"
+        rf"(?P<resource>{RESOURCE}:?)"
+        rf"(:(?P<port>{PORT}))?"
+        rf"(?P<pathname>({PATH})"
+        rf"(?P<name>{NAME})(\.git|/)?)"
         r"(?:"
         r"#egg=?.+"
         r"|"
-        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
         r"|"
-        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir})))?"
+        rf"[@#](?P<rev>{REV})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})))?"
         r")?"
-        r"$".format(
-            protocol=pattern_formats["protocol"],
-            user=pattern_formats["user"],
-            resource=pattern_formats["resource"],
-            port=pattern_formats["port"],
-            path=pattern_formats["path"],
-            name=pattern_formats["name"],
-            rev=pattern_formats["rev"],
-            subdir=pattern_formats["subdir"],
-        )
+        r"$"
     ),
     re.compile(
-        r"^(?:(?P<user>{user})@)?"
-        r"(?P<resource>{resource})"
-        r"(:(?P<port>{port}))?"
-        r"(?P<pathname>([:/]{path}/)"
-        r"(?P<name>{name})(\.git|/)?)"
+        rf"^(?:(?P<user>{USER})@)?"
+        rf"(?P<resource>{RESOURCE})"
+        rf"(:(?P<port>{PORT}))?"
+        rf"(?P<pathname>([:/]{PATH}/)"
+        rf"(?P<name>{NAME})(\.git|/)?)"
         r"(?:"
         r"#egg=.+?"
         r"|"
-        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
         r"|"
-        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir}))?"
+        rf"[@#](?P<rev>{REV})(?:[&#](?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR}))?"
         r")?"
-        r"$".format(
-            user=pattern_formats["user"],
-            resource=pattern_formats["resource"],
-            port=pattern_formats["port"],
-            path=pattern_formats["path"],
-            name=pattern_formats["name"],
-            rev=pattern_formats["rev"],
-            subdir=pattern_formats["subdir"],
-        )
+        r"$"
     ),
     re.compile(
-        r"((?P<user>{user})@)?"
-        r"(?P<resource>{resource})"
+        rf"((?P<user>{USER})@)?"
+        rf"(?P<resource>{RESOURCE})"
         r"[:/]{{1,2}}"
-        r"(?P<pathname>({path})"
-        r"(?P<name>{name})(\.git|/)?)"
+        rf"(?P<pathname>({PATH})"
+        rf"(?P<name>{NAME})(\.git|/)?)"
         r"(?:"
         r"#egg=?.+"
         r"|"
-        r"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{subdir})"
+        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
         r"|"
-        r"[@#](?P<rev>{rev})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{subdir})))?"
+        rf"[@#](?P<rev>{REV})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})))?"
         r")?"
-        r"$".format(
-            user=pattern_formats["user"],
-            resource=pattern_formats["resource"],
-            path=pattern_formats["path"],
-            name=pattern_formats["name"],
-            rev=pattern_formats["rev"],
-            subdir=pattern_formats["subdir"],
-        )
+        r"$"
     ),
 ]
 
@@ -167,13 +133,11 @@ class ParsedUrl:
 
     @property
     def url(self) -> str:
-        return "{}{}{}{}{}".format(
-            f"{self.protocol}://" if self.protocol else "",
-            f"{self.user}@" if self.user else "",
-            self.resource,
-            f":{self.port}" if self.port else "",
-            "/" + (self.pathname or "").lstrip(":/"),
-        )
+        protocol = f"{self.protocol}://" if self.protocol else ""
+        user = f"{self.user}@" if self.user else ""
+        port = f":{self.port}" if self.port else ""
+        path = "/" + (self.pathname or "").lstrip(":/")
+        return f"{protocol}{user}{self.resource}{port}{path}"
 
     def format(self) -> str:
         return self.url

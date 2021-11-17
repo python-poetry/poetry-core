@@ -116,17 +116,17 @@ def _test_file_dependency_pep_508(
 
 def test_file_dependency_pep_508_local_file_absolute(mocker: "MockerFixture"):
     path = DIST_PATH / "demo-0.2.0.tar.gz"
-    requirement = "{} @ file://{}".format("demo", path.as_posix())
+    requirement = f"demo @ file://{path.as_posix()}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
+    requirement = f"demo @ {path}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
 
 def test_file_dependency_pep_508_local_file_localhost(mocker: "MockerFixture"):
     path = DIST_PATH / "demo-0.2.0.tar.gz"
-    requirement = "{} @ file://localhost{}".format("demo", path.as_posix())
-    requirement_expected = "{} @ file://{}".format("demo", path.as_posix())
+    requirement = f"demo @ file://localhost{path.as_posix()}"
+    requirement_expected = f"demo @ file://{path.as_posix()}"
     _test_file_dependency_pep_508(
         mocker, "demo", path, requirement, requirement_expected
     )
@@ -136,10 +136,10 @@ def test_file_dependency_pep_508_local_file_relative_path(mocker: "MockerFixture
     path = Path("..") / "fixtures" / "distributions" / "demo-0.2.0.tar.gz"
 
     with pytest.raises(ValueError):
-        requirement = "{} @ file://{}".format("demo", path.as_posix())
+        requirement = f"demo @ file://{path.as_posix()}"
         _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
+    requirement = f"demo @ {path}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
 
@@ -147,9 +147,7 @@ def test_absolute_file_dependency_to_pep_508_with_marker(mocker: "MockerFixture"
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     abs_path = DIST_PATH / wheel
-    requirement = '{} @ file://{} ; sys_platform == "linux"'.format(
-        "demo", abs_path.as_posix()
-    )
+    requirement = f'demo @ file://{abs_path.as_posix()} ; sys_platform == "linux"'
     _test_file_dependency_pep_508(
         mocker,
         "demo",
@@ -163,9 +161,7 @@ def test_relative_file_dependency_to_pep_508_with_marker(mocker: "MockerFixture"
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
-    requirement = '{} @ {} ; sys_platform == "linux"'.format(
-        "demo", rel_path.as_posix()
-    )
+    requirement = f'demo @ {rel_path.as_posix()} ; sys_platform == "linux"'
     _test_file_dependency_pep_508(
         mocker,
         "demo",

@@ -270,8 +270,8 @@ class Builder:
             content += f"Project-URL: {str(url)}\n"
 
         if self._meta.description_content_type:
-            content += "Description-Content-Type: {}\n".format(
-                self._meta.description_content_type
+            content += (
+                f"Description-Content-Type: {self._meta.description_content_type}\n"
             )
 
         if self._meta.description is not None:

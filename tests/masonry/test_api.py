@@ -138,14 +138,12 @@ my-2nd-script=my_package:main2
 my-script=my_package:main
 
 """
-    wheel_data = """\
+    wheel_data = f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-        __version__
-    )
+"""
     metadata = """\
 Metadata-Version: 2.1
 Name: my-package
