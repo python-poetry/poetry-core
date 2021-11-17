@@ -6,8 +6,8 @@ from typing import Any
 from typing import Optional
 from typing import Tuple
 
-from .utils import path_to_url
-from .utils import splitext
+from poetry.core.packages.utils.utils import path_to_url
+from poetry.core.packages.utils.utils import splitext
 
 
 class Link:

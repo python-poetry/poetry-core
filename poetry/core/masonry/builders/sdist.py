@@ -20,8 +20,8 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from .builder import Builder
-from .builder import BuildIncludeFile
+from poetry.core.masonry.builders.builder import Builder
+from poetry.core.masonry.builders.builder import BuildIncludeFile
 
 
 if TYPE_CHECKING:

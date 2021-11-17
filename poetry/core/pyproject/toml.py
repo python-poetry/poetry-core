@@ -72,7 +72,7 @@ class PyProjectTOML:
             ) from e
 
     def is_poetry_project(self) -> bool:
-        from .exceptions import PyProjectException
+        from poetry.core.pyproject.exceptions import PyProjectException
 
         if self.file.exists():
             try:

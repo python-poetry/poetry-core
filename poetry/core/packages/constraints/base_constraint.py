@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from . import ConstraintTypes  # noqa
+    from poetry.core.packages.constraints import ConstraintTypes  # noqa
 
 
 class BaseConstraint:

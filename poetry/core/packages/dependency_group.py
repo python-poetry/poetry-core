@@ -3,7 +3,7 @@ from typing import List
 
 
 if TYPE_CHECKING:
-    from .types import DependencyTypes
+    from poetry.core.packages.types import DependencyTypes
 
 
 class DependencyGroup:

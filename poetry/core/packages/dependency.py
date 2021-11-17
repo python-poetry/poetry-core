@@ -157,11 +157,10 @@ class Dependency(PackageSpecification):
 
     @marker.setter
     def marker(self, marker: Union[str, "BaseMarker"]) -> None:
+        from poetry.core.packages.utils.utils import convert_markers
         from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import BaseMarker
         from poetry.core.version.markers import parse_marker
-
-        from .utils.utils import convert_markers
 
         if not isinstance(marker, BaseMarker):
             marker = parse_marker(marker)
@@ -301,7 +300,7 @@ class Dependency(PackageSpecification):
         )
 
     def to_pep_508(self, with_extras: bool = True) -> str:
-        from .utils.utils import convert_markers
+        from poetry.core.packages.utils.utils import convert_markers
 
         requirement = self.base_pep_508_name
 
@@ -348,12 +347,11 @@ class Dependency(PackageSpecification):
     def _create_nested_marker(
         self, name: str, constraint: Union["BaseConstraint", "VersionTypes"]
     ) -> str:
+        from poetry.core.packages.constraints.constraint import Constraint
+        from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+        from poetry.core.packages.constraints.union_constraint import UnionConstraint
         from poetry.core.semver.version import Version
         from poetry.core.semver.version_union import VersionUnion
-
-        from .constraints.constraint import Constraint
-        from .constraints.multi_constraint import MultiConstraint
-        from .constraints.union_constraint import UnionConstraint
 
         if isinstance(constraint, (MultiConstraint, UnionConstraint)):
             parts = []
@@ -482,19 +480,18 @@ class Dependency(PackageSpecification):
         path is specified, this is used as the base directory if the identified dependency is
         of file or directory type.
         """
+        from poetry.core.packages.url_dependency import URLDependency
+        from poetry.core.packages.utils.link import Link
+        from poetry.core.packages.utils.utils import is_archive_file
+        from poetry.core.packages.utils.utils import is_installable_dir
+        from poetry.core.packages.utils.utils import is_url
+        from poetry.core.packages.utils.utils import path_to_url
+        from poetry.core.packages.utils.utils import strip_extras
+        from poetry.core.packages.utils.utils import url_to_path
+        from poetry.core.packages.vcs_dependency import VCSDependency
         from poetry.core.utils.patterns import wheel_file_re
         from poetry.core.vcs.git import ParsedUrl
         from poetry.core.version.requirements import Requirement
-
-        from .url_dependency import URLDependency
-        from .utils.link import Link
-        from .utils.utils import is_archive_file
-        from .utils.utils import is_installable_dir
-        from .utils.utils import is_url
-        from .utils.utils import path_to_url
-        from .utils.utils import strip_extras
-        from .utils.utils import url_to_path
-        from .vcs_dependency import VCSDependency
 
         # Removing comments
         parts = name.split(" #", 1)
@@ -638,8 +635,8 @@ def _make_file_or_dir_dep(
     Helper function to create a file or directoru dependency with the given arguments. If
     path is not a file or directory that exists, `None` is returned.
     """
-    from .directory_dependency import DirectoryDependency
-    from .file_dependency import FileDependency
+    from poetry.core.packages.directory_dependency import DirectoryDependency
+    from poetry.core.packages.file_dependency import FileDependency
 
     _path = path
     if not path.is_absolute() and base:

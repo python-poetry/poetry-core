@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List
 from typing import Optional
 
-from .include import Include
+from poetry.core.masonry.utils.include import Include
 
 
 class PackageInclude(Include):

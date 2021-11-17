@@ -18,10 +18,9 @@ class Module:
         packages: Optional[List[Dict[str, Any]]] = None,
         includes: Optional[List[Dict[str, Any]]] = None,
     ) -> None:
+        from poetry.core.masonry.utils.include import Include
+        from poetry.core.masonry.utils.package_include import PackageInclude
         from poetry.core.utils.helpers import module_name
-
-        from .include import Include
-        from .package_include import PackageInclude
 
         self._name = module_name(name)
         self._in_src = False

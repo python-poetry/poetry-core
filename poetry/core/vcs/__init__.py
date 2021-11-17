@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from .git import Git
+from poetry.core.vcs.git import Git
 
 
 def get_vcs(directory: Path) -> Optional[Git]:
@@ -14,7 +14,7 @@ def get_vcs(directory: Path) -> Optional[Git]:
     vcs: Optional[Git]
 
     try:
-        from .git import executable
+        from poetry.core.vcs.git import executable
 
         git_dir = (
             subprocess.check_output(

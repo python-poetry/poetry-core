@@ -7,8 +7,8 @@ from typing import Iterator
 from typing import List
 from typing import Union
 
-from .grammars import GRAMMAR_PEP_508_MARKERS
-from .parser import Parser
+from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
+from poetry.core.version.parser import Parser
 
 
 if TYPE_CHECKING:

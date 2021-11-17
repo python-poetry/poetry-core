@@ -2,12 +2,12 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Tuple
 
-from .base_constraint import BaseConstraint
-from .constraint import Constraint
+from poetry.core.packages.constraints.base_constraint import BaseConstraint
+from poetry.core.packages.constraints.constraint import Constraint
 
 
 if TYPE_CHECKING:
-    from . import ConstraintTypes  # noqa
+    from poetry.core.packages.constraints import ConstraintTypes  # noqa
 
 
 class MultiConstraint(BaseConstraint):

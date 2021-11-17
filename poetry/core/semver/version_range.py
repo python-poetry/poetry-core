@@ -93,7 +93,7 @@ class VersionRange(VersionRangeConstraint):
         return True
 
     def allows_all(self, other: "VersionTypes") -> bool:
-        from .version import Version
+        from poetry.core.semver.version import Version
 
         if other.is_empty():
             return True
@@ -110,7 +110,7 @@ class VersionRange(VersionRangeConstraint):
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def allows_any(self, other: "VersionTypes") -> bool:
-        from .version import Version
+        from poetry.core.semver.version import Version
 
         if other.is_empty():
             return False
@@ -129,7 +129,7 @@ class VersionRange(VersionRangeConstraint):
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def intersect(self, other: "VersionTypes") -> "VersionTypes":
-        from .version import Version
+        from poetry.core.semver.version import Version
 
         if other.is_empty():
             return other
@@ -184,7 +184,7 @@ class VersionRange(VersionRangeConstraint):
         )
 
     def union(self, other: "VersionTypes") -> "VersionTypes":
-        from .version import Version
+        from poetry.core.semver.version import Version
 
         if isinstance(other, Version):
             if self.allows(other):
@@ -236,7 +236,7 @@ class VersionRange(VersionRangeConstraint):
         return VersionUnion.of(self, other)
 
     def difference(self, other: "VersionTypes") -> "VersionTypes":
-        from .version import Version
+        from poetry.core.semver.version import Version
 
         if other.is_empty():
             return self

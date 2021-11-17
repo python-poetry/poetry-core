@@ -4,7 +4,7 @@ import os
 
 from typing import Dict
 
-from .license import License
+from poetry.core.spdx.license import License
 
 
 def license_by_id(identifier: str) -> License:
@@ -45,7 +45,7 @@ def _load_licenses() -> Dict[str, License]:
 
 
 if __name__ == "__main__":
-    from .updater import Updater
+    from poetry.core.spdx.updater import Updater
 
     updater = Updater()
     updater.dump()

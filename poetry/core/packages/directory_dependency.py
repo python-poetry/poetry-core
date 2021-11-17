@@ -7,10 +7,10 @@ from typing import Union
 
 
 if TYPE_CHECKING:
-    from .constraints import BaseConstraint  # noqa
+    from poetry.core.packages.constraints import BaseConstraint  # noqa
 
-from .dependency import Dependency
-from .utils.utils import path_to_url
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.utils.utils import path_to_url
 
 
 class DirectoryDependency(Dependency):

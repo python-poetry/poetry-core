@@ -2,10 +2,9 @@ import urllib.parse as urlparse
 
 from poetry.core.semver.exceptions import ParseConstraintError
 from poetry.core.semver.helpers import parse_constraint
-
-from .grammars import GRAMMAR_PEP_508_CONSTRAINTS
-from .markers import _compact_markers
-from .parser import Parser
+from poetry.core.version.grammars import GRAMMAR_PEP_508_CONSTRAINTS
+from poetry.core.version.markers import _compact_markers
+from poetry.core.version.parser import Parser
 
 
 class InvalidRequirement(ValueError):

@@ -2,12 +2,12 @@ import re
 
 from typing import Union
 
-from .any_constraint import AnyConstraint
-from .base_constraint import BaseConstraint
-from .constraint import Constraint
-from .empty_constraint import EmptyConstraint
-from .multi_constraint import MultiConstraint
-from .union_constraint import UnionConstraint
+from poetry.core.packages.constraints.any_constraint import AnyConstraint
+from poetry.core.packages.constraints.base_constraint import BaseConstraint
+from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
+from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")

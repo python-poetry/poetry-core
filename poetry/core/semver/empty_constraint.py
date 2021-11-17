@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 
-from .version_constraint import VersionConstraint
+from poetry.core.semver.version_constraint import VersionConstraint
 
 
 if TYPE_CHECKING:
-    from . import VersionTypes  # noqa
-    from .version import Version  # noqa
+    from poetry.core.semver import VersionTypes  # noqa
+    from poetry.core.semver.version import Version  # noqa
 
 
 class EmptyConstraint(VersionConstraint):

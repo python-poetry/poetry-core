@@ -11,11 +11,11 @@ from warnings import warn
 
 
 if TYPE_CHECKING:
-    from .packages.project_package import ProjectPackage
-    from .packages.types import DependencyTypes
-    from .poetry import Poetry
-    from .spdx.license import License
-    from .version.markers import MarkerTypes
+    from poetry.core.packages.project_package import ProjectPackage
+    from poetry.core.packages.types import DependencyTypes
+    from poetry.core.poetry import Poetry
+    from poetry.core.spdx.license import License
+    from poetry.core.version.markers import MarkerTypes
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,8 @@ class Factory:
     def create_poetry(
         self, cwd: Optional[Path] = None, with_groups: bool = True
     ) -> "Poetry":
-        from .poetry import Poetry
-        from .pyproject.toml import PyProjectTOML
+        from poetry.core.poetry import Poetry
+        from poetry.core.pyproject.toml import PyProjectTOML
 
         poetry_file = self.locate(cwd)
         local_config = PyProjectTOML(path=poetry_file).poetry_config
@@ -55,7 +55,7 @@ class Factory:
 
     @classmethod
     def get_package(cls, name: str, version: str) -> "ProjectPackage":
-        from .packages.project_package import ProjectPackage
+        from poetry.core.packages.project_package import ProjectPackage
 
         return ProjectPackage(name, version, version)
 
@@ -67,9 +67,9 @@ class Factory:
         root: Path,
         with_groups: bool = True,
     ) -> "ProjectPackage":
-        from .packages.dependency import Dependency
-        from .packages.dependency_group import DependencyGroup
-        from .spdx.helpers import license_by_id
+        from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.dependency_group import DependencyGroup
+        from poetry.core.spdx.helpers import license_by_id
 
         package.root_dir = root
 
@@ -230,16 +230,18 @@ class Factory:
         groups: Optional[List[str]] = None,
         root_dir: Optional[Path] = None,
     ) -> "DependencyTypes":
-        from .packages.constraints import parse_constraint as parse_generic_constraint
-        from .packages.dependency import Dependency
-        from .packages.directory_dependency import DirectoryDependency
-        from .packages.file_dependency import FileDependency
-        from .packages.url_dependency import URLDependency
-        from .packages.utils.utils import create_nested_marker
-        from .packages.vcs_dependency import VCSDependency
-        from .semver.helpers import parse_constraint
-        from .version.markers import AnyMarker
-        from .version.markers import parse_marker
+        from poetry.core.packages.constraints import (
+            parse_constraint as parse_generic_constraint,
+        )
+        from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.directory_dependency import DirectoryDependency
+        from poetry.core.packages.file_dependency import FileDependency
+        from poetry.core.packages.url_dependency import URLDependency
+        from poetry.core.packages.utils.utils import create_nested_marker
+        from poetry.core.packages.vcs_dependency import VCSDependency
+        from poetry.core.semver.helpers import parse_constraint
+        from poetry.core.version.markers import AnyMarker
+        from poetry.core.version.markers import parse_marker
 
         if groups is None:
             groups = ["default"]
@@ -374,7 +376,7 @@ class Factory:
         """
         Checks the validity of a configuration
         """
-        from .json import validate_object
+        from poetry.core.json import validate_object
 
         result: Dict[str, List[str]] = {"errors": [], "warnings": []}
         # Schema validation errors

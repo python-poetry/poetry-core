@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 
 class Builder:
     def __init__(self, poetry: "Poetry") -> None:
-        from .builders.sdist import SdistBuilder
-        from .builders.wheel import WheelBuilder
+        from poetry.core.masonry.builders.sdist import SdistBuilder
+        from poetry.core.masonry.builders.wheel import WheelBuilder
 
         self._poetry = poetry
 
