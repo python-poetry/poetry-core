@@ -3,7 +3,7 @@ repos:
     rev: 21.9b0
     hooks:
       - id: black
-        exclude: ^poetry/core/_vendor
+        exclude: ^src/poetry/core/_vendor
 
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.2
@@ -29,7 +29,7 @@ repos:
         exclude: |
           (?x)(
               ^.*/?setup\.py$
-              | ^poetry/core/_vendor
+              | ^src/poetry/core/_vendor
               | tests/.*\.pyi$
           )
 
@@ -39,7 +39,7 @@ repos:
       - id: pyupgrade
         args:
           - --py36-plus
-        exclude: ^poetry/core/_vendor
+        exclude: ^src/poetry/core/_vendor
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
@@ -48,22 +48,22 @@ repos:
         exclude: |
           (?x)(
               ^tests/.*/fixtures/.*
-              | ^poetry/core/_vendor
+              | ^src/poetry/core/_vendor
           )
       - id: end-of-file-fixer
         exclude: |
           (?x)(
               ^tests/.*/fixtures/.*
-              | ^poetry/core/_vendor
+              | ^src/poetry/core/_vendor
           )
       - id: debug-statements
-        exclude: ^poetry/core/_vendor
+        exclude: ^src/poetry/core/_vendor
 
       - id: check-json
-        exclude: ^poetry/core/_vendor
+        exclude: ^src/poetry/core/_vendor
 
       - id: pretty-format-json
-        exclude: ^poetry/core/_vendor
+        exclude: ^src/poetry/core/_vendor
         args:
           - --no-sort-keys
           - --autofix
