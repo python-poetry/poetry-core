@@ -111,12 +111,19 @@ module = [
   'poetry.core.toml.*',
   'poetry.core.version.*',
   # test modules
+  'tests.conftest',
+  'tests.integration/test_pep517',
+  'tests.json.*',
   'tests.masonry.*',
   'tests.packages.*',
+  'tests.pyproject.*',
   'tests.semver.*',
-  'tests.version.*',
+  'tests.spdx.*',
+  'tests.test_factory',
   'tests.testutils.*',
-  'tests.integration/test_pep517',
+  'tests.utils.*',
+  'tests.vcs.*',
+  'tests.version.*',
 ]
 ignore_errors = true
 
