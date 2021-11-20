@@ -428,10 +428,10 @@ class Factory:
 
             # Checking types of all readme files (must match)
             if "readme" in config and not isinstance(config["readme"], str):
-                readme_types = [readme_content_type(r) for r in config["readme"]]
-                if len(set(readme_types)) > 1:
+                readme_types = {readme_content_type(r) for r in config["readme"]}
+                if len(readme_types) > 1:
                     result["errors"].append(
-                        f"Declared README files must be of same type: found {', '.join(readme_types)}"
+                        f"Declared README files must be of same type: found {', '.join(sorted(readme_types))}"
                     )
 
         return result

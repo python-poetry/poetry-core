@@ -353,7 +353,7 @@ class Package(PackageSpecification):
         import warnings
 
         warnings.warn(
-            "`readme` is deprecated: you are getting only the first readme file. Please use the plural form `readmes`",
+            "`readme` is deprecated: you are getting only the first readme file. Please use the plural form `readmes`.",
             DeprecationWarning,
         )
         return next(iter(self.readmes), None)
@@ -363,7 +363,7 @@ class Package(PackageSpecification):
         import warnings
 
         warnings.warn(
-            "`readme` is deprecated. Please assign a tuple to the plural form `readmes`",
+            "`readme` is deprecated. Please assign a tuple to the plural form `readmes`.",
             DeprecationWarning,
         )
         self.readmes = (path,)
