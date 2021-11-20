@@ -1,11 +1,14 @@
 import os
 
+from pathlib import Path
 from stat import S_IREAD
+from typing import Union
 
 import pytest
 
 from poetry.core.utils.helpers import canonicalize_name
 from poetry.core.utils.helpers import parse_requires
+from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
 
 
@@ -76,3 +79,18 @@ def test_utils_helpers_temporary_directory_readonly_file():
 
     assert not os.path.exists(temp_dir)
     assert not os.path.exists(readonly_filename)
+
+
+@pytest.mark.parametrize(
+    "readme, content_type",
+    [
+        ("README.rst", "text/x-rst"),
+        ("README.md", "text/markdown"),
+        ("README", "text/plain"),
+        (Path("README.rst"), "text/x-rst"),
+        (Path("README.md"), "text/markdown"),
+        (Path("README"), "text/plain"),
+    ],
+)
+def test_utils_helpers_readme_content_type(readme: Union[str, Path], content_type: str):
+    assert readme_content_type(readme) == content_type

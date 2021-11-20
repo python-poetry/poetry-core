@@ -89,7 +89,6 @@ class Package(PackageSpecification):
         self.keywords = []
         self._license = None
         self.readmes: Tuple[Path, ...] = ()
-        self.description_type: Optional[str] = None
 
         self.extras = {}
         self.requires_extras = []

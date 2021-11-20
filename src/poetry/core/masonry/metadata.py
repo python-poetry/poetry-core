@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING
 from typing import List
 from typing import Tuple
 
+from poetry.core.utils.helpers import readme_content_type
+
 
 if TYPE_CHECKING:
     from poetry.core.packages.package import Package
@@ -81,8 +83,8 @@ class Metadata:
         meta.requires_dist = [d.to_pep_508() for d in package.requires]
 
         # Version 2.1
-        if package.description_type:
-            meta.description_content_type = package.description_type
+        if package.readmes:
+            meta.description_content_type = readme_content_type(package.readmes[0])
 
         meta.provides_extra = list(package.extras)
 
