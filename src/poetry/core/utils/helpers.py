@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
+from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Union
@@ -95,7 +96,7 @@ def safe_rmtree(path: Union[str, Path]) -> None:
     shutil.rmtree(path, onerror=_on_rm_error)
 
 
-def merge_dicts(d1: dict, d2: dict) -> None:
+def merge_dicts(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> None:
     for k in d2.keys():
         if k in d1 and isinstance(d1[k], dict) and isinstance(d2[k], Mapping):
             merge_dicts(d1[k], d2[k])
