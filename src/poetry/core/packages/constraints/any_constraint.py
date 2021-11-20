@@ -1,33 +1,27 @@
-from typing import TYPE_CHECKING
-
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 
 
-if TYPE_CHECKING:
-    from poetry.core.packages.constraints import ConstraintTypes  # noqa
-
-
 class AnyConstraint(BaseConstraint):
-    def allows(self, other: "ConstraintTypes") -> bool:
+    def allows(self, other: "BaseConstraint") -> bool:
         return True
 
-    def allows_all(self, other: "ConstraintTypes") -> bool:
+    def allows_all(self, other: "BaseConstraint") -> bool:
         return True
 
-    def allows_any(self, other: "ConstraintTypes") -> bool:
+    def allows_any(self, other: "BaseConstraint") -> bool:
         return True
 
-    def difference(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def difference(self, other: "BaseConstraint") -> "BaseConstraint":
         if other.is_any():
             return EmptyConstraint()
 
         return other
 
-    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
         return other
 
-    def union(self, other: "ConstraintTypes") -> "AnyConstraint":
+    def union(self, other: "BaseConstraint") -> "AnyConstraint":
         return AnyConstraint()
 
     def is_any(self) -> bool:

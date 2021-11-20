@@ -102,11 +102,6 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 module = [
   # src modules
   'poetry.core.masonry.builders.*',
-  'poetry.core.packages.constraints',
-  'poetry.core.packages.constraints.constraint',
-  'poetry.core.packages.constraints.empty_constraint',
-  'poetry.core.packages.constraints.multi_constraint',
-  'poetry.core.packages.constraints.union_constraint',
   'poetry.core.packages.utils.utils',
   'poetry.core.packages.dependency',
   'poetry.core.packages.directory_dependency',
@@ -117,6 +112,7 @@ module = [
   'poetry.core.packages.vcs_dependency',
   'poetry.core.pyproject.*',
   'poetry.core.semver.*',
+  'poetry.core.toml.*',
   'poetry.core.version.*',
   # test modules
   'tests.masonry.*',

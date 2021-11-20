@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
+from typing import cast
 
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.constraint import Constraint
@@ -8,34 +8,32 @@ from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 from poetry.core.packages.constraints.multi_constraint import MultiConstraint
 
 
-if TYPE_CHECKING:
-    from poetry.core.packages.constraints import ConstraintTypes  # noqa
-
-
 class UnionConstraint(BaseConstraint):
-    def __init__(self, *constraints: Constraint) -> None:
+    def __init__(self, *constraints: BaseConstraint) -> None:
         self._constraints = constraints
 
     @property
-    def constraints(self) -> Tuple[Constraint]:
+    def constraints(self) -> Tuple[BaseConstraint, ...]:
         return self._constraints
 
     def allows(
-        self, other: Union[Constraint, MultiConstraint, "UnionConstraint"]
+        self,
+        other: "BaseConstraint",
     ) -> bool:
         return any(constraint.allows(other) for constraint in self._constraints)
 
-    def allows_any(self, other: "ConstraintTypes") -> bool:
+    def allows_any(self, other: "BaseConstraint") -> bool:
         if other.is_empty():
             return False
 
         if other.is_any():
             return True
 
-        if isinstance(other, Constraint):
-            constraints = [other]
-        else:
+        constraints: Tuple[BaseConstraint, ...]
+        if isinstance(other, (UnionConstraint, MultiConstraint)):
             constraints = other.constraints
+        else:
+            constraints = (other,)
 
         return any(
             our_constraint.allows_any(their_constraint)
@@ -43,17 +41,18 @@ class UnionConstraint(BaseConstraint):
             for their_constraint in constraints
         )
 
-    def allows_all(self, other: "ConstraintTypes") -> bool:
+    def allows_all(self, other: "BaseConstraint") -> bool:
         if other.is_any():
             return False
 
         if other.is_empty():
             return True
 
-        if isinstance(other, Constraint):
-            constraints = [other]
-        else:
+        constraints: Tuple[BaseConstraint, ...]
+        if isinstance(other, (UnionConstraint, MultiConstraint)):
             constraints = other.constraints
+        else:
+            constraints = (other,)
 
         our_constraints = iter(self._constraints)
         their_constraints = iter(constraints)
@@ -68,7 +67,7 @@ class UnionConstraint(BaseConstraint):
 
         return their_constraint is None
 
-    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
         if other.is_any():
             return self
 
@@ -80,6 +79,8 @@ class UnionConstraint(BaseConstraint):
                 return other
 
             return EmptyConstraint()
+
+        other = cast(Union[MultiConstraint, UnionConstraint], other)
 
         new_constraints = []
         for our_constraint in self._constraints:
@@ -94,22 +95,22 @@ class UnionConstraint(BaseConstraint):
 
         return UnionConstraint(*new_constraints)
 
-    def union(self, other: Constraint) -> "UnionConstraint":
-        if isinstance(other, Constraint):
-            constraints = self._constraints
-            if other not in self._constraints:
-                constraints += (other,)
+    def union(self, other: BaseConstraint) -> "UnionConstraint":
+        if not isinstance(other, Constraint):
+            raise ValueError("Bad constraint union")
 
-            return UnionConstraint(*constraints)
+        constraints = self._constraints
+        if other not in self._constraints:
+            constraints += (other,)
 
-    def __eq__(self, other: "ConstraintTypes") -> bool:
+        return UnionConstraint(*constraints)
+
+    def __eq__(self, other: object) -> bool:
 
         if not isinstance(other, UnionConstraint):
             return False
 
-        return sorted(
-            self._constraints, key=lambda c: (c.operator, c.version)
-        ) == sorted(other.constraints, key=lambda c: (c.operator, c.version))
+        return set(self._constraints) == set(other._constraints)
 
     def __str__(self) -> str:
         constraints = []

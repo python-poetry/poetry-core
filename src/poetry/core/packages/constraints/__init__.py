@@ -11,14 +11,9 @@ from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
-ConstraintTypes = Union[
-    AnyConstraint, Constraint, UnionConstraint, EmptyConstraint, MultiConstraint
-]
 
 
-def parse_constraint(
-    constraints: str,
-) -> Union[AnyConstraint, UnionConstraint, Constraint]:
+def parse_constraint(constraints: str) -> BaseConstraint:
     if constraints == "*":
         return AnyConstraint()
 
