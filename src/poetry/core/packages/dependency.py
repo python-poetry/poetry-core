@@ -37,7 +37,7 @@ class Dependency(PackageSpecification):
         optional: bool = False,
         groups: Optional[List[str]] = None,
         allows_prereleases: bool = False,
-        extras: Union[List[str], FrozenSet[str]] = None,
+        extras: Optional[List[str]] = None,
         source_type: Optional[str] = None,
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
@@ -56,8 +56,8 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
-        self._constraint = None
-        self._pretty_constraint = None
+        self._constraint: Optional[Union[str, "VersionTypes"]] = None
+        self._pretty_constraint: Optional[str] = None
         self.set_constraint(constraint=constraint)
 
         self._optional = optional

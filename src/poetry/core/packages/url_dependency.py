@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-from typing import FrozenSet
 from typing import List
 from typing import Optional
 from typing import Union
@@ -9,7 +8,7 @@ from poetry.core.packages.dependency import Dependency
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.semver.helpers import VersionTypes
 
 
 class URLDependency(Dependency):
@@ -19,7 +18,7 @@ class URLDependency(Dependency):
         url: str,
         groups: Optional[List[str]] = None,
         optional: bool = False,
-        extras: Union[List[str], FrozenSet[str]] = None,
+        extras: Optional[List[str]] = None,
     ):
         self._url = url
 
@@ -57,13 +56,15 @@ class URLDependency(Dependency):
     def is_url(self) -> bool:
         return True
 
-    def with_constraint(self, constraint: "BaseConstraint") -> "URLDependency":
+    def with_constraint(
+        self, constraint: Union[str, "VersionTypes"]
+    ) -> "URLDependency":
         new = URLDependency(
             self.pretty_name,
             url=self._url,
             optional=self.is_optional(),
             groups=list(self._groups),
-            extras=self._extras,
+            extras=list(self._extras),
         )
 
         new._constraint = constraint
