@@ -101,3 +101,13 @@ def merge_dicts(d1: dict, d2: dict) -> None:
             merge_dicts(d1[k], d2[k])
         else:
             d1[k] = d2[k]
+
+
+def readme_content_type(path: Union[str, Path]) -> str:
+    suffix = Path(path).suffix
+    if suffix == ".rst":
+        return "text/x-rst"
+    elif suffix in [".md", ".markdown"]:
+        return "text/markdown"
+    else:
+        return "text/plain"

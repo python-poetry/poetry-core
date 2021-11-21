@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING
 from typing import List
 from typing import Tuple
 
+from poetry.core.utils.helpers import readme_content_type
+
 
 if TYPE_CHECKING:
     from poetry.core.packages.package import Package
@@ -53,9 +55,12 @@ class Metadata:
         meta.name = canonicalize_name(package.name)
         meta.version = normalize_version(package.version.text)
         meta.summary = package.description
-        if package.readme:
-            with package.readme.open(encoding="utf-8") as f:
-                meta.description = f.read()
+        if package.readmes:
+            descriptions = []
+            for readme in package.readmes:
+                with readme.open(encoding="utf-8") as f:
+                    descriptions.append(f.read())
+            meta.description = "\n".join(descriptions)
 
         meta.keywords = ",".join(package.keywords)
         meta.home_page = package.homepage or package.repository_url
@@ -78,13 +83,8 @@ class Metadata:
         meta.requires_dist = [d.to_pep_508() for d in package.requires]
 
         # Version 2.1
-        if package.readme:
-            if package.readme.suffix == ".rst":
-                meta.description_content_type = "text/x-rst"
-            elif package.readme.suffix in [".md", ".markdown"]:
-                meta.description_content_type = "text/markdown"
-            else:
-                meta.description_content_type = "text/plain"
+        if package.readmes:
+            meta.description_content_type = readme_content_type(package.readmes[0])
 
         meta.provides_extra = list(package.extras)
 

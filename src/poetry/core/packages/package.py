@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 from typing import Union
 
 from poetry.core.packages.specification import PackageSpecification
@@ -87,7 +88,7 @@ class Package(PackageSpecification):
         self.documentation_url = None
         self.keywords = []
         self._license = None
-        self.readme = None
+        self.readmes: Tuple[Path, ...] = ()
 
         self.extras = {}
         self.requires_extras = []
@@ -343,6 +344,26 @@ class Package(PackageSpecification):
             urls["Documentation"] = self.documentation_url
 
         return urls
+
+    @property
+    def readme(self) -> Path:
+        import warnings
+
+        warnings.warn(
+            "`readme` is deprecated: you are getting only the first readme file. Please use the plural form `readmes`.",
+            DeprecationWarning,
+        )
+        return next(iter(self.readmes), None)
+
+    @readme.setter
+    def readme(self, path: Path) -> None:
+        import warnings
+
+        warnings.warn(
+            "`readme` is deprecated. Please assign a tuple to the plural form `readmes`.",
+            DeprecationWarning,
+        )
+        self.readmes = (path,)
 
     def is_prerelease(self) -> bool:
         return self._version.is_unstable()

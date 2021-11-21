@@ -9,6 +9,8 @@ from typing import Optional
 from typing import Union
 from warnings import warn
 
+from poetry.core.utils.helpers import readme_content_type
+
 
 if TYPE_CHECKING:
     from poetry.core.packages.project_package import ProjectPackage
@@ -93,7 +95,10 @@ class Factory:
         package.classifiers = config.get("classifiers", [])
 
         if "readme" in config:
-            package.readme = root / config["readme"]
+            if isinstance(config["readme"], str):
+                package.readmes = (root / config["readme"],)
+            else:
+                package.readmes = tuple(root / readme for readme in config["readme"])
 
         if "platform" in config:
             package.platform = config["platform"]
@@ -418,6 +423,14 @@ class Factory:
                             result["errors"].append(
                                 f'Script "{name}" requires extra "{extra}" which is not defined.'
                             )
+
+            # Checking types of all readme files (must match)
+            if "readme" in config and not isinstance(config["readme"], str):
+                readme_types = {readme_content_type(r) for r in config["readme"]}
+                if len(readme_types) > 1:
+                    result["errors"].append(
+                        f"Declared README files must be of same type: found {', '.join(sorted(readme_types))}"
+                    )
 
         return result
 
