@@ -250,6 +250,13 @@ def test_dependency_string_representation(
     assert str(dependency) == expected
 
 
+def test_set_constraint_sets_pretty_constraint():
+    dependency = Dependency("A", "^1.0")
+    assert dependency.pretty_constraint == "^1.0"
+    dependency.set_constraint("^2.0")
+    assert dependency.pretty_constraint == "^2.0"
+
+
 def test_with_constraint():
     dependency = Dependency(
         "foo",
