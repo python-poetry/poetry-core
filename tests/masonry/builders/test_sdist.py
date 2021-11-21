@@ -62,7 +62,7 @@ def test_convert_dependencies():
         "C==1.2.3",
         "D @ git+https://github.com/sdispater/d.git",
         "E>=1.0,<2.0",
-        "F>=1.0,!=1.3,<2.0",
+        "F>=1.0,<2.0,!=1.3",
     ]
     extras = {}
 

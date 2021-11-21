@@ -35,7 +35,7 @@ def test_create_poetry():
         dependencies[dep.name] = dep
 
     cleo = dependencies["cleo"]
-    assert cleo.pretty_constraint == ">=0.6,<0.7"
+    assert cleo.pretty_constraint == "^0.6"
     assert not cleo.is_optional()
 
     pendulum = dependencies["pendulum"]
@@ -57,14 +57,14 @@ def test_create_poetry():
     assert not tomlkit.develop
 
     requests = dependencies["requests"]
-    assert requests.pretty_constraint == ">=2.18,<3.0"
+    assert requests.pretty_constraint == "^2.18"
     assert not requests.is_vcs()
     assert not requests.allows_prereleases()
     assert requests.is_optional()
     assert requests.extras == frozenset({"security"})
 
     pathlib2 = dependencies["pathlib2"]
-    assert pathlib2.pretty_constraint == ">=2.2,<3.0"
+    assert pathlib2.pretty_constraint == "^2.2"
     assert pathlib2.python_versions == ">=2.7 <2.8"
     assert not pathlib2.is_optional()
 
@@ -90,7 +90,7 @@ def test_create_poetry():
 
     functools32 = dependencies["functools32"]
     assert functools32.name == "functools32"
-    assert functools32.pretty_constraint == ">=3.2.3,<4.0.0"
+    assert functools32.pretty_constraint == "^3.2.3"
     assert (
         str(functools32.marker)
         == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
@@ -98,7 +98,7 @@ def test_create_poetry():
 
     dataclasses = dependencies["dataclasses"]
     assert dataclasses.name == "dataclasses"
-    assert dataclasses.pretty_constraint == ">=0.7,<0.8"
+    assert dataclasses.pretty_constraint == "^0.7"
     assert dataclasses.python_versions == ">=3.6.1 <3.7"
     assert (
         str(dataclasses.marker)

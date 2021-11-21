@@ -87,6 +87,7 @@ class FileDependency(Dependency):
         )
 
         new._constraint = constraint
+        new._pretty_constraint = str(constraint)
 
         new.is_root = self.is_root
         new.python_versions = self.python_versions
@@ -115,7 +116,7 @@ class FileDependency(Dependency):
         if self.is_root:
             return self._pretty_name
 
-        return f"{self._pretty_name} ({str(self._constraint)} {self._path})"
+        return f"{self._pretty_name} ({self._pretty_constraint} {self._path})"
 
     def __hash__(self) -> int:
         return hash((self._name, self._full_path))
