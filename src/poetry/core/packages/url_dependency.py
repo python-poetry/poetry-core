@@ -67,7 +67,6 @@ class URLDependency(Dependency):
         )
 
         new._constraint = constraint
-        new._pretty_constraint = str(constraint)
 
         new.is_root = self.is_root
         new.python_versions = self.python_versions
@@ -80,7 +79,7 @@ class URLDependency(Dependency):
         return new
 
     def __str__(self) -> str:
-        return f"{self._pretty_name} ({self._pretty_constraint} url)"
+        return f"{self._pretty_name} ({str(self._constraint)} url)"
 
     def __hash__(self) -> int:
         return hash((self._name, self._url))

@@ -56,7 +56,6 @@ class Dependency(PackageSpecification):
         )
 
         self._constraint = None
-        self._pretty_constraint = None
         self.set_constraint(constraint=constraint)
 
         self._optional = optional
@@ -109,11 +108,10 @@ class Dependency(PackageSpecification):
                 self._constraint = constraint
         except ValueError:
             self._constraint = parse_constraint("*")
-        self._pretty_constraint = str(constraint)
 
     @property
     def pretty_constraint(self) -> str:
-        return self._pretty_constraint
+        return str(self._constraint)
 
     @property
     def pretty_name(self) -> str:
