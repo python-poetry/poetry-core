@@ -16,7 +16,7 @@ class AnyConstraint(BaseConstraint):
         if other.is_any():
             return EmptyConstraint()
 
-        return other
+        raise ValueError("Unimplemented constraint difference")
 
     def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
         return other
