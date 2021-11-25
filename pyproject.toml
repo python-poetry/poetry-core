@@ -86,12 +86,19 @@ known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
 strict = true
-ignore_missing_imports = true
 explicit_package_bases = true
 namespace_packages = true
 mypy_path = "src"
 files = "src, tests"
 exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+
+[[tool.mypy.overrides]]
+module = [
+  'jsonschema.*',
+  'setuptools.*',
+  'tomlkit.*',
+]
+ignore_missing_imports = true
 
 # The following whitelist is used to allow for incremental adoption
 # of Mypy. Modules should be removed from this whitelist as and when
