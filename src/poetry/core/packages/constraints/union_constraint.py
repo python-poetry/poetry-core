@@ -97,7 +97,7 @@ class UnionConstraint(BaseConstraint):
 
     def union(self, other: BaseConstraint) -> "UnionConstraint":
         if not isinstance(other, Constraint):
-            raise ValueError("Bad constraint union")
+            raise ValueError("Unimplemented constraint union")
 
         constraints = self._constraints
         if other not in self._constraints:

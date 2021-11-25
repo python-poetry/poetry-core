@@ -63,7 +63,7 @@ class MultiConstraint(BaseConstraint):
 
     def intersect(self, other: BaseConstraint) -> "BaseConstraint":
         if not isinstance(other, Constraint):
-            raise ValueError("Bad constraint intersection")
+            raise ValueError("Unimplemented constraint intersection")
 
         constraints = self._constraints
         if other not in constraints:

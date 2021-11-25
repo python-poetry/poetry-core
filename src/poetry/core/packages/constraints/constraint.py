@@ -34,7 +34,7 @@ class Constraint(BaseConstraint):
 
     def allows(self, other: "BaseConstraint") -> bool:
         if not isinstance(other, Constraint):
-            raise ValueError("Bad comparison of constraints")
+            raise ValueError("Unimplemented comparison of constraints")
 
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
