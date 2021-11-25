@@ -1,7 +1,5 @@
 import re
 
-from typing import Union
-
 from poetry.core.packages.constraints.any_constraint import AnyConstraint
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.constraint import Constraint
