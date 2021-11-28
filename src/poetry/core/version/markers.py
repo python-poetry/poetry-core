@@ -284,6 +284,9 @@ class SingleMarker(BaseMarker):
             if self == other:
                 return self
 
+            if self == other.invert():
+                return AnyMarker()
+
             return MarkerUnion.of(self, other)
 
         return other.union(self)
