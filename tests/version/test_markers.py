@@ -240,6 +240,12 @@ def test_single_marker_union_with_union_duplicate():
     assert str(union) == 'sys_platform == "darwin" or python_version <= "3.6"'
 
 
+def test_single_marker_union_with_inverse():
+    m = parse_marker('sys_platform == "darwin"')
+    union = m.union(parse_marker('sys_platform != "darwin"'))
+    assert union.is_any()
+
+
 def test_multi_marker():
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
