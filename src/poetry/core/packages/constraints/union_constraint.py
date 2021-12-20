@@ -29,7 +29,6 @@ class UnionConstraint(BaseConstraint):
         if other.is_any():
             return True
 
-        constraints: Tuple[BaseConstraint, ...]
         if isinstance(other, (UnionConstraint, MultiConstraint)):
             constraints = other.constraints
         else:
@@ -48,7 +47,6 @@ class UnionConstraint(BaseConstraint):
         if other.is_empty():
             return True
 
-        constraints: Tuple[BaseConstraint, ...]
         if isinstance(other, (UnionConstraint, MultiConstraint)):
             constraints = other.constraints
         else:
