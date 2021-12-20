@@ -26,7 +26,7 @@ def validate_object(obj: Dict[str, Any], schema_name: str) -> List[str]:
     from jsonschema import Draft7Validator
 
     validator = Draft7Validator(schema)
-    validation_errors = sorted(validator.iter_errors(obj), key=lambda e: e.path)  # type: ignore
+    validation_errors = sorted(validator.iter_errors(obj), key=lambda e: e.path)  # type: ignore[no-any-return]
 
     errors = []
 

@@ -16,4 +16,4 @@ class TomlFile(TOMLFile):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        return super().__new__(cls)  # type: ignore
+        return super().__new__(cls)  # type: ignore[no-any-return,misc]
