@@ -15,13 +15,13 @@ class EmptyConstraint(BaseConstraint):
         return False
 
     def allows_all(self, other: "BaseConstraint") -> bool:
-        return True
+        return other.is_empty()
 
     def allows_any(self, other: "BaseConstraint") -> bool:
-        return True
+        return False
 
     def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
-        return other
+        return self
 
     def difference(self, other: "BaseConstraint") -> "BaseConstraint":
         return self
