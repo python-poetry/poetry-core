@@ -9,7 +9,7 @@ from typing import Optional
 from typing import Union
 from warnings import warn
 
-from poetry.core.utils.helpers import readme_content_type
+from poetry.core.factory import validate
 
 
 if TYPE_CHECKING:
@@ -385,52 +385,13 @@ class Factory:
 
         result: Dict[str, List[str]] = {"errors": [], "warnings": []}
         # Schema validation errors
-        validation_errors = validate_object(config, "poetry-schema")
-
-        result["errors"] += validation_errors
+        result["errors"] += validate_object(config, "poetry-schema")
 
         if strict:
-            # If strict, check the file more thoroughly
-            if "dependencies" in config:
-                python_versions = config["dependencies"]["python"]
-                if python_versions == "*":
-                    result["warnings"].append(
-                        "A wildcard Python dependency is ambiguous. "
-                        "Consider specifying a more explicit one."
-                    )
-
-                for name, constraint in config["dependencies"].items():
-                    if not isinstance(constraint, dict):
-                        continue
-
-                    if "allows-prereleases" in constraint:
-                        result["warnings"].append(
-                            f'The "{name}" dependency specifies '
-                            'the "allows-prereleases" property, which is deprecated. '
-                            'Use "allow-prereleases" instead.'
-                        )
-
-            # Checking for scripts with extras
-            if "scripts" in config:
-                scripts = config["scripts"]
-                for name, script in scripts.items():
-                    if not isinstance(script, dict):
-                        continue
-
-                    extras = script["extras"]
-                    for extra in extras:
-                        if extra not in config["extras"]:
-                            result["errors"].append(
-                                f'Script "{name}" requires extra "{extra}" which is not defined.'
-                            )
-
-            # Checking types of all readme files (must match)
-            if "readme" in config and not isinstance(config["readme"], str):
-                readme_types = {readme_content_type(r) for r in config["readme"]}
-                if len(readme_types) > 1:
-                    result["errors"].append(
-                        f"Declared README files must be of same type: found {', '.join(sorted(readme_types))}"
-                    )
+            # If strict, check the file more
+            strict_result = validate.strict(config)
+            result["errors"].extend(strict_result["errors"])
+            result["warnings"].extend(strict_result["warnings"])
 
         return result
 
