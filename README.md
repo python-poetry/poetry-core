@@ -42,4 +42,4 @@ project.
 
 In order to improve the above situation, `poetry-core` was created. Shared functionality pertaining to PEP 517 build
 backends, including reading lock file, `pyproject.toml` and building wheel/sdist, were implemented in this package.  This
-makes PEP 517 builds extremely fast for Poetry managed packages.
+makes PEP 517 builds extremely fast for Poetry managed packages
