@@ -6,22 +6,22 @@ if TYPE_CHECKING:
 
 
 class BaseConstraint:
-    def allows(self, other: "ConstraintTypes") -> bool:
+    def allows(self, _other: "ConstraintTypes") -> bool:
         raise NotImplementedError()
 
-    def allows_all(self, other: "ConstraintTypes") -> bool:
+    def allows_all(self, _other: "ConstraintTypes") -> bool:
         raise NotImplementedError()
 
-    def allows_any(self, other: "ConstraintTypes") -> bool:
+    def allows_any(self, _other: "ConstraintTypes") -> bool:
         raise NotImplementedError()
 
-    def difference(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def difference(self, _other: "ConstraintTypes") -> "ConstraintTypes":
         raise NotImplementedError()
 
-    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def intersect(self, _other: "ConstraintTypes") -> "ConstraintTypes":
         raise NotImplementedError()
 
-    def union(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def union(self, _other: "ConstraintTypes") -> "ConstraintTypes":
         raise NotImplementedError()
 
     def is_any(self) -> bool:
@@ -33,5 +33,5 @@ class BaseConstraint:
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {str(self)}>"
 
-    def __eq__(self, other: object) -> bool:
-        raise NotImplementedError()
+    def __eq__(self, _other: object) -> bool:
+        return NotImplemented
