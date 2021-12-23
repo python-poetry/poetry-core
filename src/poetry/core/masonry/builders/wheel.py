@@ -184,7 +184,7 @@ class WheelBuilder(Builder):
 
                         rel_path = str(pkg.relative_to(lib))
 
-                        if rel_path in wheel.namelist():
+                        if rel_path in wheel.namelist() or self.is_excluded(rel_path):
                             continue
 
                         logger.debug(f"Adding: {rel_path}")
