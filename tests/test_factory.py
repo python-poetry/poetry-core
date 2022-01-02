@@ -232,9 +232,12 @@ def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true(
         fixtures_dir / "project_with_invalid_dev_deps", with_groups=False
     )
 
-def test_create_dependency_python_constraint_populated_from_markers():
-    constraint = {'version':'1.2.3.','markers':'python_version=="3.8" and sys_platform=="linux"'}
-    dependency = Factory().create_dependency('a',constraint)
-    
-    assert str(dependency._python_constraint) == '>=3.8,<3.9'
 
+def test_create_dependency_python_constraint_populated_from_markers():
+    constraint = {
+        "version": "1.2.3.",
+        "markers": 'python_version=="3.8" and sys_platform=="linux"',
+    }
+    dependency = Factory().create_dependency("a", constraint)
+
+    assert str(dependency._python_constraint) == ">=3.8,<3.9"

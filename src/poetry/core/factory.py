@@ -243,11 +243,11 @@ class Factory:
         from poetry.core.packages.file_dependency import FileDependency
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.utils import create_nested_marker
+        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
         from poetry.core.packages.vcs_dependency import VCSDependency
         from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import AnyMarker
         from poetry.core.version.markers import parse_marker
-        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 
         if groups is None:
             groups = ["default"]
