@@ -247,6 +247,7 @@ class Factory:
         from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import AnyMarker
         from poetry.core.version.markers import parse_marker
+        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 
         if groups is None:
             groups = ["default"]
@@ -366,6 +367,10 @@ class Factory:
                     )
             else:
                 marker = parse_marker(markers)
+                # possibility that python constraint appears in markers, not keywords
+                if not python_versions and markers:
+                    python_versions_marker = get_python_constraint_from_marker(marker)
+                    python_versions = python_versions_marker
 
             if not marker.is_any():
                 dependency.marker = marker
