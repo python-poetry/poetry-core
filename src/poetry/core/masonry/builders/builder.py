@@ -8,6 +8,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any, Collection, Optional
 
 
 if TYPE_CHECKING:
@@ -324,22 +325,11 @@ class Builder:
             if isinstance(specification, dict) and specification.get("type") == "file":
                 source = specification["reference"]
 
-                if Path(source).is_absolute():
+                try:
+                    abs_path = self.get_source_paths(name, [source])[0]
+                except IndexError:
                     raise RuntimeError(
-                        f"{source} in {name} is an absolute path. Expected relative"
-                        " path."
-                    )
-
-                abs_path = Path.joinpath(self._path, source)
-
-                if not abs_path.exists():
-                    raise RuntimeError(
-                        f"{abs_path} in script specification ({name}) is not found."
-                    )
-
-                if not abs_path.is_file():
-                    raise RuntimeError(
-                        f"{abs_path} in script specification ({name}) is not a file."
+                        f"{source} in script/module specification ({name}) is not found."
                     )
 
                 script_files.append(abs_path)
@@ -356,6 +346,107 @@ class Builder:
         email = m.group("email")
 
         return {"name": name, "email": email}
+
+    def convert_libraries(self) -> list[tuple[str, dict[str, Any]]]:
+        """
+        Convert library build info to required format for distutils.setup().
+        Expand globs and validate existence of source files.
+        """
+        libraries = []
+
+        for name, build_info in self._poetry.local_config.get("libraries", {}).items():
+
+            build_info["sources"] = [str(src) for src in
+                                     self.get_source_paths(name, build_info["sources"], expand_globs=True)]
+            if len(build_info["sources"]) == 0:
+                raise RuntimeError(f"No valid sources specified for library {name}")
+
+            if "macros" in build_info:
+                build_info["macros"] = [
+                    tuple(macro_def) for macro_def in build_info["macros"]
+                ]
+
+            libraries.append((name, build_info))
+
+        return libraries
+
+    def convert_ext_modules(self) -> list[tuple[str, dict[str, Any]]]:
+        """
+        Convert extension module build info to arguments for initializing distutils.extension.Extension objects.
+        Expand globs and validate existence of source and other files.
+        """
+        ext_modules = []
+
+        for name, build_info in self._poetry.local_config.get("ext_modules", {}).items():
+
+            build_info["sources"] = [str(src) for src in
+                                     self.get_source_paths(name, build_info["sources"], expand_globs=True)]
+            if len(build_info["sources"]) == 0:
+                raise RuntimeError(
+                    f"No valid sources specified for extension module {name}"
+                )
+
+            if "define_macros" in build_info:
+                build_info["define_macros"] = [
+                    tuple(macro_def) for macro_def in build_info["define_macros"]
+                ]
+
+            if "extra_objects" in build_info:
+                build_info["extra_objects"] = [str(src) for src in
+                                               self.get_source_paths(name, build_info["extra_objects"],
+                                                                     expand_globs=True)]
+
+            if "depends" in build_info:
+                build_info["depends"] = [str(src) for src in
+                                         self.get_source_paths(name, build_info["depends"], expand_globs=True)]
+
+            ext_modules.append((name, build_info))
+
+        return ext_modules
+
+    def get_source_paths(self, name: str, paths: list[str], expand_globs: bool = False) -> list[Path]:
+        """
+        Get source(s) specified as a list of relative paths within the project
+
+        :param name: Module name
+        :param paths: List of paths to source file/dir
+        :param expand_globs: Whether to expand globs, if present
+        :return: Absolute paths of source files/dirs
+        """
+        source_paths: set[Path] = set()
+
+        # Resolve absolute paths
+        for path in paths:
+            if expand_globs:
+                try:
+                    source_paths.update(self._path.glob(path))
+                except NotImplementedError:
+                    raise RuntimeError(
+                        f"{path} in {name} is an absolute path. Expected relative path."
+                    )
+            else:
+                source = Path(path)
+                if source.is_absolute():
+                    raise RuntimeError(
+                        f"{source} in {name} is an absolute path. Expected relative path."
+                    )
+                source_paths.add(Path.joinpath(self._path, source))
+
+        sources: list[Path] = []
+
+        for src in source_paths:
+
+            if not src.exists():
+                continue
+
+            if not src.is_file():
+                raise RuntimeError(
+                    f"{src} in script/module specification ({name}) is not a file."
+                )
+
+            sources.append(src)
+
+        return sources
 
 
 class BuildIncludeFile:

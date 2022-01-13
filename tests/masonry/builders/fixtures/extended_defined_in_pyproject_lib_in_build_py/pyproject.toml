@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "extended"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>",
+    "Boston Walker <boston@bostonwalker.me>"
+]
+license = "MIT"
+
+readme = "README.rst"
+
+homepage = "https://python-poetry.org/"
+
+[tool.poetry.build]
+script = "build.py"
+
+[tool.poetry.libraries.mylib]
+sources = [
+    "lib/mylib/*.c"
+]
+include_dirs = [
+    "include"
+]

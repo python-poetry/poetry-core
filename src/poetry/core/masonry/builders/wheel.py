@@ -145,7 +145,7 @@ class WheelBuilder(Builder):
             f.write(content)
 
     def _build(self, wheel: zipfile.ZipFile) -> None:
-        if self._package.build_script:
+        if self._package.should_build_libs_and_extensions():
             if not self._poetry.package.build_should_generate_setup():
                 # Since we have a build script but no setup.py generation is required,
                 # we assume that the build script will build and copy the files
@@ -298,7 +298,7 @@ class WheelBuilder(Builder):
 
     @property
     def tag(self) -> str:
-        if self._package.build_script:
+        if self._package.should_build_libs_and_extensions():
             sys_tag = next(sys_tags())
             tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
@@ -387,7 +387,9 @@ class WheelBuilder(Builder):
         fp.write(
             wheel_file_template.format(
                 version=__version__,
-                pure_lib="true" if self._package.build_script is None else "false",
+                pure_lib="true"
+                if not self._package.should_build_libs_and_extensions()
+                else "false",
                 tag=self.tag,
             )
         )

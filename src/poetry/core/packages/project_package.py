@@ -8,6 +8,7 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from distutils.extension import Extension
     from poetry.core.packages.dependency import Dependency
     from poetry.core.semver.version import Version
 
@@ -29,6 +30,8 @@ class ProjectPackage(Package):
         self.include: list[dict[str, Any]] = []
         self.exclude: list[dict[str, Any]] = []
         self.custom_urls: dict[str, str] = {}
+        self.libraries: list[tuple[str, dict[str, Any]]] = []
+        self.ext_modules: list[Extension] = []
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
@@ -88,3 +91,10 @@ class ProjectPackage(Package):
 
     def build_should_generate_setup(self) -> bool:
         return self.build_config.get("generate-setup-file", True)
+
+    def should_build_libs_and_extensions(self) -> bool:
+        return (
+            (self.build_script is not None)
+            or (len(self.libraries) > 0)
+            or (len(self.ext_modules) > 0)
+        )

@@ -227,6 +227,20 @@
           "description": "The full url of the custom url."
         }
       }
+    },
+    "libraries": {
+      "type": "object",
+      "description": "A set of project libraries to compile against",
+      "additionalProperties": {
+        "$ref": "#/definitions/library"
+      }
+    },
+    "ext_modules": {
+      "type": "object",
+      "description": "A set of project extension modules to compile and include",
+      "additionalProperties": {
+        "$ref": "#/definitions/ext-module"
+      }
     }
   },
   "definitions": {
@@ -645,6 +659,149 @@
         {
           "$ref": "#/definitions/build-config"
         }
+      ]
+    },
+    "library": {
+      "type": "object",
+      "description": "C library build info",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "A list of source filenames or globs, relative to the distribution root (where pyproject.toml is located), in Unix form (slash-separated) for portability. Source files may be C, C++, SWIG (.i), platform-specific resource files, or whatever else is recognized by the build_ext command as source for a Python extension."
+        },
+        "include_dirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of directories to search for C/C++ header files (in Unix form for portability)"
+        },
+        "macros": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "description": "A list of macros to define; each macro is defined using a 2-tuple (name, value), where value is either the string to define it to or an empty string to define it without a particular value (equivalent of #define FOO in source or -DFOO on Unix C compiler command line)"
+        }
+      },
+      "required": [
+        "sources"
+      ]
+    },
+    "ext-module": {
+      "type": "object",
+      "description": "Extension module build info",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "A list of source filenames or globs, relative to the distribution root (where pyproject.toml is located), in Unix form (slash-separated) for portability. Source files may be C, C++, SWIG (.i), platform-specific resource files, or whatever else is recognized by the build_ext command as source for a Python extension."
+        },
+        "include_dirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of directories to search for C/C++ header files (in Unix form for portability)"
+        },
+        "define_macros": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minLength": 2,
+            "maxLength": 2
+          },
+          "description": "A list of macros to define; each macro is defined using a 2-tuple (name, value), where value is either the string to define it to or an empty string to define it without a particular value (equivalent of #define FOO in source or -DFOO on Unix C compiler command line)"
+        },
+        "undef_macros": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of macros to undefine explicitly"
+        },
+        "library_dirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of directories to search for C/C++ libraries at link time"
+        },
+        "libraries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of library names (not filenames or paths) to link against"
+        },
+        "runtime_library_dirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of directories to search for C/C++ libraries at run time (for shared extensions, this is when the extension is loaded)"
+        },
+        "extra_objects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of paths or globs of extra files to link with (eg. object files not implied by \u2018sources\u2019, static library that must be explicitly specified, binary resource files, etc.)"
+        },
+        "extra_compile_args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Any extra platform- and compiler-specific information to use when compiling the source files in \u2018sources\u2019. For platforms and compilers where a command line makes sense, this is typically a list of command-line arguments, but for other platforms it could be anything."
+        },
+        "extra_link_args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Any extra platform- and compiler-specific information to use when linking object files together to create the extension (or to create a new static Python interpreter). Similar interpretation as for \u2018extra_compile_args\u2019."
+        },
+        "export_symbols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of symbols to be exported from a shared extension. Not used on all platforms, and not generally necessary for Python extensions, which typically export exactly one symbol: `init` + extension_name."
+        },
+        "depends": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of paths or globs of files that the extension depends on"
+        },
+        "language": {
+          "type": "string",
+          "description": "The extension language (i.e. `'c'`, `'c++'`, `'objc'`). Will be detected from the source extensions if not provided."
+        },
+        "optional": {
+          "type": "boolean",
+          "description": "Specifies that a build failure in the extension should not abort the build process, but simply skip the extension."
+        }
+      },
+      "required": [
+        "sources"
       ]
     }
   }

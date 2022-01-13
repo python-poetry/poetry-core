@@ -218,6 +218,27 @@ class Factory:
         if "urls" in config:
             package.custom_urls = config["urls"]
 
+        include_dirs: set[str] = set()
+
+        # C library build info
+        if "libraries" in config:
+            package.libraries = config["libraries"]
+            for _, build_info in config["libraries"].items():
+                if "include_dirs" in build_info:
+                    include_dirs.update(build_info["include_dirs"])
+
+        # Extension module build info
+        if "ext_modules" in config:
+            package.ext_modules = config["ext_modules"]
+            for _, build_info in config["ext_modules"].items():
+                if "include_dirs" in build_info:
+                    include_dirs.update(build_info["include_dirs"])
+
+        if include_dirs:
+            package.include = package.include or []
+            for include in include_dirs:
+                package.include.append({"path": include, "format": ["sdist"]})
+
         return package
 
     @classmethod
@@ -429,6 +450,11 @@ class Factory:
                         "Declared README files must be of same type: found"
                         f" {', '.join(sorted(readme_types))}"
                     )
+
+        if "build" in config and ("libraries" in config or "ext_modules" in config):
+            result["errors"].append(
+                "Extension modules and C libraries may not be declared in pyproject.toml when using a build script"
+            )
 
         return result
 

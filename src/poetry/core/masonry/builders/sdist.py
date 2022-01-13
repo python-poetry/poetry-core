@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 SETUP = """\
 # -*- coding: utf-8 -*-
 from setuptools import setup
+{imports}
 
 {before}
 setup_kwargs = {{
@@ -47,6 +48,25 @@ setup_kwargs = {{
 {after}
 
 setup(**setup_kwargs)
+"""
+
+EXT_BUILDER_DEF = """\
+
+
+class ExtBuilder(build_ext):
+
+    def run(self):
+        try:
+            super().run()
+        except (DistutilsPlatformError, FileNotFoundError):
+            raise BuildFailed('File not found. Could not compile C extension.')
+
+    def build_extension(self, ext):
+        try:
+            super().build_extension(ext)
+        except (CCompilerError, DistutilsExecError, DistutilsPlatformError, ValueError):
+            raise BuildFailed('Could not compile C extension.')
+
 """
 
 logger = logging.getLogger(__name__)
@@ -114,7 +134,7 @@ class SdistBuilder(Builder):
     def build_setup(self) -> bytes:
         from poetry.core.masonry.utils.package_include import PackageInclude
 
-        before, extra, after = [], [], []
+        imports, before, extra, after = [], [], [], []
         package_dir: dict[str, str] = {}
 
         # If we have a build script, use it
@@ -196,12 +216,36 @@ class SdistBuilder(Builder):
             before.append(f"scripts = \\\n{pformat(rel_paths)}\n")
             extra.append("'scripts': scripts,")
 
+        libraries = self.convert_libraries()
+        if libraries:
+            before.append(f"libraries = \\\n{pformat(libraries)}\n")
+            extra.append("'libraries': libraries,")
+
+        ext_modules = self.convert_ext_modules()
+        if ext_modules:
+            ext_modules_line = "ext_modules = [\n"
+            for name, build_info in ext_modules:
+                constructor = "    Extension(\n"
+                constructor += f"        {pformat(name)},\n"
+                for k, v in build_info.items():
+                    constructor += f"        {k}={pformat(v)},\n"
+                constructor += "    ),\n"
+                ext_modules_line += constructor
+            ext_modules_line += "]\n"
+            imports.append("from distutils.extension import Extension")
+            before.append(ext_modules_line)
+            extra.append("'ext_modules': ext_modules,")
+            imports.append("from distutils.command.build_ext import build_ext")
+            before.append(EXT_BUILDER_DEF)
+            extra.append("'cmdclass': {'build_ext': ExtBuilder},")
+
         if self._package.python_versions != "*":
             python_requires = self._meta.requires_python
 
             extra.append(f"'python_requires': {python_requires!r},")
 
         return SETUP.format(
+            imports="\n".join(imports),
             before="\n".join(before),
             name=str(self._meta.name),
             version=str(self._meta.version),
@@ -317,6 +361,7 @@ class SdistBuilder(Builder):
         return pkgdir, sorted(packages), pkg_data
 
     def find_files_to_add(self, exclude_build: bool = False) -> set[BuildIncludeFile]:
+
         to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
@@ -331,6 +376,18 @@ class SdistBuilder(Builder):
         # add readme if it is specified
         if "readme" in self._poetry.local_config:
             additional_files.add(self._poetry.local_config["readme"])
+
+        # add C library files
+        if "libraries" in self._poetry.local_config:
+            for _, build_info in self.convert_libraries():
+                additional_files.update(build_info["sources"])
+
+        # add C/C++/Obj-C extension files
+        if "ext_modules" in self._poetry.local_config:
+            for _, build_info in self.convert_ext_modules():
+                additional_files.update(build_info["sources"])
+                if "extra_objects" in build_info:
+                    additional_files.update(build_info["extra_objects"])
 
         for additional_file in additional_files:
             file = BuildIncludeFile(

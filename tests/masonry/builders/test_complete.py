@@ -49,17 +49,31 @@ def clear_samples_dist() -> None:
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension() -> None:
-    module_path = fixtures_dir / "extended"
+@pytest.mark.parametrize(
+    ("dir", "has_build_script"),
+    [
+        ("extended", True),
+        ("extended_defined_in_pyproject", False),
+    ],
+)
+def test_wheel_c_extension(dir: str, has_build_script: bool) -> None:
+    module_path = fixtures_dir / dir
+
+    # Perform "clean' build
+    setup_file = module_path / "setup.py"
+    if setup_file.exists():
+        setup_file.unlink()
+
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = fixtures_dir / "extended" / "dist" / "extended-0.1.tar.gz"
+    sdist = module_path / "dist" / "extended-0.1.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "extended-0.1/build.py" in tar.getnames()
+        if has_build_script:
+            assert "extended-0.1/build.py" in tar.getnames()
         assert "extended-0.1/extended/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
@@ -206,6 +220,90 @@ $""",
         assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
     finally:
         zip.close()
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32"
+    and sys.version_info <= (3, 6)
+    or platform.python_implementation().lower() == "pypy",
+    reason="Disable test on Windows for Python <=3.6 and for PyPy",
+)
+def test_wheel_c_cpp_extensions_defined_in_pyproject():
+    module_path = fixtures_dir / "extended_with_lib_defined_in_pyproject"
+
+    # Perform "clean' build
+    setup_file = module_path / "setup.py"
+    if setup_file.exists():
+        setup_file.unlink()
+
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = module_path / "dist" / "extended-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "extended-0.1/setup.py" in tar.getnames()
+        assert "extended-0.1/lib/mylib/mylib.c" in tar.getnames()
+        assert "extended-0.1/src/extended/extended.cpp" in tar.getnames()
+        assert "extended-0.1/include/mylib.h" in tar.getnames()
+        assert "extended-0.1/include/extended.hpp" in tar.getnames()
+
+    whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
+
+    assert whl.exists()
+
+    zip = zipfile.ZipFile(str(whl))
+
+    has_compiled_extension = False
+    for name in zip.namelist():
+        if name.startswith("extended/extended") and name.endswith((".so", ".pyd")):
+            has_compiled_extension = True
+
+    assert has_compiled_extension
+
+    try:
+        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
+
+        assert (
+            re.match(
+                f"""(?m)^\
+Wheel-Version: 1.0
+Generator: poetry {__version__}
+Root-Is-Purelib: false
+Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
+$""",
+                wheel_data,
+            )
+            is not None
+        )
+
+        records = zip.read("extended-0.1.dist-info/RECORD").decode()
+
+        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
+    finally:
+        zip.close()
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32"
+    and sys.version_info <= (3, 6)
+    or platform.python_implementation().lower() == "pypy",
+    reason="Disable test on Windows for Python <=3.6 and for PyPy",
+)
+@pytest.mark.parametrize(
+    "dir",
+    [
+        "extended_defined_in_pyproject_lib_in_build_py",
+        "extended_defined_in_build_py_lib_in_pyproject",
+    ],
+)
+def test_extensions_defined_in_pyproject_with_build_py_raises_error(dir: str):
+    module_path = fixtures_dir / dir
+
+    with pytest.raises(RuntimeError):
+        Builder(Factory().create_poetry(module_path))
 
 
 def test_complete() -> None:
