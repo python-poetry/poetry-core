@@ -58,7 +58,7 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
     """
     compat_kwargs = {"text" if PY37 else "universal_newlines": True}
     result = subprocess.run(
-        args, **compat_kwargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+        args, **compat_kwargs, capture_output=True, **kwargs
     )
     assert result.returncode == 0
     return result
