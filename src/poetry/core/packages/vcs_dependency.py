@@ -120,7 +120,7 @@ class VCSDependency(Dependency):
             requirement += f"@{self.reference}"
 
         if self._directory:
-            requirement += f"#subdirectory{self._directory}"
+            requirement += f"#subdirectory={self._directory}"
 
         return requirement
 
