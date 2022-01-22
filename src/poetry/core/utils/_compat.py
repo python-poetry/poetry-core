@@ -3,8 +3,6 @@ import sys
 from typing import List
 
 
-PY37 = sys.version_info >= (3, 7)
-
 WINDOWS = sys.platform == "win32"
 
 
