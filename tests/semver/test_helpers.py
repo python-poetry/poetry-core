@@ -25,6 +25,7 @@ from poetry.core.version.pep440 import ReleaseTag
         (">=1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),
         ("=1.2.3", Version.from_parts(1, 2, 3)),
         ("1.2.3", Version.from_parts(1, 2, 3)),
+        ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
         ("=1.0", Version.from_parts(1, 0, 0)),
         ("1.2.3b5", Version.from_parts(1, 2, 3, pre=ReleaseTag("beta", 5))),
         (">= 1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),

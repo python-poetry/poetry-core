@@ -8,7 +8,7 @@ MODIFIERS = (
 )
 
 _COMPLETE_VERSION = (
-    fr"v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?{MODIFIERS}(?:\+[^\s]+)?"
+    fr"v?(?:\d+!)?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?{MODIFIERS}(?:\+[^\s]+)?"
 )
 
 COMPLETE_VERSION = re.compile("(?i)" + _COMPLETE_VERSION)

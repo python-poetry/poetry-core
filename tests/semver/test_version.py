@@ -28,6 +28,7 @@ from poetry.core.version.pep440 import ReleaseTag
         ("1.0.0-post1", Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1))),
         ("0.6c", Version.from_parts(0, 6, 0, pre=ReleaseTag("rc", 0))),
         ("0.6pre", Version.from_parts(0, 6, 0, pre=ReleaseTag("preview", 0))),
+        ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
     ],
 )
 def test_parse_valid(text: str, version: Version):
