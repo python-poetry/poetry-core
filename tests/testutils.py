@@ -13,7 +13,6 @@ from typing import List
 from typing import Optional
 
 from poetry.core.toml import TOMLFile
-from poetry.core.utils._compat import PY37
 
 
 __toml_build_backend_patch__ = {
@@ -56,7 +55,6 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
     """
     Helper method to run a subprocess. Asserts for success.
     """
-    compat_kwargs = {"text" if PY37 else "universal_newlines": True}
     result = subprocess.run(args, text=True, capture_output=True, **kwargs)
     assert result.returncode == 0
     return result
