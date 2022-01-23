@@ -55,21 +55,7 @@ isort = {version = "^5.9.3", python = "^3.6.1"}
 line-length = 88
 experimental_string_processing = true
 include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | src/poetry/core/_vendor/*
-)/
-'''
+extend-exclude = "src/poetry/core/_vendor/*"
 
 [tool.isort]
 profile = "black"
