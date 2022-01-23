@@ -119,7 +119,7 @@ module = [
   'poetry.core.version.*',
   # test modules
   'tests.conftest',
-  'tests.integration/test_pep517',
+  'tests.integration.test_pep517',
   'tests.json.*',
   'tests.masonry.*',
   'tests.packages.*',
