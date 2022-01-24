@@ -31,7 +31,7 @@ from poetry.core.semver.helpers import parse_constraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.poetry import Poetry  # noqa
+    from poetry.core.poetry import Poetry
 
 wheel_file_template = """\
 Wheel-Version: 1.0

@@ -423,7 +423,8 @@ class Factory:
                     for extra in extras:
                         if extra not in config["extras"]:
                             result["errors"].append(
-                                f'Script "{name}" requires extra "{extra}" which is not defined.'
+                                f'Script "{name}" requires extra "{extra}" which is not'
+                                " defined."
                             )
 
             # Checking types of all readme files (must match)
@@ -431,7 +432,8 @@ class Factory:
                 readme_types = {readme_content_type(r) for r in config["readme"]}
                 if len(readme_types) > 1:
                     result["errors"].append(
-                        f"Declared README files must be of same type: found {', '.join(sorted(readme_types))}"
+                        "Declared README files must be of same type: found"
+                        f" {', '.join(sorted(readme_types))}"
                     )
 
         return result

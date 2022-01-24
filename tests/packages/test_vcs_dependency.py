@@ -60,7 +60,10 @@ def test_to_pep_508_in_extras():
     )
     dependency.in_extras.append("foo;")
 
-    expected = 'poetry @ git+https://github.com/python-poetry/poetry.git@b;ar; ; extra == "foo;"'
+    expected = (
+        "poetry @ git+https://github.com/python-poetry/poetry.git@b;ar; ; extra =="
+        ' "foo;"'
+    )
 
     assert expected == dependency.to_pep_508()
 

@@ -34,7 +34,8 @@ class Requirement:
             parsed = _parser.parse(requirement_string)
         except (UnexpectedCharacters, UnexpectedToken) as e:
             raise InvalidRequirement(
-                f"The requirement is invalid: Unexpected character at column {e.column}\n\n{e.get_context(requirement_string)}"
+                "The requirement is invalid: Unexpected character at column"
+                f" {e.column}\n\n{e.get_context(requirement_string)}"
             )
 
         self.name = next(parsed.scan_values(lambda t: t.type == "NAME")).value

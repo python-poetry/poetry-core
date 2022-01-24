@@ -12,7 +12,7 @@ WINDOWS = sys.platform == "win32"
 try:
     FileNotFoundError
 except NameError:
-    FileNotFoundError = IOError  # noqa
+    FileNotFoundError = IOError
 
 
 def list_to_shell_command(cmd: List[str]) -> str:

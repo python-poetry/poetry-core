@@ -111,7 +111,8 @@ def test_get_metadata_content():
     assert requires == [
         "cachy[msgpack] (>=0.2.0,<0.3.0)",
         "cleo (>=0.6,<0.7)",
-        'pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")',
+        'pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or'
+        ' python_version in "3.4 3.5") and (extra == "time")',
     ]
 
     urls = parsed.get_all("Project-URL")
@@ -159,7 +160,8 @@ def test_metadata_with_url_dependencies():
 
     assert (
         requires_dist
-        == "demo @ https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
+        == "demo @"
+        " https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
     )
 
 
