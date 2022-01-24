@@ -143,7 +143,7 @@ def test_metadata_with_vcs_dependencies():
 
     requires_dist = metadata["Requires-Dist"]
 
-    assert "cleo @ git+https://github.com/sdispater/cleo.git@master" == requires_dist
+    assert requires_dist == "cleo @ git+https://github.com/sdispater/cleo.git@master"
 
 
 def test_metadata_with_url_dependencies():
@@ -158,8 +158,8 @@ def test_metadata_with_url_dependencies():
     requires_dist = metadata["Requires-Dist"]
 
     assert (
-        "demo @ https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
-        == requires_dist
+        requires_dist
+        == "demo @ https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
     )
 
 

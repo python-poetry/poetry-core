@@ -468,9 +468,9 @@ def test_default_with_excluded_data(mocker: "MockerFixture"):
                 "my-package-1.2.3/PKG-INFO",
             ]:
                 # generated files have timestamp set to 0
-                assert 0 == tarinfo.mtime
+                assert tarinfo.mtime == 0
                 continue
-            assert 0 < tarinfo.mtime
+            assert tarinfo.mtime > 0
 
 
 def test_src_excluded_nested_data():

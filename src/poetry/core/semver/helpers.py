@@ -147,16 +147,15 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
 
         if op == "<":
             return VersionRange(max=version)
-        elif op == "<=":
+        if op == "<=":
             return VersionRange(max=version, include_max=True)
-        elif op == ">":
+        if op == ">":
             return VersionRange(min=version)
-        elif op == ">=":
+        if op == ">=":
             return VersionRange(min=version, include_min=True)
-        elif op == "!=":
+        if op == "!=":
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
-        else:
-            return version
+        return version
 
     from poetry.core.semver.exceptions import ParseConstraintError
 

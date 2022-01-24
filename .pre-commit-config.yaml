@@ -13,6 +13,7 @@ repos:
           - flake8-annotations
           - flake8-bugbear
           - flake8-comprehensions
+          - flake8-simplify
           - flake8-tidy-imports
           - flake8-use-fstring
 

@@ -177,11 +177,11 @@ def test_dependency_from_pep_508_with_git_url():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "django-utils" == dep.name
+    assert dep.name == "django-utils"
     assert dep.is_vcs()
-    assert "git" == dep.vcs
-    assert "ssh://git@corp-gitlab.com/corp-utils.git" == dep.source
-    assert "1.2" == dep.reference
+    assert dep.vcs == "git"
+    assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
+    assert dep.reference == "1.2"
 
 
 def test_dependency_from_pep_508_with_git_url_and_subdirectory():
@@ -189,12 +189,12 @@ def test_dependency_from_pep_508_with_git_url_and_subdirectory():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "django-utils" == dep.name
+    assert dep.name == "django-utils"
     assert dep.is_vcs()
-    assert "git" == dep.vcs
-    assert "ssh://git@corp-gitlab.com/corp-utils.git" == dep.source
-    assert "1.2" == dep.reference
-    assert "package-dir" == dep.directory
+    assert dep.vcs == "git"
+    assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
+    assert dep.reference == "1.2"
+    assert dep.directory == "package-dir"
 
 
 def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
@@ -205,11 +205,11 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "poetry" == dep.name
+    assert dep.name == "poetry"
     assert dep.is_vcs()
-    assert "git" == dep.vcs
-    assert "https://github.com/python-poetry/poetry.git" == dep.source
-    assert "b;ar;" == dep.reference
+    assert dep.vcs == "git"
+    assert dep.source == "https://github.com/python-poetry/poetry.git"
+    assert dep.reference == "b;ar;"
     assert dep.in_extras == ["foo;"]
 
 
@@ -218,9 +218,9 @@ def test_dependency_from_pep_508_with_url():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "django-utils" == dep.name
+    assert dep.name == "django-utils"
     assert dep.is_url()
-    assert "https://example.com/django-utils-1.0.0.tar.gz" == dep.url
+    assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
 
 
 def test_dependency_from_pep_508_with_wheel_url():
@@ -230,7 +230,7 @@ def test_dependency_from_pep_508_with_wheel_url():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "example-wheel" == dep.name
+    assert dep.name == "example-wheel"
     assert str(dep.constraint) == "14.0.2"
 
 

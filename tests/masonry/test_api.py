@@ -182,7 +182,7 @@ My Package
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
 
-        assert "my_package-1.2.3.dist-info" == dirname
+        assert dirname == "my_package-1.2.3.dist-info"
 
         dist_info = Path(tmp_dir, dirname)
 

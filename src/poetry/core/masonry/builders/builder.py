@@ -377,13 +377,7 @@ class BuildIncludeFile:
         else:
             self.path = self.path
 
-        try:
-            self.path = self.path.resolve()
-        except FileNotFoundError:
-            # this is an issue in in python 3.5, since resolve uses strict=True by
-            # default, this workaround needs to be maintained till python 2.7 and
-            # python 3.5 are dropped, until we can use resolve(strict=False).
-            pass
+        self.path = self.path.resolve()
 
     def __eq__(self, other: Union["BuildIncludeFile", Path]) -> bool:
         if hasattr(other, "path"):

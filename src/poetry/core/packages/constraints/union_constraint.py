@@ -23,11 +23,7 @@ class UnionConstraint(BaseConstraint):
     def allows(
         self, other: Union[Constraint, MultiConstraint, "UnionConstraint"]
     ) -> bool:
-        for constraint in self._constraints:
-            if constraint.allows(other):
-                return True
-
-        return False
+        return any(constraint.allows(other) for constraint in self._constraints)
 
     def allows_any(self, other: "ConstraintTypes") -> bool:
         if other.is_empty():
@@ -41,12 +37,11 @@ class UnionConstraint(BaseConstraint):
         else:
             constraints = other.constraints
 
-        for our_constraint in self._constraints:
-            for their_constraint in constraints:
-                if our_constraint.allows_any(their_constraint):
-                    return True
-
-        return False
+        return any(
+            our_constraint.allows_any(their_constraint)
+            for our_constraint in self._constraints
+            for their_constraint in constraints
+        )
 
     def allows_all(self, other: "ConstraintTypes") -> bool:
         if other.is_any():

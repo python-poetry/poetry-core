@@ -148,10 +148,9 @@ class Package(PackageSpecification):
         if self.source_type not in ["hg", "git"]:
             return self._pretty_version
 
-        if self.source_resolved_reference:
-            if len(self.source_resolved_reference) == 40:
-                ref = self.source_resolved_reference[0:7]
-                return f"{self._pretty_version} {ref}"
+        if self.source_resolved_reference and len(self.source_resolved_reference) == 40:
+            ref = self.source_resolved_reference[0:7]
+            return f"{self._pretty_version} {ref}"
 
         # if source reference is a sha1 hash -- truncate
         if len(self.source_reference) == 40:
@@ -271,9 +270,7 @@ class Package(PackageSpecification):
         from poetry.core.spdx.helpers import license_by_id
         from poetry.core.spdx.license import License  # noqa
 
-        if value is None:
-            self._license = value
-        elif isinstance(value, License):
+        if value is None or isinstance(value, License):
             self._license = value
         else:
             self._license = license_by_id(value)

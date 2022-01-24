@@ -1,3 +1,4 @@
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import List
@@ -39,7 +40,9 @@ class BuildSystem:
                 except ValueError:
                     # PEP 517 requires can be path if not PEP 508
                     path = Path(requirement)
-                    try:
+                    # compatibility Python < 3.8
+                    # https://docs.python.org/3/library/pathlib.html#methods
+                    with suppress(OSError):
                         if path.is_file():
                             dependency = FileDependency(
                                 name=canonicalize_name(path.name), path=path
@@ -48,10 +51,6 @@ class BuildSystem:
                             dependency = DirectoryDependency(
                                 name=canonicalize_name(path.name), path=path
                             )
-                    except OSError:
-                        # compatibility Python < 3.8
-                        # https://docs.python.org/3/library/pathlib.html#methods
-                        pass
 
                 if dependency is None:
                     # skip since we could not determine requirement
