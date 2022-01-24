@@ -217,7 +217,7 @@ class PEP440Version:
             epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
         )
 
-    def replace(self: T, **kT: Any) -> "PEP440Version":
+    def replace(self: T, **kwargs: Any) -> "PEP440Version":
         return self.__class__(
             **{
                 **{
