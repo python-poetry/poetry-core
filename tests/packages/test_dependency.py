@@ -89,7 +89,8 @@ def test_to_pep_508():
 
     result = dependency.to_pep_508()
     assert (
-        result == "Django (>=1.23,<2.0); "
+        result
+        == "Django (>=1.23,<2.0); "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -120,8 +121,9 @@ def test_to_pep_508_in_extras():
     dependency.python_versions = "~2.7 || ^3.6"
 
     result = dependency.to_pep_508()
-    assert result == (
-        "Django (>=1.23,<2.0); "
+    assert (
+        result
+        == "Django (>=1.23,<2.0); "
         "("
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
@@ -130,8 +132,9 @@ def test_to_pep_508_in_extras():
     )
 
     result = dependency.to_pep_508(with_extras=False)
-    assert result == (
-        "Django (>=1.23,<2.0); "
+    assert (
+        result
+        == "Django (>=1.23,<2.0); "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )

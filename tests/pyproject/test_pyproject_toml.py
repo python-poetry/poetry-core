@@ -1,6 +1,6 @@
 import uuid
 
-from pathlib import Path  # noqa
+from pathlib import Path
 
 import pytest
 

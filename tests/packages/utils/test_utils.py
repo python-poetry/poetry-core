@@ -8,9 +8,9 @@ from poetry.core.version.markers import parse_marker
 
 def test_convert_markers():
     marker = parse_marker(
-        'sys_platform == "win32" and python_version < "3.6" '
-        'or sys_platform == "win32" and python_version < "3.6" and python_version >= "3.3" '
-        'or sys_platform == "win32" and python_version < "3.3"'
+        'sys_platform == "win32" and python_version < "3.6" or sys_platform == "win32"'
+        ' and python_version < "3.6" and python_version >= "3.3" or sys_platform =='
+        ' "win32" and python_version < "3.3"'
     )
 
     converted = convert_markers(marker)

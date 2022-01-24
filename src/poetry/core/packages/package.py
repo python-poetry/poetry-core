@@ -19,10 +19,10 @@ from poetry.core.version.markers import parse_marker
 if TYPE_CHECKING:
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.types import DependencyTypes
-    from poetry.core.semver.helpers import VersionTypes  # noqa
-    from poetry.core.semver.version import Version  # noqa
-    from poetry.core.spdx.license import License  # noqa
-    from poetry.core.version.markers import BaseMarker  # noqa
+    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version import Version
+    from poetry.core.spdx.license import License
+    from poetry.core.version.markers import BaseMarker
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
@@ -268,7 +268,7 @@ class Package(PackageSpecification):
     @license.setter
     def license(self, value: Optional[Union[str, "License"]]) -> None:
         from poetry.core.spdx.helpers import license_by_id
-        from poetry.core.spdx.license import License  # noqa
+        from poetry.core.spdx.license import License
 
         if value is None or isinstance(value, License):
             self._license = value
@@ -277,7 +277,7 @@ class Package(PackageSpecification):
 
     @property
     def all_classifiers(self) -> List[str]:
-        from poetry.core.semver.version import Version  # noqa
+        from poetry.core.semver.version import Version
 
         classifiers = copy.copy(self.classifiers)
 
@@ -347,7 +347,8 @@ class Package(PackageSpecification):
         import warnings
 
         warnings.warn(
-            "`readme` is deprecated: you are getting only the first readme file. Please use the plural form `readmes`.",
+            "`readme` is deprecated: you are getting only the first readme file. Please"
+            " use the plural form `readmes`.",
             DeprecationWarning,
         )
         return next(iter(self.readmes), None)
@@ -357,7 +358,8 @@ class Package(PackageSpecification):
         import warnings
 
         warnings.warn(
-            "`readme` is deprecated. Please assign a tuple to the plural form `readmes`.",
+            "`readme` is deprecated. Please assign a tuple to the plural form"
+            " `readmes`.",
             DeprecationWarning,
         )
         self.readmes = (path,)

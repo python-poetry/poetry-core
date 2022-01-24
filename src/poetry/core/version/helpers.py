@@ -7,7 +7,7 @@ from poetry.core.semver.version_union import VersionUnion
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint  # noqa
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 PYTHON_VERSION = [
     "2.7.*",

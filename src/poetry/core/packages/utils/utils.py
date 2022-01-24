@@ -15,13 +15,12 @@ from urllib.request import url2pathname
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint  # noqa
-    from poetry.core.semver.helpers import VersionTypes  # noqa
-    from poetry.core.semver.version import Version  # noqa
-    from poetry.core.semver.version_constraint import VersionConstraint  # noqa
-    from poetry.core.semver.version_range import VersionRange  # noqa
-    from poetry.core.semver.version_union import VersionUnion  # noqa
-    from poetry.core.version.markers import BaseMarker  # noqa
+    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.version.markers import BaseMarker
 
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
@@ -32,7 +31,7 @@ ARCHIVE_EXTENSIONS = ZIP_EXTENSIONS + BZ2_EXTENSIONS + TAR_EXTENSIONS + XZ_EXTEN
 SUPPORTED_EXTENSIONS = ZIP_EXTENSIONS + TAR_EXTENSIONS
 
 try:
-    import bz2  # noqa
+    import bz2  # noqa: F401
 
     SUPPORTED_EXTENSIONS += BZ2_EXTENSIONS
 except ImportError:
@@ -40,7 +39,7 @@ except ImportError:
 
 try:
     # Only for Python 3.3+
-    import lzma  # noqa
+    import lzma  # noqa: F401
 
     SUPPORTED_EXTENSIONS += XZ_EXTENSIONS
 except ImportError:
@@ -300,7 +299,7 @@ def get_python_constraint_from_marker(
     from poetry.core.semver.empty_constraint import EmptyConstraint
     from poetry.core.semver.helpers import parse_constraint
     from poetry.core.semver.version import Version
-    from poetry.core.semver.version_range import VersionRange  # noqa
+    from poetry.core.semver.version_range import VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():

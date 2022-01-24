@@ -89,7 +89,8 @@ def assert_requirement(
             },
         ),
         (
-            "foo @ https://example.com/name;v=1.1/?query=foo&bar=baz#blah ; python_version=='3.4'",
+            "foo @ https://example.com/name;v=1.1/?query=foo&bar=baz#blah ;"
+            " python_version=='3.4'",
             {
                 "name": "foo",
                 "url": "https://example.com/name;v=1.1/?query=foo&bar=baz#blah",
@@ -97,11 +98,15 @@ def assert_requirement(
             },
         ),
         (
-            'foo (>=1.2.3) ; python_version >= "2.7" and python_version < "2.8" or python_version >= "3.4" and python_version < "3.5"',
+            'foo (>=1.2.3) ; python_version >= "2.7" and python_version < "2.8" or'
+            ' python_version >= "3.4" and python_version < "3.5"',
             {
                 "name": "foo",
                 "constraint": ">=1.2.3",
-                "marker": 'python_version >= "2.7" and python_version < "2.8" or python_version >= "3.4" and python_version < "3.5"',
+                "marker": (
+                    'python_version >= "2.7" and python_version < "2.8" or'
+                    ' python_version >= "3.4" and python_version < "3.5"'
+                ),
             },
         ),
     ],

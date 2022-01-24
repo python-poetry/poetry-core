@@ -41,7 +41,8 @@ def test_single_marker():
     assert str(m.constraint) == "<2.7.0 || >=2.8.0,<3.0.0 || >=3.2.0"
 
     m = parse_marker(
-        "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'"
+        "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64"
+        " win32 WIN32'"
     )
 
     assert isinstance(m, SingleMarker)
@@ -50,22 +51,28 @@ def test_single_marker():
         m.constraint_string
         == "in x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32"
     )
-    assert str(m.constraint) == (
-        "x86_64 || X86_64 || aarch64 || AARCH64 || ppc64le || PPC64LE || amd64 || AMD64 || win32 || WIN32"
+    assert (
+        str(m.constraint)
+        == "x86_64 || X86_64 || aarch64 || AARCH64 || ppc64le || PPC64LE || amd64 ||"
+        " AMD64 || win32 || WIN32"
     )
 
     m = parse_marker(
-        "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'"
+        "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64"
+        " AMD64 win32 WIN32'"
     )
 
     assert isinstance(m, SingleMarker)
     assert m.name == "platform_machine"
     assert (
         m.constraint_string
-        == "not in x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32"
+        == "not in x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32"
+        " WIN32"
     )
-    assert str(m.constraint) == (
-        "!=x86_64, !=X86_64, !=aarch64, !=AARCH64, !=ppc64le, !=PPC64LE, !=amd64, !=AMD64, !=win32, !=WIN32"
+    assert (
+        str(m.constraint)
+        == "!=x86_64, !=X86_64, !=aarch64, !=AARCH64, !=ppc64le, !=PPC64LE, !=amd64,"
+        " !=AMD64, !=win32, !=WIN32"
     )
 
 
@@ -99,7 +106,8 @@ def test_single_marker_intersect_with_multi():
     )
     assert (
         str(intersection)
-        == 'implementation_name == "cpython" and python_version >= "3.6" and sys_platform == "darwin"'
+        == 'implementation_name == "cpython" and python_version >= "3.6" and'
+        ' sys_platform == "darwin"'
     )
 
 
@@ -163,7 +171,8 @@ def test_single_marker_union_with_multi():
     )
     assert (
         str(union)
-        == 'implementation_name == "cpython" and python_version >= "3.6" or sys_platform == "darwin"'
+        == 'implementation_name == "cpython" and python_version >= "3.6" or'
+        ' sys_platform == "darwin"'
     )
 
 
@@ -184,7 +193,8 @@ def test_single_marker_union_with_union():
     )
     assert (
         str(union)
-        == 'implementation_name == "cpython" or python_version >= "3.6" or sys_platform == "darwin"'
+        == 'implementation_name == "cpython" or python_version >= "3.6" or sys_platform'
+        ' == "darwin"'
     )
 
 
@@ -240,8 +250,9 @@ def test_multi_marker_intersect_multi():
     intersection = m.intersect(
         parse_marker('python_version >= "3.6" and os_name == "Windows"')
     )
-    assert str(intersection) == (
-        'sys_platform == "darwin" and implementation_name == "cpython" '
+    assert (
+        str(intersection)
+        == 'sys_platform == "darwin" and implementation_name == "cpython" '
         'and python_version >= "3.6" and os_name == "Windows"'
     )
 
@@ -251,11 +262,14 @@ def test_multi_marker_intersect_multi_with_overlapping_constraints():
 
     intersection = m.intersect(
         parse_marker(
-            'python_version <= "3.4" and os_name == "Windows" and sys_platform == "darwin"'
+            'python_version <= "3.4" and os_name == "Windows" and sys_platform =='
+            ' "darwin"'
         )
     )
-    assert str(intersection) == (
-        'sys_platform == "darwin" and python_version <= "3.4" and os_name == "Windows"'
+    assert (
+        str(intersection)
+        == 'sys_platform == "darwin" and python_version <= "3.4" and os_name =='
+        ' "Windows"'
     )
 
 
@@ -265,8 +279,9 @@ def test_multi_marker_union_multi():
     intersection = m.union(
         parse_marker('python_version >= "3.6" and os_name == "Windows"')
     )
-    assert str(intersection) == (
-        'sys_platform == "darwin" and implementation_name == "cpython" '
+    assert (
+        str(intersection)
+        == 'sys_platform == "darwin" and implementation_name == "cpython" '
         'or python_version >= "3.6" and os_name == "Windows"'
     )
 
@@ -277,8 +292,9 @@ def test_multi_marker_union_with_union():
     intersection = m.union(
         parse_marker('python_version >= "3.6" or os_name == "Windows"')
     )
-    assert str(intersection) == (
-        'python_version >= "3.6" or os_name == "Windows"'
+    assert (
+        str(intersection)
+        == 'python_version >= "3.6" or os_name == "Windows"'
         ' or sys_platform == "darwin" and implementation_name == "cpython"'
     )
 
@@ -295,7 +311,8 @@ def test_marker_union():
 
 def test_marker_union_deduplicate():
     m = parse_marker(
-        'sys_platform == "darwin" or implementation_name == "cpython" or sys_platform == "darwin"'
+        'sys_platform == "darwin" or implementation_name == "cpython" or sys_platform'
+        ' == "darwin"'
     )
 
     assert str(m) == 'sys_platform == "darwin" or implementation_name == "cpython"'
@@ -305,8 +322,9 @@ def test_marker_union_intersect_single_marker():
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     intersection = m.intersect(parse_marker('implementation_name == "cpython"'))
-    assert str(intersection) == (
-        'sys_platform == "darwin" and implementation_name == "cpython" '
+    assert (
+        str(intersection)
+        == 'sys_platform == "darwin" and implementation_name == "cpython" '
         'or python_version < "3.4" and implementation_name == "cpython"'
     )
 
@@ -317,14 +335,16 @@ def test_marker_union_intersect_single_with_overlapping_constraints():
     intersection = m.intersect(parse_marker('python_version <= "3.6"'))
     assert (
         str(intersection)
-        == 'sys_platform == "darwin" and python_version <= "3.6" or python_version < "3.4"'
+        == 'sys_platform == "darwin" and python_version <= "3.6" or python_version <'
+        ' "3.4"'
     )
 
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
     intersection = m.intersect(parse_marker('sys_platform == "darwin"'))
     assert (
         str(intersection)
-        == 'sys_platform == "darwin" or python_version < "3.4" and sys_platform == "darwin"'
+        == 'sys_platform == "darwin" or python_version < "3.4" and sys_platform =='
+        ' "darwin"'
     )
 
 
@@ -334,8 +354,9 @@ def test_marker_union_intersect_marker_union():
     intersection = m.intersect(
         parse_marker('implementation_name == "cpython" or os_name == "Windows"')
     )
-    assert str(intersection) == (
-        'sys_platform == "darwin" and implementation_name == "cpython" '
+    assert (
+        str(intersection)
+        == 'sys_platform == "darwin" and implementation_name == "cpython" '
         'or sys_platform == "darwin" and os_name == "Windows" or '
         'python_version < "3.4" and implementation_name == "cpython" or '
         'python_version < "3.4" and os_name == "Windows"'
@@ -366,9 +387,11 @@ def test_marker_union_intersect_multi_marker():
     intersection = m.intersect(
         parse_marker('implementation_name == "cpython" and os_name == "Windows"')
     )
-    assert str(intersection) == (
-        'implementation_name == "cpython" and os_name == "Windows" and sys_platform == "darwin" '
-        'or implementation_name == "cpython" and os_name == "Windows" and python_version < "3.4"'
+    assert (
+        str(intersection)
+        == 'implementation_name == "cpython" and os_name == "Windows" and sys_platform'
+        ' == "darwin" or implementation_name == "cpython" and os_name == "Windows"'
+        ' and python_version < "3.4"'
     )
 
 
@@ -378,8 +401,9 @@ def test_marker_union_union_with_union():
     union = m.union(
         parse_marker('implementation_name == "cpython" or os_name == "Windows"')
     )
-    assert str(union) == (
-        'sys_platform == "darwin" or python_version < "3.4" '
+    assert (
+        str(union)
+        == 'sys_platform == "darwin" or python_version < "3.4" '
         'or implementation_name == "cpython" or os_name == "Windows"'
     )
 
@@ -388,19 +412,22 @@ def test_marker_union_union_duplicates():
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     union = m.union(parse_marker('sys_platform == "darwin" or os_name == "Windows"'))
-    assert str(union) == (
-        'sys_platform == "darwin" or python_version < "3.4" or os_name == "Windows"'
+    assert (
+        str(union)
+        == 'sys_platform == "darwin" or python_version < "3.4" or os_name == "Windows"'
     )
 
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     union = m.union(
         parse_marker(
-            'sys_platform == "darwin" or os_name == "Windows" or python_version <= "3.6"'
+            'sys_platform == "darwin" or os_name == "Windows" or python_version <='
+            ' "3.6"'
         )
     )
-    assert str(union) == (
-        'sys_platform == "darwin" or python_version <= "3.6" or os_name == "Windows"'
+    assert (
+        str(union)
+        == 'sys_platform == "darwin" or python_version <= "3.6" or os_name == "Windows"'
     )
 
 
@@ -434,13 +461,15 @@ def test_marker_str_conversion_skips_empty_and_any():
     union = MarkerUnion(
         parse_marker("<empty>"),
         parse_marker(
-            'sys_platform == "darwin" or python_version <= "3.6" or os_name == "Windows"'
+            'sys_platform == "darwin" or python_version <= "3.6" or os_name =='
+            ' "Windows"'
         ),
         parse_marker(""),
     )
 
-    assert str(union) == (
-        'sys_platform == "darwin" or python_version <= "3.6" or os_name == "Windows"'
+    assert (
+        str(union)
+        == 'sys_platform == "darwin" or python_version <= "3.6" or os_name == "Windows"'
     )
 
 
@@ -478,17 +507,17 @@ def test_multi_marker_removes_duplicates():
             True,
         ),
         (
-            "python_version ~= '2.7.0' and (os_name == 'foo' or " "os_name == 'bar')",
+            "python_version ~= '2.7.0' and (os_name == 'foo' or os_name == 'bar')",
             {"os_name": "foo", "python_version": "2.7.4"},
             True,
         ),
         (
-            "python_version ~= '2.7.0' and (os_name == 'foo' or " "os_name == 'bar')",
+            "python_version ~= '2.7.0' and (os_name == 'foo' or os_name == 'bar')",
             {"os_name": "bar", "python_version": "2.7.4"},
             True,
         ),
         (
-            "python_version ~= '2.7.0' and (os_name == 'foo' or " "os_name == 'bar')",
+            "python_version ~= '2.7.0' and (os_name == 'foo' or os_name == 'bar')",
             {"os_name": "other", "python_version": "2.7.4"},
             False,
         ),
@@ -504,27 +533,31 @@ def test_multi_marker_removes_duplicates():
             False,
         ),
         (
-            "python_version == '2.5' and platform.python_implementation" "!= 'Jython'",
+            "python_version == '2.5' and platform.python_implementation!= 'Jython'",
             {"python_version": "2.7"},
             False,
         ),
         (
-            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64"
+            " AMD64 win32 WIN32'",
             {"platform_machine": "foo"},
             False,
         ),
         (
-            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64"
+            " AMD64 win32 WIN32'",
             {"platform_machine": "x86_64"},
             True,
         ),
         (
-            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+            " amd64 AMD64 win32 WIN32'",
             {"platform_machine": "foo"},
             True,
         ),
         (
-            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64 win32 WIN32'",
+            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+            " amd64 AMD64 win32 WIN32'",
             {"platform_machine": "x86_64"},
             False,
         ),
@@ -563,15 +596,18 @@ def test_parse_version_like_markers(marker: str, env: Dict[str, str]):
             'python_version >= "3.6"',
         ),
         (
-            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or implementation_name == "pypy"',
+            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+            ' implementation_name == "pypy"',
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" and extra == "foo" or implementation_name == "pypy" and extra == "bar"',
+            'python_version >= "3.6" and extra == "foo" or implementation_name =='
+            ' "pypy" and extra == "bar"',
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name == "pypy" or extra == "bar"',
+            'python_version >= "3.6" or extra == "foo" and implementation_name =='
+            ' "pypy" or extra == "bar"',
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
     ],
@@ -598,17 +634,20 @@ def test_without_extras(marker: str, expected: str):
             '(extra == "foo" or extra == "bar")',
         ),
         (
-            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or implementation_name == "pypy"',
+            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+            ' implementation_name == "pypy"',
             "python_version",
             '(extra == "foo" or extra == "bar") or implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" and extra == "foo" or implementation_name == "pypy" and extra == "bar"',
+            'python_version >= "3.6" and extra == "foo" or implementation_name =='
+            ' "pypy" and extra == "bar"',
             "implementation_name",
             'python_version >= "3.6" and extra == "foo" or extra == "bar"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name == "pypy" or extra == "bar"',
+            'python_version >= "3.6" or extra == "foo" and implementation_name =='
+            ' "pypy" or extra == "bar"',
             "implementation_name",
             'python_version >= "3.6" or extra == "foo" or extra == "bar"',
         ),
@@ -638,22 +677,26 @@ def test_exclude(marker: str, excluded: str, expected: str):
             '(extra == "foo" or extra == "bar")',
         ),
         (
-            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or implementation_name == "pypy"',
+            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+            ' implementation_name == "pypy"',
             ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" and extra == "foo" or implementation_name == "pypy" and extra == "bar"',
+            'python_version >= "3.6" and extra == "foo" or implementation_name =='
+            ' "pypy" and extra == "bar"',
             ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name == "pypy" or extra == "bar"',
+            'python_version >= "3.6" or extra == "foo" and implementation_name =='
+            ' "pypy" or extra == "bar"',
             ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name == "pypy" or extra == "bar"',
+            'python_version >= "3.6" or extra == "foo" and implementation_name =='
+            ' "pypy" or extra == "bar"',
             ["implementation_name", "python_version"],
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
@@ -711,7 +754,8 @@ def test_invert(marker: str, inverse: str):
     "marker, expected",
     [
         (
-            'python_version >= "3.6" or python_version < "3.7" or python_version < "3.6"',
+            'python_version >= "3.6" or python_version < "3.7" or python_version <'
+            ' "3.6"',
             'python_version >= "3.6" or python_version < "3.7"',
         ),
     ],

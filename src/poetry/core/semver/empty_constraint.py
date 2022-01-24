@@ -4,8 +4,8 @@ from poetry.core.semver.version_constraint import VersionConstraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver import VersionTypes  # noqa
-    from poetry.core.semver.version import Version  # noqa
+    from poetry.core.semver import VersionTypes
+    from poetry.core.semver.version import Version
 
 
 class EmptyConstraint(VersionConstraint):

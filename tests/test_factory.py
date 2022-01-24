@@ -93,7 +93,8 @@ def test_create_poetry():
     assert functools32.pretty_constraint == "^3.2.3"
     assert (
         str(functools32.marker)
-        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
+        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in'
+        ' "3.4 3.5"'
     )
 
     dataclasses = dependencies["dataclasses"]
@@ -196,7 +197,8 @@ def test_strict_validation_fails_on_readme_files_with_unmatching_types():
 
     assert Factory.validate(content, strict=True) == {
         "errors": [
-            "Declared README files must be of same type: found text/markdown, text/x-rst"
+            "Declared README files must be of same type: found text/markdown,"
+            " text/x-rst"
         ],
         "warnings": [],
     }

@@ -53,6 +53,7 @@ isort = {version = "^5.9.3", python = "^3.6.1"}
 
 [tool.black]
 line-length = 88
+experimental_string_processing = true
 include = '\.pyi?$'
 exclude = '''
 /(

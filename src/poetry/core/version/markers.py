@@ -12,9 +12,9 @@ from poetry.core.version.parser import Parser
 
 
 if TYPE_CHECKING:
-    from lark import Tree  # noqa
+    from lark import Tree
 
-    from poetry.core.semver.helpers import VersionTypes  # noqa
+    from poetry.core.semver.helpers import VersionTypes
 
 MarkerTypes = Union[
     "AnyMarker", "EmptyMarker", "SingleMarker", "MultiMarker", "MarkerUnion"

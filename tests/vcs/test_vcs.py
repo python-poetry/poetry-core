@@ -382,7 +382,10 @@ def test_git_rev_parse_raises_error_on_invalid_repository():
 
 @pytest.mark.skipif(
     not WINDOWS,
-    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+    reason=(
+        "Retrieving the complete path to git is only necessary on Windows, for security"
+        " reasons"
+    ),
 )
 def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
     _reset_executable()
@@ -410,7 +413,10 @@ def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
 
 @pytest.mark.skipif(
     not WINDOWS,
-    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+    reason=(
+        "Retrieving the complete path to git is only necessary on Windows, for security"
+        " reasons"
+    ),
 )
 def test_ensure_existing_git_executable_is_found(mocker: "MockerFixture"):
     mock = mocker.patch.object(subprocess, "check_output", return_value=b"")

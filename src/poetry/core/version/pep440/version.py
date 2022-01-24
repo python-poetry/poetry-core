@@ -15,9 +15,9 @@ from poetry.core.version.pep440.segments import ReleaseTag
 
 
 # we use the phase "z" to ensure we always sort this after other phases
-_INF_TAG = ReleaseTag("z", math.inf)  # noqa
+_INF_TAG = ReleaseTag("z", math.inf)
 # we use the phase "" to ensure we always sort this before other phases
-_NEG_INF_TAG = ReleaseTag("", -math.inf)  # noqa
+_NEG_INF_TAG = ReleaseTag("", -math.inf)
 
 
 @dataclasses.dataclass(frozen=True, eq=True, order=True)

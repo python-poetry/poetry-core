@@ -325,7 +325,7 @@ def test_prelease():
     assert sdist.exists()
 
 
-@pytest.mark.parametrize("directory", [("extended"), ("extended_legacy_config")])
+@pytest.mark.parametrize("directory", ["extended", "extended_legacy_config"])
 def test_with_c_extensions(directory: str):
     poetry = Factory().create_poetry(project("extended"))
 
