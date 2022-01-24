@@ -4,6 +4,8 @@ import math
 from typing import Any
 from typing import Optional
 from typing import Tuple
+from typing import Type
+from typing import TypeVar
 from typing import Union
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ALPHA
@@ -13,6 +15,7 @@ from poetry.core.version.pep440.segments import LocalSegmentType
 from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
 
+T = TypeVar("T")
 
 # we use the phase "z" to ensure we always sort this after other phases
 _INF_TAG = ReleaseTag("z", math.inf)
@@ -133,7 +136,7 @@ class PEP440Version:
         return version_string
 
     @classmethod
-    def parse(cls, value: str) -> "PEP440Version":
+    def parse(cls: Type[T], value: str) -> T:
         from poetry.core.version.pep440.parser import parse_pep440
 
         return parse_pep440(value, cls)
@@ -159,13 +162,13 @@ class PEP440Version:
     def is_stable(self) -> bool:
         return not self.is_unstable()
 
-    def next_major(self) -> "PEP440Version":
+    def next_major(self: T) -> T:
         release = self.release
         if self.is_stable() or Release(self.release.major, 0, 0) < self.release:
             release = self.release.next_major()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_minor(self) -> "PEP440Version":
+    def next_minor(self: T) -> T:
         release = self.release
         if (
             self.is_stable()
@@ -174,20 +177,20 @@ class PEP440Version:
             release = self.release.next_minor()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_patch(self) -> "PEP440Version":
+    def next_patch(self: T) -> T:
         return self.__class__(
             epoch=self.epoch,
             release=self.release.next_patch() if self.is_stable() else self.release,
         )
 
-    def next_prerelease(self, next_phase: bool = False) -> "PEP440Version":
+    def next_prerelease(self: T, next_phase: bool = False) -> "PEP440Version":
         if self.is_prerelease():
             pre = self.pre.next_phase() if next_phase else self.pre.next()
         else:
             pre = ReleaseTag(RELEASE_PHASE_ALPHA)
         return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
 
-    def next_postrelease(self) -> "PEP440Version":
+    def next_postrelease(self: T) -> T:
         if self.is_prerelease():
             post = self.post.next()
         else:
@@ -200,7 +203,7 @@ class PEP440Version:
             post=post,
         )
 
-    def next_devrelease(self) -> "PEP440Version":
+    def next_devrelease(self: T) -> T:
         if self.is_prerelease():
             dev = self.dev.next()
         else:
@@ -209,12 +212,12 @@ class PEP440Version:
             epoch=self.epoch, release=self.release, pre=self.pre, dev=dev
         )
 
-    def first_prerelease(self) -> "PEP440Version":
+    def first_prerelease(self: T) -> T:
         return self.__class__(
             epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
         )
 
-    def replace(self, **kwargs: Any) -> "PEP440Version":
+    def replace(self: T, **kT: Any) -> "PEP440Version":
         return self.__class__(
             **{
                 **{
@@ -226,8 +229,8 @@ class PEP440Version:
             }
         )
 
-    def without_local(self) -> "PEP440Version":
+    def without_local(self: T) -> T:
         return self.replace(local=None)
 
-    def without_postrelease(self) -> "PEP440Version":
+    def without_postrelease(self: T) -> T:
         return self.replace(post=None)
