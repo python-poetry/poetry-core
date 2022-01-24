@@ -18,7 +18,6 @@ from poetry.core.version.pep440 import ReleaseTag
         ("v*.*", VersionRange()),
         ("*.x.*", VersionRange()),
         ("x.X.x.*", VersionRange()),
-        # ('!=1.0.0', Constraint('!=', '1.0.0.0')),
         (">1.0.0", VersionRange(min=Version.from_parts(1, 0, 0))),
         ("<1.2.3", VersionRange(max=Version.from_parts(1, 2, 3))),
         ("<=1.2.3", VersionRange(max=Version.from_parts(1, 2, 3), include_max=True)),
