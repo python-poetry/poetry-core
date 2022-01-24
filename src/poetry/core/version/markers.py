@@ -461,11 +461,7 @@ class MultiMarker(BaseMarker):
         return other.union(self)
 
     def validate(self, environment: Dict[str, Any]) -> bool:
-        for m in self._markers:
-            if not m.validate(environment):
-                return False
-
-        return True
+        return all(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> MarkerTypes:
         return self.exclude("extra")
@@ -521,9 +517,7 @@ class MultiMarker(BaseMarker):
     def __str__(self) -> str:
         elements = []
         for m in self._markers:
-            if isinstance(m, SingleMarker):
-                elements.append(str(m))
-            elif isinstance(m, MultiMarker):
+            if isinstance(m, (SingleMarker, MultiMarker)):
                 elements.append(str(m))
             else:
                 elements.append(f"({str(m)})")
@@ -625,11 +619,7 @@ class MarkerUnion(BaseMarker):
         return MarkerUnion.of(*new_markers)
 
     def validate(self, environment: Dict[str, Any]) -> bool:
-        for m in self._markers:
-            if m.validate(environment):
-                return True
-
-        return False
+        return any(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> MarkerTypes:
         return self.exclude("extra")
@@ -733,9 +723,8 @@ def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> MarkerType
 
             value = value[1:-1]
             groups[-1] = MultiMarker.of(groups[-1], SingleMarker(name, f"{op}{value}"))
-        elif token.data == f"{tree_prefix}BOOL_OP":
-            if token.children[0] == "or":
-                groups.append(MultiMarker())
+        elif token.data == f"{tree_prefix}BOOL_OP" and token.children[0] == "or":
+            groups.append(MultiMarker())
 
     for i, group in enumerate(reversed(groups)):
         if group.is_empty():

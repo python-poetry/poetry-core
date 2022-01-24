@@ -24,11 +24,7 @@ class MultiConstraint(BaseConstraint):
         return self._constraints
 
     def allows(self, other: "ConstraintTypes") -> bool:
-        for constraint in self._constraints:
-            if not constraint.allows(other):
-                return False
-
-        return True
+        return all(constraint.allows(other) for constraint in self._constraints)
 
     def allows_all(self, other: "ConstraintTypes") -> bool:
         if other.is_any():
@@ -64,10 +60,9 @@ class MultiConstraint(BaseConstraint):
             return self.allows(other)
 
         if isinstance(other, MultiConstraint):
-            for c1 in self.constraints:
-                for c2 in other.constraints:
-                    if c1.allows(c2):
-                        return True
+            return any(
+                c1.allows(c2) for c1 in self.constraints for c2 in other.constraints
+            )
 
         return False
 

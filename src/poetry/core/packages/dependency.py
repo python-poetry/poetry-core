@@ -1,6 +1,7 @@
 import os
 import re
 
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -573,7 +574,7 @@ class Dependency(PackageSpecification):
                     name=name, path=path, base=relative_to, extras=req.extras
                 )
             else:
-                try:
+                with suppress(ValueError):
                     # this is a local path not using the file URI scheme
                     dep = _make_file_or_dir_dep(
                         name=name,
@@ -581,8 +582,6 @@ class Dependency(PackageSpecification):
                         base=relative_to,
                         extras=req.extras,
                     )
-                except ValueError:
-                    pass
 
             if dep is None:
                 dep = Dependency(name, version or "*", extras=req.extras)
@@ -613,7 +612,7 @@ class Dependency(PackageSpecification):
         )
 
     def __ne__(self, other: Any) -> bool:
-        return not self == other
+        return not self.__eq__(other)
 
     def __hash__(self) -> int:
         return super().__hash__() ^ hash(self._constraint) ^ hash(self._extras)

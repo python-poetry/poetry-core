@@ -454,14 +454,14 @@ def test_intersect_compacts_constraints():
 def test_multi_marker_removes_duplicates():
     m = parse_marker('sys_platform == "win32" and sys_platform == "win32"')
 
-    assert 'sys_platform == "win32"' == str(m)
+    assert str(m) == 'sys_platform == "win32"'
 
     m = parse_marker(
         'sys_platform == "darwin" and implementation_name == "cpython" '
         'and sys_platform == "darwin" and implementation_name == "cpython"'
     )
 
-    assert 'sys_platform == "darwin" and implementation_name == "cpython"' == str(m)
+    assert str(m) == 'sys_platform == "darwin" and implementation_name == "cpython"'
 
 
 @pytest.mark.parametrize(

@@ -47,10 +47,10 @@ def test_classifier_no_classifer():
 def test_proprietary_license():
     license = license_by_id("Proprietary")
 
-    assert "License :: Other/Proprietary License" == license.classifier
+    assert license.classifier == "License :: Other/Proprietary License"
 
 
 def test_custom_license():
     license = license_by_id("Amazon Software License")
 
-    assert "License :: Other/Proprietary License" == license.classifier
+    assert license.classifier == "License :: Other/Proprietary License"
