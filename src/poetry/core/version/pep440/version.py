@@ -16,7 +16,7 @@ from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
 
 
-T = TypeVar("T")
+T = TypeVar("T", bound="PEP440Version")
 
 # we use the phase "z" to ensure we always sort this after other phases
 _INF_TAG = ReleaseTag("z", math.inf)  # noqa
