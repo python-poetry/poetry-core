@@ -15,6 +15,7 @@ from poetry.core.version.pep440.segments import LocalSegmentType
 from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
 
+
 T = TypeVar("T")
 
 # we use the phase "z" to ensure we always sort this after other phases
