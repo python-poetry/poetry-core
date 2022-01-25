@@ -46,9 +46,9 @@ class Release:
             object.__setattr__(self, "extra", (self.extra,))
 
         parts = [
-            str(_)
-            for _ in [self.major, self.minor, self.patch, *self.extra]
-            if _ is not None
+            str(part)
+            for part in [self.major, self.minor, self.patch, *self.extra]
+            if part is not None
         ]
         object.__setattr__(self, "text", ".".join(parts))
         object.__setattr__(self, "precision", len(parts))
