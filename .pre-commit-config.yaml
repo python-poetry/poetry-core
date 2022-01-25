@@ -17,6 +17,7 @@ repos:
           - flake8-simplify
           - flake8-tidy-imports
           - flake8-use-fstring
+          - pep8-naming
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.910

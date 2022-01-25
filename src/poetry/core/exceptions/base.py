@@ -1,2 +1,2 @@
-class PoetryCoreException(Exception):
+class PoetryCoreError(Exception):
     pass
