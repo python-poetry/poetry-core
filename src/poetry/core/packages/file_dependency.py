@@ -3,7 +3,6 @@ import io
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import FrozenSet
 from typing import List
 from typing import Optional
 from typing import Union
@@ -13,7 +12,7 @@ from poetry.core.packages.utils.utils import path_to_url
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.semver.helpers import VersionTypes
 
 
 class FileDependency(Dependency):
@@ -24,7 +23,7 @@ class FileDependency(Dependency):
         groups: Optional[List[str]] = None,
         optional: bool = False,
         base: Optional[Path] = None,
-        extras: Optional[Union[List[str], FrozenSet[str]]] = None,
+        extras: Optional[List[str]] = None,
     ) -> None:
         self._path = path
         self._base = base or Path.cwd()
@@ -76,14 +75,16 @@ class FileDependency(Dependency):
 
         return h.hexdigest()
 
-    def with_constraint(self, constraint: "BaseConstraint") -> "FileDependency":
+    def with_constraint(
+        self, constraint: Union[str, "VersionTypes"]
+    ) -> "FileDependency":
         new = FileDependency(
             self.pretty_name,
             path=self.path,
             base=self.base,
             optional=self.is_optional(),
             groups=list(self._groups),
-            extras=self._extras,
+            extras=list(self._extras),
         )
 
         new._constraint = constraint

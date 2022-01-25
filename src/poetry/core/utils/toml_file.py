@@ -1,11 +1,12 @@
 from typing import Any
+from typing import Type
 
 from poetry.core.toml import TOMLFile
 
 
 class TomlFile(TOMLFile):
     @classmethod
-    def __new__(cls, *args: Any, **kwargs: Any) -> TOMLFile:
+    def __new__(cls: Type[TOMLFile], *args: Any, **kwargs: Any) -> TOMLFile:
         import warnings
 
         this_import = f"{cls.__module__}.{cls.__name__}"
@@ -15,4 +16,4 @@ class TomlFile(TOMLFile):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        return super().__new__(cls)
+        return super().__new__(cls)  # type: ignore[no-any-return,misc]

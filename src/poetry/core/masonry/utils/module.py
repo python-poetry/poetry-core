@@ -1,8 +1,13 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+
+if TYPE_CHECKING:
+    from poetry.core.masonry.utils.include import Include
 
 
 class ModuleOrPackageNotFound(ValueError):
@@ -102,7 +107,7 @@ class Module:
             return self._path
 
     @property
-    def includes(self) -> List:
+    def includes(self) -> List["Include"]:
         return self._includes
 
     def is_package(self) -> bool:

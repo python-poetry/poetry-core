@@ -377,7 +377,9 @@ class Factory:
         return dependency
 
     @classmethod
-    def validate(cls, config: dict, strict: bool = False) -> Dict[str, List[str]]:
+    def validate(
+        cls, config: Dict[str, Any], strict: bool = False
+    ) -> Dict[str, List[str]]:
         """
         Checks the validity of a configuration
         """

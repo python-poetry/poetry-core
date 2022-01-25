@@ -1,6 +1,8 @@
 import json
 import os
 
+from typing import Any
+from typing import Dict
 from typing import List
 
 
@@ -12,7 +14,7 @@ class ValidationError(ValueError):
     pass
 
 
-def validate_object(obj: dict, schema_name: str) -> List[str]:
+def validate_object(obj: Dict[str, Any], schema_name: str) -> List[str]:
     schema = os.path.join(SCHEMA_DIR, f"{schema_name}.json")
 
     if not os.path.exists(schema):
@@ -24,7 +26,7 @@ def validate_object(obj: dict, schema_name: str) -> List[str]:
     from jsonschema import Draft7Validator
 
     validator = Draft7Validator(schema)
-    validation_errors = sorted(validator.iter_errors(obj), key=lambda e: e.path)
+    validation_errors = sorted(validator.iter_errors(obj), key=lambda e: e.path)  # type: ignore[no-any-return]
 
     errors = []
 

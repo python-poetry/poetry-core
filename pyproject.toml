@@ -85,12 +85,20 @@ known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
-follow_imports = "silent"
+strict = true
 explicit_package_bases = true
 namespace_packages = true
 mypy_path = "src"
 files = "src, tests"
 exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+
+[[tool.mypy.overrides]]
+module = [
+  'jsonschema.*',
+  'setuptools.*',
+  'tomlkit.*',
+]
+ignore_missing_imports = true
 
 # The following whitelist is used to allow for incremental adoption
 # of Mypy. Modules should be removed from this whitelist as and when
@@ -102,29 +110,27 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 module = [
   # src modules
   'poetry.core.masonry.builders.*',
-  'poetry.core.packages.constraints',
-  'poetry.core.packages.constraints.constraint',
-  'poetry.core.packages.constraints.empty_constraint',
-  'poetry.core.packages.constraints.multi_constraint',
-  'poetry.core.packages.constraints.union_constraint',
   'poetry.core.packages.utils.utils',
   'poetry.core.packages.dependency',
-  'poetry.core.packages.directory_dependency',
-  'poetry.core.packages.file_dependency',
   'poetry.core.packages.package',
   'poetry.core.packages.project_package',
-  'poetry.core.packages.url_dependency',
-  'poetry.core.packages.vcs_dependency',
-  'poetry.core.pyproject.*',
   'poetry.core.semver.*',
+  'poetry.core.toml.*',
   'poetry.core.version.*',
   # test modules
+  'tests.conftest',
+  'tests.integration.test_pep517',
+  'tests.json.*',
   'tests.masonry.*',
   'tests.packages.*',
+  'tests.pyproject.*',
   'tests.semver.*',
-  'tests.version.*',
+  'tests.spdx.*',
+  'tests.test_factory',
   'tests.testutils.*',
-  'tests.integration/test_pep517',
+  'tests.utils.*',
+  'tests.vcs.*',
+  'tests.version.*',
 ]
 ignore_errors = true
 
