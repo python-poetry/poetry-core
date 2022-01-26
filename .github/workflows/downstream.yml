@@ -63,6 +63,11 @@ jobs:
           poetry add ../poetry-core
           git diff
 
+      - name: Install poetry (downstream)
+        shell: bash
+        working-directory: ./poetry
+        run: poetry install
+
       # TODO: mark run as success even when this fails and add comment to PR instead
       - name: Run poetry test suite
         shell: bash

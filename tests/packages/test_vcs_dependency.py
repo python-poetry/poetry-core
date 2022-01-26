@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 from poetry.core.packages.vcs_dependency import VCSDependency
@@ -58,13 +60,16 @@ def test_to_pep_508_in_extras():
     )
     dependency.in_extras.append("foo;")
 
-    expected = 'poetry @ git+https://github.com/python-poetry/poetry.git@b;ar; ; extra == "foo;"'
+    expected = (
+        "poetry @ git+https://github.com/python-poetry/poetry.git@b;ar; ; extra =="
+        ' "foo;"'
+    )
 
     assert expected == dependency.to_pep_508()
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
-def test_category(groups):
+def test_category(groups: List[str]):
     dependency = VCSDependency(
         "poetry",
         "git",

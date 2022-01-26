@@ -1,3 +1,6 @@
+from typing import List
+from typing import Optional
+
 import pytest
 
 from poetry.core.packages.dependency import Dependency
@@ -25,7 +28,7 @@ def test_accepts():
         ("^1.0.0-1", False),
     ],
 )
-def test_allows_prerelease(constraint, result):
+def test_allows_prerelease(constraint: str, result: bool):
     assert Dependency("A", constraint).allows_prereleases() == result
 
 
@@ -86,7 +89,8 @@ def test_to_pep_508():
 
     result = dependency.to_pep_508()
     assert (
-        result == "Django (>=1.23,<2.0); "
+        result
+        == "Django (>=1.23,<2.0); "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -117,8 +121,9 @@ def test_to_pep_508_in_extras():
     dependency.python_versions = "~2.7 || ^3.6"
 
     result = dependency.to_pep_508()
-    assert result == (
-        "Django (>=1.23,<2.0); "
+    assert (
+        result
+        == "Django (>=1.23,<2.0); "
         "("
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
@@ -127,8 +132,9 @@ def test_to_pep_508_in_extras():
     )
 
     result = dependency.to_pep_508(with_extras=False)
-    assert result == (
-        "Django (>=1.23,<2.0); "
+    assert (
+        result
+        == "Django (>=1.23,<2.0); "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -149,7 +155,7 @@ def test_to_pep_508_in_extras_parsed():
 def test_to_pep_508_with_single_version_excluded():
     dependency = Dependency("foo", "!=1.2.3")
 
-    assert "foo (!=1.2.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (!=1.2.3)"
 
 
 @pytest.mark.parametrize(
@@ -162,11 +168,11 @@ def test_to_pep_508_with_single_version_excluded():
         ("== 3.5.4", 'python_full_version == "3.5.4"'),
     ],
 )
-def test_to_pep_508_with_patch_python_version(python_versions, marker):
+def test_to_pep_508_with_patch_python_version(python_versions: str, marker: str):
     dependency = Dependency("Django", "^1.23")
     dependency.python_versions = python_versions
 
-    expected = "Django (>=1.23,<2.0); {}".format(marker)
+    expected = f"Django (>=1.23,<2.0); {marker}"
 
     assert expected == dependency.to_pep_508()
     assert marker == str(dependency.marker)
@@ -175,54 +181,54 @@ def test_to_pep_508_with_patch_python_version(python_versions, marker):
 def test_to_pep_508_tilde():
     dependency = Dependency("foo", "~1.2.3")
 
-    assert "foo (>=1.2.3,<1.3.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2.3,<1.3.0)"
 
     dependency = Dependency("foo", "~1.2")
 
-    assert "foo (>=1.2,<1.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<1.3)"
 
     dependency = Dependency("foo", "~0.2.3")
 
-    assert "foo (>=0.2.3,<0.3.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2.3,<0.3.0)"
 
     dependency = Dependency("foo", "~0.2")
 
-    assert "foo (>=0.2,<0.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2,<0.3)"
 
 
 def test_to_pep_508_caret():
     dependency = Dependency("foo", "^1.2.3")
 
-    assert "foo (>=1.2.3,<2.0.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2.3,<2.0.0)"
 
     dependency = Dependency("foo", "^1.2")
 
-    assert "foo (>=1.2,<2.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<2.0)"
 
     dependency = Dependency("foo", "^0.2.3")
 
-    assert "foo (>=0.2.3,<0.3.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2.3,<0.3.0)"
 
     dependency = Dependency("foo", "^0.2")
 
-    assert "foo (>=0.2,<0.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2,<0.3)"
 
 
 def test_to_pep_508_combination():
     dependency = Dependency("foo", "^1.2,!=1.3.5")
 
-    assert "foo (>=1.2,<2.0,!=1.3.5)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<2.0,!=1.3.5)"
 
     dependency = Dependency("foo", "~1.2,!=1.2.5")
 
-    assert "foo (>=1.2,<1.3,!=1.2.5)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<1.3,!=1.2.5)"
 
 
 def test_complete_name():
-    assert "foo" == Dependency("foo", ">=1.2.3").complete_name
+    assert Dependency("foo", ">=1.2.3").complete_name == "foo"
     assert (
-        "foo[bar,baz]"
-        == Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
+        Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
+        == "foo[bar,baz]"
     )
 
 
@@ -240,9 +246,18 @@ def test_complete_name():
         ),
     ],
 )
-def test_dependency_string_representation(name, constraint, extras, expected):
+def test_dependency_string_representation(
+    name: str, constraint: str, extras: Optional[List[str]], expected: str
+):
     dependency = Dependency(name=name, constraint=constraint, extras=extras)
     assert str(dependency) == expected
+
+
+def test_set_constraint_sets_pretty_constraint():
+    dependency = Dependency("A", "^1.0")
+    assert dependency.pretty_constraint == "^1.0"
+    dependency.set_constraint("^2.0")
+    assert dependency.pretty_constraint == "^2.0"
 
 
 def test_with_constraint():

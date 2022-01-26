@@ -1,3 +1,6 @@
+from typing import Optional
+from typing import Tuple
+
 import pytest
 
 from poetry.core.version.exceptions import InvalidVersion
@@ -18,7 +21,7 @@ from poetry.core.version.pep440.segments import RELEASE_PHASES_SHORT
         ((1, 2, 3, 4, 5, 6), Release(1, 2, 3, (4, 5, 6))),
     ],
 )
-def test_pep440_release_segment_from_parts(parts, result):
+def test_pep440_release_segment_from_parts(parts: Tuple[int, ...], result: Release):
     assert Release.from_parts(*parts) == result
 
 
@@ -37,7 +40,9 @@ def test_pep440_release_segment_from_parts(parts, result):
         (("r", 1), ReleaseTag("rev", 1)),
     ],
 )
-def test_pep440_release_tag_normalisation(parts, result):
+def test_pep440_release_tag_normalisation(
+    parts: Tuple[str, Optional[int]], result: ReleaseTag
+):
     tag = ReleaseTag(*parts)
     assert tag == result
     assert tag.to_string() == result.to_string()
@@ -55,14 +60,14 @@ def test_pep440_release_tag_normalisation(parts, result):
         (("dev",), None),
     ],
 )
-def test_pep440_release_tag_next_phase(parts, result):
+def test_pep440_release_tag_next_phase(parts: Tuple[str], result: Optional[ReleaseTag]):
     assert ReleaseTag(*parts).next_phase() == result
 
 
 @pytest.mark.parametrize(
     "phase", list({*RELEASE_PHASES.keys(), *RELEASE_PHASES_SHORT.keys()})
 )
-def test_pep440_release_tag_next(phase):
+def test_pep440_release_tag_next(phase: str):
     tag = ReleaseTag(phase=phase).next()
     assert tag.phase == ReleaseTag.expand(phase)
     assert tag.number == 1
@@ -160,13 +165,13 @@ def test_pep440_release_tag_next(phase):
         ),
     ],
 )
-def test_pep440_parse_text(text, result):
+def test_pep440_parse_text(text: str, result: PEP440Version):
     assert PEP440Version.parse(text) == result
 
 
 @pytest.mark.parametrize(
-    "text", ["1.2.3.dev1-1" "example-1" "1.2.3-random1" "1.2.3-1-1"]
+    "text", ["1.2.3.dev1-1", "example-1", "1.2.3-random1", "1.2.3-1-1"]
 )
-def test_pep440_parse_text_invalid_versions(text):
+def test_pep440_parse_text_invalid_versions(text: str):
     with pytest.raises(InvalidVersion):
         assert PEP440Version.parse(text)

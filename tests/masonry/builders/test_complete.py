@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import ast
 import os
 import platform
@@ -11,6 +9,7 @@ import tempfile
 import zipfile
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -19,11 +18,14 @@ from poetry.core.factory import Factory
 from poetry.core.masonry.builder import Builder
 
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> None:
     clear_samples_dist()
 
     yield
@@ -31,7 +33,7 @@ def setup():
     clear_samples_dist()
 
 
-def clear_samples_dist():
+def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
@@ -74,14 +76,12 @@ def test_wheel_c_extension():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -131,14 +131,12 @@ def test_wheel_c_extension_with_no_setup():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -188,14 +186,12 @@ def test_wheel_c_extension_src_layout():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -245,14 +241,12 @@ my-script=my_package:main
 
         assert (
             wheel_data
-            == """\
+            == f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-                __version__
-            )
+"""
         )
         wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
@@ -371,14 +365,12 @@ my-script=my_package:main
 
         assert (
             wheel_data
-            == """\
+            == f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-                __version__
-            )
+"""
         )
         wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
@@ -473,7 +465,7 @@ def test_package_src():
         zip.close()
 
 
-def test_package_with_include(mocker):
+def test_package_with_include(mocker: "MockerFixture"):
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
@@ -556,3 +548,48 @@ def test_package_with_include(mocker):
         assert "package_with_include/__init__.py" in names
         assert "tests/__init__.py" not in names
         assert "src_package/__init__.py" in names
+
+
+def test_respect_format_for_explicit_included_files():
+    module_path = fixtures_dir / "exclude-whl-include-sdist"
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = module_path / "dist" / "exclude-whl-include-sdist-0.1.0.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        names = tar.getnames()
+        assert (
+            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/__init__.py"
+            in names
+        )
+        assert (
+            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/compiled/source.c"
+            in names
+        )
+        assert (
+            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/compiled/source.h"
+            in names
+        )
+        assert (
+            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/cython_code.pyx"
+            in names
+        )
+        assert "exclude-whl-include-sdist-0.1.0/pyproject.toml" in names
+        assert "exclude-whl-include-sdist-0.1.0/setup.py" in names
+        assert "exclude-whl-include-sdist-0.1.0/PKG-INFO" in names
+
+    whl = module_path / "dist" / "exclude_whl_include_sdist-0.1.0-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        names = z.namelist()
+        assert "exclude_whl_include_sdist/__init__.py" in names
+        assert "exclude_whl_include_sdist/compiled/source.c" not in names
+        assert "exclude_whl_include_sdist/compiled/source.h" not in names
+        assert "exclude_whl_include_sdist/cython_code.pyx" not in names
+
+    pass

@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 packages = [
-    {include = "poetry"},
+    { include = "poetry", from = "src" },
 ]
 include = [
     { path = "tests", format = "sdist" },
@@ -53,22 +53,9 @@ isort = {version = "^5.9.3", python = "^3.6.1"}
 
 [tool.black]
 line-length = 88
+experimental_string_processing = true
 include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | poetry/core/_vendor/*
-)/
-'''
+extend-exclude = "src/poetry/core/_vendor/*"
 
 [tool.isort]
 profile = "black"
@@ -84,9 +71,59 @@ filter_files = true
 known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
+[tool.mypy]
+strict = true
+explicit_package_bases = true
+namespace_packages = true
+mypy_path = "src"
+files = "src, tests"
+exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+
+[[tool.mypy.overrides]]
+module = [
+  'jsonschema.*',
+  'setuptools.*',
+  'tomlkit.*',
+]
+ignore_missing_imports = true
+
+# The following whitelist is used to allow for incremental adoption
+# of Mypy. Modules should be removed from this whitelist as and when
+# their respective type errors have been addressed. No new modules
+# should be added to this whitelist.
+# see https://github.com/python-poetry/poetry-core/pull/199.
+
+[[tool.mypy.overrides]]
+module = [
+  # src modules
+  'poetry.core.masonry.builders.*',
+  'poetry.core.packages.utils.utils',
+  'poetry.core.packages.dependency',
+  'poetry.core.packages.package',
+  'poetry.core.packages.project_package',
+  'poetry.core.semver.*',
+  'poetry.core.toml.*',
+  'poetry.core.version.*',
+  # test modules
+  'tests.conftest',
+  'tests.integration.test_pep517',
+  'tests.json.*',
+  'tests.masonry.*',
+  'tests.packages.*',
+  'tests.pyproject.*',
+  'tests.semver.*',
+  'tests.spdx.*',
+  'tests.test_factory',
+  'tests.testutils.*',
+  'tests.utils.*',
+  'tests.vcs.*',
+  'tests.version.*',
+]
+ignore_errors = true
+
 [tool.vendoring]
-destination = "poetry/core/_vendor/"
-requirements = "poetry/core/_vendor/vendor.txt"
+destination = "src/poetry/core/_vendor/"
+requirements = "src/poetry/core/_vendor/vendor.txt"
 namespace = ""
 
 protected-files = ["__init__.py", "README.md", "vendor.txt"]
@@ -114,4 +151,4 @@ pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.
 [build-system]
 requires = ["dataclasses>=0.6;python_version < '3.7'"]
 build-backend = "poetry.core.masonry.api"
-backend-path = ["."]
+backend-path = ["src"]

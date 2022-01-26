@@ -1,3 +1,6 @@
+from typing import List
+from typing import Union
+
 import pytest
 
 from poetry.core.semver.helpers import parse_constraint
@@ -15,13 +18,13 @@ from poetry.core.version.pep440 import ReleaseTag
         ("v*.*", VersionRange()),
         ("*.x.*", VersionRange()),
         ("x.X.x.*", VersionRange()),
-        # ('!=1.0.0', Constraint('!=', '1.0.0.0')),
         (">1.0.0", VersionRange(min=Version.from_parts(1, 0, 0))),
         ("<1.2.3", VersionRange(max=Version.from_parts(1, 2, 3))),
         ("<=1.2.3", VersionRange(max=Version.from_parts(1, 2, 3), include_max=True)),
         (">=1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),
         ("=1.2.3", Version.from_parts(1, 2, 3)),
         ("1.2.3", Version.from_parts(1, 2, 3)),
+        ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
         ("=1.0", Version.from_parts(1, 0, 0)),
         ("1.2.3b5", Version.from_parts(1, 2, 3, pre=ReleaseTag("beta", 5))),
         (">= 1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),
@@ -31,7 +34,7 @@ from poetry.core.version.pep440 import ReleaseTag
         ),  # Issue 206
     ],
 )
-def test_parse_constraint(input, constraint):
+def test_parse_constraint(input: str, constraint: Union[Version, VersionRange]):
     assert parse_constraint(input) == constraint
 
 
@@ -91,7 +94,7 @@ def test_parse_constraint(input, constraint):
         ("0.x", VersionRange(max=Version.from_parts(1, 0, 0))),
     ],
 )
-def test_parse_constraint_wildcard(input, constraint):
+def test_parse_constraint_wildcard(input: str, constraint: VersionRange):
     assert parse_constraint(input) == constraint
 
 
@@ -178,7 +181,7 @@ def test_parse_constraint_wildcard(input, constraint):
         ),  # PEP 440
     ],
 )
-def test_parse_constraint_tilde(input, constraint):
+def test_parse_constraint_tilde(input: str, constraint: VersionRange):
     assert parse_constraint(input) == constraint
 
 
@@ -244,7 +247,7 @@ def test_parse_constraint_tilde(input, constraint):
         ),
     ],
 )
-def test_parse_constraint_caret(input, constraint):
+def test_parse_constraint_caret(input: str, constraint: VersionRange):
     assert parse_constraint(input) == constraint
 
 
@@ -263,7 +266,7 @@ def test_parse_constraint_caret(input, constraint):
         "  > 2.0  ,  <=  3.0 ",
     ],
 )
-def test_parse_constraint_multi(input):
+def test_parse_constraint_multi(input: str):
     assert parse_constraint(input) == VersionRange(
         Version.from_parts(2, 0, 0),
         Version.from_parts(3, 0, 0),
@@ -276,7 +279,7 @@ def test_parse_constraint_multi(input):
     "input",
     [">=2.7,!=3.0.*,!=3.1.*", ">=2.7, !=3.0.*, !=3.1.*", ">= 2.7, != 3.0.*, != 3.1.*"],
 )
-def test_parse_constraint_multi_wilcard(input):
+def test_parse_constraint_multi_wilcard(input: str):
     assert parse_constraint(input) == VersionUnion(
         VersionRange(
             Version.from_parts(2, 7, 0), Version.from_parts(3, 0, 0), True, False
@@ -310,7 +313,7 @@ def test_parse_constraint_multi_wilcard(input):
         ("!=0.*.*", VersionRange(Version.parse("1.0"), include_min=True)),
     ],
 )
-def test_parse_constraints_negative_wildcard(input, constraint):
+def test_parse_constraints_negative_wildcard(input: str, constraint: VersionRange):
     assert parse_constraint(input) == constraint
 
 
@@ -331,7 +334,7 @@ def test_parse_constraints_negative_wildcard(input, constraint):
         ("~1.0.0", ">=1.0.0,<1.1.0"),
     ],
 )
-def test_constraints_keep_version_precision(input, expected):
+def test_constraints_keep_version_precision(input: str, expected: str):
     assert str(parse_constraint(input)) == expected
 
 
@@ -346,7 +349,7 @@ def test_constraints_keep_version_precision(input, expected):
         (["1.0.0rc2", "1.0.0b1"], ["1.0.0b1", "1.0.0rc2"]),
     ],
 )
-def test_versions_are_sortable(unsorted, sorted_):
+def test_versions_are_sortable(unsorted: List[str], sorted_: List[str]):
     unsorted = [parse_constraint(u) for u in unsorted]
     sorted_ = [parse_constraint(s) for s in sorted_]
 

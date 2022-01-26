@@ -5,11 +5,11 @@ from hashlib import sha256
 from poetry.core.packages.utils.link import Link
 
 
-def make_url(ext):
+def make_url(ext: str) -> Link:
     checksum = sha256(str(uuid.uuid4()).encode())
     return Link(
         "https://files.pythonhosted.org/packages/16/52/dead/"
-        "demo-1.0.0.{}#sha256={}".format(ext, checksum)
+        f"demo-1.0.0.{ext}#sha256={checksum}"
     )
 
 

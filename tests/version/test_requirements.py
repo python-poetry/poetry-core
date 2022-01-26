@@ -1,5 +1,10 @@
 import re
 
+from typing import TYPE_CHECKING
+from typing import Dict
+from typing import List
+from typing import Optional
+
 import pytest
 
 from poetry.core.semver.helpers import parse_constraint
@@ -7,7 +12,18 @@ from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 
 
-def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=None):
+if TYPE_CHECKING:
+    from poetry.core.version.markers import MarkerTypes
+
+
+def assert_requirement(
+    req: Requirement,
+    name: str,
+    url: Optional[str] = None,
+    extras: Optional[List[str]] = None,
+    constraint: str = "*",
+    marker: Optional["MarkerTypes"] = None,
+):
     if extras is None:
         extras = []
 
@@ -73,7 +89,8 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
             },
         ),
         (
-            "foo @ https://example.com/name;v=1.1/?query=foo&bar=baz#blah ; python_version=='3.4'",
+            "foo @ https://example.com/name;v=1.1/?query=foo&bar=baz#blah ;"
+            " python_version=='3.4'",
             {
                 "name": "foo",
                 "url": "https://example.com/name;v=1.1/?query=foo&bar=baz#blah",
@@ -81,16 +98,20 @@ def assert_requirement(req, name, url=None, extras=None, constraint="*", marker=
             },
         ),
         (
-            'foo (>=1.2.3) ; python_version >= "2.7" and python_version < "2.8" or python_version >= "3.4" and python_version < "3.5"',
+            'foo (>=1.2.3) ; python_version >= "2.7" and python_version < "2.8" or'
+            ' python_version >= "3.4" and python_version < "3.5"',
             {
                 "name": "foo",
                 "constraint": ">=1.2.3",
-                "marker": 'python_version >= "2.7" and python_version < "2.8" or python_version >= "3.4" and python_version < "3.5"',
+                "marker": (
+                    'python_version >= "2.7" and python_version < "2.8" or'
+                    ' python_version >= "3.4" and python_version < "3.5"'
+                ),
             },
         ),
     ],
 )
-def test_requirement(string, expected):
+def test_requirement(string: str, expected: Dict[str, str]):
     req = Requirement(string)
 
     assert_requirement(req, **expected)
@@ -105,9 +126,9 @@ def test_requirement(string, expected):
         ("name @ file:/.", "invalid URL"),
     ],
 )
-def test_invalid_requirement(string, exception):
+def test_invalid_requirement(string: str, exception: str):
     with pytest.raises(
         InvalidRequirement,
-        match=re.escape("The requirement is invalid: {}".format(exception)),
+        match=re.escape(f"The requirement is invalid: {exception}"),
     ):
         Requirement(string)

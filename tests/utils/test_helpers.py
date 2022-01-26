@@ -1,11 +1,14 @@
 import os
 
+from pathlib import Path
 from stat import S_IREAD
+from typing import Union
 
 import pytest
 
 from poetry.core.utils.helpers import canonicalize_name
 from poetry.core.utils.helpers import parse_requires
+from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
 
 
@@ -53,17 +56,23 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
         "msgpack-python>=0.5.0.0,<0.6.0.0",
         "pyparsing>=2.2.0.0,<3.0.0.0",
         "requests-toolbelt>=0.8.0.0,<0.9.0.0",
-        'typing>=3.6.0.0,<4.0.0.0 ; (python_version >= "2.7.0.0" and python_version < "2.8.0.0") or (python_version >= "3.4.0.0" and python_version < "3.5.0.0")',
-        'virtualenv>=15.2.0.0,<16.0.0.0 ; python_version >= "2.7.0.0" and python_version < "2.8.0.0"',
-        'pathlib2>=2.3.0.0,<3.0.0.0 ; python_version >= "2.7.0.0" and python_version < "2.8.0.0"',
-        'zipfile36>=0.1.0.0,<0.2.0.0 ; python_version >= "3.4.0.0" and python_version < "3.6.0.0"',
-        'isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort ; extra == "dev"',
+        'typing>=3.6.0.0,<4.0.0.0 ; (python_version >= "2.7.0.0" and python_version <'
+        ' "2.8.0.0") or (python_version >= "3.4.0.0" and python_version < "3.5.0.0")',
+        'virtualenv>=15.2.0.0,<16.0.0.0 ; python_version >= "2.7.0.0" and'
+        ' python_version < "2.8.0.0"',
+        'pathlib2>=2.3.0.0,<3.0.0.0 ; python_version >= "2.7.0.0" and python_version <'
+        ' "2.8.0.0"',
+        'zipfile36>=0.1.0.0,<0.2.0.0 ; python_version >= "3.4.0.0" and python_version <'
+        ' "3.6.0.0"',
+        "isort@"
+        " git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort"
+        ' ; extra == "dev"',
     ]
     assert result == expected
 
 
 @pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c"])
-def test_utils_helpers_canonical_names(raw):
+def test_utils_helpers_canonical_names(raw: str):
     assert canonicalize_name(raw) == "a-b-c"
 
 
@@ -76,3 +85,18 @@ def test_utils_helpers_temporary_directory_readonly_file():
 
     assert not os.path.exists(temp_dir)
     assert not os.path.exists(readonly_filename)
+
+
+@pytest.mark.parametrize(
+    "readme, content_type",
+    [
+        ("README.rst", "text/x-rst"),
+        ("README.md", "text/markdown"),
+        ("README", "text/plain"),
+        (Path("README.rst"), "text/x-rst"),
+        (Path("README.md"), "text/markdown"),
+        (Path("README"), "text/plain"),
+    ],
+)
+def test_utils_helpers_readme_content_type(readme: Union[str, Path], content_type: str):
+    assert readme_content_type(readme) == content_type

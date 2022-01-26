@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 import tarfile
+import tempfile
 import zipfile
 
 from contextlib import contextmanager
@@ -15,12 +16,6 @@ from poetry.core.toml import TOMLFile
 from poetry.core.utils._compat import PY37
 
 
-try:
-    from backports import tempfile
-except ImportError:
-    import tempfile
-
-
 __toml_build_backend_patch__ = {
     "build-system": {
         "requires": [str(Path(__file__).parent.parent)],
@@ -31,8 +26,8 @@ __toml_build_backend_patch__ = {
 
 @contextmanager
 def temporary_project_directory(
-    path, toml_patch=None
-):  # type: (Path, Optional[Dict[str, Any]]) -> ContextManager[str]
+    path: Path, toml_patch: Optional[Dict[str, Any]] = None
+) -> ContextManager[str]:
     """
     Context manager that takes a project source directory, copies content to a temporary
     directory, patches the `pyproject.toml` using the provided patch, or using the default
@@ -57,7 +52,7 @@ def temporary_project_directory(
         yield str(dst)
 
 
-def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.CompletedProcess
+def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
     """
     Helper method to run a subprocess. Asserts for success.
     """
@@ -70,22 +65,22 @@ def subprocess_run(*args, **kwargs):  # type: (str, Any) -> subprocess.Completed
 
 
 def validate_wheel_contents(
-    name, version, path, files=None
-):  # type: (str, str, str, Optional[List[str]]) -> None
-    dist_info = "{}-{}.dist-info".format(name, version)
+    name: str, version: str, path: str, files: Optional[List[str]] = None
+) -> None:
+    dist_info = f"{name}-{version}.dist-info"
     files = files or []
 
     with zipfile.ZipFile(path) as z:
         namelist = z.namelist()
         # we use concatenation here for PY2 compat
         for filename in ["WHEEL", "METADATA", "RECORD"] + files:
-            assert "{}/{}".format(dist_info, filename) in namelist
+            assert f"{dist_info}/{filename}" in namelist
 
 
 def validate_sdist_contents(
-    name, version, path, files
-):  # type: (str, str, str, List[str]) -> None
+    name: str, version: str, path: str, files: List[str]
+) -> None:
     with tarfile.open(path) as tar:
         namelist = tar.getnames()
         for filename in files:
-            assert "{}-{}/{}".format(name, version, filename) in namelist
+            assert f"{name}-{version}/{filename}" in namelist

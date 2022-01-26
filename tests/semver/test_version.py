@@ -1,3 +1,6 @@
+from typing import List
+from typing import Optional
+
 import pytest
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
@@ -25,9 +28,10 @@ from poetry.core.version.pep440 import ReleaseTag
         ("1.0.0-post1", Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1))),
         ("0.6c", Version.from_parts(0, 6, 0, pre=ReleaseTag("rc", 0))),
         ("0.6pre", Version.from_parts(0, 6, 0, pre=ReleaseTag("preview", 0))),
+        ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
     ],
 )
-def test_parse_valid(text, version):
+def test_parse_valid(text: str, version: Version):
     parsed = Version.parse(text)
 
     assert parsed == version
@@ -35,7 +39,7 @@ def test_parse_valid(text, version):
 
 
 @pytest.mark.parametrize("value", [None, "example"])
-def test_parse_invalid(value):
+def test_parse_invalid(value: Optional[str]):
     with pytest.raises(InvalidVersion):
         Version.parse(value)
 
@@ -84,7 +88,7 @@ def test_parse_invalid(value):
         ],
     ],
 )
-def test_comparison(versions):
+def test_comparison(versions: List[str]):
     for i in range(len(versions)):
         for j in range(len(versions)):
             a = Version.parse(versions[i])

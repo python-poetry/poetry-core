@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 import pytest
 
@@ -14,7 +15,9 @@ def test_directory_dependency_must_exist():
         DirectoryDependency("demo", DIST_PATH / "invalid")
 
 
-def _test_directory_dependency_pep_508(name, path, pep_508_input, pep_508_output=None):
+def _test_directory_dependency_pep_508(
+    name: str, path: Path, pep_508_input: str, pep_508_output: Optional[str] = None
+) -> None:
     dep = Dependency.create_from_pep_508(
         pep_508_input, relative_to=Path(__file__).parent
     )
@@ -31,10 +34,10 @@ def test_directory_dependency_pep_508_local_absolute():
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = "{} @ file://{}".format("demo", path.as_posix())
+    requirement = f"demo @ file://{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
+    requirement = f"demo @ {path}"
     _test_directory_dependency_pep_508("demo", path, requirement)
 
 
@@ -44,8 +47,8 @@ def test_directory_dependency_pep_508_localhost():
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = "{} @ file://localhost{}".format("demo", path.as_posix())
-    requirement_expected = "{} @ file://{}".format("demo", path.as_posix())
+    requirement = f"demo @ file://localhost{path.as_posix()}"
+    requirement_expected = f"demo @ file://{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
 
 
@@ -53,8 +56,8 @@ def test_directory_dependency_pep_508_local_relative():
     path = Path("..") / "fixtures" / "project_with_multi_constraints_dependency"
 
     with pytest.raises(ValueError):
-        requirement = "{} @ file://{}".format("demo", path.as_posix())
+        requirement = f"demo @ file://{path.as_posix()}"
         _test_directory_dependency_pep_508("demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
+    requirement = f"demo @ {path}"
     _test_directory_dependency_pep_508("demo", path, requirement)

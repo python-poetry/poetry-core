@@ -2,7 +2,7 @@ MAKEFILE_PATH                   := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR                        := $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))
 
 VENDOR_SRC                      := $(ROOT_DIR)/vendors
-VENDOR_DIR                      := $(ROOT_DIR)/poetry/core/_vendor
+VENDOR_DIR                      := $(ROOT_DIR)/src/poetry/core/_vendor
 VENDOR_TXT                      := $(VENDOR_DIR)/vendor.txt
 POETRY_BIN                      ?= $(shell which poetry)
 

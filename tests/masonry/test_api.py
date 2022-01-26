@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import os
 import platform
 import sys
@@ -7,6 +5,8 @@ import zipfile
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
+from typing import Union
 
 import pytest
 
@@ -18,7 +18,7 @@ from tests.testutils import validate_wheel_contents
 
 
 @contextmanager
-def cwd(directory):
+def cwd(directory: Union[str, Path]) -> Iterator[None]:
     prev = os.getcwd()
     os.chdir(str(directory))
     try:
@@ -138,14 +138,12 @@ my-2nd-script=my_package:main2
 my-script=my_package:main
 
 """
-    wheel_data = """\
+    wheel_data = f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-        __version__
-    )
+"""
     metadata = """\
 Metadata-Version: 2.1
 Name: my-package
@@ -184,7 +182,7 @@ My Package
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
 
-        assert "my_package-1.2.3.dist-info" == dirname
+        assert dirname == "my_package-1.2.3.dist-info"
 
         dist_info = Path(tmp_dir, dirname)
 

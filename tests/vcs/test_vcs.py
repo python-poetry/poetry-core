@@ -1,6 +1,10 @@
 import subprocess
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import List
+from typing import Union
 
 import pytest
 
@@ -10,6 +14,10 @@ from poetry.core.vcs.git import GitError
 from poetry.core.vcs.git import GitUrl
 from poetry.core.vcs.git import ParsedUrl
 from poetry.core.vcs.git import _reset_executable
+
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(
@@ -96,7 +104,7 @@ from poetry.core.vcs.git import _reset_executable
         ),
     ],
 )
-def test_normalize_url(url, normalized):
+def test_normalize_url(url: str, normalized: GitUrl):
     assert normalized == Git.normalize_url(url)
 
 
@@ -338,7 +346,7 @@ def test_normalize_url(url, normalized):
         ),
     ],
 )
-def test_parse_url(url, parsed):
+def test_parse_url(url: str, parsed: ParsedUrl):
     result = ParsedUrl.parse(url)
     assert parsed.name == result.name
     assert parsed.pathname == result.pathname
@@ -374,12 +382,15 @@ def test_git_rev_parse_raises_error_on_invalid_repository():
 
 @pytest.mark.skipif(
     not WINDOWS,
-    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+    reason=(
+        "Retrieving the complete path to git is only necessary on Windows, for security"
+        " reasons"
+    ),
 )
-def test_ensure_absolute_path_to_git(mocker):
+def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
     _reset_executable()
 
-    def checkout_output(cmd, *args, **kwargs):
+    def checkout_output(cmd: List[str], *args: Any, **kwargs: Any) -> Union[str, bytes]:
         if Path(cmd[0]).name == "where.exe":
             return "\n".join(
                 [
@@ -402,9 +413,12 @@ def test_ensure_absolute_path_to_git(mocker):
 
 @pytest.mark.skipif(
     not WINDOWS,
-    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+    reason=(
+        "Retrieving the complete path to git is only necessary on Windows, for security"
+        " reasons"
+    ),
 )
-def test_ensure_existing_git_executable_is_found(mocker):
+def test_ensure_existing_git_executable_is_found(mocker: "MockerFixture"):
     mock = mocker.patch.object(subprocess, "check_output", return_value=b"")
 
     Git().run("config")

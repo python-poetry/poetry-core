@@ -6,6 +6,7 @@ import tarfile
 
 from email.parser import Parser
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -17,11 +18,14 @@ from poetry.core.packages.package import Package
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> None:
     clear_samples_dist()
 
     yield
@@ -29,13 +33,13 @@ def setup():
     clear_samples_dist()
 
 
-def clear_samples_dist():
+def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
 
 
-def project(name):
+def project(name: str) -> Path:
     return Path(__file__).parent / "fixtures" / name
 
 
@@ -138,7 +142,7 @@ def test_make_setup():
     }
 
 
-def test_make_pkg_info(mocker):
+def test_make_pkg_info(mocker: "MockerFixture"):
     get_metadata_content = mocker.patch(
         "poetry.core.masonry.builders.builder.Builder.get_metadata_content"
     )
@@ -321,8 +325,8 @@ def test_prelease():
     assert sdist.exists()
 
 
-@pytest.mark.parametrize("directory", [("extended"), ("extended_legacy_config")])
-def test_with_c_extensions(directory):
+@pytest.mark.parametrize("directory", ["extended", "extended_legacy_config"])
+def test_with_c_extensions(directory: str):
     poetry = Factory().create_poetry(project("extended"))
 
     builder = SdistBuilder(poetry)
@@ -403,7 +407,7 @@ def test_with_src_module_dir():
         assert "package-src-0.1/src/package_src/module.py" in tar.getnames()
 
 
-def test_default_with_excluded_data(mocker):
+def test_default_with_excluded_data(mocker: "MockerFixture"):
     # Patch git module to return specific excluded files
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = [
@@ -464,9 +468,9 @@ def test_default_with_excluded_data(mocker):
                 "my-package-1.2.3/PKG-INFO",
             ]:
                 # generated files have timestamp set to 0
-                assert 0 == tarinfo.mtime
+                assert tarinfo.mtime == 0
                 continue
-            assert 0 < tarinfo.mtime
+            assert tarinfo.mtime > 0
 
 
 def test_src_excluded_nested_data():
@@ -629,3 +633,19 @@ def test_sdist_mtime_zero():
     with gzip.open(str(sdist), "rb") as gz:
         gz.read(100)
         assert gz.mtime == 0
+
+
+def test_split_source():
+    root = fixtures_dir / "split_source"
+    poetry = Factory().create_poetry(root)
+
+    builder = SdistBuilder(poetry)
+
+    # Check setup.py
+    setup = builder.build_setup()
+    setup_ast = ast.parse(setup)
+
+    setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
+    ns = {}
+    exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
+    assert "" in ns["package_dir"] and "module_b" in ns["package_dir"]

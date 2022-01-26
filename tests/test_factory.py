@@ -1,6 +1,3 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from pathlib import Path
 
 import pytest
@@ -23,7 +20,7 @@ def test_create_poetry():
     assert package.authors == ["Sébastien Eustace <sebastien@eustace.io>"]
     assert package.license.id == "MIT"
     assert (
-        package.readme.relative_to(fixtures_dir).as_posix()
+        package.readmes[0].relative_to(fixtures_dir).as_posix()
         == "sample_project/README.rst"
     )
     assert package.homepage == "https://python-poetry.org"
@@ -96,7 +93,8 @@ def test_create_poetry():
     assert functools32.pretty_constraint == "^3.2.3"
     assert (
         str(functools32.marker)
-        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
+        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in'
+        ' "3.4 3.5"'
     )
 
     dataclasses = dependencies["dataclasses"]
@@ -183,6 +181,27 @@ def test_validate_fails():
     )
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
+
+
+def test_strict_validation_success_on_multiple_readme_files():
+    with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
+    content = with_readme_files.read()["tool"]["poetry"]
+
+    assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
+
+
+def test_strict_validation_fails_on_readme_files_with_unmatching_types():
+    with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
+    content = with_readme_files.read()["tool"]["poetry"]
+    content["readme"][0] = "README.md"
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [
+            "Declared README files must be of same type: found text/markdown,"
+            " text/x-rst"
+        ],
+        "warnings": [],
+    }
 
 
 def test_create_poetry_fails_on_invalid_configuration():
