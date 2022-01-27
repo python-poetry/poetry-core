@@ -761,21 +761,21 @@
           "items": {
             "type": "string"
           },
-          "description": "A list of paths or globs of extra files to link with (eg. object files not implied by \u2018sources\u2019, static library that must be explicitly specified, binary resource files, etc.)"
+          "description": "A list of paths or globs of extra files to link with (eg. object files not implied by ‘sources’, static library that must be explicitly specified, binary resource files, etc.)"
         },
         "extra_compile_args": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Any extra platform- and compiler-specific information to use when compiling the source files in \u2018sources\u2019. For platforms and compilers where a command line makes sense, this is typically a list of command-line arguments, but for other platforms it could be anything."
+          "description": "Any extra platform- and compiler-specific information to use when compiling the source files in ‘sources’. For platforms and compilers where a command line makes sense, this is typically a list of command-line arguments, but for other platforms it could be anything."
         },
         "extra_link_args": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Any extra platform- and compiler-specific information to use when linking object files together to create the extension (or to create a new static Python interpreter). Similar interpretation as for \u2018extra_compile_args\u2019."
+          "description": "Any extra platform- and compiler-specific information to use when linking object files together to create the extension (or to create a new static Python interpreter). Similar interpretation as for ‘extra_compile_args’."
         },
         "export_symbols": {
           "type": "array",

@@ -329,7 +329,8 @@ class Builder:
                     abs_path = self.get_source_paths(name, [source])[0]
                 except IndexError:
                     raise RuntimeError(
-                        f"{source} in script/module specification ({name}) is not found."
+                        f"{source} in script/module specification ({name}) is not"
+                        " found."
                     )
 
                 abs_path = Path.joinpath(self._path, source)
@@ -368,8 +369,12 @@ class Builder:
 
         for name, build_info in self._poetry.local_config.get("libraries", {}).items():
 
-            build_info["sources"] = [str(src) for src in
-                                     self.get_source_paths(name, build_info["sources"], expand_globs=True)]
+            build_info["sources"] = [
+                str(src)
+                for src in self.get_source_paths(
+                    name, build_info["sources"], expand_globs=True
+                )
+            ]
             if len(build_info["sources"]) == 0:
                 raise RuntimeError(f"No valid sources specified for library {name}")
 
@@ -389,10 +394,16 @@ class Builder:
         """
         ext_modules = []
 
-        for name, build_info in self._poetry.local_config.get("ext_modules", {}).items():
+        for name, build_info in self._poetry.local_config.get(
+            "ext_modules", {}
+        ).items():
 
-            build_info["sources"] = [str(src) for src in
-                                     self.get_source_paths(name, build_info["sources"], expand_globs=True)]
+            build_info["sources"] = [
+                str(src)
+                for src in self.get_source_paths(
+                    name, build_info["sources"], expand_globs=True
+                )
+            ]
             if len(build_info["sources"]) == 0:
                 raise RuntimeError(
                     f"No valid sources specified for extension module {name}"
@@ -404,19 +415,28 @@ class Builder:
                 ]
 
             if "extra_objects" in build_info:
-                build_info["extra_objects"] = [str(src) for src in
-                                               self.get_source_paths(name, build_info["extra_objects"],
-                                                                     expand_globs=True)]
+                build_info["extra_objects"] = [
+                    str(src)
+                    for src in self.get_source_paths(
+                        name, build_info["extra_objects"], expand_globs=True
+                    )
+                ]
 
             if "depends" in build_info:
-                build_info["depends"] = [str(src) for src in
-                                         self.get_source_paths(name, build_info["depends"], expand_globs=True)]
+                build_info["depends"] = [
+                    str(src)
+                    for src in self.get_source_paths(
+                        name, build_info["depends"], expand_globs=True
+                    )
+                ]
 
             ext_modules.append((name, build_info))
 
         return ext_modules
 
-    def get_source_paths(self, name: str, paths: list[str], expand_globs: bool = False) -> list[Path]:
+    def get_source_paths(
+        self, name: str, paths: list[str], expand_globs: bool = False
+    ) -> list[Path]:
         """
         Get source(s) specified as a list of relative paths within the project
 
@@ -440,7 +460,8 @@ class Builder:
                 source = Path(path)
                 if source.is_absolute():
                     raise RuntimeError(
-                        f"{source} in {name} is an absolute path. Expected relative path."
+                        f"{source} in {name} is an absolute path. Expected relative"
+                        " path."
                     )
                 source_paths.add(Path.joinpath(self._path, source))
 

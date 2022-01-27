@@ -453,7 +453,8 @@ class Factory:
 
         if "build" in config and ("libraries" in config or "ext_modules" in config):
             result["errors"].append(
-                "Extension modules and C libraries may not be declared in pyproject.toml when using a build script"
+                "Extension modules and C libraries may not be declared in"
+                " pyproject.toml when using a build script"
             )
 
         return result
