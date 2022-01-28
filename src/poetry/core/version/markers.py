@@ -123,7 +123,7 @@ class AnyMarker(BaseMarker):
     def __hash__(self) -> int:
         return hash(("<any>", "<any>"))
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, BaseMarker):
             return NotImplemented
 
@@ -167,7 +167,7 @@ class EmptyMarker(BaseMarker):
     def __hash__(self) -> int:
         return hash(("<empty>", "<empty>"))
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, BaseMarker):
             return NotImplemented
 
@@ -362,7 +362,7 @@ class SingleMarker(BaseMarker):
 
         return parse_marker(f"{self._name} {operator} '{self._value}'")
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, SingleMarker):
             return False
 
@@ -516,7 +516,7 @@ class MultiMarker(BaseMarker):
 
         return MarkerUnion.of(*markers)
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, MultiMarker):
             return False
 
@@ -674,7 +674,7 @@ class MarkerUnion(BaseMarker):
 
         return MultiMarker.of(*markers)
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, MarkerUnion):
             return False
 

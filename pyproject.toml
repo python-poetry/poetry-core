@@ -96,14 +96,23 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = [
   # src modules
-  'poetry.core.masonry.builders.*',
+  'poetry.core.masonry.builders.builder',
+  'poetry.core.masonry.builders.sdist',
+  'poetry.core.masonry.builders.wheel',
   'poetry.core.packages.utils.utils',
   'poetry.core.packages.dependency',
   'poetry.core.packages.package',
   'poetry.core.packages.project_package',
-  'poetry.core.semver.*',
-  'poetry.core.toml.*',
-  'poetry.core.version.*',
+  'poetry.core.semver.helpers',
+  'poetry.core.semver.version',
+  'poetry.core.semver.version_range',
+  'poetry.core.semver.version_union',
+  'poetry.core.toml.exceptions',
+  'poetry.core.toml.file',
+  'poetry.core.version.markers',
+  'poetry.core.version.pep440.parser',
+  'poetry.core.version.pep440.segments',
+  'poetry.core.version.pep440.version',
   # test modules
   'tests.conftest',
   'tests.integration.test_pep517',
