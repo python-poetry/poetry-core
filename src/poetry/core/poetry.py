@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Union
 
 
 if TYPE_CHECKING:
@@ -20,10 +21,12 @@ class Poetry:
         package: ProjectPackage,
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
+        from poetry.core.utils import workspaces
 
         self._pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
+        self._workspace = workspaces.find_workspace_root(Path.cwd())
 
     @property
     def pyproject(self) -> PyProjectTOML:
@@ -40,6 +43,10 @@ class Poetry:
     @property
     def local_config(self) -> dict[str, Any]:
         return self._local_config
+
+    @property
+    def workspace(self) -> Union[Path, None]:
+        return self._workspace
 
     def get_project_config(self, config: str, default: Any = None) -> Any:
         return self._local_config.get("config", {}).get(config, default)
