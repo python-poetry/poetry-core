@@ -17,7 +17,7 @@ class PackageInclude(Include):
         formats: list[str] | None = None,
         source: str | None = None,
     ) -> None:
-        self._package: str | None = None
+        self._package: str
         self._is_package = False
         self._is_module = False
         self._source = source
@@ -29,7 +29,7 @@ class PackageInclude(Include):
         self.check_elements()
 
     @property
-    def package(self) -> str | None:
+    def package(self) -> str:
         return self._package
 
     @property

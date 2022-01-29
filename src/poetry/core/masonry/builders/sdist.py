@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from poetry.core.masonry.utils.package_include import PackageInclude
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.project_package import ProjectPackage
+    from poetry.core.poetry import Poetry
 
 SETUP = """\
 # -*- coding: utf-8 -*-
@@ -55,10 +56,18 @@ class SdistBuilder(Builder):
 
     format = "sdist"
 
-    def build(self, target_dir: Path | None = None) -> Path:
+    def __init__(
+        self,
+        poetry: Poetry,
+        executable: Path | None = None,
+        target_dir: Path | None = None,
+    ) -> None:
+        super().__init__(poetry, executable=executable)
+        self._target_dir = target_dir
+
+    def build(self) -> Path:
         logger.info("Building <info>sdist</info>")
-        if target_dir is None:
-            target_dir = self._path / "dist"
+        target_dir = self._target_dir or self._path / "dist"
 
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
@@ -113,7 +122,7 @@ class SdistBuilder(Builder):
         from poetry.core.masonry.utils.package_include import PackageInclude
 
         before, extra, after = [], [], []
-        package_dir = {}
+        package_dir: dict[str, str] = {}
 
         # If we have a build script, use it
         if self._package.build_script:
@@ -233,7 +242,9 @@ class SdistBuilder(Builder):
     def build_pkg_info(self) -> bytes:
         return self.get_metadata_content().encode()
 
-    def find_packages(self, include: PackageInclude) -> tuple[str, list[str], dict]:
+    def find_packages(
+        self, include: PackageInclude
+    ) -> tuple[str | None, list[str], dict[str, list[str]]]:
         """
         Discover subpackages and data.
 
@@ -246,7 +257,7 @@ class SdistBuilder(Builder):
         base = str(include.elements[0].parent)
 
         pkg_name = include.package
-        pkg_data = defaultdict(list)
+        pkg_data: dict[str, list[str]] = defaultdict(list)
         # Undocumented distutils feature:
         # the empty string matches all package names
         pkg_data[""].append("*")

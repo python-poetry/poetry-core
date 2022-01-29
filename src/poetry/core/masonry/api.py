@@ -73,7 +73,7 @@ def build_sdist(
     """Builds an sdist, places it in sdist_directory"""
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
 
-    path = SdistBuilder(poetry).build(Path(sdist_directory))
+    path = SdistBuilder(poetry, target_dir=Path(sdist_directory)).build()
 
     return path.name
 

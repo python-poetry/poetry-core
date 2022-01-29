@@ -32,8 +32,7 @@ class Builder:
     def __init__(
         self,
         poetry: Poetry,
-        ignore_packages_formats: bool = False,
-        executable: Path | str | None = None,
+        executable: Path | None = None,
     ) -> None:
         from poetry.core.masonry.metadata import Metadata
         from poetry.core.masonry.utils.module import Module
@@ -56,12 +55,7 @@ class Builder:
             if not isinstance(formats, list):
                 formats = [formats]
 
-            if (
-                formats
-                and self.format
-                and self.format not in formats
-                and not ignore_packages_formats
-            ):
+            if formats and self.format and self.format not in formats:
                 continue
 
             packages.append(p)
@@ -70,12 +64,7 @@ class Builder:
         for include in self._package.include:
             formats = include.get("format", [])
 
-            if (
-                formats
-                and self.format
-                and self.format not in formats
-                and not ignore_packages_formats
-            ):
+            if formats and self.format and self.format not in formats:
                 continue
 
             includes.append(include)
@@ -93,7 +82,7 @@ class Builder:
     def executable(self) -> Path:
         return self._executable
 
-    def build(self) -> None:
+    def build(self) -> Path:
         raise NotImplementedError()
 
     def find_excluded_files(self, fmt: str | None = None) -> set[str]:
@@ -201,10 +190,6 @@ class Builder:
                     continue
 
                 if file.suffix == ".pyc":
-                    continue
-
-                if file in to_add:
-                    # Skip duplicates
                     continue
 
                 logger.debug(f"Adding: {str(file)}")
@@ -349,6 +334,8 @@ class Builder:
     @classmethod
     def convert_author(cls, author: str) -> dict[str, str]:
         m = AUTHOR_REGEX.match(author)
+        if m is None:
+            raise RuntimeError(f"{author} does not match regex")
 
         name = m.group("name")
         email = m.group("email")
@@ -378,14 +365,11 @@ class BuildIncludeFile:
 
         self.path = self.path.resolve()
 
-    def __eq__(self, other: BuildIncludeFile | Path) -> bool:
-        if hasattr(other, "path"):
-            return self.path == other.path
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BuildIncludeFile):
+            return False
 
-        return self.path == other
-
-    def __ne__(self, other: BuildIncludeFile | Path) -> bool:
-        return not self.__eq__(other)
+        return self.path == other.path
 
     def __hash__(self) -> int:
         return hash(self.path)
