@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "extended"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>",
+    "Boston Walker <boston@bostonwalker.me>"
+]
+license = "MIT"
+
+readme = "README.rst"
+
+homepage = "https://python-poetry.org/"
+
+[tool.poetry.libraries.mylib]
+sources = [
+    "lib/mylib/src/*.c"
+]
+include_dirs = [
+    "lib/mylib/include"
+]
+
+[tool.poetry.ext_modules."extended.extended"]
+sources = [
+    "src/extended/*.cpp"
+]
+include_dirs = [
+    "include"
+]
+define_macros = [
+    ["TEST", ""]
+]
+undef_macros = []
+library_dirs = []
+libraries = [
+    "mylib"
+]
+runtime_library_dirs = []
+extra_objects = []
+extra_compile_args = [
+    "-std=c++11"
+]
+extra_link_args = []
+export_symbols = []
+swig_opts = [
+    "-Iinclude"
+]
+depends = []
+language = "c++"
+optional = false

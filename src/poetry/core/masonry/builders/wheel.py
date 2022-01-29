@@ -154,6 +154,7 @@ class WheelBuilder(Builder):
                 current_path = os.getcwd()
                 try:
                     os.chdir(str(self._path))
+                    assert self._package.build_script is not None
                     self._run_build_script(self._package.build_script)
                 finally:
                     os.chdir(current_path)

@@ -53,6 +53,10 @@ setup(**setup_kwargs)
 EXT_BUILDER_DEF = """\
 
 
+class BuildFailed(Exception):
+    pass
+
+
 class ExtBuilder(build_ext):
 
     def run(self):
@@ -233,11 +237,16 @@ class SdistBuilder(Builder):
                 ext_modules_line += constructor
             ext_modules_line += "]\n"
             imports.append("from distutils.extension import Extension")
+            imports.append(
+                "from distutils.errors import DistutilsPlatformError,"
+                " DistutilsExecError, CCompilerError"
+            )
+            imports.append("import os")
             before.append(ext_modules_line)
             extra.append("'ext_modules': ext_modules,")
             imports.append("from distutils.command.build_ext import build_ext")
             before.append(EXT_BUILDER_DEF)
-            extra.append("'cmdclass': {'build_ext': ExtBuilder},")  # noqa: FS003
+            extra.append("'cmdclass': {'build_ext': ExtBuilder},")
 
         if self._package.python_versions != "*":
             python_requires = self._meta.requires_python
@@ -361,7 +370,6 @@ class SdistBuilder(Builder):
         return pkgdir, sorted(packages), pkg_data
 
     def find_files_to_add(self, exclude_build: bool = False) -> set[BuildIncludeFile]:
-
         to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files

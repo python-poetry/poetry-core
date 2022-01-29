@@ -53,13 +53,13 @@ def clear_samples_dist() -> None:
     ("dir", "has_build_script"),
     [
         ("extended", True),
-        ("extended_defined_in_pyproject", False),
+        ("ext_pyproj", False),
     ],
 )
 def test_wheel_c_extension(dir: str, has_build_script: bool) -> None:
     module_path = fixtures_dir / dir
 
-    # Perform "clean' build
+    # Perform "clean" build
     setup_file = module_path / "setup.py"
     if setup_file.exists():
         setup_file.unlink()
@@ -119,11 +119,11 @@ $""",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
 def test_wheel_c_extension_with_no_setup() -> None:
-    module_path = fixtures_dir / "extended_with_no_setup"
+    module_path = fixtures_dir / "extended_no_setup"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = fixtures_dir / "extended_with_no_setup" / "dist" / "extended-0.1.tar.gz"
+    sdist = fixtures_dir / "extended_no_setup" / "dist" / "extended-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -229,9 +229,9 @@ $""",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
 def test_wheel_c_cpp_extensions_defined_in_pyproject() -> None:
-    module_path = fixtures_dir / "extended_with_lib_defined_in_pyproject"
+    module_path = fixtures_dir / "ext_pyproj_lib"
 
-    # Perform "clean' build
+    # Perform "clean" build
     setup_file = module_path / "setup.py"
     if setup_file.exists():
         setup_file.unlink()
@@ -245,10 +245,10 @@ def test_wheel_c_cpp_extensions_defined_in_pyproject() -> None:
 
     with tarfile.open(str(sdist), "r") as tar:
         assert "extended-0.1/setup.py" in tar.getnames()
-        assert "extended-0.1/lib/mylib/mylib.c" in tar.getnames()
+        assert "extended-0.1/lib/mylib/src/mylib.c" in tar.getnames()
         assert "extended-0.1/src/extended/extended.cpp" in tar.getnames()
-        assert "extended-0.1/include/mylib.h" in tar.getnames()
         assert "extended-0.1/include/extended.hpp" in tar.getnames()
+        assert "extended-0.1/lib/mylib/include/mylib.h" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
 
@@ -270,7 +270,7 @@ def test_wheel_c_cpp_extensions_defined_in_pyproject() -> None:
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -295,8 +295,8 @@ $""",
 @pytest.mark.parametrize(
     "dir",
     [
-        "extended_defined_in_pyproject_lib_in_build_py",
-        "extended_defined_in_build_py_lib_in_pyproject",
+        "ext_build_py_lib",
+        "ext_build_py",
     ],
 )
 def test_extensions_defined_in_pyproject_with_build_py_raises_error(dir: str) -> None:

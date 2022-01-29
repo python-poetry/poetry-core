@@ -8,7 +8,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Any, Collection, Optional
+from typing import Any
 
 
 if TYPE_CHECKING:
@@ -326,7 +326,7 @@ class Builder:
                 source = specification["reference"]
 
                 try:
-                    abs_path = self.get_source_paths(name, [source])[0]
+                    _ = self.get_source_paths(name, [source])[0]
                 except IndexError:
                     raise RuntimeError(
                         f"{source} in script/module specification ({name}) is not"
@@ -337,12 +337,14 @@ class Builder:
 
                 if not abs_path.exists():
                     raise RuntimeError(
-                        f"{abs_path} in script/module specification ({name}) is not found."
+                        f"{abs_path} in script/module specification ({name}) is not"
+                        " found."
                     )
 
                 if not abs_path.is_file():
                     raise RuntimeError(
-                        f"{abs_path} in script/module specification ({name}) is not a file."
+                        f"{abs_path} in script/module specification ({name}) is not a"
+                        " file."
                     )
 
                 script_files.append(abs_path)
@@ -368,7 +370,7 @@ class Builder:
         libraries = []
 
         for name, build_info in self._poetry.local_config.get("libraries", {}).items():
-
+            build_info = dict(build_info)
             build_info["sources"] = [
                 str(src)
                 for src in self.get_source_paths(
@@ -397,7 +399,7 @@ class Builder:
         for name, build_info in self._poetry.local_config.get(
             "ext_modules", {}
         ).items():
-
+            build_info = dict(build_info)
             build_info["sources"] = [
                 str(src)
                 for src in self.get_source_paths(
@@ -468,7 +470,6 @@ class Builder:
         sources: list[Path] = []
 
         for src in source_paths:
-
             if not src.exists():
                 continue
 
