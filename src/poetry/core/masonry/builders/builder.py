@@ -43,6 +43,7 @@ class Builder:
         self._path: Path = poetry.file.parent
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
+        self._workspace = poetry.workspace
 
         packages = []
         for p in self._package.packages:
@@ -183,16 +184,24 @@ class Builder:
                                 path=current_file,
                                 project_root=self._path,
                                 source_root=source_root,
+                                workspace=self._workspace,
                             )
 
-                            if not current_file.is_dir() and not self.is_excluded(
-                                include_file.relative_to_source_root()
-                            ):
-                                to_add.add(include_file)
+                            if not current_file.is_dir():
+                                include_file_path = (
+                                    include_file.relative_to_workspace()
+                                    if self._workspace
+                                    else include_file.relative_to_source_root()
+                                )
+                                if not self.is_excluded(include_file_path):
+                                    to_add.add(include_file)
                     continue
 
                 include_file = BuildIncludeFile(
-                    path=file, project_root=self._path, source_root=source_root
+                    path=file,
+                    project_root=self._path,
+                    source_root=source_root,
+                    workspace=self._workspace,
                 )
 
                 if self.is_excluded(
@@ -213,6 +222,7 @@ class Builder:
                     path=self._package.build_script,
                     project_root=self._path,
                     source_root=self._path,
+                    workspace=self._workspace,
                 )
             )
 
@@ -360,15 +370,18 @@ class BuildIncludeFile:
         path: Path | str,
         project_root: Path | str,
         source_root: Path | str | None = None,
+        workspace: Path | None = None,
     ) -> None:
         """
         :param project_root: the full path of the project's root
         :param path: a full path to the file to be included
         :param source_root: the root path to resolve to
+        :param workspace: the full path of the workspace root
         """
         self.path = Path(path)
         self.project_root = Path(project_root).resolve()
         self.source_root = None if not source_root else Path(source_root).resolve()
+        self.workspace = workspace
         if not self.path.is_absolute() and self.source_root:
             self.path = self.source_root / self.path
         else:
@@ -394,5 +407,11 @@ class BuildIncludeFile:
     def relative_to_source_root(self) -> Path:
         if self.source_root is not None:
             return self.path.relative_to(self.source_root)
+
+        return self.path
+
+    def relative_to_workspace(self) -> Path:
+        if self.workspace is not None:
+            return self.path.relative_to(self.workspace)
 
         return self.path
