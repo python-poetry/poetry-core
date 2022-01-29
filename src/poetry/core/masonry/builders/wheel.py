@@ -15,7 +15,7 @@ from base64 import urlsafe_b64encode
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import ContextManager
+from typing import Iterator
 from typing import TextIO
 
 from packaging.tags import sys_tags
@@ -51,12 +51,12 @@ class WheelBuilder(Builder):
         poetry: Poetry,
         target_dir: Path | None = None,
         original: Path | None = None,
-        executable: str | None = None,
+        executable: Path | None = None,
         editable: bool = False,
     ) -> None:
         super().__init__(poetry, executable=executable)
 
-        self._records = []
+        self._records: list[tuple[str, str, int]] = []
         self._original_path = self._path
         self._target_dir = target_dir or (self._poetry.file.parent / "dist")
         if original:
@@ -69,7 +69,7 @@ class WheelBuilder(Builder):
         poetry: Poetry,
         directory: Path | None = None,
         original: Path | None = None,
-        executable: str | None = None,
+        executable: Path | None = None,
         editable: bool = False,
     ) -> str:
         wb = WheelBuilder(
@@ -84,11 +84,11 @@ class WheelBuilder(Builder):
         return wb.wheel_filename
 
     @classmethod
-    def make(cls, poetry: Poetry, executable: str | None = None) -> None:
+    def make(cls, poetry: Poetry, executable: Path | None = None) -> None:
         """Build a wheel in the dist/ directory, and optionally upload it."""
         cls.make_in(poetry, executable=executable)
 
-    def build(self) -> None:
+    def build(self) -> Path:
         logger.info("Building wheel")
 
         dist_dir = self._target_dir
@@ -125,6 +125,7 @@ class WheelBuilder(Builder):
         shutil.move(temp_path, str(wheel_path))
 
         logger.info(f"Built {self.wheel_filename}")
+        return wheel_path
 
     def _add_pth(self, wheel: zipfile.ZipFile) -> None:
         paths = set()
@@ -168,14 +169,14 @@ class WheelBuilder(Builder):
                         os.chdir(current_path)
 
                     build_dir = self._path / "build"
-                    lib = list(build_dir.glob("lib.*"))
-                    if not lib:
+                    libs: list[Path] = list(build_dir.glob("lib.*"))
+                    if not libs:
                         # The result of building the extensions
                         # does not exist, this may due to conditional
                         # builds, so we assume that it's okay
                         return
 
-                    lib = lib[0]
+                    lib = libs[0]
 
                     for pkg in lib.glob("**/*"):
                         if pkg.is_dir() or self.is_excluded(pkg):
@@ -298,8 +299,8 @@ class WheelBuilder(Builder):
     @property
     def tag(self) -> str:
         if self._package.build_script:
-            tag = next(sys_tags())
-            tag = (tag.interpreter, tag.abi, tag.platform)
+            sys_tag = next(sys_tags())
+            tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
             platform = "any"
             if self.supports_python2():
@@ -352,7 +353,7 @@ class WheelBuilder(Builder):
     @contextlib.contextmanager
     def _write_to_zip(
         self, wheel: zipfile.ZipFile, rel_path: str
-    ) -> ContextManager[StringIO]:
+    ) -> Iterator[StringIO]:
         sio = StringIO()
         yield sio
 

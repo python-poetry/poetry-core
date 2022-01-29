@@ -14,7 +14,7 @@ class Metadata:
     metadata_version = "2.1"
     # version 1.0
     name = None
-    version = None
+    version: str
     platforms = ()
     supported_platforms = ()
     summary = None
