@@ -7,6 +7,7 @@ from typing import Union
 import pytest
 
 from poetry.core.utils.helpers import canonicalize_name
+from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
@@ -74,6 +75,15 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
 @pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c"])
 def test_utils_helpers_canonical_names(raw: str):
     assert canonicalize_name(raw) == "a-b-c"
+
+
+def test_utils_helpers_combine_unicode():
+    combined_expected = "é"
+    decomposed = "é"
+    assert combined_expected != decomposed
+
+    combined = combine_unicode(decomposed)
+    assert combined == combined_expected
 
 
 def test_utils_helpers_temporary_directory_readonly_file():

@@ -9,6 +9,7 @@ from typing import Optional
 from typing import Union
 from warnings import warn
 
+from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import readme_content_type
 
 
@@ -76,10 +77,10 @@ class Factory:
         package.root_dir = root
 
         for author in config["authors"]:
-            package.authors.append(author)
+            package.authors.append(combine_unicode(author))
 
         for maintainer in config.get("maintainers", []):
-            package.maintainers.append(maintainer)
+            package.maintainers.append(combine_unicode(maintainer))
 
         package.description = config.get("description", "")
         package.homepage = config.get("homepage")
