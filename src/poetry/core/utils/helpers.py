@@ -3,6 +3,7 @@ import re
 import shutil
 import stat
 import tempfile
+import unicodedata
 
 from collections.abc import Mapping
 from contextlib import contextmanager
@@ -18,6 +19,10 @@ from poetry.core.version.pep440 import PEP440Version
 
 
 _canonicalize_regex = re.compile(r"[-_]+")
+
+
+def combine_unicode(string: str) -> str:
+    return unicodedata.normalize("NFC", string)
 
 
 def canonicalize_name(name: str) -> str:
