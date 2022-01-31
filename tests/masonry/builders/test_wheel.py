@@ -272,24 +272,28 @@ def test_wheel_with_file_with_comma() -> None:
 
 
 def test_default_src_with_excluded_data(mocker: MockerFixture) -> None:
-    # Patch git module to return specific excluded files
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = [
-        (
-            (
-                Path(__file__).parent
-                / "fixtures"
-                / "default_src_with_excluded_data"
-                / "src"
-                / "my_package"
-                / "data"
-                / "sub_data"
-                / "data2.txt"
-            )
-            .relative_to(project("default_src_with_excluded_data"))
-            .as_posix()
-        )
-    ]
+    class MockGit:
+        def get_ignored_files(self, folder: Path | None = None) -> list[str]:
+            # Patch git module to return specific excluded files
+            return [
+                (
+                    (
+                        Path(__file__).parent
+                        / "fixtures"
+                        / "default_src_with_excluded_data"
+                        / "src"
+                        / "my_package"
+                        / "data"
+                        / "sub_data"
+                        / "data2.txt"
+                    )
+                    .relative_to(project("default_src_with_excluded_data"))
+                    .as_posix()
+                )
+            ]
+
+    p = mocker.patch("poetry.core.vcs.get_vcs")
+    p.return_value = MockGit()
     poetry = Factory().create_poetry(project("default_src_with_excluded_data"))
 
     builder = WheelBuilder(poetry)
