@@ -174,8 +174,8 @@ def test_to_pep_508_with_patch_python_version(python_versions: str, marker: str)
 
     expected = f"Django (>=1.23,<2.0); {marker}"
 
-    assert expected == dependency.to_pep_508()
-    assert marker == str(dependency.marker)
+    assert dependency.to_pep_508() == expected
+    assert str(dependency.marker) == marker
 
 
 def test_to_pep_508_tilde():

@@ -12,7 +12,7 @@ def test_to_pep_508():
         "pytorch @"
         " https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp38-cp38-linux_x86_64.whl"
     )
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
 
 def test_to_pep_508_with_marker():
@@ -27,4 +27,4 @@ def test_to_pep_508_with_marker():
         " https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp38-cp38-linux_x86_64.whl"
         ' ; sys_platform == "linux"'
     )
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
