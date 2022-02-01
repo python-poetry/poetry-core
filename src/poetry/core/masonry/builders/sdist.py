@@ -237,7 +237,7 @@ class SdistBuilder(Builder):
             extra.append("'ext_modules': ext_modules,")
             imports.append("from distutils.command.build_ext import build_ext")
             before.append(EXT_BUILDER_DEF)
-            extra.append("'cmdclass': {'build_ext': ExtBuilder},")
+            extra.append("'cmdclass': {'build_ext': ExtBuilder},")  # noqa: FS003
 
         if self._package.python_versions != "*":
             python_requires = self._meta.requires_python
