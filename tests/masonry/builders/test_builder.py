@@ -10,7 +10,6 @@ import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
-from poetry.core.utils._compat import PY37
 
 
 if TYPE_CHECKING:
@@ -29,7 +28,7 @@ def test_builder_find_excluded_files(mocker: "MockerFixture"):
 
 
 @pytest.mark.xfail(
-    sys.platform == "win32" and not PY37,
+    sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
 )
 def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
@@ -54,7 +53,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
 
 
 @pytest.mark.xfail(
-    sys.platform == "win32" and not PY37,
+    sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
 )
 def test_builder_find_invalid_case_sensitive_excluded_files(mocker: "MockerFixture"):

@@ -7,13 +7,12 @@ import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
-from typing import ContextManager
 from typing import Dict
+from typing import Generator
 from typing import List
 from typing import Optional
 
 from poetry.core.toml import TOMLFile
-from poetry.core.utils._compat import PY37
 
 
 __toml_build_backend_patch__ = {
@@ -27,7 +26,7 @@ __toml_build_backend_patch__ = {
 @contextmanager
 def temporary_project_directory(
     path: Path, toml_patch: Optional[Dict[str, Any]] = None
-) -> ContextManager[str]:
+) -> Generator[str, None, None]:
     """
     Context manager that takes a project source directory, copies content to a temporary
     directory, patches the `pyproject.toml` using the provided patch, or using the default
@@ -56,10 +55,7 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
     """
     Helper method to run a subprocess. Asserts for success.
     """
-    compat_kwargs = {"text" if PY37 else "universal_newlines": True}
-    result = subprocess.run(
-        args, **compat_kwargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
-    )
+    result = subprocess.run(args, text=True, capture_output=True, **kwargs)
     assert result.returncode == 0
     return result
 
