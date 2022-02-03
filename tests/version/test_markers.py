@@ -432,7 +432,7 @@ def test_marker_union_intersect_marker_union_drops_unnecessary_markers():
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.4" and python_version < "4.0"'
     )
-    assert expected == str(intersection)
+    assert str(intersection) == expected
 
 
 def test_marker_union_intersect_multi_marker():
@@ -669,7 +669,7 @@ def test_parse_version_like_markers(marker: str, env: Dict[str, str]):
 def test_without_extras(marker: str, expected: str):
     m = parse_marker(marker)
 
-    assert expected == str(m.without_extras())
+    assert str(m.without_extras()) == expected
 
 
 @pytest.mark.parametrize(
@@ -713,7 +713,7 @@ def test_exclude(marker: str, excluded: str, expected: str):
     if expected == "*":
         assert m.exclude(excluded).is_any()
     else:
-        assert expected == str(m.exclude(excluded))
+        assert str(m.exclude(excluded)) == expected
 
 
 @pytest.mark.parametrize(
@@ -759,7 +759,7 @@ def test_exclude(marker: str, excluded: str, expected: str):
 def test_only(marker: str, only: List[str], expected: str):
     m = parse_marker(marker)
 
-    assert expected == str(m.only(*only))
+    assert str(m.only(*only)) == expected
 
 
 def test_union_of_a_single_marker_is_the_single_marker():

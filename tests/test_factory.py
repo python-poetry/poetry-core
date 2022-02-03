@@ -214,7 +214,7 @@ def test_create_poetry_fails_on_invalid_configuration():
 The Poetry configuration is invalid:
   - 'description' is a required property
 """
-    assert expected == str(e.value)
+    assert str(e.value) == expected
 
 
 def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():

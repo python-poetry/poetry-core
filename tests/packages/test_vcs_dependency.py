@@ -12,7 +12,7 @@ def test_to_pep_508():
 
     expected = "poetry @ git+https://github.com/python-poetry/poetry.git"
 
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
 
 def test_to_pep_508_ssh():
@@ -20,7 +20,7 @@ def test_to_pep_508_ssh():
 
     expected = "poetry @ git+ssh://git@github.com/sdispater/poetry.git"
 
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
 
 def test_to_pep_508_with_extras():
@@ -30,7 +30,7 @@ def test_to_pep_508_with_extras():
 
     expected = "poetry[foo] @ git+https://github.com/python-poetry/poetry.git"
 
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
 
 def test_to_pep_508_in_extras():
@@ -42,7 +42,7 @@ def test_to_pep_508_in_extras():
     expected = (
         'poetry @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
     )
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git", extras=["bar"]
@@ -53,7 +53,7 @@ def test_to_pep_508_in_extras():
         'poetry[bar] @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
     )
 
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git", "b;ar;"
@@ -65,7 +65,7 @@ def test_to_pep_508_in_extras():
         ' "foo;"'
     )
 
-    assert expected == dependency.to_pep_508()
+    assert dependency.to_pep_508() == expected
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
