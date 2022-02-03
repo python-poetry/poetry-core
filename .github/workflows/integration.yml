@@ -6,7 +6,6 @@ jobs:
   Tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         os: [Ubuntu, MacOS, Windows]
