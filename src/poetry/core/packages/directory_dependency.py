@@ -119,7 +119,7 @@ class DirectoryDependency(Dependency):
         requirement = self.pretty_name
 
         if self.extras:
-            extras = ",".join(self.extras)
+            extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
         path = path_to_url(self.path) if self.path.is_absolute() else self.path

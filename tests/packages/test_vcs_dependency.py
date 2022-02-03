@@ -25,10 +25,13 @@ def test_to_pep_508_ssh():
 
 def test_to_pep_508_with_extras():
     dependency = VCSDependency(
-        "poetry", "git", "https://github.com/python-poetry/poetry.git", extras=["foo"]
+        "poetry",
+        "git",
+        "https://github.com/python-poetry/poetry.git",
+        extras=["foo", "bar"],
     )
 
-    expected = "poetry[foo] @ git+https://github.com/python-poetry/poetry.git"
+    expected = "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git"
 
     assert expected == dependency.to_pep_508()
 

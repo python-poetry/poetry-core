@@ -169,3 +169,17 @@ def test_relative_file_dependency_to_pep_508_with_marker(mocker: "MockerFixture"
         requirement,
         marker=SingleMarker("sys.platform", "linux"),
     )
+
+
+def test_file_dependency_pep_508_extras(mocker: "MockerFixture"):
+    wheel = "demo-0.1.0-py2.py3-none-any.whl"
+
+    rel_path = Path("..") / "fixtures" / "distributions" / wheel
+    requirement = f'demo[foo,bar] @ {rel_path.as_posix()} ; sys_platform == "linux"'
+    _test_file_dependency_pep_508(
+        mocker,
+        "demo",
+        rel_path,
+        requirement,
+        f'demo[bar,foo] @ {rel_path.as_posix()} ; sys_platform == "linux"',
+    )

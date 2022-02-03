@@ -110,7 +110,7 @@ class VCSDependency(Dependency):
         parsed_url = git.ParsedUrl.parse(self._source)
 
         if self.extras:
-            extras = ",".join(self.extras)
+            extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
         if parsed_url.protocol is not None:

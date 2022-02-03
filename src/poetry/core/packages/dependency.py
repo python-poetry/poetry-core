@@ -253,7 +253,7 @@ class Dependency(PackageSpecification):
         requirement = self.pretty_name
 
         if self.extras:
-            extras = ",".join(self.extras)
+            extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
         if isinstance(self.constraint, VersionUnion):
