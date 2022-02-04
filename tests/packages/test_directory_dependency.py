@@ -61,3 +61,14 @@ def test_directory_dependency_pep_508_local_relative():
 
     requirement = f"demo @ {path}"
     _test_directory_dependency_pep_508("demo", path, requirement)
+
+
+def test_directory_dependency_pep_508_extras():
+    path = (
+        Path(__file__).parent.parent
+        / "fixtures"
+        / "project_with_multi_constraints_dependency"
+    )
+    requirement = f"demo[foo,bar] @ file://{path.as_posix()}"
+    requirement_expected = f"demo[bar,foo] @ file://{path.as_posix()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
