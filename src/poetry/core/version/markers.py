@@ -449,8 +449,8 @@ class MultiMarker(BaseMarker):
         if any(m.is_empty() for m in new_markers) or not new_markers:
             return EmptyMarker()
 
-        if len(new_markers) == 1 and new_markers[0].is_any():
-            return AnyMarker()
+        if len(new_markers) == 1:
+            return new_markers[0]
 
         return MultiMarker(*new_markers)
 
