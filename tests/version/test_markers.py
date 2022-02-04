@@ -773,6 +773,14 @@ def test_union_of_a_single_marker_is_the_single_marker():
     assert SingleMarker("python_version", ">= 2.7") == union
 
 
+def test_union_of_multi_with_a_containing_single():
+    single = parse_marker('python_version >= "2.7"')
+    multi = parse_marker('python_version >= "2.7" and extra == "foo"')
+    union = multi.union(single)
+
+    assert union == single
+
+
 @pytest.mark.parametrize(
     "marker, inverse",
     [

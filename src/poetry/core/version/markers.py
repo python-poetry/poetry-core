@@ -470,6 +470,9 @@ class MultiMarker(BaseMarker):
         return MultiMarker.of(*new_markers)
 
     def union(self, other: MarkerTypes) -> MarkerTypes:
+        if other in self._markers:
+            return other
+
         if isinstance(other, (SingleMarker, MultiMarker)):
             return MarkerUnion.of(self, other)
 
