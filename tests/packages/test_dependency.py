@@ -305,3 +305,13 @@ def test_dependency_markers_are_the_same_as_markers():
     marker = parse_marker('extra=="bar"')
 
     assert dependency.marker == marker
+
+
+def test_marker_properly_unsets_python_constraint():
+    dependency = Dependency("foo", "^1.2.3")
+
+    dependency.marker = 'python_version >= "3.6"'
+    assert str(dependency.python_constraint) == ">=3.6"
+
+    dependency.marker = "*"
+    assert str(dependency.python_constraint) == "*"
