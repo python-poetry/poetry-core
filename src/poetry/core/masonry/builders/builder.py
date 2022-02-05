@@ -9,6 +9,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from poetry.core.utils import namespacing
+
 
 if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
@@ -415,3 +417,9 @@ class BuildIncludeFile:
             return self.path.relative_to(self.workspace)
 
         return self.path
+
+    def calculated_path(self) -> Path:
+        if self.workspace:
+            return namespacing.create_namespaced_path(self.path, self.workspace)
+
+        return self.relative_to_source_root()

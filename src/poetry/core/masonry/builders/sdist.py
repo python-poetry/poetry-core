@@ -78,10 +78,10 @@ class SdistBuilder(Builder):
 
             files_to_add = self.find_files_to_add(exclude_build=False)
 
-            for file in sorted(files_to_add, key=lambda x: x.relative_to_source_root()):
+            for file in sorted(files_to_add, key=lambda x: x.calculated_path()):
                 tar_info = tar.gettarinfo(
                     str(file.path),
-                    arcname=pjoin(tar_dir, str(file.relative_to_source_root())),
+                    arcname=pjoin(tar_dir, str(file.calculated_path())),
                 )
                 tar_info = self.clean_tarinfo(tar_info)
 
@@ -339,7 +339,7 @@ class SdistBuilder(Builder):
                 path=additional_file, project_root=self._path, source_root=self._path, workspace=self._workspace
             )
             if file.path.exists():
-                logger.debug(f"Adding: {file.relative_to_source_root()}")
+                logger.debug(f"Adding: {file.calculated_path()}")
                 to_add.add(file)
 
         return to_add

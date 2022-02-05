@@ -223,7 +223,7 @@ class WheelBuilder(Builder):
         # Walk the files and compress them,
         # sorting everything so the order is stable.
         for file in sorted(to_add, key=lambda x: x.path):
-            self._add_file(wheel, file.path, file.relative_to_source_root())
+            self._add_file(wheel, file.path, file.calculated_path())
 
     def _write_metadata(self, wheel: zipfile.ZipFile) -> None:
         if (
