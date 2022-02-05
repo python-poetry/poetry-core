@@ -54,6 +54,11 @@ def test_allows_all():
     [
         (
             Constraint("win32"),
+            Constraint("win32"),
+            Constraint("win32"),
+        ),
+        (
+            Constraint("win32"),
             Constraint("linux"),
             EmptyConstraint(),
         ),
@@ -71,6 +76,11 @@ def test_allows_all():
             Constraint("win32"),
             Constraint("linux", "!="),
             Constraint("win32"),
+        ),
+        (
+            Constraint("win32", "!="),
+            Constraint("linux"),
+            Constraint("linux"),
         ),
         (
             Constraint("win32", "!="),
