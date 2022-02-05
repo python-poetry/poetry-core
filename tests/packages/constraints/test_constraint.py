@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from poetry.core.packages.constraints import AnyConstraint
 from poetry.core.packages.constraints.constraint import Constraint
 from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -103,6 +104,11 @@ def test_intersect(
     [
         (
             Constraint("win32"),
+            Constraint("win32"),
+            Constraint("win32"),
+        ),
+        (
+            Constraint("win32"),
             Constraint("linux"),
             UnionConstraint(Constraint("win32"), Constraint("linux")),
         ),
@@ -117,6 +123,21 @@ def test_intersect(
             UnionConstraint(
                 Constraint("win32"), Constraint("linux"), Constraint("linux2")
             ),
+        ),
+        (
+            Constraint("win32"),
+            Constraint("linux", "!="),
+            Constraint("linux", "!="),
+        ),
+        (
+            Constraint("win32", "!="),
+            Constraint("linux"),
+            Constraint("win32", "!="),
+        ),
+        (
+            Constraint("win32", "!="),
+            Constraint("linux", "!="),
+            AnyConstraint(),
         ),
     ],
 )
