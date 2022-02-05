@@ -179,6 +179,8 @@ class Dependency(PackageSpecification):
                 for _, extra in or_:
                     self.in_extras.append(extra)
 
+        # Recalculate python versions.
+        self._python_versions = "*"
         if "python_version" in markers:
             ors = []
             for or_ in markers["python_version"]:
@@ -213,7 +215,8 @@ class Dependency(PackageSpecification):
                 ors.append(" ".join(ands))
 
             self._python_versions = " || ".join(ors)
-            self._python_constraint = parse_constraint(self._python_versions)
+
+        self._python_constraint = parse_constraint(self._python_versions)
 
     @property
     def transitive_marker(self) -> "BaseMarker":
