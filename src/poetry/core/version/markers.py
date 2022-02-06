@@ -737,7 +737,7 @@ def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> MarkerType
                 )
 
             value = value[1:-1]
-            groups[-1] = MultiMarker.of(groups[-1], SingleMarker(name, f"{op}{value}"))
+            groups[-1] = MultiMarker.of(groups[-1], SingleMarker(str(name), f"{op}{value}"))
         elif token.data == f"{tree_prefix}BOOL_OP" and token.children[0] == "or":
             groups.append(MultiMarker())
 
