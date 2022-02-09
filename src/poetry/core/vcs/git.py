@@ -226,7 +226,7 @@ class Git:
 
         formatted = re.sub(r"^git\+", "", url)
         if parsed.rev:
-            formatted = re.sub(rf"[#@]{parsed.rev}$", "", formatted)
+            formatted = re.sub(rf"[#@]{parsed.rev}", "", formatted)
 
         if parsed.subdirectory:
             formatted = re.sub(

@@ -131,6 +131,7 @@ class PackageSpecification:
             ^ hash(self._source_url)
             ^ hash(self._source_reference)
             ^ hash(self._source_resolved_reference)
+            ^ hash(self._source_subdirectory)
             ^ hash(self._features)
         )
 
