@@ -558,7 +558,7 @@ class MarkerUnion(BaseMarker):
                 continue
 
             if isinstance(marker, SingleMarker) and marker.name == "python_version":
-                intersected = False
+                included = False
                 for i, mark in enumerate(markers):
                     if (
                         not isinstance(mark, SingleMarker)
@@ -567,16 +567,18 @@ class MarkerUnion(BaseMarker):
                     ):
                         continue
 
-                    intersection = mark.constraint.union(marker.constraint)
-                    if intersection == mark.constraint:
-                        intersected = True
+                    union = mark.constraint.union(marker.constraint)
+                    if union == mark.constraint:
+                        included = True
                         break
-                    elif intersection == marker.constraint:
+                    elif union == marker.constraint:
                         markers[i] = marker
-                        intersected = True
+                        included = True
                         break
+                    elif union.is_any():
+                        return AnyMarker()
 
-                if intersected:
+                if included:
                     continue
 
             markers.append(marker)

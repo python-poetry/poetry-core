@@ -162,16 +162,13 @@ def test_single_marker_not_in_python_intersection():
 def test_single_marker_union():
     m = parse_marker('sys_platform == "darwin"')
 
-    intersection = m.union(parse_marker('implementation_name == "cpython"'))
-    assert (
-        str(intersection)
-        == 'sys_platform == "darwin" or implementation_name == "cpython"'
-    )
+    union = m.union(parse_marker('implementation_name == "cpython"'))
+    assert str(union) == 'sys_platform == "darwin" or implementation_name == "cpython"'
 
     m = parse_marker('python_version >= "3.4"')
 
-    intersection = m.union(parse_marker('python_version < "3.6"'))
-    assert str(intersection) == 'python_version >= "3.4" or python_version < "3.6"'
+    union = m.union(parse_marker('python_version < "3.6"'))
+    assert union.is_any()
 
 
 def test_single_marker_union_compacts_constraints():
