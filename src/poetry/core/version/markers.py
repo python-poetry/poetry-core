@@ -49,6 +49,7 @@ ALIASES = {
     "python_implementation": "platform_python_implementation",
 }
 
+PYTHON_VERSION_MARKERS = ["python_version", "python_full_version"]
 
 # Parser: PEP 508 Environment Markers
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
@@ -259,22 +260,6 @@ class SingleMarker(BaseMarker):
 
     def intersect(self, other: MarkerTypes) -> MarkerTypes:
         if isinstance(other, SingleMarker):
-            if other.name != self.name:
-                return MultiMarker(self, other)
-
-            if self == other:
-                return self
-
-            if self._operator in {"in", "not in"} or other.operator in {"in", "not in"}:
-                return MultiMarker.of(self, other)
-
-            new_constraint = self._constraint.intersect(other.constraint)
-            if new_constraint.is_empty():
-                return EmptyMarker()
-
-            if new_constraint == self._constraint or new_constraint == other.constraint:
-                return SingleMarker(self._name, new_constraint)
-
             return MultiMarker.of(self, other)
 
         return other.intersect(self)
@@ -416,7 +401,13 @@ class MultiMarker(BaseMarker):
                 if isinstance(marker, SingleMarker):
                     intersected = False
                     for i, mark in enumerate(new_markers):
-                        if isinstance(mark, SingleMarker) and mark.name == marker.name:
+                        if isinstance(mark, SingleMarker) and (
+                            mark.name == marker.name
+                            or (
+                                mark.name in PYTHON_VERSION_MARKERS
+                                and marker.name in PYTHON_VERSION_MARKERS
+                            )
+                        ):
                             intersection = mark.constraint.intersect(marker.constraint)
                             if intersection == mark.constraint:
                                 intersected = True
@@ -560,13 +551,15 @@ class MarkerUnion(BaseMarker):
             if marker in markers:
                 continue
 
-            if isinstance(marker, SingleMarker) and marker.name == "python_version":
+            if (
+                isinstance(marker, SingleMarker)
+                and marker.name in PYTHON_VERSION_MARKERS
+            ):
                 included = False
                 for i, mark in enumerate(markers):
                     if (
                         not isinstance(mark, SingleMarker)
-                        or isinstance(mark, SingleMarker)
-                        and mark.name != marker.name
+                        or mark.name not in PYTHON_VERSION_MARKERS
                     ):
                         continue
 

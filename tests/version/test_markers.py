@@ -159,6 +159,14 @@ def test_single_marker_not_in_python_intersection():
     assert str(intersection) == 'python_version not in "2.7, 3.0, 3.1, 3.2"'
 
 
+def test_marker_intersection_of_python_version_and_python_full_version():
+    m = parse_marker('python_version >= "3.6"')
+    m2 = parse_marker('python_full_version >= "3.0.0"')
+    intersection = m.intersect(m2)
+
+    assert str(intersection) == 'python_version >= "3.6"'
+
+
 def test_single_marker_union():
     m = parse_marker('sys_platform == "darwin"')
 
@@ -367,6 +375,14 @@ def test_marker_union_deduplicate():
     )
 
     assert str(m) == 'sys_platform == "darwin" or implementation_name == "cpython"'
+
+
+def test_marker_union_of_python_version_and_python_full_version():
+    m = parse_marker('python_version >= "3.6"')
+    m2 = parse_marker('python_full_version >= "3.0.0"')
+    union = m.union(m2)
+
+    assert str(union) == 'python_full_version >= "3.0.0"'
 
 
 def test_marker_union_intersect_single_marker():
