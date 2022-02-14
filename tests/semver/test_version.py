@@ -215,3 +215,16 @@ def test_difference():
     assert (
         v.difference(VersionRange(Version.parse("1.4.0"), Version.parse("3.0.0"))) == v
     )
+
+
+@pytest.mark.parametrize(
+    "version, expected",
+    [
+        ("1.2.3", "1.2.3-dev.0"),
+        ("1.2.3-alpha.0", "1.2.3-dev.0"),
+        ("1.2.3-dev.0", "1.2.3-dev.1"),
+    ],
+)
+def test_next_devrelease(version: str, expected: str):
+    v = Version.parse(version)
+    assert v.next_devrelease() == Version.parse(expected)

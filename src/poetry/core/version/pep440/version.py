@@ -201,13 +201,11 @@ class PEP440Version:
         )
 
     def next_devrelease(self) -> "PEP440Version":
-        if self.is_prerelease():
+        if self.is_devrelease():
             dev = self.dev.next()
         else:
             dev = ReleaseTag(RELEASE_PHASE_DEV)
-        return self.__class__(
-            epoch=self.epoch, release=self.release, pre=self.pre, dev=dev
-        )
+        return self.__class__(epoch=self.epoch, release=self.release, dev=dev)
 
     def first_prerelease(self) -> "PEP440Version":
         return self.__class__(
