@@ -255,10 +255,28 @@ class Git:
     def config(self) -> GitConfig:
         return self._config
 
+    @property
+    def version(self) -> tuple[int, int, int]:
+        output = self.run("version")
+        version = re.search(r"(\d+)\.(\d+)\.(\d+)", output)
+        if not version:
+            return (0, 0, 0)
+        return int(version.group(1)), int(version.group(2)), int(version.group(3))
+
     def clone(self, repository: str, dest: Path) -> str:
         self._check_parameter(repository)
-
-        return self.run("clone", "--recurse-submodules", "--", repository, str(dest))
+        cmd = [
+            "clone",
+            "--filter=blob:none",
+            "--recurse-submodules",
+            "--",
+            repository,
+            str(dest),
+        ]
+        # Blobless clones introduced in Git 2.17
+        if self.version < (2, 17):
+            cmd.remove("--filter=blob:none")
+        return self.run(*cmd)
 
     def checkout(self, rev: str, folder: Path | None = None) -> str:
         args = []
