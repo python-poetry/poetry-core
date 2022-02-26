@@ -685,13 +685,13 @@ def test_without_extras(marker: str, expected: str):
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar")',
             "python_version",
-            '(extra == "foo" or extra == "bar")',
+            'extra == "foo" or extra == "bar"',
         ),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
             ' implementation_name == "pypy"',
             "python_version",
-            '(extra == "foo" or extra == "bar") or implementation_name == "pypy"',
+            'extra == "foo" or extra == "bar" or implementation_name == "pypy"',
         ),
         (
             'python_version >= "3.6" and extra == "foo" or implementation_name =='
@@ -704,6 +704,11 @@ def test_without_extras(marker: str, expected: str):
             ' "pypy" or extra == "bar"',
             "implementation_name",
             'python_version >= "3.6" or extra == "foo" or extra == "bar"',
+        ),
+        (
+            'extra == "foo" and python_version >= "3.6" or python_version >= "3.6"',
+            "extra",
+            'python_version >= "3.6"',
         ),
     ],
 )
@@ -728,7 +733,7 @@ def test_exclude(marker: str, excluded: str, expected: str):
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar")',
             ["extra"],
-            '(extra == "foo" or extra == "bar")',
+            'extra == "foo" or extra == "bar"',
         ),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
@@ -766,6 +771,14 @@ def test_union_of_a_single_marker_is_the_single_marker():
     union = MarkerUnion.of(SingleMarker("python_version", ">= 2.7"))
 
     assert SingleMarker("python_version", ">= 2.7") == union
+
+
+def test_union_of_multi_with_a_containing_single():
+    single = parse_marker('python_version >= "2.7"')
+    multi = parse_marker('python_version >= "2.7" and extra == "foo"')
+    union = multi.union(single)
+
+    assert union == single
 
 
 @pytest.mark.parametrize(

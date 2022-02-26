@@ -449,8 +449,8 @@ class MultiMarker(BaseMarker):
         if any(m.is_empty() for m in new_markers) or not new_markers:
             return EmptyMarker()
 
-        if len(new_markers) == 1 and new_markers[0].is_any():
-            return AnyMarker()
+        if len(new_markers) == 1:
+            return new_markers[0]
 
         return MultiMarker(*new_markers)
 
@@ -470,6 +470,9 @@ class MultiMarker(BaseMarker):
         return MultiMarker.of(*new_markers)
 
     def union(self, other: MarkerTypes) -> MarkerTypes:
+        if other in self._markers:
+            return other
+
         if isinstance(other, (SingleMarker, MultiMarker)):
             return MarkerUnion.of(self, other)
 
