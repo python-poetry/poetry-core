@@ -93,6 +93,11 @@ def test_allows_all():
             UnionConstraint(Constraint("win32"), Constraint("darwin")),
             Constraint("win32"),
         ),
+        (
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
+            Constraint("linux"),
+        ),
     ],
 )
 def test_intersect(
