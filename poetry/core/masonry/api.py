@@ -77,3 +77,15 @@ def build_sdist(
     path = SdistBuilder(poetry).build(Path(sdist_directory))
 
     return unicode(path.name)
+
+
+def build_editable(
+    wheel_directory, config_settings=None, metadata_directory=None,
+):  # type: (str, Optional[Dict[str, Any]], Optional[str]) -> str
+    poetry = Factory().create_poetry(Path(".").resolve(), with_dev=False)
+
+    return unicode(WheelBuilder.make_in(poetry, Path(wheel_directory), editable=True))
+
+
+get_requires_for_build_editable = get_requires_for_build_wheel
+prepare_metadata_for_build_editable = prepare_metadata_for_build_wheel

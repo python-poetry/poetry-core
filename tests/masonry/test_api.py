@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import os
 import platform
 import sys
+import zipfile
 
 from contextlib import contextmanager
 
@@ -216,3 +217,22 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds():
     ):
         api.prepare_metadata_for_build_wheel(tmp_dir)
     assert "does not exist" in str(err.value)
+
+
+def test_build_editable_wheel():
+    pkg_dir = Path(fixtures) / "complete"
+
+    with temporary_directory() as tmp_dir, cwd(pkg_dir):
+        filename = api.build_editable(tmp_dir)
+        wheel_pth = Path(tmp_dir) / filename
+
+        validate_wheel_contents(
+            name="my_package", version="1.2.3", path=str(wheel_pth),
+        )
+
+        with zipfile.ZipFile(str(wheel_pth)) as z:
+            namelist = z.namelist()
+
+            assert "my_package.pth" in namelist
+            assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
+            assert not any(file for file in namelist if file.startswith("my_package/"))
