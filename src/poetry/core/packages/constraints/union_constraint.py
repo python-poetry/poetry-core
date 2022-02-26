@@ -91,6 +91,9 @@ class UnionConstraint(BaseConstraint):
         if not new_constraints:
             return EmptyConstraint()
 
+        if len(new_constraints) == 1:
+            return new_constraints[0]
+
         return UnionConstraint(*new_constraints)
 
     def union(self, other: BaseConstraint) -> "UnionConstraint":
