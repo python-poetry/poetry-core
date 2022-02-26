@@ -77,7 +77,8 @@ class UnionConstraint(BaseConstraint):
 
             return EmptyConstraint()
 
-        # Two remaining cases: an intersection with another union, or an intersection with a multi.
+        # Two remaining cases: an intersection with another union, or an intersection
+        # with a multi.
         #
         # In the first case:
         # (A or B) and (C or D) => (A and C) or (A and D) or (B and C) or (B and D)
@@ -99,7 +100,8 @@ class UnionConstraint(BaseConstraint):
         else:
             other = cast(MultiConstraint, other)
 
-            for intersection in self._constraints:
+            for our_constraint in self._constraints:
+                intersection = our_constraint
                 for their_constraint in other.constraints:
                     intersection = intersection.intersect(their_constraint)
 
