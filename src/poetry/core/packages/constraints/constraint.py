@@ -3,6 +3,7 @@ import operator
 from typing import Any
 from typing import Union
 
+from poetry.core.packages.constraints import AnyConstraint
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 
@@ -106,7 +107,19 @@ class Constraint(BaseConstraint):
                 UnionConstraint,
             )
 
-            return UnionConstraint(self, other)
+            if other == self:
+                return self
+
+            if self.operator == "!=" and other.operator == "==" and self.allows(other):
+                return self
+
+            if other.operator == "!=" and self.operator == "==" and other.allows(self):
+                return other
+
+            if other.operator == "==" and self.operator == "==":
+                return UnionConstraint(self, other)
+
+            return AnyConstraint()
 
         return other.union(self)
 
