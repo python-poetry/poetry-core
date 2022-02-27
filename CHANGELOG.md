@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.8] - 2022-02-27
+
+### Added
+
+- Add hooks according to PEP-660 for editable installs ([#257](https://github.com/python-poetry/poetry-core/pull/257)).
+
+
 ## [1.0.7] - 2021-10-04
 
 ### Fixed
@@ -179,7 +186,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.7...1.0
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.0.8...1.0
+[1.0.8]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.8
 [1.0.7]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.7
 [1.0.6]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.6
 [1.0.5]: https://github.com/python-poetry/poetry-core/releases/tag/1.0.5
