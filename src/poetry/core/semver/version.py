@@ -78,6 +78,9 @@ class Version(PEP440Version, VersionRangeConstraint):
     def is_empty(self) -> bool:
         return False
 
+    def is_simple(self) -> bool:
+        return True
+
     def allows(self, version: "Version") -> bool:
         if version is None:
             return False

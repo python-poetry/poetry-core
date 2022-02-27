@@ -173,17 +173,51 @@ def test_single_marker_union():
     union = m.union(parse_marker('implementation_name == "cpython"'))
     assert str(union) == 'sys_platform == "darwin" or implementation_name == "cpython"'
 
+
+def test_single_marker_union_is_any():
     m = parse_marker('python_version >= "3.4"')
 
     union = m.union(parse_marker('python_version < "3.6"'))
     assert union.is_any()
 
 
-def test_single_marker_union_compacts_constraints():
-    m = parse_marker('python_version < "3.6"')
+@pytest.mark.parametrize(
+    ("marker1", "marker2", "expected"),
+    [
+        (
+            'python_version < "3.6"',
+            'python_version < "3.4"',
+            'python_version < "3.6"',
+        ),
+        (
+            'sys_platform == "linux"',
+            'sys_platform != "win32"',
+            'sys_platform != "win32"',
+        ),
+        (
+            'python_version == "3.6"',
+            'python_version > "3.6"',
+            'python_version >= "3.6"',
+        ),
+        (
+            'python_version == "3.6"',
+            'python_version < "3.6"',
+            'python_version <= "3.6"',
+        ),
+        (
+            'python_version < "3.6"',
+            'python_version > "3.6"',
+            'python_version != "3.6"',
+        ),
+    ],
+)
+def test_single_marker_union_is_single_marker(
+    marker1: str, marker2: str, expected: str
+):
+    m = parse_marker(marker1)
 
-    union = m.union(parse_marker('python_version < "3.4"'))
-    assert str(union) == 'python_version < "3.6"'
+    union = m.union(parse_marker(marker2))
+    assert str(union) == expected
 
 
 def test_single_marker_union_with_multi():

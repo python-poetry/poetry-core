@@ -64,6 +64,9 @@ class VersionRange(VersionRangeConstraint):
     def is_any(self) -> bool:
         return self._min is None and self._max is None
 
+    def is_simple(self) -> bool:
+        return self._min is None or self._max is None
+
     def allows(self, other: "Version") -> bool:
         if self._min is not None:
             if other < self._min:

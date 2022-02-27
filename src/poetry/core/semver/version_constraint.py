@@ -16,6 +16,10 @@ class VersionConstraint:
         raise NotImplementedError()
 
     @abstractmethod
+    def is_simple(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
     def allows(self, version: "Version") -> bool:
         raise NotImplementedError()
 
