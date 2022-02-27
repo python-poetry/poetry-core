@@ -14,6 +14,9 @@ class EmptyConstraint(VersionConstraint):
     def is_any(self) -> bool:
         return False
 
+    def is_simple(self) -> bool:
+        return True
+
     def allows(self, version: "Version") -> bool:
         return False
 

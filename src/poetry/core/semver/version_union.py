@@ -80,6 +80,9 @@ class VersionUnion(VersionConstraint):
     def is_any(self) -> bool:
         return False
 
+    def is_simple(self) -> bool:
+        return self.excludes_single_version()
+
     def allows(self, version: "Version") -> bool:
         return any([constraint.allows(version) for constraint in self._ranges])
 

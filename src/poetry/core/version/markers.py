@@ -8,6 +8,7 @@ from typing import List
 from typing import Type
 from typing import Union
 
+from poetry.core.semver.version_constraint import VersionConstraint
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
 from poetry.core.version.parser import Parser
 
@@ -16,7 +17,6 @@ if TYPE_CHECKING:
     from lark import Tree
 
     from poetry.core.packages.constraints import BaseConstraint
-    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class InvalidMarker(ValueError):
@@ -183,7 +183,7 @@ class SingleMarker(BaseMarker):
     }
 
     def __init__(
-        self, name: str, constraint: Union[str, "BaseConstraint", "VersionConstraint"]
+        self, name: str, constraint: Union[str, "BaseConstraint", VersionConstraint]
     ) -> None:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
@@ -247,7 +247,7 @@ class SingleMarker(BaseMarker):
         return self._constraint_string
 
     @property
-    def constraint(self) -> Union["BaseConstraint", "VersionConstraint"]:
+    def constraint(self) -> Union["BaseConstraint", VersionConstraint]:
         return self._constraint
 
     @property
@@ -552,28 +552,30 @@ class MarkerUnion(BaseMarker):
             if marker in new_markers:
                 continue
 
-            if (
-                isinstance(marker, SingleMarker)
-                and marker.name in PYTHON_VERSION_MARKERS
-            ):
+            if isinstance(marker, SingleMarker):
                 included = False
                 for i, mark in enumerate(new_markers):
-                    if (
-                        not isinstance(mark, SingleMarker)
-                        or mark.name not in PYTHON_VERSION_MARKERS
+                    if isinstance(mark, SingleMarker) and (
+                        mark.name == marker.name
+                        or (
+                            mark.name in PYTHON_VERSION_MARKERS
+                            and marker.name in PYTHON_VERSION_MARKERS
+                        )
                     ):
-                        continue
-
-                    union = mark.constraint.union(marker.constraint)
-                    if union == mark.constraint:
-                        included = True
-                        break
-                    elif union == marker.constraint:
-                        new_markers[i] = marker
-                        included = True
-                        break
-                    elif union.is_any():
-                        return AnyMarker()
+                        union = mark.constraint.union(marker.constraint)
+                        if union == mark.constraint:
+                            included = True
+                            break
+                        elif union == marker.constraint:
+                            new_markers[i] = marker
+                            included = True
+                            break
+                        elif union.is_any():
+                            return AnyMarker()
+                        elif isinstance(union, VersionConstraint) and union.is_simple():
+                            new_markers[i] = SingleMarker(mark.name, union)
+                            included = True
+                            break
 
                 if included:
                     continue
