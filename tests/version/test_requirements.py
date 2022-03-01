@@ -13,7 +13,7 @@ from poetry.core.version.requirements import Requirement
 
 
 if TYPE_CHECKING:
-    from poetry.core.version.markers import MarkerTypes
+    from poetry.core.version.markers import BaseMarker
 
 
 def assert_requirement(
@@ -22,7 +22,7 @@ def assert_requirement(
     url: Optional[str] = None,
     extras: Optional[List[str]] = None,
     constraint: str = "*",
-    marker: Optional["MarkerTypes"] = None,
+    marker: Optional["BaseMarker"] = None,
 ):
     if extras is None:
         extras = []

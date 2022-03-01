@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from poetry.core.packages.types import DependencyTypes
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
-    from poetry.core.version.markers import MarkerTypes
+    from poetry.core.version.markers import BaseMarker
 
 logger = logging.getLogger(__name__)
 
@@ -347,7 +347,7 @@ class Factory:
                 )
 
             if not markers:
-                marker: "MarkerTypes" = AnyMarker()
+                marker: "BaseMarker" = AnyMarker()
                 if python_versions:
                     marker = marker.intersect(
                         parse_marker(
