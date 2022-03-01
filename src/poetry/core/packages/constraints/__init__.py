@@ -1,7 +1,5 @@
 import re
 
-from typing import Union
-
 from poetry.core.packages.constraints.any_constraint import AnyConstraint
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.constraint import Constraint
@@ -11,14 +9,9 @@ from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
-ConstraintTypes = Union[
-    AnyConstraint, Constraint, UnionConstraint, EmptyConstraint, MultiConstraint
-]
 
 
-def parse_constraint(
-    constraints: str,
-) -> Union[AnyConstraint, UnionConstraint, Constraint]:
+def parse_constraint(constraints: str) -> BaseConstraint:
     if constraints == "*":
         return AnyConstraint()
 
@@ -64,3 +57,15 @@ def parse_single_constraint(constraint: str) -> Constraint:
         return Constraint(version, op)
 
     raise ValueError(f"Could not parse version constraint: {constraint}")
+
+
+__all__ = [
+    "AnyConstraint",
+    "BaseConstraint",
+    "Constraint",
+    "EmptyConstraint",
+    "MultiConstraint",
+    "UnionConstraint",
+    "parse_constraint",
+    "parse_single_constraint",
+]

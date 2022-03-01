@@ -14,7 +14,7 @@ from typing import Union
 
 
 if TYPE_CHECKING:
-    from poetry.core.poetry import Poetry  # noqa
+    from poetry.core.poetry import Poetry
 
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
@@ -290,7 +290,8 @@ class Builder:
 
             if "callable" in specification:
                 warnings.warn(
-                    f"Use of callable in script specification ({name}) is deprecated. Use reference instead.",
+                    f"Use of callable in script specification ({name}) is deprecated."
+                    " Use reference instead.",
                     DeprecationWarning,
                 )
                 specification = {
@@ -328,7 +329,8 @@ class Builder:
 
                 if Path(source).is_absolute():
                     raise RuntimeError(
-                        f"{source} in {name} is an absolute path. Expected relative path."
+                        f"{source} in {name} is an absolute path. Expected relative"
+                        " path."
                     )
 
                 abs_path = Path.joinpath(self._path, source)
@@ -377,13 +379,7 @@ class BuildIncludeFile:
         else:
             self.path = self.path
 
-        try:
-            self.path = self.path.resolve()
-        except FileNotFoundError:
-            # this is an issue in in python 3.5, since resolve uses strict=True by
-            # default, this workaround needs to be maintained till python 2.7 and
-            # python 3.5 are dropped, until we can use resolve(strict=False).
-            pass
+        self.path = self.path.resolve()
 
     def __eq__(self, other: Union["BuildIncludeFile", Path]) -> bool:
         if hasattr(other, "path"):

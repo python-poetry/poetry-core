@@ -1,6 +1,7 @@
 import os
 import re
 
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -36,7 +37,7 @@ class Dependency(PackageSpecification):
         optional: bool = False,
         groups: Optional[List[str]] = None,
         allows_prereleases: bool = False,
-        extras: Union[List[str], FrozenSet[str]] = None,
+        extras: Optional[List[str]] = None,
         source_type: Optional[str] = None,
         source_url: Optional[str] = None,
         source_reference: Optional[str] = None,
@@ -55,8 +56,8 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
-        self._constraint = None
-        self._pretty_constraint = None
+        self._constraint: Optional[Union[str, "VersionTypes"]] = None
+        self._pretty_constraint: Optional[str] = None
         self.set_constraint(constraint=constraint)
 
         self._optional = optional
@@ -178,6 +179,8 @@ class Dependency(PackageSpecification):
                 for _, extra in or_:
                     self.in_extras.append(extra)
 
+        # Recalculate python versions.
+        self._python_versions = "*"
         if "python_version" in markers:
             ors = []
             for or_ in markers["python_version"]:
@@ -212,7 +215,8 @@ class Dependency(PackageSpecification):
                 ors.append(" ".join(ands))
 
             self._python_versions = " || ".join(ors)
-            self._python_constraint = parse_constraint(self._python_versions)
+
+        self._python_constraint = parse_constraint(self._python_versions)
 
     @property
     def transitive_marker(self) -> "BaseMarker":
@@ -252,7 +256,7 @@ class Dependency(PackageSpecification):
         requirement = self.pretty_name
 
         if self.extras:
-            extras = ",".join(self.extras)
+            extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
         if isinstance(self.constraint, VersionUnion):
@@ -573,7 +577,7 @@ class Dependency(PackageSpecification):
                     name=name, path=path, base=relative_to, extras=req.extras
                 )
             else:
-                try:
+                with suppress(ValueError):
                     # this is a local path not using the file URI scheme
                     dep = _make_file_or_dir_dep(
                         name=name,
@@ -581,8 +585,6 @@ class Dependency(PackageSpecification):
                         base=relative_to,
                         extras=req.extras,
                     )
-                except ValueError:
-                    pass
 
             if dep is None:
                 dep = Dependency(name, version or "*", extras=req.extras)
@@ -613,7 +615,7 @@ class Dependency(PackageSpecification):
         )
 
     def __ne__(self, other: Any) -> bool:
-        return not self == other
+        return not self.__eq__(other)
 
     def __hash__(self) -> int:
         return super().__hash__() ^ hash(self._constraint) ^ hash(self._extras)

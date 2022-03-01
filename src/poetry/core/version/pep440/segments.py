@@ -45,15 +45,11 @@ class Release:
         elif not isinstance(self.extra, tuple):
             object.__setattr__(self, "extra", (self.extra,))
 
-        parts = list(
-            map(
-                str,
-                filter(
-                    lambda x: x is not None,
-                    [self.major, self.minor, self.patch, *self.extra],
-                ),
-            )
-        )
+        parts = [
+            str(part)
+            for part in [self.major, self.minor, self.patch, *self.extra]
+            if part is not None
+        ]
         object.__setattr__(self, "text", ".".join(parts))
         object.__setattr__(self, "precision", len(parts))
         object.__setattr__(

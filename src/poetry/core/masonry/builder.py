@@ -5,7 +5,7 @@ from typing import Union
 
 
 if TYPE_CHECKING:
-    from poetry.core.poetry import Poetry  # noqa
+    from poetry.core.poetry import Poetry
 
 
 class Builder:

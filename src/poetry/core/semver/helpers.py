@@ -5,10 +5,10 @@ from typing import Union
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.empty_constraint import EmptyConstraint  # noqa
-    from poetry.core.semver.version import Version  # noqa
-    from poetry.core.semver.version_range import VersionRange  # noqa
-    from poetry.core.semver.version_union import VersionUnion  # noqa
+    from poetry.core.semver.empty_constraint import EmptyConstraint
+    from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range import VersionRange
+    from poetry.core.semver.version_union import VersionUnion
 
 
 VersionTypes = Union["Version", "VersionRange", "VersionUnion", "EmptyConstraint"]
@@ -147,16 +147,15 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
 
         if op == "<":
             return VersionRange(max=version)
-        elif op == "<=":
+        if op == "<=":
             return VersionRange(max=version, include_max=True)
-        elif op == ">":
+        if op == ">":
             return VersionRange(min=version)
-        elif op == ">=":
+        if op == ">=":
             return VersionRange(min=version, include_min=True)
-        elif op == "!=":
+        if op == "!=":
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
-        else:
-            return version
+        return version
 
     from poetry.core.semver.exceptions import ParseConstraintError
 

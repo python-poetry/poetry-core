@@ -1,15 +1,11 @@
 import operator
 
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import Union
 
+from poetry.core.packages.constraints import AnyConstraint
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
-
-
-if TYPE_CHECKING:
-    from poetry.core.packages.constraints import ConstraintTypes  # noqa
 
 
 class Constraint(BaseConstraint):
@@ -37,7 +33,10 @@ class Constraint(BaseConstraint):
     def operator(self) -> str:
         return self._operator
 
-    def allows(self, other: "ConstraintTypes") -> bool:
+    def allows(self, other: "BaseConstraint") -> bool:
+        if not isinstance(other, Constraint):
+            raise ValueError("Unimplemented comparison of constraints")
+
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
         is_other_equal_op = other.operator == "=="
@@ -58,13 +57,13 @@ class Constraint(BaseConstraint):
 
         return False
 
-    def allows_all(self, other: "ConstraintTypes") -> bool:
+    def allows_all(self, other: "BaseConstraint") -> bool:
         if not isinstance(other, Constraint):
             return other.is_empty()
 
         return other == self
 
-    def allows_any(self, other: "ConstraintTypes") -> bool:
+    def allows_any(self, other: "BaseConstraint") -> bool:
         if isinstance(other, Constraint):
             is_non_equal_op = self._operator == "!="
             is_other_non_equal_op = other.operator == "!="
@@ -75,14 +74,14 @@ class Constraint(BaseConstraint):
         return other.allows(self)
 
     def difference(
-        self, other: "ConstraintTypes"
+        self, other: "BaseConstraint"
     ) -> Union["Constraint", "EmptyConstraint"]:
         if other.allows(self):
             return EmptyConstraint()
 
         return self
 
-    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
         from poetry.core.packages.constraints.multi_constraint import MultiConstraint
 
         if isinstance(other, Constraint):
@@ -102,13 +101,25 @@ class Constraint(BaseConstraint):
 
         return other.intersect(self)
 
-    def union(self, other: "ConstraintTypes") -> "ConstraintTypes":
+    def union(self, other: "BaseConstraint") -> "BaseConstraint":
         if isinstance(other, Constraint):
             from poetry.core.packages.constraints.union_constraint import (
                 UnionConstraint,
             )
 
-            return UnionConstraint(self, other)
+            if other == self:
+                return self
+
+            if self.operator == "!=" and other.operator == "==" and self.allows(other):
+                return self
+
+            if other.operator == "!=" and self.operator == "==" and other.allows(self):
+                return other
+
+            if other.operator == "==" and self.operator == "==":
+                return UnionConstraint(self, other)
+
+            return AnyConstraint()
 
         return other.union(self)
 

@@ -8,13 +8,13 @@ MODIFIERS = (
 )
 
 _COMPLETE_VERSION = (
-    fr"v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?{MODIFIERS}(?:\+[^\s]+)?"
+    rf"v?(?:\d+!)?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?{MODIFIERS}(?:\+[^\s]+)?"
 )
 
 COMPLETE_VERSION = re.compile("(?i)" + _COMPLETE_VERSION)
 
-CARET_CONSTRAINT = re.compile(fr"(?i)^\^({_COMPLETE_VERSION})$")
-TILDE_CONSTRAINT = re.compile(fr"(?i)^~(?!=)\s*({_COMPLETE_VERSION})$")
-TILDE_PEP440_CONSTRAINT = re.compile(fr"(?i)^~=\s*({_COMPLETE_VERSION})$")
+CARET_CONSTRAINT = re.compile(rf"(?i)^\^({_COMPLETE_VERSION})$")
+TILDE_CONSTRAINT = re.compile(rf"(?i)^~(?!=)\s*({_COMPLETE_VERSION})$")
+TILDE_PEP440_CONSTRAINT = re.compile(rf"(?i)^~=\s*({_COMPLETE_VERSION})$")
 X_CONSTRAINT = re.compile(r"^(!=|==)?\s*v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.[xX*])+$")
-BASIC_CONSTRAINT = re.compile(fr"(?i)^(<>|!=|>=?|<=?|==?)?\s*({_COMPLETE_VERSION}|dev)")
+BASIC_CONSTRAINT = re.compile(rf"(?i)^(<>|!=|>=?|<=?|==?)?\s*({_COMPLETE_VERSION}|dev)")

@@ -4,6 +4,8 @@ import subprocess
 from collections import namedtuple
 from pathlib import Path
 from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 
 from poetry.core.utils._compat import WINDOWS
@@ -225,11 +227,11 @@ class Git:
 
         formatted = re.sub(r"^git\+", "", url)
         if parsed.rev:
-            formatted = re.sub(fr"[#@]{parsed.rev}$", "", formatted)
+            formatted = re.sub(rf"[#@]{parsed.rev}$", "", formatted)
 
         if parsed.subdirectory:
             formatted = re.sub(
-                fr"[#&]subdirectory={parsed.subdirectory}$", "", formatted
+                rf"[#&]subdirectory={parsed.subdirectory}$", "", formatted
             )
 
         altered = parsed.format() != formatted
@@ -305,7 +307,7 @@ class Git:
 
         return output.strip()
 
-    def get_ignored_files(self, folder: Optional[Path] = None) -> list:
+    def get_ignored_files(self, folder: Optional[Path] = None) -> List[str]:
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -323,7 +325,7 @@ class Git:
 
         return output.strip().split("\n")
 
-    def remote_urls(self, folder: Optional[Path] = None) -> dict:
+    def remote_urls(self, folder: Optional[Path] = None) -> Dict[str, str]:
         output = self.run(
             "config", "--get-regexp", r"remote\..*\.url", folder=folder
         ).strip()

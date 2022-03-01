@@ -89,7 +89,8 @@ def test_to_pep_508():
 
     result = dependency.to_pep_508()
     assert (
-        result == "Django (>=1.23,<2.0); "
+        result
+        == "Django (>=1.23,<2.0); "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -120,8 +121,9 @@ def test_to_pep_508_in_extras():
     dependency.python_versions = "~2.7 || ^3.6"
 
     result = dependency.to_pep_508()
-    assert result == (
-        "Django (>=1.23,<2.0); "
+    assert (
+        result
+        == "Django (>=1.23,<2.0); "
         "("
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
@@ -130,8 +132,9 @@ def test_to_pep_508_in_extras():
     )
 
     result = dependency.to_pep_508(with_extras=False)
-    assert result == (
-        "Django (>=1.23,<2.0); "
+    assert (
+        result
+        == "Django (>=1.23,<2.0); "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -139,20 +142,20 @@ def test_to_pep_508_in_extras():
 
 def test_to_pep_508_in_extras_parsed():
     dependency = Dependency.create_from_pep_508(
-        'foo[bar] (>=1.23,<2.0) ; extra == "baz"'
+        'foo[baz,bar] (>=1.23,<2.0) ; extra == "baz"'
     )
 
     result = dependency.to_pep_508()
-    assert result == 'foo[bar] (>=1.23,<2.0); extra == "baz"'
+    assert result == 'foo[bar,baz] (>=1.23,<2.0); extra == "baz"'
 
     result = dependency.to_pep_508(with_extras=False)
-    assert result == "foo[bar] (>=1.23,<2.0)"
+    assert result == "foo[bar,baz] (>=1.23,<2.0)"
 
 
 def test_to_pep_508_with_single_version_excluded():
     dependency = Dependency("foo", "!=1.2.3")
 
-    assert "foo (!=1.2.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (!=1.2.3)"
 
 
 @pytest.mark.parametrize(
@@ -171,61 +174,61 @@ def test_to_pep_508_with_patch_python_version(python_versions: str, marker: str)
 
     expected = f"Django (>=1.23,<2.0); {marker}"
 
-    assert expected == dependency.to_pep_508()
-    assert marker == str(dependency.marker)
+    assert dependency.to_pep_508() == expected
+    assert str(dependency.marker) == marker
 
 
 def test_to_pep_508_tilde():
     dependency = Dependency("foo", "~1.2.3")
 
-    assert "foo (>=1.2.3,<1.3.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2.3,<1.3.0)"
 
     dependency = Dependency("foo", "~1.2")
 
-    assert "foo (>=1.2,<1.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<1.3)"
 
     dependency = Dependency("foo", "~0.2.3")
 
-    assert "foo (>=0.2.3,<0.3.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2.3,<0.3.0)"
 
     dependency = Dependency("foo", "~0.2")
 
-    assert "foo (>=0.2,<0.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2,<0.3)"
 
 
 def test_to_pep_508_caret():
     dependency = Dependency("foo", "^1.2.3")
 
-    assert "foo (>=1.2.3,<2.0.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2.3,<2.0.0)"
 
     dependency = Dependency("foo", "^1.2")
 
-    assert "foo (>=1.2,<2.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<2.0)"
 
     dependency = Dependency("foo", "^0.2.3")
 
-    assert "foo (>=0.2.3,<0.3.0)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2.3,<0.3.0)"
 
     dependency = Dependency("foo", "^0.2")
 
-    assert "foo (>=0.2,<0.3)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=0.2,<0.3)"
 
 
 def test_to_pep_508_combination():
     dependency = Dependency("foo", "^1.2,!=1.3.5")
 
-    assert "foo (>=1.2,<2.0,!=1.3.5)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<2.0,!=1.3.5)"
 
     dependency = Dependency("foo", "~1.2,!=1.2.5")
 
-    assert "foo (>=1.2,<1.3,!=1.2.5)" == dependency.to_pep_508()
+    assert dependency.to_pep_508() == "foo (>=1.2,<1.3,!=1.2.5)"
 
 
 def test_complete_name():
-    assert "foo" == Dependency("foo", ">=1.2.3").complete_name
+    assert Dependency("foo", ">=1.2.3").complete_name == "foo"
     assert (
-        "foo[bar,baz]"
-        == Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
+        Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
+        == "foo[bar,baz]"
     )
 
 
@@ -295,3 +298,20 @@ def test_marker_properly_sets_python_constraint():
     dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'
 
     assert str(dependency.python_constraint) == ">=3.6,<4.0"
+
+
+def test_dependency_markers_are_the_same_as_markers():
+    dependency = Dependency.create_from_pep_508('foo ; extra=="bar"')
+    marker = parse_marker('extra=="bar"')
+
+    assert dependency.marker == marker
+
+
+def test_marker_properly_unsets_python_constraint():
+    dependency = Dependency("foo", "^1.2.3")
+
+    dependency.marker = 'python_version >= "3.6"'
+    assert str(dependency.python_constraint) == ">=3.6"
+
+    dependency.marker = "*"
+    assert str(dependency.python_constraint) == "*"

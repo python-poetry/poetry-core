@@ -1,13 +1,12 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import FrozenSet
 from typing import List
 from typing import Optional
 from typing import Union
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint  # noqa
+    from poetry.core.semver.helpers import VersionTypes
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
@@ -22,7 +21,7 @@ class DirectoryDependency(Dependency):
         optional: bool = False,
         base: Optional[Path] = None,
         develop: bool = False,
-        extras: Optional[Union[List[str], FrozenSet[str]]] = None,
+        extras: Optional[List[str]] = None,
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
 
@@ -89,7 +88,9 @@ class DirectoryDependency(Dependency):
     def is_directory(self) -> bool:
         return True
 
-    def with_constraint(self, constraint: "BaseConstraint") -> "DirectoryDependency":
+    def with_constraint(
+        self, constraint: Union[str, "VersionTypes"]
+    ) -> "DirectoryDependency":
         new = DirectoryDependency(
             self.pretty_name,
             path=self.path,
@@ -97,7 +98,7 @@ class DirectoryDependency(Dependency):
             optional=self.is_optional(),
             groups=list(self._groups),
             develop=self._develop,
-            extras=self._extras,
+            extras=list(self._extras),
         )
 
         new._constraint = constraint
@@ -118,7 +119,7 @@ class DirectoryDependency(Dependency):
         requirement = self.pretty_name
 
         if self.extras:
-            extras = ",".join(self.extras)
+            extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
         path = path_to_url(self.path) if self.path.is_absolute() else self.path

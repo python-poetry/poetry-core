@@ -7,7 +7,7 @@ from tomlkit.toml_file import TOMLFile as BaseTOMLFile
 
 
 if TYPE_CHECKING:
-    from tomlkit.toml_document import TOMLDocument  # noqa
+    from tomlkit.toml_document import TOMLDocument
 
 
 class TOMLFile(BaseTOMLFile):

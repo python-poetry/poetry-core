@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-from typing import FrozenSet
 from typing import List
 from typing import Optional
 from typing import Union
@@ -8,7 +7,7 @@ from poetry.core.packages.dependency import Dependency
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.semver.helpers import VersionTypes
 
 
 class VCSDependency(Dependency):
@@ -29,7 +28,7 @@ class VCSDependency(Dependency):
         groups: Optional[List[str]] = None,
         optional: bool = False,
         develop: bool = False,
-        extras: Union[List[str], FrozenSet[str]] = None,
+        extras: Optional[List[str]] = None,
     ):
         self._vcs = vcs
         self._source = source
@@ -84,7 +83,8 @@ class VCSDependency(Dependency):
 
     @property
     def reference(self) -> str:
-        return self._branch or self._tag or self._rev
+        reference = self._branch or self._tag or self._rev or ""
+        return reference
 
     @property
     def pretty_constraint(self) -> str:
@@ -94,9 +94,11 @@ class VCSDependency(Dependency):
         elif self._tag:
             what = "tag"
             version = self._tag
-        else:
+        elif self._rev:
             what = "rev"
             version = self._rev
+        else:
+            return ""
 
         return f"{what} {version}"
 
@@ -108,7 +110,7 @@ class VCSDependency(Dependency):
         parsed_url = git.ParsedUrl.parse(self._source)
 
         if self.extras:
-            extras = ",".join(self.extras)
+            extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
         if parsed_url.protocol is not None:
@@ -130,7 +132,9 @@ class VCSDependency(Dependency):
     def accepts_prereleases(self) -> bool:
         return True
 
-    def with_constraint(self, constraint: "BaseConstraint") -> "VCSDependency":
+    def with_constraint(
+        self, constraint: Union[str, "VersionTypes"]
+    ) -> "VCSDependency":
         new = VCSDependency(
             self.pretty_name,
             self._vcs,
@@ -143,7 +147,7 @@ class VCSDependency(Dependency):
             optional=self.is_optional(),
             groups=list(self._groups),
             develop=self._develop,
-            extras=self._extras,
+            extras=list(self._extras),
         )
 
         new._constraint = constraint

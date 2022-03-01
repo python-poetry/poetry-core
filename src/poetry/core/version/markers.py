@@ -12,9 +12,9 @@ from poetry.core.version.parser import Parser
 
 
 if TYPE_CHECKING:
-    from lark import Tree  # noqa
+    from lark import Tree
 
-    from poetry.core.semver.helpers import VersionTypes  # noqa
+    from poetry.core.semver.helpers import VersionTypes
 
 MarkerTypes = Union[
     "AnyMarker", "EmptyMarker", "SingleMarker", "MultiMarker", "MarkerUnion"
@@ -49,6 +49,7 @@ ALIASES = {
     "python_implementation": "platform_python_implementation",
 }
 
+PYTHON_VERSION_MARKERS = ["python_version", "python_full_version"]
 
 # Parser: PEP 508 Environment Markers
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
@@ -123,7 +124,7 @@ class AnyMarker(BaseMarker):
     def __hash__(self) -> int:
         return hash(("<any>", "<any>"))
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, BaseMarker):
             return NotImplemented
 
@@ -167,7 +168,7 @@ class EmptyMarker(BaseMarker):
     def __hash__(self) -> int:
         return hash(("<empty>", "<empty>"))
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, BaseMarker):
             return NotImplemented
 
@@ -259,22 +260,6 @@ class SingleMarker(BaseMarker):
 
     def intersect(self, other: MarkerTypes) -> MarkerTypes:
         if isinstance(other, SingleMarker):
-            if other.name != self.name:
-                return MultiMarker(self, other)
-
-            if self == other:
-                return self
-
-            if self._operator in {"in", "not in"} or other.operator in {"in", "not in"}:
-                return MultiMarker.of(self, other)
-
-            new_constraint = self._constraint.intersect(other.constraint)
-            if new_constraint.is_empty():
-                return EmptyMarker()
-
-            if new_constraint == self._constraint or new_constraint == other.constraint:
-                return SingleMarker(self._name, new_constraint)
-
             return MultiMarker.of(self, other)
 
         return other.intersect(self)
@@ -283,6 +268,9 @@ class SingleMarker(BaseMarker):
         if isinstance(other, SingleMarker):
             if self == other:
                 return self
+
+            if self == other.invert():
+                return AnyMarker()
 
             return MarkerUnion.of(self, other)
 
@@ -359,7 +347,7 @@ class SingleMarker(BaseMarker):
 
         return parse_marker(f"{self._name} {operator} '{self._value}'")
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, SingleMarker):
             return False
 
@@ -397,45 +385,63 @@ class MultiMarker(BaseMarker):
 
     @classmethod
     def of(cls, *markers: MarkerTypes) -> MarkerTypes:
-        new_markers = []
-        markers = _flatten_markers(markers, MultiMarker)
+        new_markers = _flatten_markers(markers, MultiMarker)
+        markers = []
 
-        for marker in markers:
-            if marker in new_markers:
-                continue
-
-            if marker.is_any():
-                continue
-
-            if isinstance(marker, SingleMarker):
-                intersected = False
-                for i, mark in enumerate(new_markers):
-                    if (
-                        not isinstance(mark, SingleMarker)
-                        or isinstance(mark, SingleMarker)
-                        and mark.name != marker.name
-                    ):
-                        continue
-
-                    intersection = mark.constraint.intersect(marker.constraint)
-                    if intersection == mark.constraint:
-                        intersected = True
-                    elif intersection == marker.constraint:
-                        new_markers[i] = marker
-                        intersected = True
-                    elif intersection.is_empty():
-                        return EmptyMarker()
-
-                if intersected:
+        while markers != new_markers:
+            markers = new_markers
+            new_markers = []
+            for marker in markers:
+                if marker in new_markers:
                     continue
 
-            new_markers.append(marker)
+                if marker.is_any():
+                    continue
+
+                if isinstance(marker, SingleMarker):
+                    intersected = False
+                    for i, mark in enumerate(new_markers):
+                        if isinstance(mark, SingleMarker) and (
+                            mark.name == marker.name
+                            or (
+                                mark.name in PYTHON_VERSION_MARKERS
+                                and marker.name in PYTHON_VERSION_MARKERS
+                            )
+                        ):
+                            intersection = mark.constraint.intersect(marker.constraint)
+                            if intersection == mark.constraint:
+                                intersected = True
+                            elif intersection == marker.constraint:
+                                new_markers[i] = marker
+                                intersected = True
+                            elif intersection.is_empty():
+                                return EmptyMarker()
+                        elif isinstance(mark, MarkerUnion):
+                            intersection = mark.intersect(marker)
+                            if isinstance(intersection, SingleMarker):
+                                new_markers[i] = intersection
+                            elif intersection.is_empty():
+                                return EmptyMarker()
+                    if intersected:
+                        continue
+
+                elif isinstance(marker, MarkerUnion):
+                    for mark in new_markers:
+                        if isinstance(mark, SingleMarker):
+                            intersection = marker.intersect(mark)
+                            if isinstance(intersection, SingleMarker):
+                                marker = intersection
+                                break
+                            elif intersection.is_empty():
+                                return EmptyMarker()
+
+                new_markers.append(marker)
 
         if any(m.is_empty() for m in new_markers) or not new_markers:
             return EmptyMarker()
 
-        if len(new_markers) == 1 and new_markers[0].is_any():
-            return AnyMarker()
+        if len(new_markers) == 1:
+            return new_markers[0]
 
         return MultiMarker(*new_markers)
 
@@ -455,17 +461,16 @@ class MultiMarker(BaseMarker):
         return MultiMarker.of(*new_markers)
 
     def union(self, other: MarkerTypes) -> MarkerTypes:
+        if other in self._markers:
+            return other
+
         if isinstance(other, (SingleMarker, MultiMarker)):
             return MarkerUnion.of(self, other)
 
         return other.union(self)
 
     def validate(self, environment: Dict[str, Any]) -> bool:
-        for m in self._markers:
-            if not m.validate(environment):
-                return False
-
-        return True
+        return all(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> MarkerTypes:
         return self.exclude("extra")
@@ -505,7 +510,7 @@ class MultiMarker(BaseMarker):
 
         return MarkerUnion.of(*markers)
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, MultiMarker):
             return False
 
@@ -521,9 +526,7 @@ class MultiMarker(BaseMarker):
     def __str__(self) -> str:
         elements = []
         for m in self._markers:
-            if isinstance(m, SingleMarker):
-                elements.append(str(m))
-            elif isinstance(m, MultiMarker):
+            if isinstance(m, (SingleMarker, MultiMarker)):
                 elements.append(str(m))
             else:
                 elements.append(f"({str(m)})")
@@ -548,26 +551,30 @@ class MarkerUnion(BaseMarker):
             if marker in markers:
                 continue
 
-            if isinstance(marker, SingleMarker) and marker.name == "python_version":
-                intersected = False
+            if (
+                isinstance(marker, SingleMarker)
+                and marker.name in PYTHON_VERSION_MARKERS
+            ):
+                included = False
                 for i, mark in enumerate(markers):
                     if (
                         not isinstance(mark, SingleMarker)
-                        or isinstance(mark, SingleMarker)
-                        and mark.name != marker.name
+                        or mark.name not in PYTHON_VERSION_MARKERS
                     ):
                         continue
 
-                    intersection = mark.constraint.union(marker.constraint)
-                    if intersection == mark.constraint:
-                        intersected = True
+                    union = mark.constraint.union(marker.constraint)
+                    if union == mark.constraint:
+                        included = True
                         break
-                    elif intersection == marker.constraint:
+                    elif union == marker.constraint:
                         markers[i] = marker
-                        intersected = True
+                        included = True
                         break
+                    elif union.is_any():
+                        return AnyMarker()
 
-                if intersected:
+                if included:
                     continue
 
             markers.append(marker)
@@ -576,7 +583,7 @@ class MarkerUnion(BaseMarker):
             return AnyMarker()
 
         if not markers:
-            return AnyMarker()
+            return EmptyMarker()
 
         if len(markers) == 1:
             return markers[0]
@@ -625,11 +632,7 @@ class MarkerUnion(BaseMarker):
         return MarkerUnion.of(*new_markers)
 
     def validate(self, environment: Dict[str, Any]) -> bool:
-        for m in self._markers:
-            if m.validate(environment):
-                return True
-
-        return False
+        return any(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> MarkerTypes:
         return self.exclude("extra")
@@ -669,7 +672,7 @@ class MarkerUnion(BaseMarker):
 
         return MultiMarker.of(*markers)
 
-    def __eq__(self, other: MarkerTypes) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, MarkerUnion):
             return False
 
@@ -732,10 +735,11 @@ def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> MarkerType
                 )
 
             value = value[1:-1]
-            groups[-1] = MultiMarker.of(groups[-1], SingleMarker(name, f"{op}{value}"))
-        elif token.data == f"{tree_prefix}BOOL_OP":
-            if token.children[0] == "or":
-                groups.append(MultiMarker())
+            groups[-1] = MultiMarker.of(
+                groups[-1], SingleMarker(str(name), f"{op}{value}")
+            )
+        elif token.data == f"{tree_prefix}BOOL_OP" and token.children[0] == "or":
+            groups.append(MultiMarker())
 
     for i, group in enumerate(reversed(groups)):
         if group.is_empty():

@@ -3,6 +3,10 @@ from typing import Optional
 
 
 class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
+    id: str
+    name: str
+    is_osi_approved: bool
+    is_deprecated: bool
 
     CLASSIFIER_SUPPORTED = {
         # Not OSI Approved

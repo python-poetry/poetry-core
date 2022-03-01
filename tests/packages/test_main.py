@@ -90,8 +90,9 @@ def test_dependency_from_pep_508_complex():
     assert str(dep.constraint) == "2.18.0"
     assert dep.in_extras == ["foo"]
     assert dep.python_versions == ">=2.7 !=3.2.*"
-    assert str(dep.marker) == (
-        'python_version >= "2.7" and python_version != "3.2" '
+    assert (
+        str(dep.marker)
+        == 'python_version >= "2.7" and python_version != "3.2" '
         'and (sys_platform == "win32" or sys_platform == "darwin") '
         'and extra == "foo"'
     )
@@ -149,16 +150,16 @@ def test_dependency_from_pep_508_with_python_version_union_of_multi():
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
     assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5"
-    assert str(dep.marker) == (
-        'python_version >= "2.7" and python_version < "2.8" '
+    assert (
+        str(dep.marker)
+        == 'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.4" and python_version < "3.5"'
     )
 
 
 def test_dependency_from_pep_508_with_not_in_op_marker():
     name = (
-        "jinja2 (>=2.7,<2.8)"
-        '; python_version not in "3.0,3.1,3.2" and extra == "export"'
+        'jinja2 (>=2.7,<2.8); python_version not in "3.0,3.1,3.2" and extra == "export"'
     )
 
     dep = Dependency.create_from_pep_508(name)
@@ -177,24 +178,27 @@ def test_dependency_from_pep_508_with_git_url():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "django-utils" == dep.name
+    assert dep.name == "django-utils"
     assert dep.is_vcs()
-    assert "git" == dep.vcs
-    assert "ssh://git@corp-gitlab.com/corp-utils.git" == dep.source
-    assert "1.2" == dep.reference
+    assert dep.vcs == "git"
+    assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
+    assert dep.reference == "1.2"
 
 
 def test_dependency_from_pep_508_with_git_url_and_subdirectory():
-    name = "django-utils @ git+ssh://git@corp-gitlab.com/corp-utils.git@1.2#subdirectory=package-dir"
+    name = (
+        "django-utils @"
+        " git+ssh://git@corp-gitlab.com/corp-utils.git@1.2#subdirectory=package-dir"
+    )
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "django-utils" == dep.name
+    assert dep.name == "django-utils"
     assert dep.is_vcs()
-    assert "git" == dep.vcs
-    assert "ssh://git@corp-gitlab.com/corp-utils.git" == dep.source
-    assert "1.2" == dep.reference
-    assert "package-dir" == dep.directory
+    assert dep.vcs == "git"
+    assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
+    assert dep.reference == "1.2"
+    assert dep.directory == "package-dir"
 
 
 def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
@@ -205,11 +209,11 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "poetry" == dep.name
+    assert dep.name == "poetry"
     assert dep.is_vcs()
-    assert "git" == dep.vcs
-    assert "https://github.com/python-poetry/poetry.git" == dep.source
-    assert "b;ar;" == dep.reference
+    assert dep.vcs == "git"
+    assert dep.source == "https://github.com/python-poetry/poetry.git"
+    assert dep.reference == "b;ar;"
     assert dep.in_extras == ["foo;"]
 
 
@@ -218,9 +222,9 @@ def test_dependency_from_pep_508_with_url():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "django-utils" == dep.name
+    assert dep.name == "django-utils"
     assert dep.is_url()
-    assert "https://example.com/django-utils-1.0.0.tar.gz" == dep.url
+    assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
 
 
 def test_dependency_from_pep_508_with_wheel_url():
@@ -230,7 +234,7 @@ def test_dependency_from_pep_508_with_wheel_url():
 
     dep = Dependency.create_from_pep_508(name)
 
-    assert "example-wheel" == dep.name
+    assert dep.name == "example-wheel"
     assert str(dep.constraint) == "14.0.2"
 
 
@@ -246,8 +250,9 @@ def test_dependency_from_pep_508_with_python_full_version():
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
     assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5.4"
-    assert str(dep.marker) == (
-        'python_version >= "2.7" and python_version < "2.8" '
+    assert (
+        str(dep.marker)
+        == 'python_version >= "2.7" and python_version < "2.8" '
         'or python_full_version >= "3.4" and python_full_version < "3.5.4"'
     )
 
@@ -271,7 +276,10 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
 
 
 def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers():
-    name = 'pytest-mypy; python_implementation != "PyPy" and python_version <= "3.10" and python_version > "3"'
+    name = (
+        'pytest-mypy; python_implementation != "PyPy" and python_version <= "3.10" and'
+        ' python_version > "3"'
+    )
     dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "pytest-mypy"
@@ -283,5 +291,6 @@ def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correc
     assert dep.python_constraint.allows(Version.parse("3.0.1"))
     assert (
         str(dep.marker)
-        == 'platform_python_implementation != "PyPy" and python_version <= "3.10" and python_version > "3"'
+        == 'platform_python_implementation != "PyPy" and python_version <= "3.10" and'
+        ' python_version > "3"'
     )

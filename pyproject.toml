@@ -33,14 +33,13 @@ exclude = [
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 # required for compatibility
 importlib-metadata = {version = ">=1.7.0", python = "<3.8"}
-dataclasses = {version = ">=0.8", python = "~3.6"}
 
 [tool.poetry.dev-dependencies]
-pre-commit = {version = "^2.15.0", python = "^3.6.1"}
+pre-commit = "^2.15.0"
 pyrsistent = "^0.18.0"
 pytest = "^6.2"
 pytest-cov = "^2.8"
@@ -48,27 +47,12 @@ pytest-mock = "^3.5"
 tox = "^3.0"
 vendoring = {version = "^0.3", python = "^3.8"}
 pep517 = "^0.11.0"
-black = {version = "^21.9b0", markers = "python_version >= '3.6.2' and python_version < '4.0' and implementation_name != 'pypy'"}
-isort = {version = "^5.9.3", python = "^3.6.1"}
 
 [tool.black]
 line-length = 88
+experimental_string_processing = true
 include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | src/poetry/core/_vendor/*
-)/
-'''
+extend-exclude = "src/poetry/core/_vendor/*"
 
 [tool.isort]
 profile = "black"
@@ -85,12 +69,20 @@ known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
-follow_imports = "silent"
+strict = true
 explicit_package_bases = true
 namespace_packages = true
 mypy_path = "src"
 files = "src, tests"
 exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+
+[[tool.mypy.overrides]]
+module = [
+  'jsonschema.*',
+  'setuptools.*',
+  'tomlkit.*',
+]
+ignore_missing_imports = true
 
 # The following whitelist is used to allow for incremental adoption
 # of Mypy. Modules should be removed from this whitelist as and when
@@ -101,30 +93,37 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 [[tool.mypy.overrides]]
 module = [
   # src modules
-  'poetry.core.masonry.builders.*',
-  'poetry.core.packages.constraints',
-  'poetry.core.packages.constraints.constraint',
-  'poetry.core.packages.constraints.empty_constraint',
-  'poetry.core.packages.constraints.multi_constraint',
-  'poetry.core.packages.constraints.union_constraint',
+  'poetry.core.masonry.builders.builder',
+  'poetry.core.masonry.builders.sdist',
+  'poetry.core.masonry.builders.wheel',
   'poetry.core.packages.utils.utils',
   'poetry.core.packages.dependency',
-  'poetry.core.packages.directory_dependency',
-  'poetry.core.packages.file_dependency',
   'poetry.core.packages.package',
   'poetry.core.packages.project_package',
-  'poetry.core.packages.url_dependency',
-  'poetry.core.packages.vcs_dependency',
-  'poetry.core.pyproject.*',
-  'poetry.core.semver.*',
-  'poetry.core.version.*',
+  'poetry.core.semver.helpers',
+  'poetry.core.semver.version',
+  'poetry.core.semver.version_range',
+  'poetry.core.semver.version_union',
+  'poetry.core.toml.exceptions',
+  'poetry.core.toml.file',
+  'poetry.core.version.markers',
+  'poetry.core.version.pep440.parser',
+  'poetry.core.version.pep440.segments',
+  'poetry.core.version.pep440.version',
   # test modules
+  'tests.conftest',
+  'tests.integration.test_pep517',
+  'tests.json.*',
   'tests.masonry.*',
   'tests.packages.*',
+  'tests.pyproject.*',
   'tests.semver.*',
-  'tests.version.*',
+  'tests.spdx.*',
+  'tests.test_factory',
   'tests.testutils.*',
-  'tests.integration/test_pep517',
+  'tests.utils.*',
+  'tests.vcs.*',
+  'tests.version.*',
 ]
 ignore_errors = true
 

@@ -170,7 +170,7 @@ def test_pep440_parse_text(text: str, result: PEP440Version):
 
 
 @pytest.mark.parametrize(
-    "text", ["1.2.3.dev1-1" "example-1" "1.2.3-random1" "1.2.3-1-1"]
+    "text", ["1.2.3.dev1-1", "example-1", "1.2.3-random1", "1.2.3-1-1"]
 )
 def test_pep440_parse_text_invalid_versions(text: str):
     with pytest.raises(InvalidVersion):

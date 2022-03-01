@@ -171,6 +171,8 @@ class Version(PEP440Version, VersionRangeConstraint):
         post: Optional[ReleaseTag] = None,
         dev: Optional[ReleaseTag] = None,
         local: "LocalSegmentType" = None,
+        *,
+        epoch: int = 0,
     ) -> "Version":
         return cls(
             release=Release(major=major, minor=minor, patch=patch, extra=extra),
@@ -178,4 +180,5 @@ class Version(PEP440Version, VersionRangeConstraint):
             post=post,
             dev=dev,
             local=local,
+            epoch=epoch,
         )

@@ -79,9 +79,10 @@ class PackageSpecification:
             if self._source_type != other.source_type:
                 return False
 
-            if self._source_url or other.source_url:
-                if self._source_url != other.source_url:
-                    return False
+            if (
+                self._source_url or other.source_url
+            ) and self._source_url != other.source_url:
+                return False
 
             # We check the resolved reference first:
             # if they match we assume equality regardless

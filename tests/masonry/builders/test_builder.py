@@ -10,7 +10,6 @@ import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
-from poetry.core.utils._compat import PY37
 
 
 if TYPE_CHECKING:
@@ -29,7 +28,7 @@ def test_builder_find_excluded_files(mocker: "MockerFixture"):
 
 
 @pytest.mark.xfail(
-    sys.platform == "win32" and not PY37,
+    sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
 )
 def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
@@ -54,7 +53,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
 
 
 @pytest.mark.xfail(
-    sys.platform == "win32" and not PY37,
+    sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
 )
 def test_builder_find_invalid_case_sensitive_excluded_files(mocker: "MockerFixture"):
@@ -111,7 +110,8 @@ def test_get_metadata_content():
     assert requires == [
         "cachy[msgpack] (>=0.2.0,<0.3.0)",
         "cleo (>=0.6,<0.7)",
-        'pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")',
+        'pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or'
+        ' python_version in "3.4 3.5") and (extra == "time")',
     ]
 
     urls = parsed.get_all("Project-URL")
@@ -143,7 +143,7 @@ def test_metadata_with_vcs_dependencies():
 
     requires_dist = metadata["Requires-Dist"]
 
-    assert "cleo @ git+https://github.com/sdispater/cleo.git@master" == requires_dist
+    assert requires_dist == "cleo @ git+https://github.com/sdispater/cleo.git@master"
 
 
 def test_metadata_with_url_dependencies():
@@ -158,8 +158,9 @@ def test_metadata_with_url_dependencies():
     requires_dist = metadata["Requires-Dist"]
 
     assert (
-        "demo @ https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
-        == requires_dist
+        requires_dist
+        == "demo @"
+        " https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
     )
 
 

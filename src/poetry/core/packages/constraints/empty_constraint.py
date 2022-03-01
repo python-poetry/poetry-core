@@ -1,38 +1,35 @@
-from typing import TYPE_CHECKING
-
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
-
-
-if TYPE_CHECKING:
-    from poetry.core.packages.constraints import ConstraintTypes  # noqa
 
 
 class EmptyConstraint(BaseConstraint):
 
     pretty_string = None
 
-    def matches(self, _: "ConstraintTypes") -> bool:
+    def matches(self, _: "BaseConstraint") -> bool:
         return True
 
     def is_empty(self) -> bool:
         return True
 
-    def allows(self, other: "ConstraintTypes") -> bool:
+    def allows(self, other: "BaseConstraint") -> bool:
         return False
 
-    def allows_all(self, other: "ConstraintTypes") -> bool:
-        return True
+    def allows_all(self, other: "BaseConstraint") -> bool:
+        return other.is_empty()
 
-    def allows_any(self, other: "ConstraintTypes") -> bool:
-        return True
+    def allows_any(self, other: "BaseConstraint") -> bool:
+        return False
 
-    def intersect(self, other: "ConstraintTypes") -> "ConstraintTypes":
-        return other
+    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
+        return self
 
-    def difference(self, other: "ConstraintTypes") -> None:
-        return
+    def difference(self, other: "BaseConstraint") -> "BaseConstraint":
+        return self
 
-    def __eq__(self, other: "ConstraintTypes") -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BaseConstraint):
+            return False
+
         return other.is_empty()
 
     def __str__(self) -> str:
