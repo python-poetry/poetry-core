@@ -100,8 +100,6 @@ module = [
   'poetry.core.packages.dependency',
   'poetry.core.packages.package',
   'poetry.core.packages.project_package',
-  'poetry.core.semver.helpers',
-  'poetry.core.semver.version',
   'poetry.core.semver.version_range',
   'poetry.core.semver.version_union',
   'poetry.core.toml.exceptions',

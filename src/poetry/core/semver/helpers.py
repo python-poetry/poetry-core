@@ -1,20 +1,13 @@
 import re
 
 from typing import TYPE_CHECKING
-from typing import Union
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.empty_constraint import EmptyConstraint
-    from poetry.core.semver.version import Version
-    from poetry.core.semver.version_range import VersionRange
-    from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 
-VersionTypes = Union["Version", "VersionRange", "VersionUnion", "EmptyConstraint"]
-
-
-def parse_constraint(constraints: str) -> VersionTypes:
+def parse_constraint(constraints: str) -> "VersionConstraint":
     if constraints == "*":
         from poetry.core.semver.version_range import VersionRange
 
@@ -51,7 +44,7 @@ def parse_constraint(constraints: str) -> VersionTypes:
         return VersionUnion.of(*or_groups)
 
 
-def parse_single_constraint(constraint: str) -> VersionTypes:
+def parse_single_constraint(constraint: str) -> "VersionConstraint":
     from poetry.core.semver.patterns import BASIC_CONSTRAINT
     from poetry.core.semver.patterns import CARET_CONSTRAINT
     from poetry.core.semver.patterns import TILDE_CONSTRAINT
@@ -110,7 +103,9 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
 
         if minor is not None:
             version = Version.from_parts(major, int(minor), 0)
-            result = VersionRange(version, version.next_minor(), include_min=True)
+            result: "VersionConstraint" = VersionRange(
+                version, version.next_minor(), include_min=True
+            )
         else:
             if major == 0:
                 result = VersionRange(max=Version.from_parts(1, 0, 0))
@@ -128,20 +123,20 @@ def parse_single_constraint(constraint: str) -> VersionTypes:
     m = BASIC_CONSTRAINT.match(constraint)
     if m:
         op = m.group(1)
-        version = m.group(2)
+        version_string = m.group(2)
 
         # Technically invalid constraints like `>= 3.*` will appear
         # here as `3.`.
         # Pip currently supports these and to avoid breaking existing
         # users workflows we need to support them as well. To do so,
         # we just remove the inconsequential part.
-        version = version.rstrip(".")
+        version_string = version_string.rstrip(".")
 
-        if version == "dev":
-            version = "0.0-dev"
+        if version_string == "dev":
+            version_string = "0.0-dev"
 
         try:
-            version = Version.parse(version)
+            version = Version.parse(version_string)
         except ValueError:
             raise ValueError(f"Could not parse version constraint: {constraint}")
 
