@@ -8,9 +8,7 @@ from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes
     from poetry.core.semver.version import Version
-    from poetry.core.semver.version_range import VersionRange
 
 
 class VersionUnion(VersionConstraint):
@@ -22,18 +20,18 @@ class VersionUnion(VersionConstraint):
     as a non-compound value.
     """
 
-    def __init__(self, *ranges: "VersionRange") -> None:
+    def __init__(self, *ranges: VersionRangeConstraint) -> None:
         self._ranges = list(ranges)
 
     @property
-    def ranges(self) -> List["VersionRange"]:
+    def ranges(self) -> List[VersionRangeConstraint]:
         return self._ranges
 
     @classmethod
-    def of(cls, *ranges: "VersionTypes") -> "VersionTypes":
+    def of(cls, *ranges: VersionConstraint) -> VersionConstraint:
         from poetry.core.semver.version_range import VersionRange
 
-        flattened = []
+        flattened: List[VersionRangeConstraint] = []
         for constraint in ranges:
             if constraint.is_empty():
                 continue
@@ -42,6 +40,7 @@ class VersionUnion(VersionConstraint):
                 flattened += constraint.ranges
                 continue
 
+            assert isinstance(constraint, VersionRangeConstraint)
             flattened.append(constraint)
 
         if not flattened:
@@ -54,14 +53,12 @@ class VersionUnion(VersionConstraint):
         # about everything in flattened. _EmptyVersions and VersionUnions are
         # filtered out above.
         for constraint in flattened:
-            if isinstance(constraint, VersionRangeConstraint):
-                continue
-
-            raise ValueError(f"Unknown VersionConstraint type {constraint}.")
+            if not isinstance(constraint, VersionRangeConstraint):
+                raise ValueError(f"Unknown VersionConstraint type {constraint}.")
 
         flattened.sort()
 
-        merged = []
+        merged: List[VersionRangeConstraint] = []
         for constraint in flattened:
             # Merge this constraint with the previous one, but only if they touch.
             if not merged or (
@@ -86,7 +83,7 @@ class VersionUnion(VersionConstraint):
     def allows(self, version: "Version") -> bool:
         return any([constraint.allows(version) for constraint in self._ranges])
 
-    def allows_all(self, other: "VersionTypes") -> bool:
+    def allows_all(self, other: VersionConstraint) -> bool:
         our_ranges = iter(self._ranges)
         their_ranges = iter(self._ranges_for(other))
 
@@ -101,7 +98,7 @@ class VersionUnion(VersionConstraint):
 
         return their_current_range is None
 
-    def allows_any(self, other: "VersionTypes") -> bool:
+    def allows_any(self, other: VersionConstraint) -> bool:
         our_ranges = iter(self._ranges)
         their_ranges = iter(self._ranges_for(other))
 
@@ -119,7 +116,7 @@ class VersionUnion(VersionConstraint):
 
         return False
 
-    def intersect(self, other: "VersionTypes") -> "VersionTypes":
+    def intersect(self, other: VersionConstraint) -> VersionConstraint:
         our_ranges = iter(self._ranges)
         their_ranges = iter(self._ranges_for(other))
         new_ranges = []
@@ -140,10 +137,10 @@ class VersionUnion(VersionConstraint):
 
         return VersionUnion.of(*new_ranges)
 
-    def union(self, other: "VersionTypes") -> "VersionTypes":
+    def union(self, other: VersionConstraint) -> VersionConstraint:
         return VersionUnion.of(self, other)
 
-    def difference(self, other: "VersionTypes") -> "VersionTypes":
+    def difference(self, other: VersionConstraint) -> VersionConstraint:
         our_ranges = iter(self._ranges)
         their_ranges = iter(self._ranges_for(other))
         new_ranges = []
@@ -223,7 +220,9 @@ class VersionUnion(VersionConstraint):
 
         return VersionUnion.of(*new_ranges)
 
-    def _ranges_for(self, constraint: "VersionTypes") -> List["VersionRangeConstraint"]:
+    def _ranges_for(
+        self, constraint: VersionConstraint
+    ) -> List[VersionRangeConstraint]:
         if constraint.is_empty():
             return []
 

@@ -10,7 +10,7 @@ from poetry.core.version.markers import parse_marker
 
 if TYPE_CHECKING:
     from poetry.core.packages.types import DependencyTypes
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -20,7 +20,7 @@ class ProjectPackage(Package):
     def __init__(
         self,
         name: str,
-        version: Union[str, "VersionTypes"],
+        version: Union[str, "VersionConstraint"],
         pretty_version: Optional[str] = None,
     ) -> None:
         super().__init__(name, version, pretty_version)
@@ -49,11 +49,11 @@ class ProjectPackage(Package):
         return dependency
 
     @property
-    def python_versions(self) -> Union[str, "VersionTypes"]:
+    def python_versions(self) -> Union[str, "VersionConstraint"]:
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value: Union[str, "VersionTypes"]) -> None:
+    def python_versions(self, value: Union[str, "VersionConstraint"]) -> None:
         from poetry.core.semver.version_range import VersionRange
 
         self._python_versions = value

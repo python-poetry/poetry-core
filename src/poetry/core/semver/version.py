@@ -14,7 +14,7 @@ from poetry.core.version.pep440.version import PEP440Version
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.pep440 import LocalSegmentType
 
 
@@ -98,21 +98,23 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return _this == _other
 
-    def allows_all(self, other: "VersionTypes") -> bool:
+    def allows_all(self, other: "VersionConstraint") -> bool:
         return other.is_empty() or (
             self.allows(other) if isinstance(other, self.__class__) else other == self
         )
 
-    def allows_any(self, other: "VersionTypes") -> bool:
+    def allows_any(self, other: "VersionConstraint") -> bool:
         return other.allows(self)
 
-    def intersect(self, other: "VersionTypes") -> Union["Version", EmptyConstraint]:
+    def intersect(
+        self, other: "VersionConstraint"
+    ) -> Union["Version", EmptyConstraint]:
         if other.allows(self):
             return self
 
         return EmptyConstraint()
 
-    def union(self, other: "VersionTypes") -> "VersionTypes":
+    def union(self, other: "VersionConstraint") -> "VersionConstraint":
         from poetry.core.semver.version_range import VersionRange
 
         if other.allows(self):
@@ -137,7 +139,9 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return VersionUnion.of(self, other)
 
-    def difference(self, other: "VersionTypes") -> Union["Version", EmptyConstraint]:
+    def difference(
+        self, other: "VersionConstraint"
+    ) -> Union["Version", EmptyConstraint]:
         if other.allows(self):
             return EmptyConstraint()
 
@@ -149,7 +153,7 @@ class Version(PEP440Version, VersionRangeConstraint):
     def __repr__(self) -> str:
         return f"<Version {str(self)}>"
 
-    def __eq__(self, other: Union["Version", "VersionRangeConstraint"]) -> bool:
+    def __eq__(self, other: object) -> bool:
         from poetry.core.semver.version_range import VersionRange
 
         if isinstance(other, VersionRange):

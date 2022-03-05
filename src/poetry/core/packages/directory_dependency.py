@@ -6,7 +6,7 @@ from typing import Union
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
@@ -89,7 +89,7 @@ class DirectoryDependency(Dependency):
         return True
 
     def with_constraint(
-        self, constraint: Union[str, "VersionTypes"]
+        self, constraint: Union[str, "VersionConstraint"]
     ) -> "DirectoryDependency":
         new = DirectoryDependency(
             self.pretty_name,

@@ -1,5 +1,4 @@
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import List
 from typing import Optional
 
@@ -9,8 +8,8 @@ from poetry.core.semver.version_union import VersionUnion
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes
     from poetry.core.semver.version import Version
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class VersionRange(VersionRangeConstraint):
@@ -92,7 +91,7 @@ class VersionRange(VersionRangeConstraint):
 
         return True
 
-    def allows_all(self, other: "VersionTypes") -> bool:
+    def allows_all(self, other: "VersionConstraint") -> bool:
         from poetry.core.semver.version import Version
 
         if other.is_empty():
@@ -109,7 +108,7 @@ class VersionRange(VersionRangeConstraint):
 
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
-    def allows_any(self, other: "VersionTypes") -> bool:
+    def allows_any(self, other: "VersionConstraint") -> bool:
         from poetry.core.semver.version import Version
 
         if other.is_empty():
@@ -128,7 +127,7 @@ class VersionRange(VersionRangeConstraint):
 
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
-    def intersect(self, other: "VersionTypes") -> "VersionTypes":
+    def intersect(self, other: "VersionConstraint") -> "VersionConstraint":
         from poetry.core.semver.version import Version
 
         if other.is_empty():
@@ -183,7 +182,7 @@ class VersionRange(VersionRangeConstraint):
             intersect_min, intersect_max, intersect_include_min, intersect_include_max
         )
 
-    def union(self, other: "VersionTypes") -> "VersionTypes":
+    def union(self, other: "VersionConstraint") -> "VersionConstraint":
         from poetry.core.semver.version import Version
 
         if isinstance(other, Version):
@@ -235,7 +234,7 @@ class VersionRange(VersionRangeConstraint):
 
         return VersionUnion.of(self, other)
 
-    def difference(self, other: "VersionTypes") -> "VersionTypes":
+    def difference(self, other: "VersionConstraint") -> "VersionConstraint":
         from poetry.core.semver.version import Version
 
         if other.is_empty():
@@ -294,8 +293,8 @@ class VersionRange(VersionRangeConstraint):
 
             return VersionUnion.of(before, after)
         elif isinstance(other, VersionUnion):
-            ranges: List[VersionRange] = []
-            current = self
+            ranges: List[VersionRangeConstraint] = []
+            current: "VersionRangeConstraint" = self
 
             for range in other.ranges:
                 # Skip any ranges that are strictly lower than [current].
@@ -316,6 +315,7 @@ class VersionRange(VersionRangeConstraint):
                     ranges.append(difference.ranges[0])
                     current = difference.ranges[-1]
                 else:
+                    assert isinstance(difference, VersionRangeConstraint)
                     current = difference
 
             if not ranges:
@@ -325,7 +325,7 @@ class VersionRange(VersionRangeConstraint):
 
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
-    def __eq__(self, other: Any) -> int:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionRangeConstraint):
             return False
 
@@ -336,16 +336,16 @@ class VersionRange(VersionRangeConstraint):
             and self._include_max == other.include_max
         )
 
-    def __lt__(self, other: "VersionRangeConstraint") -> int:
+    def __lt__(self, other: "VersionRangeConstraint") -> bool:
         return self._cmp(other) < 0
 
-    def __le__(self, other: "VersionRangeConstraint") -> int:
+    def __le__(self, other: "VersionRangeConstraint") -> bool:
         return self._cmp(other) <= 0
 
-    def __gt__(self, other: "VersionRangeConstraint") -> int:
+    def __gt__(self, other: "VersionRangeConstraint") -> bool:
         return self._cmp(other) > 0
 
-    def __ge__(self, other: "VersionRangeConstraint") -> int:
+    def __ge__(self, other: "VersionRangeConstraint") -> bool:
         return self._cmp(other) >= 0
 
     def _cmp(self, other: "VersionRangeConstraint") -> int:

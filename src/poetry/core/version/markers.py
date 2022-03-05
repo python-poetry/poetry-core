@@ -15,7 +15,8 @@ from poetry.core.version.parser import Parser
 if TYPE_CHECKING:
     from lark import Tree
 
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class InvalidMarker(ValueError):
@@ -181,7 +182,9 @@ class SingleMarker(BaseMarker):
         "platform_release",
     }
 
-    def __init__(self, name: str, constraint: Union[str, "VersionTypes"]) -> None:
+    def __init__(
+        self, name: str, constraint: Union[str, "BaseConstraint", "VersionConstraint"]
+    ) -> None:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
         )
@@ -244,7 +247,7 @@ class SingleMarker(BaseMarker):
         return self._constraint_string
 
     @property
-    def constraint(self) -> "VersionTypes":
+    def constraint(self) -> Union["BaseConstraint", "VersionConstraint"]:
         return self._constraint
 
     @property

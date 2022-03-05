@@ -19,8 +19,8 @@ from poetry.core.version.markers import parse_marker
 if TYPE_CHECKING:
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.types import DependencyTypes
-    from poetry.core.semver.helpers import VersionTypes
     from poetry.core.semver.version import Version
+    from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
 
@@ -254,7 +254,7 @@ class Package(PackageSpecification):
         )
 
     @property
-    def python_constraint(self) -> "VersionTypes":
+    def python_constraint(self) -> "VersionConstraint":
         return self._python_constraint
 
     @property
