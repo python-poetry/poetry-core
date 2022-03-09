@@ -221,7 +221,7 @@ def test_difference():
     "version, expected",
     [
         ("1.2.3", "1.2.3-dev.0"),
-        ("1.2.3-alpha.0", "1.2.3-dev.0"),
+        ("1.2.3-alpha.0", "1.2.3-alpha.0-dev.0"),
         ("1.2.3-dev.0", "1.2.3-dev.1"),
     ],
 )
