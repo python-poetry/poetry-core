@@ -159,19 +159,24 @@ def test_single_marker_not_in_python_intersection():
     assert str(intersection) == 'python_version not in "2.7, 3.0, 3.1, 3.2"'
 
 
+def test_marker_intersection_of_python_version_and_python_full_version():
+    m = parse_marker('python_version >= "3.6"')
+    m2 = parse_marker('python_full_version >= "3.0.0"')
+    intersection = m.intersect(m2)
+
+    assert str(intersection) == 'python_version >= "3.6"'
+
+
 def test_single_marker_union():
     m = parse_marker('sys_platform == "darwin"')
 
-    intersection = m.union(parse_marker('implementation_name == "cpython"'))
-    assert (
-        str(intersection)
-        == 'sys_platform == "darwin" or implementation_name == "cpython"'
-    )
+    union = m.union(parse_marker('implementation_name == "cpython"'))
+    assert str(union) == 'sys_platform == "darwin" or implementation_name == "cpython"'
 
     m = parse_marker('python_version >= "3.4"')
 
-    intersection = m.union(parse_marker('python_version < "3.6"'))
-    assert str(intersection) == 'python_version >= "3.4" or python_version < "3.6"'
+    union = m.union(parse_marker('python_version < "3.6"'))
+    assert union.is_any()
 
 
 def test_single_marker_union_compacts_constraints():
@@ -370,6 +375,14 @@ def test_marker_union_deduplicate():
     )
 
     assert str(m) == 'sys_platform == "darwin" or implementation_name == "cpython"'
+
+
+def test_marker_union_of_python_version_and_python_full_version():
+    m = parse_marker('python_version >= "3.6"')
+    m2 = parse_marker('python_full_version >= "3.0.0"')
+    union = m.union(m2)
+
+    assert str(union) == 'python_full_version >= "3.0.0"'
 
 
 def test_marker_union_intersect_single_marker():
@@ -685,13 +698,13 @@ def test_without_extras(marker: str, expected: str):
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar")',
             "python_version",
-            '(extra == "foo" or extra == "bar")',
+            'extra == "foo" or extra == "bar"',
         ),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
             ' implementation_name == "pypy"',
             "python_version",
-            '(extra == "foo" or extra == "bar") or implementation_name == "pypy"',
+            'extra == "foo" or extra == "bar" or implementation_name == "pypy"',
         ),
         (
             'python_version >= "3.6" and extra == "foo" or implementation_name =='
@@ -704,6 +717,11 @@ def test_without_extras(marker: str, expected: str):
             ' "pypy" or extra == "bar"',
             "implementation_name",
             'python_version >= "3.6" or extra == "foo" or extra == "bar"',
+        ),
+        (
+            'extra == "foo" and python_version >= "3.6" or python_version >= "3.6"',
+            "extra",
+            'python_version >= "3.6"',
         ),
     ],
 )
@@ -728,7 +746,7 @@ def test_exclude(marker: str, excluded: str, expected: str):
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar")',
             ["extra"],
-            '(extra == "foo" or extra == "bar")',
+            'extra == "foo" or extra == "bar"',
         ),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
@@ -766,6 +784,14 @@ def test_union_of_a_single_marker_is_the_single_marker():
     union = MarkerUnion.of(SingleMarker("python_version", ">= 2.7"))
 
     assert SingleMarker("python_version", ">= 2.7") == union
+
+
+def test_union_of_multi_with_a_containing_single():
+    single = parse_marker('python_version >= "2.7"')
+    multi = parse_marker('python_version >= "2.7" and extra == "foo"')
+    union = multi.union(single)
+
+    assert union == single
 
 
 @pytest.mark.parametrize(

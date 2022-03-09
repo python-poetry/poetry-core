@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from poetry.core.packages.file_dependency import FileDependency
     from poetry.core.packages.package import Package
     from poetry.core.packages.types import DependencyTypes
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
 
@@ -33,7 +33,7 @@ class Dependency(PackageSpecification):
     def __init__(
         self,
         name: str,
-        constraint: Union[str, "VersionTypes"],
+        constraint: Union[str, "VersionConstraint"],
         optional: bool = False,
         groups: Optional[List[str]] = None,
         allows_prereleases: bool = False,
@@ -56,7 +56,7 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
-        self._constraint: Optional[Union[str, "VersionTypes"]] = None
+        self._constraint: Optional[Union[str, "VersionConstraint"]] = None
         self._pretty_constraint: Optional[str] = None
         self.set_constraint(constraint=constraint)
 
@@ -80,7 +80,7 @@ class Dependency(PackageSpecification):
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
         self._transitive_python_versions = None
-        self._transitive_python_constraint = None
+        self._transitive_python_constraint: Optional[VersionConstraint] = None
         self._transitive_marker = None
         self._extras = frozenset(extras or [])
 
@@ -97,10 +97,10 @@ class Dependency(PackageSpecification):
         return self._name
 
     @property
-    def constraint(self) -> "VersionTypes":
+    def constraint(self) -> "VersionConstraint":
         return self._constraint
 
-    def set_constraint(self, constraint: Union[str, "VersionTypes"]) -> None:
+    def set_constraint(self, constraint: Union[str, "VersionConstraint"]) -> None:
         from poetry.core.semver.version_constraint import VersionConstraint
 
         try:
@@ -179,6 +179,8 @@ class Dependency(PackageSpecification):
                 for _, extra in or_:
                     self.in_extras.append(extra)
 
+        # Recalculate python versions.
+        self._python_versions = "*"
         if "python_version" in markers:
             ors = []
             for or_ in markers["python_version"]:
@@ -213,7 +215,8 @@ class Dependency(PackageSpecification):
                 ors.append(" ".join(ands))
 
             self._python_versions = " || ".join(ors)
-            self._python_constraint = parse_constraint(self._python_versions)
+
+        self._python_constraint = parse_constraint(self._python_versions)
 
     @property
     def transitive_marker(self) -> "BaseMarker":
@@ -227,11 +230,11 @@ class Dependency(PackageSpecification):
         self._transitive_marker = value
 
     @property
-    def python_constraint(self) -> "VersionTypes":
+    def python_constraint(self) -> "VersionConstraint":
         return self._python_constraint
 
     @property
-    def transitive_python_constraint(self) -> "VersionTypes":
+    def transitive_python_constraint(self) -> "VersionConstraint":
         if self._transitive_python_constraint is None:
             return self._python_constraint
 
@@ -256,18 +259,19 @@ class Dependency(PackageSpecification):
             extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
-        if isinstance(self.constraint, VersionUnion):
-            if self.constraint.excludes_single_version():
-                requirement += f" ({str(self.constraint)})"
+        constraint = self.constraint
+        if isinstance(constraint, VersionUnion):
+            if constraint.excludes_single_version():
+                requirement += f" ({str(constraint)})"
             else:
                 constraints = self.pretty_constraint.split(",")
                 constraints = [parse_constraint(c) for c in constraints]
                 constraints = ",".join(str(c) for c in constraints)
                 requirement += f" ({constraints})"
-        elif isinstance(self.constraint, Version):
-            requirement += f" (=={self.constraint.text})"
-        elif not self.constraint.is_any():
-            requirement += f" ({str(self.constraint).replace(' ', '')})"
+        elif isinstance(constraint, Version):
+            requirement += f" (=={constraint.text})"
+        elif not constraint.is_any():
+            requirement += f" ({str(constraint).replace(' ', '')})"
 
         return requirement
 
@@ -348,7 +352,7 @@ class Dependency(PackageSpecification):
         return requirement
 
     def _create_nested_marker(
-        self, name: str, constraint: Union["BaseConstraint", "VersionTypes"]
+        self, name: str, constraint: Union["BaseConstraint", "VersionConstraint"]
     ) -> str:
         from poetry.core.packages.constraints.constraint import Constraint
         from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -390,6 +394,7 @@ class Dependency(PackageSpecification):
 
             marker = f'{name} == "{constraint.text}"'
         else:
+            assert isinstance(constraint, VersionRangeConstraint)
             if constraint.min is not None:
                 min_name = name
                 if constraint.min.precision >= 3 and name == "python_version":
@@ -450,7 +455,9 @@ class Dependency(PackageSpecification):
 
         self._activated = False
 
-    def with_constraint(self, constraint: Union[str, "VersionTypes"]) -> "Dependency":
+    def with_constraint(
+        self, constraint: Union[str, "VersionConstraint"]
+    ) -> "Dependency":
         new = Dependency(
             self.pretty_name,
             constraint,

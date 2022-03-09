@@ -7,7 +7,7 @@ from poetry.core.packages.dependency import Dependency
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class VCSDependency(Dependency):
@@ -133,7 +133,7 @@ class VCSDependency(Dependency):
         return True
 
     def with_constraint(
-        self, constraint: Union[str, "VersionTypes"]
+        self, constraint: Union[str, "VersionConstraint"]
     ) -> "VCSDependency":
         new = VCSDependency(
             self.pretty_name,

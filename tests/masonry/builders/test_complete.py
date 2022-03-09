@@ -465,6 +465,32 @@ def test_package_src():
         zip.close()
 
 
+def test_split_source():
+    module_path = fixtures_dir / "split_source"
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = module_path / "dist" / "split-source-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "split-source-0.1/lib_a/module_a/__init__.py" in tar.getnames()
+        assert "split-source-0.1/lib_b/module_b/__init__.py" in tar.getnames()
+
+    whl = module_path / "dist" / "split_source-0.1-py3-none-any.whl"
+
+    assert whl.exists()
+
+    zip = zipfile.ZipFile(str(whl))
+
+    try:
+        assert "module_a/__init__.py" in zip.namelist()
+        assert "module_b/__init__.py" in zip.namelist()
+    finally:
+        zip.close()
+
+
 def test_package_with_include(mocker: "MockerFixture"):
     module_path = fixtures_dir / "with-include"
 

@@ -298,3 +298,20 @@ def test_marker_properly_sets_python_constraint():
     dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'
 
     assert str(dependency.python_constraint) == ">=3.6,<4.0"
+
+
+def test_dependency_markers_are_the_same_as_markers():
+    dependency = Dependency.create_from_pep_508('foo ; extra=="bar"')
+    marker = parse_marker('extra=="bar"')
+
+    assert dependency.marker == marker
+
+
+def test_marker_properly_unsets_python_constraint():
+    dependency = Dependency("foo", "^1.2.3")
+
+    dependency.marker = 'python_version >= "3.6"'
+    assert str(dependency.python_constraint) == ">=3.6"
+
+    dependency.marker = "*"
+    assert str(dependency.python_constraint) == "*"

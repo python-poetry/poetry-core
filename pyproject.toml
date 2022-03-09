@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.1.0a6"
+version = "1.1.0-alpha.7"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -100,8 +100,6 @@ module = [
   'poetry.core.packages.dependency',
   'poetry.core.packages.package',
   'poetry.core.packages.project_package',
-  'poetry.core.semver.helpers',
-  'poetry.core.semver.version',
   'poetry.core.semver.version_range',
   'poetry.core.semver.version_union',
   'poetry.core.toml.exceptions',
