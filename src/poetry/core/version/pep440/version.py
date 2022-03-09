@@ -209,7 +209,13 @@ class PEP440Version:
             dev = self.dev.next()
         else:
             dev = ReleaseTag(RELEASE_PHASE_DEV)
-        return self.__class__(epoch=self.epoch, release=self.release, pre=self.pre, post=self.post, dev=dev)
+        return self.__class__(
+            epoch=self.epoch,
+            release=self.release,
+            pre=self.pre,
+            post=self.post,
+            dev=dev,
+        )
 
     def first_prerelease(self: T) -> T:
         return self.__class__(
