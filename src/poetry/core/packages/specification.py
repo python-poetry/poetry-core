@@ -1,18 +1,16 @@
-from typing import FrozenSet
-from typing import List
-from typing import Optional
+from __future__ import annotations
 
 
 class PackageSpecification:
     def __init__(
         self,
         name: str,
-        source_type: Optional[str] = None,
-        source_url: Optional[str] = None,
-        source_reference: Optional[str] = None,
-        source_resolved_reference: Optional[str] = None,
-        source_subdirectory: Optional[str] = None,
-        features: Optional[List[str]] = None,
+        source_type: str | None = None,
+        source_url: str | None = None,
+        source_reference: str | None = None,
+        source_resolved_reference: str | None = None,
+        source_subdirectory: str | None = None,
+        features: list[str] | None = None,
     ):
         from poetry.core.utils.helpers import canonicalize_name
 
@@ -48,30 +46,30 @@ class PackageSpecification:
         return name
 
     @property
-    def source_type(self) -> Optional[str]:
+    def source_type(self) -> str | None:
         return self._source_type
 
     @property
-    def source_url(self) -> Optional[str]:
+    def source_url(self) -> str | None:
         return self._source_url
 
     @property
-    def source_reference(self) -> Optional[str]:
+    def source_reference(self) -> str | None:
         return self._source_reference
 
     @property
-    def source_resolved_reference(self) -> Optional[str]:
+    def source_resolved_reference(self) -> str | None:
         return self._source_resolved_reference
 
     @property
-    def source_subdirectory(self) -> Optional[str]:
+    def source_subdirectory(self) -> str | None:
         return self._source_subdirectory
 
     @property
-    def features(self) -> FrozenSet[str]:
+    def features(self) -> frozenset[str]:
         return self._features
 
-    def is_same_package_as(self, other: "PackageSpecification") -> bool:
+    def is_same_package_as(self, other: PackageSpecification) -> bool:
         if other.complete_name != self.complete_name:
             return False
 

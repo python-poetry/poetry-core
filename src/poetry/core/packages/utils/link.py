@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import posixpath
 import re
 import urllib.parse as urlparse
 
 from typing import Any
-from typing import Optional
-from typing import Tuple
 
 from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.packages.utils.utils import splitext
@@ -14,8 +14,8 @@ class Link:
     def __init__(
         self,
         url: str,
-        comes_from: Optional[Any] = None,
-        requires_python: Optional[str] = None,
+        comes_from: Any | None = None,
+        requires_python: str | None = None,
     ) -> None:
         """
         Object representing a parsed link from https://pypi.python.org/simple/*
@@ -104,7 +104,7 @@ class Link:
     def path(self) -> str:
         return urlparse.unquote(urlparse.urlsplit(self.url)[2])
 
-    def splitext(self) -> Tuple[str, str]:
+    def splitext(self) -> tuple[str, str]:
         return splitext(posixpath.basename(self.path.rstrip("/")))
 
     @property
@@ -119,7 +119,7 @@ class Link:
     _egg_fragment_re = re.compile(r"[#&]egg=([^&]*)")
 
     @property
-    def egg_fragment(self) -> Optional[str]:
+    def egg_fragment(self) -> str | None:
         match = self._egg_fragment_re.search(self.url)
         if not match:
             return None
@@ -128,7 +128,7 @@ class Link:
     _subdirectory_fragment_re = re.compile(r"[#&]subdirectory=([^&]*)")
 
     @property
-    def subdirectory_fragment(self) -> Optional[str]:
+    def subdirectory_fragment(self) -> str | None:
         match = self._subdirectory_fragment_re.search(self.url)
         if not match:
             return None
@@ -137,14 +137,14 @@ class Link:
     _hash_re = re.compile(r"(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)")
 
     @property
-    def hash(self) -> Optional[str]:
+    def hash(self) -> str | None:
         match = self._hash_re.search(self.url)
         if match:
             return match.group(2)
         return None
 
     @property
-    def hash_name(self) -> Optional[str]:
+    def hash_name(self) -> str | None:
         match = self._hash_re.search(self.url)
         if match:
             return match.group(1)

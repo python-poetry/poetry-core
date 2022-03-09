@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Optional
 
 
 if TYPE_CHECKING:
@@ -16,9 +17,9 @@ class Parser:
         self._grammar = grammar
         self._parser = parser
         self._debug = debug
-        self._lark: Optional["Lark"] = None
+        self._lark: Lark | None = None
 
-    def parse(self, text: str, **kwargs: Any) -> "Tree":
+    def parse(self, text: str, **kwargs: Any) -> Tree:
         from lark import Lark
 
         if self._lark is None:

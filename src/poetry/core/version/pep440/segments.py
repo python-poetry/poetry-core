@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 
 from typing import Optional
@@ -27,15 +29,13 @@ RELEASE_PHASES_SHORT = {v: k for k, v in RELEASE_PHASES.items() if k != "post"}
 @dataclasses.dataclass(frozen=True, eq=True, order=True)
 class Release:
     major: int = dataclasses.field(default=0, compare=False)
-    minor: Optional[int] = dataclasses.field(default=None, compare=False)
-    patch: Optional[int] = dataclasses.field(default=None, compare=False)
+    minor: int | None = dataclasses.field(default=None, compare=False)
+    patch: int | None = dataclasses.field(default=None, compare=False)
     # some projects use non-semver versioning schemes, eg: 1.2.3.4
-    extra: Optional[Union[int, Tuple[int, ...]]] = dataclasses.field(
-        default=None, compare=False
-    )
+    extra: int | tuple[int, ...] | None = dataclasses.field(default=None, compare=False)
     precision: int = dataclasses.field(default=None, init=False, compare=False)
     text: str = dataclasses.field(default=None, init=False, compare=False)
-    _compare_key: Tuple[int, ...] = dataclasses.field(
+    _compare_key: tuple[int, ...] = dataclasses.field(
         default=None, init=False, compare=True
     )
 
@@ -59,7 +59,7 @@ class Release:
         )
 
     @classmethod
-    def from_parts(cls, *parts: int) -> "Release":
+    def from_parts(cls, *parts: int) -> Release:
         if not parts:
             return cls()
 
@@ -73,7 +73,7 @@ class Release:
     def to_string(self) -> str:
         return self.text
 
-    def next_major(self) -> "Release":
+    def next_major(self) -> Release:
         return dataclasses.replace(
             self,
             major=self.major + 1,
@@ -82,7 +82,7 @@ class Release:
             extra=tuple(0 for _ in self.extra),
         )
 
-    def next_minor(self) -> "Release":
+    def next_minor(self) -> Release:
         return dataclasses.replace(
             self,
             major=self.major,
@@ -91,7 +91,7 @@ class Release:
             extra=tuple(0 for _ in self.extra),
         )
 
-    def next_patch(self) -> "Release":
+    def next_patch(self) -> Release:
         return dataclasses.replace(
             self,
             major=self.major,
@@ -122,10 +122,10 @@ class ReleaseTag:
             return f"{self.shorten(self.phase)}{self.number}"
         return f"{self.phase}.{self.number}"
 
-    def next(self) -> "ReleaseTag":
+    def next(self) -> ReleaseTag:
         return dataclasses.replace(self, phase=self.phase, number=self.number + 1)
 
-    def next_phase(self) -> Optional["ReleaseTag"]:
+    def next_phase(self) -> ReleaseTag | None:
         if self.phase in [
             RELEASE_PHASE_POST,
             RELEASE_PHASE_RC,

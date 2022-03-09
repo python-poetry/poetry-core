@@ -1,7 +1,6 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
-from typing import Union
 from urllib.parse import urlparse
 
 from poetry.core.packages.dependency import Dependency
@@ -16,9 +15,9 @@ class URLDependency(Dependency):
         self,
         name: str,
         url: str,
-        groups: Optional[List[str]] = None,
+        groups: list[str] | None = None,
         optional: bool = False,
-        extras: Optional[List[str]] = None,
+        extras: list[str] | None = None,
     ):
         self._url = url
 
@@ -56,9 +55,7 @@ class URLDependency(Dependency):
     def is_url(self) -> bool:
         return True
 
-    def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "URLDependency":
+    def with_constraint(self, constraint: str | VersionConstraint) -> URLDependency:
         new = URLDependency(
             self.pretty_name,
             url=self._url,

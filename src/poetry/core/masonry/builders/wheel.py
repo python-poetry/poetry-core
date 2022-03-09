@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import csv
 import hashlib
@@ -14,9 +16,7 @@ from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import ContextManager
-from typing import Optional
 from typing import TextIO
-from typing import Union
 
 from packaging.tags import sys_tags
 
@@ -48,10 +48,10 @@ class WheelBuilder(Builder):
 
     def __init__(
         self,
-        poetry: "Poetry",
-        target_dir: Optional[Path] = None,
-        original: Optional[Path] = None,
-        executable: Optional[str] = None,
+        poetry: Poetry,
+        target_dir: Path | None = None,
+        original: Path | None = None,
+        executable: str | None = None,
         editable: bool = False,
     ) -> None:
         super().__init__(poetry, executable=executable)
@@ -66,10 +66,10 @@ class WheelBuilder(Builder):
     @classmethod
     def make_in(
         cls,
-        poetry: "Poetry",
-        directory: Optional[Path] = None,
-        original: Optional[Path] = None,
-        executable: Optional[str] = None,
+        poetry: Poetry,
+        directory: Path | None = None,
+        original: Path | None = None,
+        executable: str | None = None,
         editable: bool = False,
     ) -> str:
         wb = WheelBuilder(
@@ -84,7 +84,7 @@ class WheelBuilder(Builder):
         return wb.wheel_filename
 
     @classmethod
-    def make(cls, poetry: "Poetry", executable: Optional[str] = None) -> None:
+    def make(cls, poetry: Poetry, executable: str | None = None) -> None:
         """Build a wheel in the dist/ directory, and optionally upload it."""
         cls.make_in(poetry, executable=executable)
 
@@ -314,8 +314,8 @@ class WheelBuilder(Builder):
     def _add_file(
         self,
         wheel: zipfile.ZipFile,
-        full_path: Union[Path, str],
-        rel_path: Union[Path, str],
+        full_path: Path | str,
+        rel_path: Path | str,
     ) -> None:
         full_path, rel_path = str(full_path), str(rel_path)
         if os.sep != "/":

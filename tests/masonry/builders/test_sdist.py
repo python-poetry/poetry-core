@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import gzip
 import hashlib
@@ -142,7 +144,7 @@ def test_make_setup():
     }
 
 
-def test_make_pkg_info(mocker: "MockerFixture"):
+def test_make_pkg_info(mocker: MockerFixture):
     get_metadata_content = mocker.patch(
         "poetry.core.masonry.builders.builder.Builder.get_metadata_content"
     )
@@ -407,7 +409,7 @@ def test_with_src_module_dir():
         assert "package-src-0.1/src/package_src/module.py" in tar.getnames()
 
 
-def test_default_with_excluded_data(mocker: "MockerFixture"):
+def test_default_with_excluded_data(mocker: MockerFixture):
     # Patch git module to return specific excluded files
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = [

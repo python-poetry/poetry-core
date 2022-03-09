@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 
 from pathlib import Path
 from stat import S_IREAD
-from typing import Union
 
 import pytest
 
@@ -108,5 +109,5 @@ def test_utils_helpers_temporary_directory_readonly_file():
         (Path("README"), "text/plain"),
     ],
 )
-def test_utils_helpers_readme_content_type(readme: Union[str, Path], content_type: str):
+def test_utils_helpers_readme_content_type(readme: str | Path, content_type: str):
     assert readme_content_type(readme) == content_type

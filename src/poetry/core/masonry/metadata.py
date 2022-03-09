@@ -1,6 +1,6 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from typing import List
-from typing import Tuple
 
 from poetry.core.utils.helpers import readme_content_type
 
@@ -26,7 +26,7 @@ class Metadata:
     author_email = None
     license = None
     # version 1.1
-    classifiers: Tuple[str, ...] = ()
+    classifiers: tuple[str, ...] = ()
     requires = ()
     provides = ()
     obsoletes = ()
@@ -35,17 +35,17 @@ class Metadata:
     maintainer_email = None
     requires_python = None
     requires_external = ()
-    requires_dist: List[str] = []
+    requires_dist: list[str] = []
     provides_dist = ()
     obsoletes_dist = ()
-    project_urls: Tuple[str, ...] = ()
+    project_urls: tuple[str, ...] = ()
 
     # Version 2.1
     description_content_type = None
-    provides_extra: List[str] = []
+    provides_extra: list[str] = []
 
     @classmethod
-    def from_package(cls, package: "Package") -> "Metadata":
+    def from_package(cls, package: Package) -> Metadata:
         from poetry.core.utils.helpers import canonicalize_name
         from poetry.core.utils.helpers import normalize_version
         from poetry.core.version.helpers import format_python_constraint

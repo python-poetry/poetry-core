@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import re
@@ -14,11 +16,6 @@ from pprint import pformat
 from tarfile import TarInfo
 from typing import TYPE_CHECKING
 from typing import ContextManager
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
-from typing import Tuple
 
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
@@ -58,7 +55,7 @@ class SdistBuilder(Builder):
 
     format = "sdist"
 
-    def build(self, target_dir: Optional[Path] = None) -> Path:
+    def build(self, target_dir: Path | None = None) -> Path:
         logger.info("Building <info>sdist</info>")
         if target_dir is None:
             target_dir = self._path / "dist"
@@ -234,7 +231,7 @@ class SdistBuilder(Builder):
     def build_pkg_info(self) -> bytes:
         return self.get_metadata_content().encode()
 
-    def find_packages(self, include: "PackageInclude") -> Tuple[str, List[str], dict]:
+    def find_packages(self, include: PackageInclude) -> tuple[str, list[str], dict]:
         """
         Discover subpackages and data.
 
@@ -254,7 +251,7 @@ class SdistBuilder(Builder):
         packages = [pkg_name]
         subpkg_paths = set()
 
-        def find_nearest_pkg(rel_path: str) -> Tuple[str, str]:
+        def find_nearest_pkg(rel_path: str) -> tuple[str, str]:
             parts = rel_path.split(os.sep)
             for i in reversed(range(1, len(parts))):
                 ancestor = "/".join(parts[:i])
@@ -313,7 +310,7 @@ class SdistBuilder(Builder):
 
         return pkgdir, sorted(packages), pkg_data
 
-    def find_files_to_add(self, exclude_build: bool = False) -> Set[BuildIncludeFile]:
+    def find_files_to_add(self, exclude_build: bool = False) -> set[BuildIncludeFile]:
         to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
@@ -341,8 +338,8 @@ class SdistBuilder(Builder):
 
     @classmethod
     def convert_dependencies(
-        cls, package: "ProjectPackage", dependencies: List["Dependency"]
-    ) -> Tuple[List[str], Dict[str, List[str]]]:
+        cls, package: ProjectPackage, dependencies: list[Dependency]
+    ) -> tuple[list[str], dict[str, list[str]]]:
         main = []
         extras = defaultdict(list)
         req_regex = re.compile(r"^(.+) \((.+)\)$")

@@ -1,4 +1,4 @@
-from typing import Union
+from __future__ import annotations
 
 import pytest
 
@@ -20,7 +20,7 @@ from poetry.core.packages.constraints.union_constraint import UnionConstraint
         ("!= win32", Constraint("win32", "!=")),
     ],
 )
-def test_parse_constraint(input: str, constraint: Union[AnyConstraint, Constraint]):
+def test_parse_constraint(input: str, constraint: AnyConstraint | Constraint):
     assert parse_constraint(input) == constraint
 
 

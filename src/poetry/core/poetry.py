@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
 
 
 if TYPE_CHECKING:
@@ -14,9 +15,9 @@ if TYPE_CHECKING:
 class Poetry:
     def __init__(
         self,
-        file: "Path",
-        local_config: Dict[str, Any],
-        package: "ProjectPackage",
+        file: Path,
+        local_config: dict[str, Any],
+        package: ProjectPackage,
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
 
@@ -25,19 +26,19 @@ class Poetry:
         self._local_config = local_config
 
     @property
-    def pyproject(self) -> "PyProjectTOML":
+    def pyproject(self) -> PyProjectTOML:
         return self._pyproject
 
     @property
-    def file(self) -> "TOMLFile":
+    def file(self) -> TOMLFile:
         return self._pyproject.file
 
     @property
-    def package(self) -> "ProjectPackage":
+    def package(self) -> ProjectPackage:
         return self._package
 
     @property
-    def local_config(self) -> Dict[str, Any]:
+    def local_config(self) -> dict[str, Any]:
         return self._local_config
 
     def get_project_config(self, config: str, default: Any = None) -> Any:

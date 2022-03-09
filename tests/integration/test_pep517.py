@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -26,7 +28,7 @@ pytestmark = pytest.mark.integration
     ],
 )
 def test_pep517_check_poetry_managed(
-    request: "FixtureRequest", getter: str, project: str
+    request: FixtureRequest, getter: str, project: str
 ):
     with temporary_project_directory(request.getfixturevalue(getter)(project)) as path:
         assert project_wheel_metadata(path)

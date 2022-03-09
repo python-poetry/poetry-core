@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from poetry.core.packages.constraints.any_constraint import AnyConstraint

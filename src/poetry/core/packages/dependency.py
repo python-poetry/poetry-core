@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 
@@ -5,10 +7,6 @@ from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import FrozenSet
-from typing import List
-from typing import Optional
-from typing import Union
 
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
@@ -33,16 +31,16 @@ class Dependency(PackageSpecification):
     def __init__(
         self,
         name: str,
-        constraint: Union[str, "VersionConstraint"],
+        constraint: str | VersionConstraint,
         optional: bool = False,
-        groups: Optional[List[str]] = None,
+        groups: list[str] | None = None,
         allows_prereleases: bool = False,
-        extras: Optional[List[str]] = None,
-        source_type: Optional[str] = None,
-        source_url: Optional[str] = None,
-        source_reference: Optional[str] = None,
-        source_resolved_reference: Optional[str] = None,
-        source_subdirectory: Optional[str] = None,
+        extras: list[str] | None = None,
+        source_type: str | None = None,
+        source_url: str | None = None,
+        source_reference: str | None = None,
+        source_resolved_reference: str | None = None,
+        source_subdirectory: str | None = None,
     ):
         from poetry.core.version.markers import AnyMarker
 
@@ -56,8 +54,8 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
-        self._constraint: Optional[Union[str, "VersionConstraint"]] = None
-        self._pretty_constraint: Optional[str] = None
+        self._constraint: str | VersionConstraint | None = None
+        self._pretty_constraint: str | None = None
         self.set_constraint(constraint=constraint)
 
         self._optional = optional
@@ -80,7 +78,7 @@ class Dependency(PackageSpecification):
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
         self._transitive_python_versions = None
-        self._transitive_python_constraint: Optional[VersionConstraint] = None
+        self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker = None
         self._extras = frozenset(extras or [])
 
@@ -97,10 +95,10 @@ class Dependency(PackageSpecification):
         return self._name
 
     @property
-    def constraint(self) -> "VersionConstraint":
+    def constraint(self) -> VersionConstraint:
         return self._constraint
 
-    def set_constraint(self, constraint: Union[str, "VersionConstraint"]) -> None:
+    def set_constraint(self, constraint: str | VersionConstraint) -> None:
         from poetry.core.semver.version_constraint import VersionConstraint
 
         try:
@@ -121,7 +119,7 @@ class Dependency(PackageSpecification):
         return self._pretty_name
 
     @property
-    def groups(self) -> FrozenSet[str]:
+    def groups(self) -> frozenset[str]:
         return self._groups
 
     @property
@@ -154,11 +152,11 @@ class Dependency(PackageSpecification):
         self._transitive_python_constraint = parse_constraint(value)
 
     @property
-    def marker(self) -> "BaseMarker":
+    def marker(self) -> BaseMarker:
         return self._marker
 
     @marker.setter
-    def marker(self, marker: Union[str, "BaseMarker"]) -> None:
+    def marker(self, marker: str | BaseMarker) -> None:
         from poetry.core.packages.utils.utils import convert_markers
         from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import BaseMarker
@@ -219,33 +217,33 @@ class Dependency(PackageSpecification):
         self._python_constraint = parse_constraint(self._python_versions)
 
     @property
-    def transitive_marker(self) -> "BaseMarker":
+    def transitive_marker(self) -> BaseMarker:
         if self._transitive_marker is None:
             return self.marker
 
         return self._transitive_marker
 
     @transitive_marker.setter
-    def transitive_marker(self, value: "BaseMarker") -> None:
+    def transitive_marker(self, value: BaseMarker) -> None:
         self._transitive_marker = value
 
     @property
-    def python_constraint(self) -> "VersionConstraint":
+    def python_constraint(self) -> VersionConstraint:
         return self._python_constraint
 
     @property
-    def transitive_python_constraint(self) -> "VersionConstraint":
+    def transitive_python_constraint(self) -> VersionConstraint:
         if self._transitive_python_constraint is None:
             return self._python_constraint
 
         return self._transitive_python_constraint
 
     @property
-    def extras(self) -> FrozenSet[str]:
+    def extras(self) -> frozenset[str]:
         return self._extras
 
     @property
-    def in_extras(self) -> List[str]:
+    def in_extras(self) -> list[str]:
         return self._in_extras
 
     @property
@@ -296,7 +294,7 @@ class Dependency(PackageSpecification):
     def is_url(self) -> bool:
         return False
 
-    def accepts(self, package: "Package") -> bool:
+    def accepts(self, package: Package) -> bool:
         """
         Determines if the given package matches this dependency.
         """
@@ -352,7 +350,7 @@ class Dependency(PackageSpecification):
         return requirement
 
     def _create_nested_marker(
-        self, name: str, constraint: Union["BaseConstraint", "VersionConstraint"]
+        self, name: str, constraint: BaseConstraint | VersionConstraint
     ) -> str:
         from poetry.core.packages.constraints.constraint import Constraint
         from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -455,9 +453,7 @@ class Dependency(PackageSpecification):
 
         self._activated = False
 
-    def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "Dependency":
+    def with_constraint(self, constraint: str | VersionConstraint) -> Dependency:
         new = Dependency(
             self.pretty_name,
             constraint,
@@ -483,8 +479,8 @@ class Dependency(PackageSpecification):
 
     @classmethod
     def create_from_pep_508(
-        cls, name: str, relative_to: Optional[Path] = None
-    ) -> "DependencyTypes":
+        cls, name: str, relative_to: Path | None = None
+    ) -> DependencyTypes:
         """
         Resolve a PEP-508 requirement string to a `Dependency` instance. If a `relative_to`
         path is specified, this is used as the base directory if the identified dependency is
@@ -636,9 +632,9 @@ class Dependency(PackageSpecification):
 def _make_file_or_dir_dep(
     name: str,
     path: Path,
-    base: Optional[Path] = None,
-    extras: Optional[List[str]] = None,
-) -> Optional[Union["FileDependency", "DirectoryDependency"]]:
+    base: Path | None = None,
+    extras: list[str] | None = None,
+) -> FileDependency | DirectoryDependency | None:
     """
     Helper function to create a file or directoru dependency with the given arguments. If
     path is not a file or directory that exists, `None` is returned.

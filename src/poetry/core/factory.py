@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from pathlib import Path
@@ -6,7 +8,6 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Mapping
-from typing import Optional
 from typing import Union
 from warnings import warn
 
@@ -37,8 +38,8 @@ class Factory:
     """
 
     def create_poetry(
-        self, cwd: Optional[Path] = None, with_groups: bool = True
-    ) -> "Poetry":
+        self, cwd: Path | None = None, with_groups: bool = True
+    ) -> Poetry:
         from poetry.core.poetry import Poetry
         from poetry.core.pyproject.toml import PyProjectTOML
 
@@ -65,7 +66,7 @@ class Factory:
         return Poetry(poetry_file, local_config, package)
 
     @classmethod
-    def get_package(cls, name: str, version: str) -> "ProjectPackage":
+    def get_package(cls, name: str, version: str) -> ProjectPackage:
         from poetry.core.packages.project_package import ProjectPackage
 
         return ProjectPackage(name, version, version)
@@ -73,9 +74,9 @@ class Factory:
     @classmethod
     def _add_package_group_dependencies(
         cls,
-        package: "ProjectPackage",
-        group: Union[str, "DependencyGroup"],
-        dependencies: "DependencyConfig",
+        package: ProjectPackage,
+        group: str | DependencyGroup,
+        dependencies: DependencyConfig,
     ) -> None:
         if isinstance(group, str):
             if package.has_dependency_group(group):
@@ -109,11 +110,11 @@ class Factory:
     @classmethod
     def configure_package(
         cls,
-        package: "ProjectPackage",
-        config: Dict[str, Any],
+        package: ProjectPackage,
+        config: dict[str, Any],
         root: Path,
         with_groups: bool = True,
-    ) -> "ProjectPackage":
+    ) -> ProjectPackage:
         from poetry.core.packages.dependency import Dependency
         from poetry.core.packages.dependency_group import DependencyGroup
         from poetry.core.spdx.helpers import license_by_id
@@ -131,7 +132,7 @@ class Factory:
         package.repository_url = config.get("repository")
         package.documentation_url = config.get("documentation")
         try:
-            license_: Optional["License"] = license_by_id(config.get("license", ""))
+            license_: License | None = license_by_id(config.get("license", ""))
         except ValueError:
             license_ = None
 
@@ -220,10 +221,10 @@ class Factory:
     def create_dependency(
         cls,
         name: str,
-        constraint: "DependencyConstraint",
-        groups: Optional[List[str]] = None,
-        root_dir: Optional[Path] = None,
-    ) -> "DependencyTypes":
+        constraint: DependencyConstraint,
+        groups: list[str] | None = None,
+        root_dir: Path | None = None,
+    ) -> DependencyTypes:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
         )
@@ -335,7 +336,7 @@ class Factory:
                 )
 
             if not markers:
-                marker: "BaseMarker" = AnyMarker()
+                marker: BaseMarker = AnyMarker()
                 if python_versions:
                     marker = marker.intersect(
                         parse_marker(
@@ -367,14 +368,14 @@ class Factory:
 
     @classmethod
     def validate(
-        cls, config: Dict[str, Any], strict: bool = False
-    ) -> Dict[str, List[str]]:
+        cls, config: dict[str, Any], strict: bool = False
+    ) -> dict[str, list[str]]:
         """
         Checks the validity of a configuration
         """
         from poetry.core.json import validate_object
 
-        result: Dict[str, List[str]] = {"errors": [], "warnings": []}
+        result: dict[str, list[str]] = {"errors": [], "warnings": []}
         # Schema validation errors
         validation_errors = validate_object(config, "poetry-schema")
 
@@ -428,7 +429,7 @@ class Factory:
         return result
 
     @classmethod
-    def locate(cls, cwd: Optional[Path] = None) -> Path:
+    def locate(cls, cwd: Path | None = None) -> Path:
         cwd = Path(cwd or Path.cwd())
         candidates = [cwd]
         candidates.extend(cwd.parents)

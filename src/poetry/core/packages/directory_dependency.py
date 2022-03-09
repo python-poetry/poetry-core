@@ -1,8 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
-from typing import Union
 
 
 if TYPE_CHECKING:
@@ -17,11 +16,11 @@ class DirectoryDependency(Dependency):
         self,
         name: str,
         path: Path,
-        groups: Optional[List[str]] = None,
+        groups: list[str] | None = None,
         optional: bool = False,
-        base: Optional[Path] = None,
+        base: Path | None = None,
         develop: bool = False,
-        extras: Optional[List[str]] = None,
+        extras: list[str] | None = None,
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
 
@@ -89,8 +88,8 @@ class DirectoryDependency(Dependency):
         return True
 
     def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "DirectoryDependency":
+        self, constraint: str | VersionConstraint
+    ) -> DirectoryDependency:
         new = DirectoryDependency(
             self.pretty_name,
             path=self.path,

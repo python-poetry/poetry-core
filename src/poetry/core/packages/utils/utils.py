@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import posixpath
 import re
@@ -5,10 +7,6 @@ import sys
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Tuple
-from typing import Union
 from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
@@ -45,7 +43,7 @@ except ImportError:
     pass
 
 
-def path_to_url(path: Union[str, Path]) -> str:
+def path_to_url(path: str | Path) -> str:
     """
     Convert a path to a file: URL.  The path will be made absolute unless otherwise
     specified and have quoted path parts.
@@ -99,7 +97,7 @@ def is_url(name: str) -> bool:
     ]
 
 
-def strip_extras(path: str) -> Tuple[str, str]:
+def strip_extras(path: str) -> tuple[str, str]:
     m = re.match(r"^(.+)(\[[^\]]+\])$", path)
     extras = None
     if m:
@@ -129,7 +127,7 @@ def is_archive_file(name: str) -> bool:
     return False
 
 
-def splitext(path: str) -> Tuple[str, str]:
+def splitext(path: str) -> tuple[str, str]:
     """Like os.path.splitext, but take off .tar too"""
     base, ext = posixpath.splitext(path)
     if base.lower().endswith(".tar"):
@@ -139,8 +137,8 @@ def splitext(path: str) -> Tuple[str, str]:
 
 
 def group_markers(
-    markers: List["BaseMarker"], or_: bool = False
-) -> List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]]:
+    markers: list[BaseMarker], or_: bool = False
+) -> list[tuple[str, str, str] | list[tuple[str, str, str]]]:
     from poetry.core.version.markers import MarkerUnion
     from poetry.core.version.markers import MultiMarker
     from poetry.core.version.markers import SingleMarker
@@ -163,13 +161,13 @@ def group_markers(
     return groups
 
 
-def convert_markers(marker: "BaseMarker") -> Dict[str, List[Tuple[str, str]]]:
+def convert_markers(marker: BaseMarker) -> dict[str, list[tuple[str, str]]]:
     groups = group_markers([marker])
 
     requirements = {}
 
     def _group(
-        _groups: List[Union[Tuple[str, str, str], List[Tuple[str, str, str]]]],
+        _groups: list[tuple[str, str, str] | list[tuple[str, str, str]]],
         or_: bool = False,
     ) -> None:
         ors = {}
@@ -205,7 +203,7 @@ def convert_markers(marker: "BaseMarker") -> Dict[str, List[Tuple[str, str]]]:
 
 def create_nested_marker(
     name: str,
-    constraint: Union["BaseConstraint", "VersionUnion", "Version", "VersionConstraint"],
+    constraint: BaseConstraint | VersionUnion | Version | VersionConstraint,
 ) -> str:
     from poetry.core.packages.constraints.constraint import Constraint
     from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -293,8 +291,8 @@ def create_nested_marker(
 
 
 def get_python_constraint_from_marker(
-    marker: "BaseMarker",
-) -> "VersionConstraint":
+    marker: BaseMarker,
+) -> VersionConstraint:
     from poetry.core.semver.empty_constraint import EmptyConstraint
     from poetry.core.semver.helpers import parse_constraint
     from poetry.core.semver.version import Version

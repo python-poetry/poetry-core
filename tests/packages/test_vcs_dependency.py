@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import pytest
 
@@ -72,7 +72,7 @@ def test_to_pep_508_in_extras():
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
-def test_category(groups: List[str]):
+def test_category(groups: list[str]):
     dependency = VCSDependency(
         "poetry",
         "git",

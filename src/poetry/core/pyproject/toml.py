@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Optional
-from typing import Union
 
 
 if TYPE_CHECKING:
@@ -15,19 +15,19 @@ if TYPE_CHECKING:
 
 
 class PyProjectTOML:
-    def __init__(self, path: Union[str, Path]) -> None:
+    def __init__(self, path: str | Path) -> None:
         from poetry.core.toml import TOMLFile
 
         self._file = TOMLFile(path=path)
-        self._data: Optional["TOMLDocument"] = None
-        self._build_system: Optional["BuildSystem"] = None
+        self._data: TOMLDocument | None = None
+        self._build_system: BuildSystem | None = None
 
     @property
-    def file(self) -> "TOMLFile":
+    def file(self) -> TOMLFile:
         return self._file
 
     @property
-    def data(self) -> "TOMLDocument":
+    def data(self) -> TOMLDocument:
         from tomlkit.toml_document import TOMLDocument
 
         if self._data is None:
@@ -39,7 +39,7 @@ class PyProjectTOML:
         return self._data
 
     @property
-    def build_system(self) -> "BuildSystem":
+    def build_system(self) -> BuildSystem:
         from poetry.core.pyproject.tables import BuildSystem
 
         if self._build_system is None:
@@ -59,7 +59,7 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Union["Item", "Container"]:
+    def poetry_config(self) -> Item | Container:
         from tomlkit.exceptions import NonExistentKey
 
         try:

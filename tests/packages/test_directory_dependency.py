@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Optional
 
 import pytest
 
@@ -16,7 +17,7 @@ def test_directory_dependency_must_exist():
 
 
 def _test_directory_dependency_pep_508(
-    name: str, path: Path, pep_508_input: str, pep_508_output: Optional[str] = None
+    name: str, path: Path, pep_508_input: str, pep_508_output: str | None = None
 ) -> None:
     dep = Dependency.create_from_pep_508(
         pep_508_input, relative_to=Path(__file__).parent

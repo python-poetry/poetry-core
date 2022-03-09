@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import shutil
@@ -9,10 +11,7 @@ from collections.abc import Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
-from typing import Dict
 from typing import Iterator
-from typing import List
-from typing import Union
 from typing import no_type_check
 
 from poetry.core.version.pep440 import PEP440Version
@@ -45,7 +44,7 @@ def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
 
 
 @no_type_check
-def parse_requires(requires: str) -> List[str]:
+def parse_requires(requires: str) -> list[str]:
     lines = requires.split("\n")
 
     requires_dist = []
@@ -86,7 +85,7 @@ def parse_requires(requires: str) -> List[str]:
     return requires_dist
 
 
-def _on_rm_error(func: Any, path: Union[str, Path], exc_info: Any) -> None:
+def _on_rm_error(func: Any, path: str | Path, exc_info: Any) -> None:
     if not os.path.exists(path):
         return
 
@@ -94,14 +93,14 @@ def _on_rm_error(func: Any, path: Union[str, Path], exc_info: Any) -> None:
     func(path)
 
 
-def safe_rmtree(path: Union[str, Path]) -> None:
+def safe_rmtree(path: str | Path) -> None:
     if Path(path).is_symlink():
         return os.unlink(str(path))
 
     shutil.rmtree(path, onerror=_on_rm_error)
 
 
-def merge_dicts(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> None:
+def merge_dicts(d1: dict[Any, Any], d2: dict[Any, Any]) -> None:
     for k in d2.keys():
         if k in d1 and isinstance(d1[k], dict) and isinstance(d2[k], Mapping):
             merge_dicts(d1[k], d2[k])
@@ -109,7 +108,7 @@ def merge_dicts(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> None:
             d1[k] = d2[k]
 
 
-def readme_content_type(path: Union[str, Path]) -> str:
+def readme_content_type(path: str | Path) -> str:
     suffix = Path(path).suffix
     if suffix == ".rst":
         return "text/x-rst"

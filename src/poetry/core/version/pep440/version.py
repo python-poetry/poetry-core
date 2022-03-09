@@ -1,12 +1,10 @@
+from __future__ import annotations
+
 import dataclasses
 import math
 
 from typing import Any
-from typing import Optional
-from typing import Tuple
-from typing import Type
 from typing import TypeVar
-from typing import Union
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ALPHA
 from poetry.core.version.pep440.segments import RELEASE_PHASE_DEV
@@ -28,13 +26,13 @@ _NEG_INF_TAG = ReleaseTag("", -math.inf)
 class PEP440Version:
     epoch: int = dataclasses.field(default=0, compare=False)
     release: Release = dataclasses.field(default_factory=Release, compare=False)
-    pre: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
-    post: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
-    dev: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
+    pre: ReleaseTag | None = dataclasses.field(default=None, compare=False)
+    post: ReleaseTag | None = dataclasses.field(default=None, compare=False)
+    dev: ReleaseTag | None = dataclasses.field(default=None, compare=False)
     local: LocalSegmentType = dataclasses.field(default=None, compare=False)
     text: str = dataclasses.field(default=None, compare=False)
-    _compare_key: Tuple[
-        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Union[int, str], ...]
+    _compare_key: tuple[
+        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, tuple[int | str, ...]
     ] = dataclasses.field(default=None, init=False, compare=True)
 
     def __post_init__(self) -> None:
@@ -53,8 +51,8 @@ class PEP440Version:
 
     def _make_compare_key(
         self,
-    ) -> Tuple[
-        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Tuple[float, str], ...]
+    ) -> tuple[
+        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, tuple[tuple[float, str], ...]
     ]:
         """
         This code is based on the implementation of packaging.version._cmpkey(..)
@@ -101,15 +99,15 @@ class PEP440Version:
         return self.release.major
 
     @property
-    def minor(self) -> Optional[int]:
+    def minor(self) -> int | None:
         return self.release.minor
 
     @property
-    def patch(self) -> Optional[int]:
+    def patch(self) -> int | None:
         return self.release.patch
 
     @property
-    def non_semver_parts(self) -> Optional[Tuple[int]]:
+    def non_semver_parts(self) -> tuple[int] | None:
         return self.release.extra
 
     def to_string(self, short: bool = False) -> str:
@@ -137,7 +135,7 @@ class PEP440Version:
         return version_string
 
     @classmethod
-    def parse(cls: Type[T], value: str) -> T:
+    def parse(cls: type[T], value: str) -> T:
         from poetry.core.version.pep440.parser import parse_pep440
 
         return parse_pep440(value, cls)
@@ -184,7 +182,7 @@ class PEP440Version:
             release=self.release.next_patch() if self.is_stable() else self.release,
         )
 
-    def next_prerelease(self: T, next_phase: bool = False) -> "PEP440Version":
+    def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
         if self.is_prerelease():
             pre = self.pre.next_phase() if next_phase else self.pre.next()
         else:
@@ -222,7 +220,7 @@ class PEP440Version:
             epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
         )
 
-    def replace(self: T, **kwargs: Any) -> "PEP440Version":
+    def replace(self: T, **kwargs: Any) -> PEP440Version:
         return self.__class__(
             **{
                 **{

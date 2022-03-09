@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import subprocess
 
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import List
-from typing import Union
 
 import pytest
 
@@ -387,10 +387,10 @@ def test_git_rev_parse_raises_error_on_invalid_repository():
         " reasons"
     ),
 )
-def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
+def test_ensure_absolute_path_to_git(mocker: MockerFixture):
     _reset_executable()
 
-    def checkout_output(cmd: List[str], *args: Any, **kwargs: Any) -> Union[str, bytes]:
+    def checkout_output(cmd: list[str], *args: Any, **kwargs: Any) -> str | bytes:
         if Path(cmd[0]).name == "where.exe":
             return "\n".join(
                 [
@@ -418,7 +418,7 @@ def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
         " reasons"
     ),
 )
-def test_ensure_existing_git_executable_is_found(mocker: "MockerFixture"):
+def test_ensure_existing_git_executable_is_found(mocker: MockerFixture):
     mock = mocker.patch.object(subprocess, "check_output", return_value=b"")
 
     Git().run("config")
