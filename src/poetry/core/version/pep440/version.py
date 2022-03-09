@@ -217,7 +217,7 @@ class PEP440Version:
             dev=dev,
         )
 
-    def first_prerelease(self) -> "PEP440Version":
+    def first_prerelease(self: T) -> T:
         return self.__class__(
             epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
         )
