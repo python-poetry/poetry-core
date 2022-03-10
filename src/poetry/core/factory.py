@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Mapping
 from typing import Optional
 from typing import Union
 from warnings import warn
@@ -14,11 +15,18 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.packages.types import DependencyTypes
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
+
+    DependencyConstraint = Union[str, Dict[str, Any]]
+    DependencyConfig = Mapping[
+        str, Union[List[DependencyConstraint], DependencyConstraint]
+    ]
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +71,42 @@ class Factory:
         return ProjectPackage(name, version, version)
 
     @classmethod
+    def _add_package_group_dependencies(
+        cls,
+        package: "ProjectPackage",
+        group: Union[str, "DependencyGroup"],
+        dependencies: "DependencyConfig",
+    ) -> None:
+        if isinstance(group, str):
+            if package.has_dependency_group(group):
+                group = package.dependency_group(group)
+            else:
+                from poetry.core.packages.dependency_group import DependencyGroup
+
+                group = DependencyGroup(group)
+
+        for name, constraints in dependencies.items():
+            _constraints = (
+                constraints if isinstance(constraints, list) else [constraints]
+            )
+            for _constraint in _constraints:
+                if name.lower() == "python":
+                    if group.name == "default":
+                        package.python_versions = _constraint
+                    continue
+
+                group.add_dependency(
+                    cls.create_dependency(
+                        name,
+                        _constraint,
+                        groups=[group.name],
+                        root_dir=package.root_dir,
+                    )
+                )
+
+        package.add_dependency_group(group)
+
+    @classmethod
     def configure_package(
         cls,
         package: "ProjectPackage",
@@ -105,81 +149,25 @@ class Factory:
             package.platform = config["platform"]
 
         if "dependencies" in config:
-            group = DependencyGroup("default")
-            for name, constraint in config["dependencies"].items():
-                if name.lower() == "python":
-                    package.python_versions = constraint
-                    continue
-
-                if isinstance(constraint, list):
-                    for _constraint in constraint:
-                        group.add_dependency(
-                            cls.create_dependency(
-                                name, _constraint, root_dir=package.root_dir
-                            )
-                        )
-
-                    continue
-
-                group.add_dependency(
-                    cls.create_dependency(name, constraint, root_dir=package.root_dir)
-                )
-
-            package.add_dependency_group(group)
+            cls._add_package_group_dependencies(
+                package=package, group="default", dependencies=config["dependencies"]
+            )
 
         if with_groups and "group" in config:
             for group_name, group_config in config["group"].items():
                 group = DependencyGroup(
                     group_name, optional=group_config.get("optional", False)
                 )
-                for name, constraint in group_config["dependencies"].items():
-                    if isinstance(constraint, list):
-                        for _constraint in constraint:
-                            group.add_dependency(
-                                cls.create_dependency(
-                                    name,
-                                    _constraint,
-                                    groups=[group_name],
-                                    root_dir=package.root_dir,
-                                )
-                            )
-
-                        continue
-
-                    group.add_dependency(
-                        cls.create_dependency(
-                            name,
-                            constraint,
-                            groups=[group_name],
-                            root_dir=package.root_dir,
-                        )
-                    )
-
-                package.add_dependency_group(group)
-
-        if with_groups and "dev-dependencies" in config:
-            group = DependencyGroup("dev")
-            for name, constraint in config["dev-dependencies"].items():
-                if isinstance(constraint, list):
-                    for _constraint in constraint:
-                        group.add_dependency(
-                            cls.create_dependency(
-                                name,
-                                _constraint,
-                                groups=["dev"],
-                                root_dir=package.root_dir,
-                            )
-                        )
-
-                    continue
-
-                group.add_dependency(
-                    cls.create_dependency(
-                        name, constraint, groups=["dev"], root_dir=package.root_dir
-                    )
+                cls._add_package_group_dependencies(
+                    package=package,
+                    group=group,
+                    dependencies=group_config["dependencies"],
                 )
 
-            package.add_dependency_group(group)
+        if with_groups and "dev-dependencies" in config:
+            cls._add_package_group_dependencies(
+                package=package, group="dev", dependencies=config["dev-dependencies"]
+            )
 
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
@@ -232,7 +220,7 @@ class Factory:
     def create_dependency(
         cls,
         name: str,
-        constraint: Union[str, Dict[str, Any]],
+        constraint: "DependencyConstraint",
         groups: Optional[List[str]] = None,
         root_dir: Optional[Path] = None,
     ) -> "DependencyTypes":

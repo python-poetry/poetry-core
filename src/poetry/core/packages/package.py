@@ -373,8 +373,11 @@ class Package(PackageSpecification):
     def add_dependency_group(self, group: "DependencyGroup") -> None:
         self._dependency_groups[group.name] = group
 
+    def has_dependency_group(self, name: str) -> bool:
+        return name in self._dependency_groups
+
     def dependency_group(self, name: str) -> "DependencyGroup":
-        if name not in self._dependency_groups:
+        if not self.has_dependency_group(name):
             raise ValueError(f'The dependency group "{name}" does not exist.')
 
         return self._dependency_groups[name]

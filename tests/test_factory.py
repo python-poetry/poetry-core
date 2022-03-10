@@ -233,3 +233,29 @@ def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true(
     Factory().create_poetry(
         fixtures_dir / "project_with_invalid_dev_deps", with_groups=False
     )
+
+
+def test_create_poetry_with_groups_and_legacy_dev():
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_groups_and_legacy_dev"
+    )
+
+    package = poetry.package
+    dependencies = package.all_requires
+
+    assert len(dependencies) == 2
+    assert {dependency.name for dependency in dependencies} == {"pytest", "pre-commit"}
+
+
+def test_create_poetry_with_groups_and_explicit_default():
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_groups_and_explicit_default"
+    )
+
+    package = poetry.package
+    dependencies = package.requires
+
+    assert len(dependencies) == 1
+    assert {dependency.name for dependency in dependencies} == {
+        "aiohttp",
+    }
