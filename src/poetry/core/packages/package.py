@@ -200,11 +200,10 @@ class Package(PackageSpecification):
         """
         Returns the default dependencies and group dependencies.
         """
-        return self.requires + [
+        return [
             dependency
             for group in self._dependency_groups.values()
             for dependency in group.dependencies
-            if group.name != "default"
         ]
 
     def _get_author(self) -> Dict[str, Optional[str]]:
