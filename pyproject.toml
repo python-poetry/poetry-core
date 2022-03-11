@@ -50,7 +50,7 @@ pep517 = "^0.11.0"
 
 [tool.black]
 line-length = 88
-experimental_string_processing = true
+preview = true
 include = '\.pyi?$'
 extend-exclude = "src/poetry/core/_vendor/*"
 
