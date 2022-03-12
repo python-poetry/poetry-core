@@ -294,9 +294,9 @@ class SingleMarker(BaseMarker):
 
         return self
 
-    def only(self, *marker_names: str) -> Union["SingleMarker", EmptyMarker]:
+    def only(self, *marker_names: str) -> Union["SingleMarker", AnyMarker]:
         if self.name not in marker_names:
-            return EmptyMarker()
+            return AnyMarker()
 
         return self
 

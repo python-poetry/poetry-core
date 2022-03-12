@@ -35,6 +35,7 @@ def test_convert_markers():
             'python_full_version >= "3.6.1" and python_full_version < "4.0.0"',
             ">=3.6.1, <4.0.0",
         ),
+        ('sys_platform == "linux"', "*"),
     ],
 )
 def test_get_python_constraint_from_marker(marker: str, constraint: str):
