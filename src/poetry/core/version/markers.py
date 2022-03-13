@@ -460,13 +460,50 @@ class MultiMarker(BaseMarker):
         return MultiMarker.of(*new_markers)
 
     def union(self, other: BaseMarker) -> BaseMarker:
-        if other in self._markers:
-            return other
-
         if isinstance(other, (SingleMarker, MultiMarker)):
             return MarkerUnion.of(self, other)
 
         return other.union(self)
+
+    def union_simplify(self, other: BaseMarker) -> BaseMarker | None:
+        """
+        In contrast to the standard union method, which prefers to return
+        a MarkerUnion of MultiMarkers, this version prefers to return
+        a MultiMarker of MarkerUnions.
+
+        The rationale behind this approach is to find additional simplifications.
+        In order to avoid endless recursions, this method returns None
+        if it cannot find a simplification.
+        """
+        if isinstance(other, SingleMarker):
+            new_markers = []
+            for marker in self._markers:
+                union = marker.union(other)
+                if not union.is_any():
+                    new_markers.append(union)
+
+            if len(new_markers) == 1:
+                return new_markers[0]
+            if other in new_markers and all(
+                other == m or isinstance(m, MarkerUnion) and other in m.markers
+                for m in new_markers
+            ):
+                return other
+
+        elif isinstance(other, MultiMarker):
+            markers = set(self._markers)
+            other_markers = set(other.markers)
+            common_markers = markers & other_markers
+            unique_markers = markers - common_markers
+            other_unique_markers = other_markers - common_markers
+            if common_markers:
+                unique_union = self.of(*unique_markers).union(
+                    self.of(*other_unique_markers)
+                )
+                if not isinstance(unique_union, MarkerUnion):
+                    return self.of(*common_markers).intersect(unique_union)
+
+        return None
 
     def validate(self, environment: dict[str, Any]) -> bool:
         return all(m.validate(environment) for m in self._markers)
@@ -543,42 +580,68 @@ class MarkerUnion(BaseMarker):
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
-        flattened_markers = _flatten_markers(markers, MarkerUnion)
+        new_markers = _flatten_markers(markers, MarkerUnion)
+        old_markers: list[BaseMarker] = []
 
-        new_markers: list[BaseMarker] = []
-        for marker in flattened_markers:
-            if marker in new_markers:
-                continue
+        while old_markers != new_markers:
+            old_markers = new_markers
+            new_markers = []
+            for marker in old_markers:
+                if marker in new_markers or marker.is_empty():
+                    continue
 
-            if isinstance(marker, SingleMarker):
                 included = False
-                for i, mark in enumerate(new_markers):
-                    if isinstance(mark, SingleMarker) and (
-                        mark.name == marker.name
-                        or (
-                            mark.name in PYTHON_VERSION_MARKERS
-                            and marker.name in PYTHON_VERSION_MARKERS
-                        )
-                    ):
-                        union = mark.constraint.union(marker.constraint)
-                        if union == mark.constraint:
-                            included = True
-                            break
-                        elif union == marker.constraint:
-                            new_markers[i] = marker
-                            included = True
-                            break
-                        elif union.is_any():
-                            return AnyMarker()
-                        elif isinstance(union, VersionConstraint) and union.is_simple():
-                            new_markers[i] = SingleMarker(mark.name, union)
+
+                if isinstance(marker, SingleMarker):
+                    for i, mark in enumerate(new_markers):
+                        if isinstance(mark, SingleMarker) and (
+                            mark.name == marker.name
+                            or (
+                                mark.name in PYTHON_VERSION_MARKERS
+                                and marker.name in PYTHON_VERSION_MARKERS
+                            )
+                        ):
+                            constraint_union = mark.constraint.union(marker.constraint)
+                            if constraint_union == mark.constraint:
+                                included = True
+                                break
+                            elif constraint_union == marker.constraint:
+                                new_markers[i] = marker
+                                included = True
+                                break
+                            elif constraint_union.is_any():
+                                return AnyMarker()
+                            elif (
+                                isinstance(constraint_union, VersionConstraint)
+                                and constraint_union.is_simple()
+                            ):
+                                new_markers[i] = SingleMarker(
+                                    mark.name, constraint_union
+                                )
+                                included = True
+                                break
+
+                        elif isinstance(mark, MultiMarker):
+                            union = mark.union_simplify(marker)
+                            if union is not None:
+                                new_markers[i] = union
+                                included = True
+                                break
+
+                elif isinstance(marker, MultiMarker):
+                    included = False
+                    for i, mark in enumerate(new_markers):
+                        union = marker.union_simplify(mark)
+                        if union is not None:
+                            new_markers[i] = union
                             included = True
                             break
 
                 if included:
-                    continue
-
-            new_markers.append(marker)
+                    # flatten again because union_simplify may return a union
+                    new_markers = _flatten_markers(new_markers, MarkerUnion)
+                else:
+                    new_markers.append(marker)
 
         if any(m.is_any() for m in new_markers):
             return AnyMarker()
