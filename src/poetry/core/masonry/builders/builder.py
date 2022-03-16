@@ -170,21 +170,6 @@ class Builder:
                 if "__pycache__" in str(file):
                     continue
 
-                if file.is_dir():
-                    if self.format in formats:
-                        for current_file in file.glob("**/*"):
-                            include_file = BuildIncludeFile(
-                                path=current_file,
-                                project_root=self._path,
-                                source_root=self._path,
-                            )
-
-                            if not current_file.is_dir() and not self.is_excluded(
-                                include_file.relative_to_source_root()
-                            ):
-                                to_add.add(include_file)
-                    continue
-
                 if (
                     isinstance(include, PackageInclude)
                     and include.source
@@ -193,6 +178,21 @@ class Builder:
                     source_root = include.base
                 else:
                     source_root = self._path
+
+                if file.is_dir():
+                    if self.format in formats:
+                        for current_file in file.glob("**/*"):
+                            include_file = BuildIncludeFile(
+                                path=current_file,
+                                project_root=self._path,
+                                source_root=source_root,
+                            )
+
+                            if not current_file.is_dir() and not self.is_excluded(
+                                include_file.relative_to_source_root()
+                            ):
+                                to_add.add(include_file)
+                    continue
 
                 include_file = BuildIncludeFile(
                     path=file, project_root=self._path, source_root=source_root

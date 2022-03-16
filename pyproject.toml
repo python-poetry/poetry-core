@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.1.0a6"
+version = "1.1.0-alpha.7"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -50,7 +50,7 @@ pep517 = "^0.11.0"
 
 [tool.black]
 line-length = 88
-experimental_string_processing = true
+preview = true
 include = '\.pyi?$'
 extend-exclude = "src/poetry/core/_vendor/*"
 
@@ -100,8 +100,6 @@ module = [
   'poetry.core.packages.dependency',
   'poetry.core.packages.package',
   'poetry.core.packages.project_package',
-  'poetry.core.semver.helpers',
-  'poetry.core.semver.version',
   'poetry.core.semver.version_range',
   'poetry.core.semver.version_union',
   'poetry.core.toml.exceptions',
@@ -155,6 +153,6 @@ appdirs = []
 pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"
 
 [build-system]
-requires = ["dataclasses>=0.6;python_version < '3.7'"]
+requires = []
 build-backend = "poetry.core.masonry.api"
 backend-path = ["src"]

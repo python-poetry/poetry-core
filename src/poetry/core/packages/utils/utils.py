@@ -16,7 +16,6 @@ from urllib.request import url2pathname
 
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
-    from poetry.core.semver.helpers import VersionTypes
     from poetry.core.semver.version import Version
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.semver.version_union import VersionUnion
@@ -295,7 +294,7 @@ def create_nested_marker(
 
 def get_python_constraint_from_marker(
     marker: "BaseMarker",
-) -> "VersionTypes":
+) -> "VersionConstraint":
     from poetry.core.semver.empty_constraint import EmptyConstraint
     from poetry.core.semver.helpers import parse_constraint
     from poetry.core.semver.version import Version

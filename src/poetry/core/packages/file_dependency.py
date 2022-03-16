@@ -12,7 +12,7 @@ from poetry.core.packages.utils.utils import path_to_url
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.helpers import VersionTypes
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class FileDependency(Dependency):
@@ -76,7 +76,7 @@ class FileDependency(Dependency):
         return h.hexdigest()
 
     def with_constraint(
-        self, constraint: Union[str, "VersionTypes"]
+        self, constraint: Union[str, "VersionConstraint"]
     ) -> "FileDependency":
         new = FileDependency(
             self.pretty_name,
