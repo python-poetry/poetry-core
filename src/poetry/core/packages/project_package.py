@@ -49,16 +49,14 @@ class ProjectPackage(Package):
         return dependency
 
     @property
-    def python_versions(self) -> Union[str, "VersionConstraint"]:
+    def python_versions(self) -> str:
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value: Union[str, "VersionConstraint"]) -> None:
-        from poetry.core.semver.version_range import VersionRange
-
+    def python_versions(self, value: str) -> None:
         self._python_versions = value
 
-        if value == "*" or value == VersionRange():
+        if value == "*":
             value = "~2.7 || >=3.4"
 
         self._python_constraint = parse_constraint(value)

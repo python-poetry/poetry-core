@@ -91,7 +91,7 @@ class Factory:
             )
             for _constraint in _constraints:
                 if name.lower() == "python":
-                    if group.name == "default":
+                    if group.name == "default" and isinstance(_constraint, str):
                         package.python_versions = _constraint
                     continue
 
