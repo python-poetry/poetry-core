@@ -772,6 +772,7 @@ def test_exclude(marker: str, excluded: str, expected: str):
     "marker, only, expected",
     [
         ('python_version >= "3.6"', ["python_version"], 'python_version >= "3.6"'),
+        ('python_version >= "3.6"', ["sys_platform"], ""),
         (
             'python_version >= "3.6" and extra == "foo"',
             ["python_version"],
