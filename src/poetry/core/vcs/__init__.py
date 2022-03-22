@@ -16,9 +16,13 @@ def get_vcs(directory: Path) -> Optional[Git]:
     try:
         from poetry.core.vcs.git import executable
 
+        env = os.environ.copy()
+        env["GIT_DIR"] = str(directory.resolve())
         git_dir = (
             subprocess.check_output(
-                [executable(), "rev-parse", "--show-toplevel"], stderr=subprocess.STDOUT
+                [executable(), "rev-parse", "--show-toplevel"],
+                stderr=subprocess.STDOUT,
+                env=env,
             )
             .decode()
             .strip()
