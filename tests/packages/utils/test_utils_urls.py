@@ -3,13 +3,13 @@
 
 import sys
 
+from pathlib import Path
+from typing import Optional
+
 import pytest
 
-from six.moves.urllib.request import pathname2url  # noqa
-
-from poetry.core.packages import path_to_url
-from poetry.core.packages import url_to_path
-from poetry.core.utils._compat import Path
+from poetry.core.packages.utils.utils import path_to_url
+from poetry.core.packages.utils.utils import url_to_path
 
 
 @pytest.mark.skipif("sys.platform == 'win32'")
@@ -41,7 +41,7 @@ def test_path_to_url_win():
         ("file:///c:/tmp/file", r"C:\tmp\file", "/c:/tmp/file"),
     ],
 )
-def test_url_to_path(url, win_expected, non_win_expected):
+def test_url_to_path(url: str, win_expected: str, non_win_expected: Optional[str]):
     if sys.platform == "win32":
         expected_path = win_expected
     else:

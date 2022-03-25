@@ -1,25 +1,24 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import os
 import platform
 import sys
+import zipfile
 
 from contextlib import contextmanager
+from pathlib import Path
+from typing import Iterator
+from typing import Union
 
 import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
-from poetry.core.utils._compat import Path
-from poetry.core.utils._compat import decode
 from poetry.core.utils.helpers import temporary_directory
 from tests.testutils import validate_sdist_contents
 from tests.testutils import validate_wheel_contents
 
 
 @contextmanager
-def cwd(directory):
+def cwd(directory: Union[str, Path]) -> Iterator[None]:
     prev = os.getcwd()
     os.chdir(str(directory))
     try:
@@ -139,14 +138,12 @@ my-2nd-script=my_package:main2
 my-script=my_package:main
 
 """
-    wheel_data = """\
+    wheel_data = f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-        __version__
-    )
+"""
     metadata = """\
 Metadata-Version: 2.1
 Name: my-package
@@ -166,6 +163,7 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Software Development :: Build Tools
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Provides-Extra: time
@@ -184,7 +182,7 @@ My Package
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
 
-        assert "my_package-1.2.3.dist-info" == dirname
+        assert dirname == "my_package-1.2.3.dist-info"
 
         dist_info = Path(tmp_dir, dirname)
 
@@ -193,13 +191,13 @@ My Package
         assert (dist_info / "METADATA").exists()
 
         with (dist_info / "entry_points.txt").open(encoding="utf-8") as f:
-            assert entry_points == decode(f.read())
+            assert entry_points == f.read()
 
         with (dist_info / "WHEEL").open(encoding="utf-8") as f:
-            assert wheel_data == decode(f.read())
+            assert wheel_data == f.read()
 
         with (dist_info / "METADATA").open(encoding="utf-8") as f:
-            assert metadata == decode(f.read())
+            assert metadata == f.read()
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds():
@@ -215,3 +213,23 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds():
     ):
         api.prepare_metadata_for_build_wheel(tmp_dir)
     assert "does not exist" in str(err.value)
+
+
+def test_build_editable_wheel():
+    pkg_dir = Path(fixtures) / "complete"
+
+    with temporary_directory() as tmp_dir, cwd(pkg_dir):
+        filename = api.build_editable(tmp_dir)
+        wheel_pth = Path(tmp_dir) / filename
+
+        validate_wheel_contents(
+            name="my_package",
+            version="1.2.3",
+            path=str(wheel_pth),
+        )
+
+        with zipfile.ZipFile(wheel_pth) as z:
+            namelist = z.namelist()
+
+            assert "my_package.pth" in namelist
+            assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()

@@ -1,10 +1,12 @@
+from typing import Dict
+
 import pytest
 
 from poetry.core.json import validate_object
 
 
 @pytest.fixture
-def base_object():
+def base_object() -> Dict:
     return {
         "name": "myapp",
         "version": "1.0.0",
@@ -15,7 +17,7 @@ def base_object():
 
 
 @pytest.fixture
-def multi_url_object():
+def multi_url_object() -> Dict:
     return {
         "name": "myapp",
         "version": "1.0.0",
@@ -33,12 +35,21 @@ def multi_url_object():
     }
 
 
-def test_path_dependencies(base_object):
+def test_path_dependencies(base_object: Dict):
     base_object["dependencies"].update({"foo": {"path": "../foo"}})
     base_object["dev-dependencies"].update({"foo": {"path": "../foo"}})
 
     assert len(validate_object(base_object, "poetry-schema")) == 0
 
 
-def test_multi_url_dependencies(multi_url_object):
+def test_multi_url_dependencies(multi_url_object: Dict):
     assert len(validate_object(multi_url_object, "poetry-schema")) == 0
+
+
+def test_multiline_description(base_object: Dict):
+    bad_description = "Some multi-\nline string"
+    base_object["description"] = bad_description
+
+    errors = validate_object(base_object, "poetry-schema")
+    assert len(errors) == 1
+    assert errors[0] == f"[description] {bad_description!r} does not match '^[^\\n]*$'"

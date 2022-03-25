@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.0.2"
+version = "1.1.0-alpha.7"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -19,7 +19,10 @@ classifiers = [
 ]
 
 packages = [
-    {include = "poetry"},
+    { include = "poetry", from = "src" },
+]
+include = [
+    { path = "tests", format = "sdist" },
 ]
 exclude = [
     "**/*.pyc",
@@ -30,68 +33,101 @@ exclude = [
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
 [tool.poetry.dependencies]
-python = "~2.7 || ^3.5"
+python = "^3.7"
 
 # required for compatibility
-importlib-metadata = {version = "^1.7.0", python = "~2.7 || >=3.5, <3.8"}
-pathlib2 = {version = "^2.3.5", python = "~2.7"}
-typing = {version = "^3.7.4.1", python = "~2.7"}
-
-# required by tomlkit
-enum34 = {version = "^1.1.10", python = "~2.7"}
-
-# required by tomlkit, jsonschema
-functools32 = {version = "^3.2.3-2", python = "~2.7"}
+importlib-metadata = {version = ">=1.7.0", python = "<3.8"}
 
 [tool.poetry.dev-dependencies]
-pre-commit = "^1.10"
-pyrsistent = "^0.16.0"
-pytest = "^4.6"
+pre-commit = "^2.15.0"
+pyrsistent = "^0.18.0"
+pytest = "^6.2"
 pytest-cov = "^2.8"
-pytest-mock = "^2.0"
+pytest-mock = "^3.5"
 tox = "^3.0"
-vendoring = {version = "^0.3", python = "~3.8"}
-pep517 = "^0.8.2"
-"backports.tempfile" = {version = "^1.0", python = "~2.7"}
+vendoring = {version = "^0.3", python = "^3.8"}
+build = "^0.7.0"
 
 [tool.black]
 line-length = 88
+preview = true
 include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | poetry/core/_vendor/*
-)/
-'''
+extend-exclude = "src/poetry/core/_vendor/*"
 
 [tool.isort]
-line_length = 88
+profile = "black"
 force_single_line = true
 atomic = true
 include_trailing_comma = true
 lines_after_imports = 2
 lines_between_types = 1
-multi_line_output = 3
 use_parentheses = true
-not_skip = "__init__.py"
 skip_glob = ["*/setup.py", "*/poetry/core/_vendor/*"]
 filter_files = true
 
 known_first_party = "poetry.core"
 known_third_party = ["poetry.core._vendor"]
 
+[tool.mypy]
+strict = true
+explicit_package_bases = true
+namespace_packages = true
+mypy_path = "src"
+files = "src, tests"
+exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+
+[[tool.mypy.overrides]]
+module = [
+  'jsonschema.*',
+  'setuptools.*',
+  'tomlkit.*',
+]
+ignore_missing_imports = true
+
+# The following whitelist is used to allow for incremental adoption
+# of Mypy. Modules should be removed from this whitelist as and when
+# their respective type errors have been addressed. No new modules
+# should be added to this whitelist.
+# see https://github.com/python-poetry/poetry-core/pull/199.
+
+[[tool.mypy.overrides]]
+module = [
+  # src modules
+  'poetry.core.masonry.builders.builder',
+  'poetry.core.masonry.builders.sdist',
+  'poetry.core.masonry.builders.wheel',
+  'poetry.core.packages.utils.utils',
+  'poetry.core.packages.dependency',
+  'poetry.core.packages.package',
+  'poetry.core.packages.project_package',
+  'poetry.core.semver.version_range',
+  'poetry.core.semver.version_union',
+  'poetry.core.toml.exceptions',
+  'poetry.core.toml.file',
+  'poetry.core.version.markers',
+  'poetry.core.version.pep440.parser',
+  'poetry.core.version.pep440.segments',
+  'poetry.core.version.pep440.version',
+  # test modules
+  'tests.conftest',
+  'tests.integration.test_pep517',
+  'tests.json.*',
+  'tests.masonry.*',
+  'tests.packages.*',
+  'tests.pyproject.*',
+  'tests.semver.*',
+  'tests.spdx.*',
+  'tests.test_factory',
+  'tests.testutils.*',
+  'tests.utils.*',
+  'tests.vcs.*',
+  'tests.version.*',
+]
+ignore_errors = true
+
 [tool.vendoring]
-destination = "poetry/core/_vendor/"
-requirements = "poetry/core/_vendor/vendor.txt"
+destination = "src/poetry/core/_vendor/"
+requirements = "src/poetry/core/_vendor/vendor.txt"
 namespace = ""
 
 protected-files = ["__init__.py", "README.md", "vendor.txt"]
@@ -119,4 +155,4 @@ pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.
 [build-system]
 requires = []
 build-backend = "poetry.core.masonry.api"
-backend-path = ["."]
+backend-path = ["src"]

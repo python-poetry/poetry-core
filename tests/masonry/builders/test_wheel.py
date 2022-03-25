@@ -1,21 +1,27 @@
-# -*- coding: utf-8 -*-
 import os
 import shutil
 import zipfile
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Any
 
 import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.wheel import WheelBuilder
-from poetry.core.utils._compat import Path
 from tests.masonry.builders.test_sdist import project
 
+
+if TYPE_CHECKING:
+    from _pytest.monkeypatch import MonkeyPatch
+    from pytest_mock import MockerFixture
 
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> None:
     clear_samples_dist()
 
     yield
@@ -23,7 +29,7 @@ def setup():
     clear_samples_dist()
 
 
-def clear_samples_dist():
+def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
@@ -182,6 +188,7 @@ def test_wheel_includes_inline_table():
     assert whl.exists()
 
     with zipfile.ZipFile(str(whl)) as z:
+        assert "both.txt" in z.namelist()
         assert "wheel_only.txt" in z.namelist()
         assert "notes.txt" not in z.namelist()
 
@@ -190,7 +197,7 @@ def test_wheel_includes_inline_table():
     "package",
     ["pep_561_stub_only", "pep_561_stub_only_partial", "pep_561_stub_only_src"],
 )
-def test_wheel_package_pep_561_stub_only(package):
+def test_wheel_package_pep_561_stub_only(package: str):
     root = fixtures_dir / package
     WheelBuilder.make(Factory().create_poetry(root))
 
@@ -246,7 +253,7 @@ def test_wheel_with_file_with_comma():
         assert '\n"comma_file/a,b.py"' in records.decode()
 
 
-def test_default_src_with_excluded_data(mocker):
+def test_default_src_with_excluded_data(mocker: "MockerFixture"):
     # Patch git module to return specific excluded files
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = [
@@ -287,7 +294,7 @@ def test_default_src_with_excluded_data(mocker):
         assert "my_package/data/sub_data/data3.txt" in names
 
 
-def test_wheel_file_is_closed(monkeypatch):
+def test_wheel_file_is_closed(monkeypatch: "MonkeyPatch"):
     """Confirm that wheel zip files are explicitly closed."""
 
     # Using a list is a hack for Python 2.7 compatibility.
@@ -295,7 +302,7 @@ def test_wheel_file_is_closed(monkeypatch):
 
     real_fdopen = os.fdopen
 
-    def capturing_fdopen(*args, **kwargs):
+    def capturing_fdopen(*args: Any, **kwargs: Any):
         fd_file[0] = real_fdopen(*args, **kwargs)
         return fd_file[0]
 

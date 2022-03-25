@@ -2,15 +2,15 @@ import pytest
 
 from poetry.core.packages.utils.utils import convert_markers
 from poetry.core.packages.utils.utils import get_python_constraint_from_marker
-from poetry.core.semver import parse_constraint
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
 def test_convert_markers():
     marker = parse_marker(
-        'sys_platform == "win32" and python_version < "3.6" '
-        'or sys_platform == "win32" and python_version < "3.6" and python_version >= "3.3" '
-        'or sys_platform == "win32" and python_version < "3.3"'
+        'sys_platform == "win32" and python_version < "3.6" or sys_platform == "win32"'
+        ' and python_version < "3.6" and python_version >= "3.3" or sys_platform =='
+        ' "win32" and python_version < "3.3"'
     )
 
     converted = convert_markers(marker)
@@ -35,9 +35,10 @@ def test_convert_markers():
             'python_full_version >= "3.6.1" and python_full_version < "4.0.0"',
             ">=3.6.1, <4.0.0",
         ),
+        ('sys_platform == "linux"', "*"),
     ],
 )
-def test_get_python_constraint_from_marker(marker, constraint):
+def test_get_python_constraint_from_marker(marker: str, constraint: str):
     marker = parse_marker(marker)
     constraint = parse_constraint(constraint)
     assert constraint == get_python_constraint_from_marker(marker)

@@ -1,12 +1,17 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from poetry.core.exceptions import PoetryCoreException
 from poetry.core.toml import TOMLFile
-from poetry.core.utils._compat import decode
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_old_pyproject_toml_file_deprecation(
-    pyproject_toml, build_system_section, poetry_section
+    pyproject_toml: "Path", build_system_section: str, poetry_section: str
 ):
     from poetry.core.utils.toml_file import TomlFile
 
@@ -17,16 +22,16 @@ def test_old_pyproject_toml_file_deprecation(
     assert data == TOMLFile(pyproject_toml).read()
 
 
-def test_pyproject_toml_file_invalid(pyproject_toml):
+def test_pyproject_toml_file_invalid(pyproject_toml: "Path"):
     with pyproject_toml.open(mode="a") as f:
-        f.write(decode("<<<<<<<<<<<"))
+        f.write("<<<<<<<<<<<")
 
     with pytest.raises(PoetryCoreException) as excval:
         _ = TOMLFile(pyproject_toml).read()
 
-    assert "Invalid TOML file {}".format(pyproject_toml.as_posix()) in str(excval.value)
+    assert f"Invalid TOML file {pyproject_toml.as_posix()}" in str(excval.value)
 
 
-def test_pyproject_toml_file_getattr(tmp_path, pyproject_toml):
+def test_pyproject_toml_file_getattr(tmp_path: "Path", pyproject_toml: "Path"):
     file = TOMLFile(pyproject_toml)
     assert file.parent == tmp_path

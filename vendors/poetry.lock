@@ -125,8 +125,8 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.6"
-content-hash = "6790cea1370c2296b96f05af2218de159499268429c0c81757de8e4e90bfa9b0"
+python-versions = "^3.7"
+content-hash = "15291fd8e716868c668d60ce4df667ed983daea247aa87c9f71a7d83748e516e"
 
 [metadata.files]
 attrs = [
