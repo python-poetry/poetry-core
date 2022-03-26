@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Iterable
 
 
 if TYPE_CHECKING:
@@ -16,11 +17,11 @@ class DirectoryDependency(Dependency):
         self,
         name: str,
         path: Path,
-        groups: list[str] | None = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
         base: Path | None = None,
         develop: bool = False,
-        extras: list[str] | None = None,
+        extras: Iterable[str] | None = None,
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
 
