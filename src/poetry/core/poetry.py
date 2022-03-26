@@ -1,11 +1,13 @@
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
+from typing import Optional
 
 
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from poetry.core.lock.locker import Locker
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.pyproject.toml import PyProjectTOML
     from poetry.core.toml import TOMLFile
@@ -23,6 +25,7 @@ class Poetry:
         self._pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
+        self._locker: Optional["Locker"] = None
 
     @property
     def pyproject(self) -> "PyProjectTOML":
@@ -42,3 +45,13 @@ class Poetry:
 
     def get_project_config(self, config: str, default: Any = None) -> Any:
         return self._local_config.get("config", {}).get(config, default)
+
+    @property
+    def locker(self) -> Optional["Locker"]:
+        if self._locker is None:
+            from poetry.core.lock.locker import Locker
+
+            self._locker = Locker(
+                self.pyproject.file.path.parent / "poetry.lock", self.local_config
+            )
+        return self._locker
