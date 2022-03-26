@@ -6,6 +6,7 @@ import re
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Collection
 
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -366,6 +367,13 @@ class Package(PackageSpecification):
     def is_root(self) -> bool:
         return False
 
+    def dependency_group_names(self, include_optional: bool = False) -> set[str]:
+        return {
+            name
+            for name, group in self._dependency_groups.items()
+            if not group.is_optional() or include_optional
+        }
+
     def add_dependency_group(self, group: DependencyGroup) -> None:
         self._dependency_groups[group.name] = group
 
@@ -393,7 +401,7 @@ class Package(PackageSpecification):
 
         return dependency
 
-    def without_dependency_groups(self, groups: list[str]) -> Package:
+    def without_dependency_groups(self, groups: Collection[str]) -> Package:
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
@@ -417,7 +425,9 @@ class Package(PackageSpecification):
 
         return package
 
-    def with_dependency_groups(self, groups: list[str], only: bool = False) -> Package:
+    def with_dependency_groups(
+        self, groups: Collection[str], only: bool = False
+    ) -> Package:
         """
         Returns a clone of the package with the given dependency groups opted in.
 
@@ -429,12 +439,8 @@ class Package(PackageSpecification):
         package = self.clone()
 
         for group_name, group in self._dependency_groups.items():
-            if only:
-                if group_name not in groups:
-                    del package._dependency_groups[group_name]
-            else:
-                if group.is_optional() and group_name not in groups:
-                    del package._dependency_groups[group_name]
+            if (only or group.is_optional()) and group_name not in groups:
+                del package._dependency_groups[group_name]
 
         return package
 
