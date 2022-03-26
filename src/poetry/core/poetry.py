@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Union
 
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.pyproject.toml import PyProjectTOML
     from poetry.core.toml import TOMLFile
@@ -20,8 +19,6 @@ class Poetry:
         local_config: dict[str, Any],
         package: ProjectPackage,
     ) -> None:
-        from pathlib import Path
-
         from poetry.core.pyproject.toml import PyProjectTOML
         from poetry.core.utils import workspaces
 
@@ -47,7 +44,7 @@ class Poetry:
         return self._local_config
 
     @property
-    def workspace(self) -> Union[Path, None]:
+    def workspace(self) -> Path | None:
         return self._workspace
 
     def get_project_config(self, config: str, default: Any = None) -> Any:
