@@ -18,6 +18,7 @@ class Poetry:
         local_config: dict[str, Any],
         package: ProjectPackage,
     ) -> None:
+        from pathlib import Path
         from poetry.core.pyproject.toml import PyProjectTOML
         from poetry.core.utils import workspaces
 
