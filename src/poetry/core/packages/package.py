@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Collection
+from typing import Iterable
 
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -50,7 +51,7 @@ class Package(PackageSpecification):
         source_reference: str | None = None,
         source_resolved_reference: str | None = None,
         source_subdirectory: str | None = None,
-        features: list[str] | None = None,
+        features: Iterable[str] | None = None,
         develop: bool = False,
     ) -> None:
         """
@@ -519,7 +520,7 @@ class Package(PackageSpecification):
 
         self.python_versions = original_python_versions
 
-    def with_features(self, features: list[str]) -> Package:
+    def with_features(self, features: Iterable[str]) -> Package:
         package = self.clone()
 
         package._features = frozenset(features)

@@ -7,6 +7,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterable
 
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
@@ -33,9 +34,9 @@ class Dependency(PackageSpecification):
         name: str,
         constraint: str | VersionConstraint,
         optional: bool = False,
-        groups: list[str] | None = None,
+        groups: Iterable[str] | None = None,
         allows_prereleases: bool = False,
-        extras: list[str] | None = None,
+        extras: Iterable[str] | None = None,
         source_type: str | None = None,
         source_url: str | None = None,
         source_reference: str | None = None,

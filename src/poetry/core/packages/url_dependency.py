@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from urllib.parse import urlparse
 
 from poetry.core.packages.dependency import Dependency
@@ -15,9 +16,9 @@ class URLDependency(Dependency):
         self,
         name: str,
         url: str,
-        groups: list[str] | None = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
-        extras: list[str] | None = None,
+        extras: Iterable[str] | None = None,
     ):
         self._url = url
 

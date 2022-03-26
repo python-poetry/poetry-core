@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 
 class PackageSpecification:
     def __init__(
@@ -10,7 +12,7 @@ class PackageSpecification:
         source_reference: str | None = None,
         source_resolved_reference: str | None = None,
         source_subdirectory: str | None = None,
-        features: list[str] | None = None,
+        features: Iterable[str] | None = None,
     ):
         from poetry.core.utils.helpers import canonicalize_name
 

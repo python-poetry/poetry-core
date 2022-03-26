@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
 
@@ -24,10 +25,10 @@ class VCSDependency(Dependency):
         rev: str | None = None,
         resolved_rev: str | None = None,
         directory: str | None = None,
-        groups: list[str] | None = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
         develop: bool = False,
-        extras: list[str] | None = None,
+        extras: Iterable[str] | None = None,
     ):
         self._vcs = vcs
         self._source = source

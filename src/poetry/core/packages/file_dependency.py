@@ -5,6 +5,7 @@ import io
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
@@ -19,10 +20,10 @@ class FileDependency(Dependency):
         self,
         name: str,
         path: Path,
-        groups: list[str] | None = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
         base: Path | None = None,
-        extras: list[str] | None = None,
+        extras: Iterable[str] | None = None,
     ) -> None:
         self._path = path
         self._base = base or Path.cwd()
