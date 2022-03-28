@@ -176,3 +176,15 @@ class VCSDependency(Dependency):
 
     def __hash__(self) -> int:
         return hash((self._name, self._vcs, self._branch, self._tag, self._rev))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, VCSDependency):
+            return False
+
+        return (self._name, self._vcs, self._branch, self._tag, self._rev) == (
+            other._name,
+            other._vcs,
+            other._branch,
+            other._tag,
+            other._rev,
+        )
