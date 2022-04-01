@@ -635,7 +635,7 @@
         "generate-setup-file": {
           "type": "boolean",
           "description": "Generate and include a setup.py file in sdist.",
-          "default": true
+          "default": false
         },
         "script": {
           "$ref": "#/definitions/build-script"

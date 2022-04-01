@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ast
 import os
 import platform
 import re
@@ -12,7 +11,6 @@ import zipfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import Iterator
 
 import pytest
@@ -540,29 +538,9 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "with_include-1.2.3/package_with_include/__init__.py" in names
         assert "with_include-1.2.3/tests/__init__.py" in names
         assert "with_include-1.2.3/pyproject.toml" in names
-        assert "with_include-1.2.3/setup.py" in names
         assert "with_include-1.2.3/PKG-INFO" in names
         assert "with_include-1.2.3/for_wheel_only/__init__.py" not in names
         assert "with_include-1.2.3/src/src_package/__init__.py" in names
-
-        file = tar.extractfile("with_include-1.2.3/setup.py")
-        assert file
-        setup = file.read()
-        setup_ast = ast.parse(setup)
-
-        setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-        ns: dict[str, Any] = {}
-        exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
-        assert ns["package_dir"] == {"": "src"}
-        assert ns["packages"] == [
-            "extra_dir",
-            "extra_dir.sub_pkg",
-            "package_with_include",
-            "src_package",
-            "tests",
-        ]
-        assert ns["package_data"] == {"": ["*"]}
-        assert ns["modules"] == ["my_module"]
 
     whl = module_path / "dist" / "with_include-1.2.3-py3-none-any.whl"
 
@@ -612,7 +590,6 @@ def test_respect_format_for_explicit_included_files() -> None:
             in names
         )
         assert "exclude_whl_include_sdist-0.1.0/pyproject.toml" in names
-        assert "exclude_whl_include_sdist-0.1.0/setup.py" in names
         assert "exclude_whl_include_sdist-0.1.0/PKG-INFO" in names
 
     whl = module_path / "dist" / "exclude_whl_include_sdist-0.1.0-py3-none-any.whl"
@@ -625,5 +602,3 @@ def test_respect_format_for_explicit_included_files() -> None:
         assert "exclude_whl_include_sdist/compiled/source.c" not in names
         assert "exclude_whl_include_sdist/compiled/source.h" not in names
         assert "exclude_whl_include_sdist/cython_code.pyx" not in names
-
-    pass
