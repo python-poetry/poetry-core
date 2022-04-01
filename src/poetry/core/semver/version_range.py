@@ -30,7 +30,7 @@ class VersionRange(VersionRangeConstraint):
             and not full_max.is_postrelease()
             and (min is None or min.is_stable() or min.release != full_max.release)
         ):
-            full_max = full_max.first_pre_release()
+            full_max = full_max.first_prerelease()
 
         self._min = min
         self._max = max
