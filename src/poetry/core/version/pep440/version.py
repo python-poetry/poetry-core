@@ -3,15 +3,19 @@ from __future__ import annotations
 import dataclasses
 import math
 
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import TypeVar
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ALPHA
 from poetry.core.version.pep440.segments import RELEASE_PHASE_DEV
 from poetry.core.version.pep440.segments import RELEASE_PHASE_POST
-from poetry.core.version.pep440.segments import LocalSegmentType
 from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
+
+
+if TYPE_CHECKING:
+    from poetry.core.version.pep440.segments import LocalSegmentType
 
 
 T = TypeVar("T", bound="PEP440Version")

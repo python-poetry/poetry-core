@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from poetry.core.masonry.utils.include import Include
+
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class PackageInclude(Include):

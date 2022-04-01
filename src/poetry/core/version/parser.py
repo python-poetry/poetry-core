@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from lark import Lark
     from lark import Tree
 
