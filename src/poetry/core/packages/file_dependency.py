@@ -1,11 +1,10 @@
+from __future__ import annotations
+
 import hashlib
 import io
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
-from typing import Union
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
@@ -20,10 +19,10 @@ class FileDependency(Dependency):
         self,
         name: str,
         path: Path,
-        groups: Optional[List[str]] = None,
+        groups: list[str] | None = None,
         optional: bool = False,
-        base: Optional[Path] = None,
-        extras: Optional[List[str]] = None,
+        base: Path | None = None,
+        extras: list[str] | None = None,
     ) -> None:
         self._path = path
         self._base = base or Path.cwd()
@@ -75,9 +74,7 @@ class FileDependency(Dependency):
 
         return h.hexdigest()
 
-    def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "FileDependency":
+    def with_constraint(self, constraint: str | VersionConstraint) -> FileDependency:
         new = FileDependency(
             self.pretty_name,
             path=self.path,

@@ -1,12 +1,10 @@
+from __future__ import annotations
+
 import re
 
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
 from typing import Iterable
-from typing import List
-from typing import Type
-from typing import Union
 
 from poetry.core.semver.version_constraint import VersionConstraint
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
@@ -54,10 +52,10 @@ _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
 
 class BaseMarker:
-    def intersect(self, other: "BaseMarker") -> "BaseMarker":
+    def intersect(self, other: BaseMarker) -> BaseMarker:
         raise NotImplementedError()
 
-    def union(self, other: "BaseMarker") -> "BaseMarker":
+    def union(self, other: BaseMarker) -> BaseMarker:
         raise NotImplementedError()
 
     def is_any(self) -> bool:
@@ -66,19 +64,19 @@ class BaseMarker:
     def is_empty(self) -> bool:
         return False
 
-    def validate(self, environment: Dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any]) -> bool:
         raise NotImplementedError()
 
-    def without_extras(self) -> "BaseMarker":
+    def without_extras(self) -> BaseMarker:
         raise NotImplementedError()
 
-    def exclude(self, marker_name: str) -> "BaseMarker":
+    def exclude(self, marker_name: str) -> BaseMarker:
         raise NotImplementedError()
 
-    def only(self, *marker_names: str) -> "BaseMarker":
+    def only(self, *marker_names: str) -> BaseMarker:
         raise NotImplementedError()
 
-    def invert(self) -> "BaseMarker":
+    def invert(self) -> BaseMarker:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
@@ -98,7 +96,7 @@ class AnyMarker(BaseMarker):
     def is_empty(self) -> bool:
         return False
 
-    def validate(self, environment: Dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any]) -> bool:
         return True
 
     def without_extras(self) -> BaseMarker:
@@ -110,7 +108,7 @@ class AnyMarker(BaseMarker):
     def only(self, *marker_names: str) -> BaseMarker:
         return self
 
-    def invert(self) -> "EmptyMarker":
+    def invert(self) -> EmptyMarker:
         return EmptyMarker()
 
     def __str__(self) -> str:
@@ -142,16 +140,16 @@ class EmptyMarker(BaseMarker):
     def is_empty(self) -> bool:
         return True
 
-    def validate(self, environment: Dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any]) -> bool:
         return False
 
     def without_extras(self) -> BaseMarker:
         return self
 
-    def exclude(self, marker_name: str) -> "EmptyMarker":
+    def exclude(self, marker_name: str) -> EmptyMarker:
         return self
 
-    def only(self, *marker_names: str) -> "EmptyMarker":
+    def only(self, *marker_names: str) -> EmptyMarker:
         return self
 
     def invert(self) -> AnyMarker:
@@ -183,7 +181,7 @@ class SingleMarker(BaseMarker):
     }
 
     def __init__(
-        self, name: str, constraint: Union[str, "BaseConstraint", VersionConstraint]
+        self, name: str, constraint: str | BaseConstraint | VersionConstraint
     ) -> None:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
@@ -247,7 +245,7 @@ class SingleMarker(BaseMarker):
         return self._constraint_string
 
     @property
-    def constraint(self) -> Union["BaseConstraint", VersionConstraint]:
+    def constraint(self) -> BaseConstraint | VersionConstraint:
         return self._constraint
 
     @property
@@ -276,7 +274,7 @@ class SingleMarker(BaseMarker):
 
         return other.union(self)
 
-    def validate(self, environment: Dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any]) -> bool:
         if environment is None:
             return True
 
@@ -294,7 +292,7 @@ class SingleMarker(BaseMarker):
 
         return self
 
-    def only(self, *marker_names: str) -> Union["SingleMarker", AnyMarker]:
+    def only(self, *marker_names: str) -> SingleMarker | AnyMarker:
         if self.name not in marker_names:
             return AnyMarker()
 
@@ -362,8 +360,8 @@ class SingleMarker(BaseMarker):
 
 def _flatten_markers(
     markers: Iterable[BaseMarker],
-    flatten_class: Type[Union["MarkerUnion", "MultiMarker"]],
-) -> List[BaseMarker]:
+    flatten_class: type[MarkerUnion | MultiMarker],
+) -> list[BaseMarker]:
     flattened = []
 
     for marker in markers:
@@ -387,7 +385,7 @@ class MultiMarker(BaseMarker):
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
         new_markers = _flatten_markers(markers, MultiMarker)
-        old_markers: List[BaseMarker] = []
+        old_markers: list[BaseMarker] = []
 
         while old_markers != new_markers:
             old_markers = new_markers
@@ -447,7 +445,7 @@ class MultiMarker(BaseMarker):
         return MultiMarker(*new_markers)
 
     @property
-    def markers(self) -> List[BaseMarker]:
+    def markers(self) -> list[BaseMarker]:
         return self._markers
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
@@ -470,7 +468,7 @@ class MultiMarker(BaseMarker):
 
         return other.union(self)
 
-    def validate(self, environment: Dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any]) -> bool:
         return all(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> BaseMarker:
@@ -540,14 +538,14 @@ class MarkerUnion(BaseMarker):
         self._markers = list(markers)
 
     @property
-    def markers(self) -> List[BaseMarker]:
+    def markers(self) -> list[BaseMarker]:
         return self._markers
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
         flattened_markers = _flatten_markers(markers, MarkerUnion)
 
-        new_markers: List[BaseMarker] = []
+        new_markers: list[BaseMarker] = []
         for marker in flattened_markers:
             if marker in new_markers:
                 continue
@@ -634,7 +632,7 @@ class MarkerUnion(BaseMarker):
 
         return MarkerUnion.of(*new_markers)
 
-    def validate(self, environment: Dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any]) -> bool:
         return any(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> BaseMarker:
@@ -714,10 +712,10 @@ def parse_marker(marker: str) -> BaseMarker:
     return markers
 
 
-def _compact_markers(tree_elements: "Tree", tree_prefix: str = "") -> BaseMarker:
+def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> BaseMarker:
     from lark import Token
 
-    groups: List[BaseMarker] = [MultiMarker()]
+    groups: list[BaseMarker] = [MultiMarker()]
     for token in tree_elements:
         if isinstance(token, Token):
             if token.type == f"{tree_prefix}BOOL_OP" and token.value == "or":

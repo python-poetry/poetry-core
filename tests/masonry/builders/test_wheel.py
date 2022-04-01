@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import shutil
 import zipfile
@@ -253,7 +255,7 @@ def test_wheel_with_file_with_comma():
         assert '\n"comma_file/a,b.py"' in records.decode()
 
 
-def test_default_src_with_excluded_data(mocker: "MockerFixture"):
+def test_default_src_with_excluded_data(mocker: MockerFixture):
     # Patch git module to return specific excluded files
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = [
@@ -294,7 +296,7 @@ def test_default_src_with_excluded_data(mocker: "MockerFixture"):
         assert "my_package/data/sub_data/data3.txt" in names
 
 
-def test_wheel_file_is_closed(monkeypatch: "MonkeyPatch"):
+def test_wheel_file_is_closed(monkeypatch: MonkeyPatch):
     """Confirm that wheel zip files are explicitly closed."""
 
     # Using a list is a hack for Python 2.7 compatibility.

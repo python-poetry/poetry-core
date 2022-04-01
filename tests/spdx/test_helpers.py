@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from poetry.core.spdx.helpers import license_by_id

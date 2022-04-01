@@ -1,20 +1,23 @@
+from __future__ import annotations
+
+
 class BaseConstraint:
-    def allows(self, other: "BaseConstraint") -> bool:
+    def allows(self, other: BaseConstraint) -> bool:
         raise NotImplementedError()
 
-    def allows_all(self, other: "BaseConstraint") -> bool:
+    def allows_all(self, other: BaseConstraint) -> bool:
         raise NotImplementedError()
 
-    def allows_any(self, other: "BaseConstraint") -> bool:
+    def allows_any(self, other: BaseConstraint) -> bool:
         raise NotImplementedError()
 
-    def difference(self, other: "BaseConstraint") -> "BaseConstraint":
+    def difference(self, other: BaseConstraint) -> BaseConstraint:
         raise NotImplementedError()
 
-    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
+    def intersect(self, other: BaseConstraint) -> BaseConstraint:
         raise NotImplementedError()
 
-    def union(self, other: "BaseConstraint") -> "BaseConstraint":
+    def union(self, other: BaseConstraint) -> BaseConstraint:
         raise NotImplementedError()
 
     def is_any(self) -> bool:

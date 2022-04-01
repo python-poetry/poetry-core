@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from typing import List
 
 
 if TYPE_CHECKING:
@@ -10,20 +11,20 @@ class DependencyGroup:
     def __init__(self, name: str, optional: bool = False) -> None:
         self._name: str = name
         self._optional: bool = optional
-        self._dependencies: List["DependencyTypes"] = []
+        self._dependencies: list[DependencyTypes] = []
 
     @property
     def name(self) -> str:
         return self._name
 
     @property
-    def dependencies(self) -> List["DependencyTypes"]:
+    def dependencies(self) -> list[DependencyTypes]:
         return self._dependencies
 
     def is_optional(self) -> bool:
         return self._optional
 
-    def add_dependency(self, dependency: "DependencyTypes") -> None:
+    def add_dependency(self, dependency: DependencyTypes) -> None:
         self._dependencies.append(dependency)
 
     def remove_dependency(self, name: str) -> None:

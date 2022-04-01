@@ -1,4 +1,4 @@
-from typing import Union
+from __future__ import annotations
 
 import pytest
 
@@ -208,5 +208,5 @@ from poetry.core.version.pep440 import ReleaseTag
         ),
     ],
 )
-def test_parse_constraint(constraint: str, version: Union[VersionRange, VersionUnion]):
+def test_parse_constraint(constraint: str, version: VersionRange | VersionUnion):
     assert parse_constraint(constraint) == version

@@ -1,5 +1,4 @@
-from typing import List
-from typing import Union
+from __future__ import annotations
 
 import pytest
 
@@ -34,7 +33,7 @@ from poetry.core.version.pep440 import ReleaseTag
         ),  # Issue 206
     ],
 )
-def test_parse_constraint(input: str, constraint: Union[Version, VersionRange]):
+def test_parse_constraint(input: str, constraint: Version | VersionRange):
     assert parse_constraint(input) == constraint
 
 
@@ -349,7 +348,7 @@ def test_constraints_keep_version_precision(input: str, expected: str):
         (["1.0.0rc2", "1.0.0b1"], ["1.0.0b1", "1.0.0rc2"]),
     ],
 )
-def test_versions_are_sortable(unsorted: List[str], sorted_: List[str]):
+def test_versions_are_sortable(unsorted: list[str], sorted_: list[str]):
     unsorted = [parse_constraint(u) for u in unsorted]
     sorted_ = [parse_constraint(s) for s in sorted_]
 

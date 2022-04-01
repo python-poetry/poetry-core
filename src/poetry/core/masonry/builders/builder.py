@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 import sys
@@ -6,11 +8,6 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
-from typing import Union
 
 
 if TYPE_CHECKING:
@@ -30,13 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 class Builder:
-    format: Optional[str] = None
+    format: str | None = None
 
     def __init__(
         self,
-        poetry: "Poetry",
+        poetry: Poetry,
         ignore_packages_formats: bool = False,
-        executable: Optional[Union[Path, str]] = None,
+        executable: Path | str | None = None,
     ) -> None:
         from poetry.core.masonry.metadata import Metadata
         from poetry.core.masonry.utils.module import Module
@@ -44,7 +41,7 @@ class Builder:
         self._poetry = poetry
         self._package = poetry.package
         self._path = poetry.file.parent
-        self._excluded_files: Optional[Set[str]] = None
+        self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
 
         packages = []
@@ -99,7 +96,7 @@ class Builder:
     def build(self) -> None:
         raise NotImplementedError()
 
-    def find_excluded_files(self, fmt: Optional[str] = None) -> Set[str]:
+    def find_excluded_files(self, fmt: str | None = None) -> set[str]:
         if self._excluded_files is None:
             from poetry.core.vcs import get_vcs
 
@@ -140,7 +137,7 @@ class Builder:
 
         return self._excluded_files
 
-    def is_excluded(self, filepath: Union[str, Path]) -> bool:
+    def is_excluded(self, filepath: str | Path) -> bool:
         exclude_path = Path(filepath)
 
         while True:
@@ -154,7 +151,7 @@ class Builder:
 
         return False
 
-    def find_files_to_add(self, exclude_build: bool = True) -> Set["BuildIncludeFile"]:
+    def find_files_to_add(self, exclude_build: bool = True) -> set[BuildIncludeFile]:
         """
         Finds all files to add to the tarball
         """
@@ -279,7 +276,7 @@ class Builder:
 
         return content
 
-    def convert_entry_points(self) -> Dict[str, List[str]]:
+    def convert_entry_points(self) -> dict[str, list[str]]:
         result = defaultdict(list)
 
         # Scripts -> Entry points
@@ -320,8 +317,8 @@ class Builder:
 
         return dict(result)
 
-    def convert_script_files(self) -> List[Path]:
-        script_files: List[Path] = []
+    def convert_script_files(self) -> list[Path]:
+        script_files: list[Path] = []
 
         for name, specification in self._poetry.local_config.get("scripts", {}).items():
             if isinstance(specification, dict) and specification.get("type") == "file":
@@ -350,7 +347,7 @@ class Builder:
         return script_files
 
     @classmethod
-    def convert_author(cls, author: str) -> Dict[str, str]:
+    def convert_author(cls, author: str) -> dict[str, str]:
         m = AUTHOR_REGEX.match(author)
 
         name = m.group("name")
@@ -362,9 +359,9 @@ class Builder:
 class BuildIncludeFile:
     def __init__(
         self,
-        path: Union[Path, str],
-        project_root: Union[Path, str],
-        source_root: Optional[Union[Path, str]] = None,
+        path: Path | str,
+        project_root: Path | str,
+        source_root: Path | str | None = None,
     ):
         """
         :param project_root: the full path of the project's root
@@ -381,13 +378,13 @@ class BuildIncludeFile:
 
         self.path = self.path.resolve()
 
-    def __eq__(self, other: Union["BuildIncludeFile", Path]) -> bool:
+    def __eq__(self, other: BuildIncludeFile | Path) -> bool:
         if hasattr(other, "path"):
             return self.path == other.path
 
         return self.path == other
 
-    def __ne__(self, other: Union["BuildIncludeFile", Path]) -> bool:
+    def __ne__(self, other: BuildIncludeFile | Path) -> bool:
         return not self.__eq__(other)
 
     def __hash__(self) -> int:

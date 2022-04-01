@@ -1,8 +1,6 @@
-import os
+from __future__ import annotations
 
-from typing import Dict
-from typing import List
-from typing import Optional
+import os
 
 import pytest
 
@@ -665,7 +663,7 @@ def test_multi_marker_removes_duplicates():
     ],
 )
 def test_validate(
-    marker_string: str, environment: Optional[Dict[str, str]], expected: bool
+    marker_string: str, environment: dict[str, str] | None, expected: bool
 ):
     m = parse_marker(marker_string)
 
@@ -681,7 +679,7 @@ def test_validate(
         )
     ],
 )
-def test_parse_version_like_markers(marker: str, env: Dict[str, str]):
+def test_parse_version_like_markers(marker: str, env: dict[str, str]):
     m = parse_marker(marker)
 
     assert m.validate(env)
@@ -809,7 +807,7 @@ def test_exclude(marker: str, excluded: str, expected: str):
         ),
     ],
 )
-def test_only(marker: str, only: List[str], expected: str):
+def test_only(marker: str, only: list[str], expected: str):
     m = parse_marker(marker)
 
     assert str(m.only(*only)) == expected

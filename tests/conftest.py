@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 
 from pathlib import Path
@@ -17,7 +19,7 @@ if TYPE_CHECKING:
     from _pytest.config.argparsing import Parser
 
 
-def pytest_addoption(parser: "Parser") -> None:
+def pytest_addoption(parser: Parser) -> None:
     parser.addoption(
         "--integration",
         action="store_true",
@@ -27,7 +29,7 @@ def pytest_addoption(parser: "Parser") -> None:
     )
 
 
-def pytest_configure(config: "Config") -> None:
+def pytest_configure(config: Config) -> None:
     config.addinivalue_line("markers", "integration: mark integration tests")
 
     if not config.option.integration:

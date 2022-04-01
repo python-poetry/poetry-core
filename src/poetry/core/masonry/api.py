@@ -1,13 +1,12 @@
 """
 PEP-517 compliant buildsystem API
 """
+from __future__ import annotations
+
 import logging
 
 from pathlib import Path
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.sdist import SdistBuilder
@@ -18,8 +17,8 @@ log = logging.getLogger(__name__)
 
 
 def get_requires_for_build_wheel(
-    config_settings: Optional[Dict[str, Any]] = None,
-) -> List[str]:
+    config_settings: dict[str, Any] | None = None,
+) -> list[str]:
     """
     Returns an additional list of requirements for building, as PEP508 strings,
     above and beyond those specified in the pyproject.toml file.
@@ -36,7 +35,7 @@ get_requires_for_build_sdist = get_requires_for_build_wheel
 
 
 def prepare_metadata_for_build_wheel(
-    metadata_directory: str, config_settings: Optional[Dict[str, Any]] = None
+    metadata_directory: str, config_settings: dict[str, Any] | None = None
 ) -> str:
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
     builder = WheelBuilder(poetry)
@@ -59,8 +58,8 @@ def prepare_metadata_for_build_wheel(
 
 def build_wheel(
     wheel_directory: str,
-    config_settings: Optional[Dict[str, Any]] = None,
-    metadata_directory: Optional[str] = None,
+    config_settings: dict[str, Any] | None = None,
+    metadata_directory: str | None = None,
 ) -> str:
     """Builds a wheel, places it in wheel_directory"""
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
@@ -69,7 +68,7 @@ def build_wheel(
 
 
 def build_sdist(
-    sdist_directory: str, config_settings: Optional[Dict[str, Any]] = None
+    sdist_directory: str, config_settings: dict[str, Any] | None = None
 ) -> str:
     """Builds an sdist, places it in sdist_directory"""
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
@@ -81,8 +80,8 @@ def build_sdist(
 
 def build_editable(
     wheel_directory: str,
-    config_settings: Optional[Dict[str, Any]] = None,
-    metadata_directory: Optional[str] = None,
+    config_settings: dict[str, Any] | None = None,
+    metadata_directory: str | None = None,
 ) -> str:
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
 

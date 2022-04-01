@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import pytest
@@ -101,9 +103,9 @@ def test_allows_all():
     ],
 )
 def test_intersect(
-    constraint1: "BaseConstraint",
-    constraint2: "BaseConstraint",
-    expected: "BaseConstraint",
+    constraint1: BaseConstraint,
+    constraint2: BaseConstraint,
+    expected: BaseConstraint,
 ):
     intersection = constraint1.intersect(constraint2)
     assert intersection == expected
@@ -152,9 +154,9 @@ def test_intersect(
     ],
 )
 def test_union(
-    constraint1: "BaseConstraint",
-    constraint2: "BaseConstraint",
-    expected: "BaseConstraint",
+    constraint1: BaseConstraint,
+    constraint2: BaseConstraint,
+    expected: BaseConstraint,
 ):
     union = constraint1.union(constraint2)
     assert union == expected

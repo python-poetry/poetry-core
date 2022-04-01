@@ -1,5 +1,4 @@
-from typing import Optional
-from typing import Tuple
+from __future__ import annotations
 
 import pytest
 
@@ -21,7 +20,7 @@ from poetry.core.version.pep440.segments import RELEASE_PHASES_SHORT
         ((1, 2, 3, 4, 5, 6), Release(1, 2, 3, (4, 5, 6))),
     ],
 )
-def test_pep440_release_segment_from_parts(parts: Tuple[int, ...], result: Release):
+def test_pep440_release_segment_from_parts(parts: tuple[int, ...], result: Release):
     assert Release.from_parts(*parts) == result
 
 
@@ -41,7 +40,7 @@ def test_pep440_release_segment_from_parts(parts: Tuple[int, ...], result: Relea
     ],
 )
 def test_pep440_release_tag_normalisation(
-    parts: Tuple[str, Optional[int]], result: ReleaseTag
+    parts: tuple[str, int | None], result: ReleaseTag
 ):
     tag = ReleaseTag(*parts)
     assert tag == result
@@ -60,7 +59,7 @@ def test_pep440_release_tag_normalisation(
         (("dev",), None),
     ],
 )
-def test_pep440_release_tag_next_phase(parts: Tuple[str], result: Optional[ReleaseTag]):
+def test_pep440_release_tag_next_phase(parts: tuple[str], result: ReleaseTag | None):
     assert ReleaseTag(*parts).next_phase() == result
 
 

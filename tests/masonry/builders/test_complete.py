@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import os
 import platform
@@ -491,7 +493,7 @@ def test_split_source():
         zip.close()
 
 
-def test_package_with_include(mocker: "MockerFixture"):
+def test_package_with_include(mocker: MockerFixture):
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files

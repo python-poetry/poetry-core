@@ -1,9 +1,8 @@
+from __future__ import annotations
+
 import re
 
 from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Optional
 
 import pytest
 
@@ -19,10 +18,10 @@ if TYPE_CHECKING:
 def assert_requirement(
     req: Requirement,
     name: str,
-    url: Optional[str] = None,
-    extras: Optional[List[str]] = None,
+    url: str | None = None,
+    extras: list[str] | None = None,
     constraint: str = "*",
-    marker: Optional["BaseMarker"] = None,
+    marker: BaseMarker | None = None,
 ):
     if extras is None:
         extras = []
@@ -111,7 +110,7 @@ def assert_requirement(
         ),
     ],
 )
-def test_requirement(string: str, expected: Dict[str, str]):
+def test_requirement(string: str, expected: dict[str, str]):
     req = Requirement(string)
 
     assert_requirement(req, **expected)

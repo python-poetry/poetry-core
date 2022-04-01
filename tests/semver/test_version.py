@@ -1,5 +1,4 @@
-from typing import List
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 
@@ -39,7 +38,7 @@ def test_parse_valid(text: str, version: Version):
 
 
 @pytest.mark.parametrize("value", [None, "example"])
-def test_parse_invalid(value: Optional[str]):
+def test_parse_invalid(value: str | None):
     with pytest.raises(InvalidVersion):
         Version.parse(value)
 
@@ -88,7 +87,7 @@ def test_parse_invalid(value: Optional[str]):
         ],
     ],
 )
-def test_comparison(versions: List[str]):
+def test_comparison(versions: list[str]):
     for i in range(len(versions)):
         for j in range(len(versions)):
             a = Version.parse(versions[i])

@@ -1,6 +1,6 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List
-from typing import Optional
 
 
 class Include:
@@ -18,30 +18,30 @@ class Include:
     """
 
     def __init__(
-        self, base: Path, include: str, formats: Optional[List[str]] = None
+        self, base: Path, include: str, formats: list[str] | None = None
     ) -> None:
         self._base = base
         self._include = str(include)
         self._formats = formats
 
-        self._elements: List[Path] = sorted(self._base.glob(str(self._include)))
+        self._elements: list[Path] = sorted(self._base.glob(str(self._include)))
 
     @property
     def base(self) -> Path:
         return self._base
 
     @property
-    def elements(self) -> List[Path]:
+    def elements(self) -> list[Path]:
         return self._elements
 
     @property
-    def formats(self) -> Optional[List[str]]:
+    def formats(self) -> list[str] | None:
         return self._formats
 
     def is_empty(self) -> bool:
         return len(self._elements) == 0
 
-    def refresh(self) -> "Include":
+    def refresh(self) -> Include:
         self._elements = sorted(self._base.glob(self._include))
 
         return self

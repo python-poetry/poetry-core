@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from typing import Any
-from typing import Tuple
 
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.constraint import Constraint
@@ -15,13 +16,13 @@ class MultiConstraint(BaseConstraint):
         self._constraints = constraints
 
     @property
-    def constraints(self) -> Tuple[Constraint, ...]:
+    def constraints(self) -> tuple[Constraint, ...]:
         return self._constraints
 
-    def allows(self, other: "BaseConstraint") -> bool:
+    def allows(self, other: BaseConstraint) -> bool:
         return all(constraint.allows(other) for constraint in self._constraints)
 
-    def allows_all(self, other: "BaseConstraint") -> bool:
+    def allows_all(self, other: BaseConstraint) -> bool:
         if other.is_any():
             return False
 
@@ -44,7 +45,7 @@ class MultiConstraint(BaseConstraint):
 
         return their_constraint is None
 
-    def allows_any(self, other: "BaseConstraint") -> bool:
+    def allows_any(self, other: BaseConstraint) -> bool:
         if other.is_any():
             return True
 
@@ -61,7 +62,7 @@ class MultiConstraint(BaseConstraint):
 
         return False
 
-    def intersect(self, other: BaseConstraint) -> "BaseConstraint":
+    def intersect(self, other: BaseConstraint) -> BaseConstraint:
         if not isinstance(other, Constraint):
             raise ValueError("Unimplemented constraint intersection")
 

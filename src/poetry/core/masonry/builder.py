@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Optional
-from typing import Union
 
 
 if TYPE_CHECKING:
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class Builder:
-    def __init__(self, poetry: "Poetry") -> None:
+    def __init__(self, poetry: Poetry) -> None:
         from poetry.core.masonry.builders.sdist import SdistBuilder
         from poetry.core.masonry.builders.wheel import WheelBuilder
 
@@ -20,7 +20,7 @@ class Builder:
             "wheel": WheelBuilder,
         }
 
-    def build(self, fmt: str, executable: Optional[Union[str, Path]] = None) -> None:
+    def build(self, fmt: str, executable: str | Path | None = None) -> None:
         if fmt in self._formats:
             builders = [self._formats[fmt]]
         elif fmt == "all":

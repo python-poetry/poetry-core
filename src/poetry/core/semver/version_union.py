@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import List
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
 from poetry.core.semver.version_constraint import VersionConstraint
@@ -24,14 +25,14 @@ class VersionUnion(VersionConstraint):
         self._ranges = list(ranges)
 
     @property
-    def ranges(self) -> List[VersionRangeConstraint]:
+    def ranges(self) -> list[VersionRangeConstraint]:
         return self._ranges
 
     @classmethod
     def of(cls, *ranges: VersionConstraint) -> VersionConstraint:
         from poetry.core.semver.version_range import VersionRange
 
-        flattened: List[VersionRangeConstraint] = []
+        flattened: list[VersionRangeConstraint] = []
         for constraint in ranges:
             if constraint.is_empty():
                 continue
@@ -58,7 +59,7 @@ class VersionUnion(VersionConstraint):
 
         flattened.sort()
 
-        merged: List[VersionRangeConstraint] = []
+        merged: list[VersionRangeConstraint] = []
         for constraint in flattened:
             # Merge this constraint with the previous one, but only if they touch.
             if not merged or (
@@ -83,7 +84,7 @@ class VersionUnion(VersionConstraint):
     def is_simple(self) -> bool:
         return self.excludes_single_version()
 
-    def allows(self, version: "Version") -> bool:
+    def allows(self, version: Version) -> bool:
         return any([constraint.allows(version) for constraint in self._ranges])
 
     def allows_all(self, other: VersionConstraint) -> bool:
@@ -225,7 +226,7 @@ class VersionUnion(VersionConstraint):
 
     def _ranges_for(
         self, constraint: VersionConstraint
-    ) -> List[VersionRangeConstraint]:
+    ) -> list[VersionRangeConstraint]:
         if constraint.is_empty():
             return []
 

@@ -1,8 +1,7 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import Union
 
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
@@ -20,8 +19,8 @@ class ProjectPackage(Package):
     def __init__(
         self,
         name: str,
-        version: Union[str, "VersionConstraint"],
-        pretty_version: Optional[str] = None,
+        version: str | VersionConstraint,
+        pretty_version: str | None = None,
     ) -> None:
         super().__init__(name, version, pretty_version)
 
@@ -35,13 +34,13 @@ class ProjectPackage(Package):
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
 
     @property
-    def build_script(self) -> Optional[str]:
+    def build_script(self) -> str | None:
         return self.build_config.get("script")
 
     def is_root(self) -> bool:
         return True
 
-    def to_dependency(self) -> Union["DependencyTypes"]:
+    def to_dependency(self) -> DependencyTypes:
         dependency = super().to_dependency()
 
         dependency.is_root = True
@@ -65,7 +64,7 @@ class ProjectPackage(Package):
         )
 
     @property
-    def urls(self) -> Dict[str, Any]:
+    def urls(self) -> dict[str, Any]:
         urls = super().urls
 
         urls.update(self.custom_urls)

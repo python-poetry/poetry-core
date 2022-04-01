@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from typing import TYPE_CHECKING
@@ -7,7 +9,7 @@ if TYPE_CHECKING:
     from poetry.core.semver.version_constraint import VersionConstraint
 
 
-def parse_constraint(constraints: str) -> "VersionConstraint":
+def parse_constraint(constraints: str) -> VersionConstraint:
     if constraints == "*":
         from poetry.core.semver.version_range import VersionRange
 
@@ -44,7 +46,7 @@ def parse_constraint(constraints: str) -> "VersionConstraint":
         return VersionUnion.of(*or_groups)
 
 
-def parse_single_constraint(constraint: str) -> "VersionConstraint":
+def parse_single_constraint(constraint: str) -> VersionConstraint:
     from poetry.core.semver.patterns import BASIC_CONSTRAINT
     from poetry.core.semver.patterns import CARET_CONSTRAINT
     from poetry.core.semver.patterns import TILDE_CONSTRAINT
@@ -103,7 +105,7 @@ def parse_single_constraint(constraint: str) -> "VersionConstraint":
 
         if minor is not None:
             version = Version.from_parts(major, int(minor), 0)
-            result: "VersionConstraint" = VersionRange(
+            result: VersionConstraint = VersionRange(
                 version, version.next_minor(), include_min=True
             )
         else:

@@ -1,5 +1,4 @@
-from typing import List
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 
@@ -247,7 +246,7 @@ def test_complete_name():
     ],
 )
 def test_dependency_string_representation(
-    name: str, constraint: str, extras: Optional[List[str]], expected: str
+    name: str, constraint: str, extras: list[str] | None, expected: str
 ):
     dependency = Dependency(name=name, constraint=constraint, extras=extras)
     assert str(dependency) == expected

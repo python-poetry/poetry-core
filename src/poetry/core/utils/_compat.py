@@ -1,12 +1,12 @@
-import sys
+from __future__ import annotations
 
-from typing import List
+import sys
 
 
 WINDOWS = sys.platform == "win32"
 
 
-def list_to_shell_command(cmd: List[str]) -> str:
+def list_to_shell_command(cmd: list[str]) -> str:
     executable = cmd[0]
 
     if " " in executable:

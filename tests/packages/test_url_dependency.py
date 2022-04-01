@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.version.markers import SingleMarker
 

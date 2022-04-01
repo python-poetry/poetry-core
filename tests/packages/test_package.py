@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import random
 
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -51,7 +52,7 @@ def test_package_authors_invalid():
 
 
 @pytest.mark.parametrize("groups", [["default"], ["dev"]])
-def test_package_add_dependency_vcs_groups(groups: List[str], f: Factory):
+def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -77,7 +78,7 @@ def test_package_add_dependency_vcs_groups_default_main(f: Factory):
 
 @pytest.mark.parametrize("groups", [["default"], ["dev"]])
 @pytest.mark.parametrize("optional", [True, False])
-def test_package_url_groups_optional(groups: List[str], optional: bool, f: Factory):
+def test_package_url_groups_optional(groups: list[str], optional: bool, f: Factory):
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
