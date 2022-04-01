@@ -48,9 +48,6 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return self.stable.next_major()
 
-    def first_pre_release(self) -> Version:
-        return self.__class__(release=self.release, pre=ReleaseTag("alpha"))
-
     @property
     def min(self) -> Version:
         return self

@@ -275,6 +275,33 @@ def test_parse_constraint_multi(input: str):
 
 
 @pytest.mark.parametrize(
+    "input, output",
+    [
+        (
+            ">1!2,<=2!3",
+            VersionRange(
+                Version.from_parts(2, 0, 0, epoch=1),
+                Version.from_parts(3, 0, 0, epoch=2),
+                include_min=False,
+                include_max=True,
+            ),
+        ),
+        (
+            ">=1!2,<2!3",
+            VersionRange(
+                Version.from_parts(2, 0, 0, epoch=1),
+                Version.from_parts(3, 0, 0, epoch=2),
+                include_min=True,
+                include_max=False,
+            ),
+        ),
+    ],
+)
+def test_parse_constraint_multi_with_epochs(input: str, output: VersionRange):
+    assert parse_constraint(input) == output
+
+
+@pytest.mark.parametrize(
     "input",
     [">=2.7,!=3.0.*,!=3.1.*", ">=2.7, !=3.0.*, !=3.1.*", ">= 2.7, != 3.0.*, != 3.1.*"],
 )
