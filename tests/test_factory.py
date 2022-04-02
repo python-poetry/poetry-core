@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
 
@@ -320,3 +321,18 @@ def test_create_dependency_marker_variants(
     assert dep.python_versions == exp_python
     assert dep.python_constraint == parse_constraint(exp_python)
     assert str(dep.marker) == exp_marker
+
+
+@pytest.mark.parametrize(
+    "project, requries",
+    [
+        ("sample_project", set(BuildSystem().requires)),
+        ("project_with_build_system_requires", {"poetry-core", "cython"}),
+    ],
+)
+def test_poetry_build_system_dependencies(project: str, requries: set[str]):
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project")
+
+    assert set(BuildSystem().requires) == {
+        dependency.name for dependency in poetry.build_system_dependencies
+    }
