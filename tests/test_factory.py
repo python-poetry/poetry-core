@@ -11,18 +11,18 @@ from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.directory_dependency import DirectoryDependency
+from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
+from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
     from pytest import LogCaptureFixture
-
-    from poetry.core.packages.dependency import Dependency
-    from poetry.core.packages.directory_dependency import DirectoryDependency
-    from poetry.core.packages.file_dependency import FileDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -976,3 +976,79 @@ def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:
         "Programming Language :: Python :: 3.13",
         "Topic :: Software Development :: Build Tools",
     ]
+
+
+@pytest.mark.parametrize(
+    ("project", "expected"),
+    [
+        ("sample_project", set(BuildSystem().dependencies)),
+        (
+            "project_with_build_system_requires",
+            {
+                Dependency.create_from_pep_508("poetry-core"),
+                Dependency.create_from_pep_508("Cython (>=0.29.6,<0.30.0)"),
+            },
+        ),
+    ],
+)
+def test_poetry_build_system_dependencies_from_fixtures(
+    project: str, expected: set[Dependency]
+) -> None:
+    poetry = Factory().create_poetry(fixtures_dir / project)
+    assert set(poetry.build_system_dependencies) == expected
+
+
+SAMPLE_PROJECT_DIRECTORY = fixtures_dir / "sample_project"
+SIMPLE_PROJECT_WHEEL = (
+    fixtures_dir
+    / "simple_project"
+    / "dist"
+    / "simple_project-1.2.3-py2.py3-none-any.whl"
+)
+
+
+@pytest.mark.parametrize(
+    ("requires", "expected"),
+    [
+        (BuildSystem().requires, set(BuildSystem().dependencies)),
+        (["poetry-core>=2.0.0"], {Dependency("poetry-core", ">=2.0.0")}),
+        (["****invalid****"], set()),
+        (
+            ["hatch", "numpy ; sys_platform == 'win32'"],
+            {
+                Dependency("hatch", "*"),
+                Dependency.create_from_pep_508("numpy ; sys_platform == 'win32'"),
+            },
+        ),
+        (
+            [SAMPLE_PROJECT_DIRECTORY.as_posix()],
+            {
+                DirectoryDependency(
+                    SAMPLE_PROJECT_DIRECTORY.name, SAMPLE_PROJECT_DIRECTORY
+                )
+            },
+        ),
+        (
+            [SIMPLE_PROJECT_WHEEL.as_posix()],
+            {FileDependency(SIMPLE_PROJECT_WHEEL.name, SIMPLE_PROJECT_WHEEL)},
+        ),
+    ],
+)
+def test_poetry_build_system_dependencies(
+    requires: list[str], expected: set[Dependency], temporary_directory: Path
+) -> None:
+    pyproject_toml = temporary_directory / "pyproject.toml"
+    build_system_requires = ", ".join(f'"{require}"' for require in requires)
+    content = f"""[project]
+name = "my-package"
+version = "1.2.3"
+
+[build-system]
+requires = [{build_system_requires}]
+build-backend = "some.api.we.do.not.care.about"
+
+"""
+    pyproject_toml.write_text(content)
+    poetry = Factory().create_poetry(temporary_directory)
+
+    assert set(poetry.build_system_dependencies) == expected
