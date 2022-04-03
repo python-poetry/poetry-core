@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
 
 
 workspace_file = "workspace.toml"
@@ -13,7 +12,7 @@ def is_repo_root(cwd: Path) -> bool:
     return fullpath.exists()
 
 
-def find_upwards(cwd: Path, name: str) -> Union[Path, None]:
+def find_upwards(cwd: Path, name: str) -> Path | None:
     if cwd == Path(cwd.root):
         return None
 
@@ -28,11 +27,11 @@ def find_upwards(cwd: Path, name: str) -> Union[Path, None]:
     return find_upwards(cwd.parent, name)
 
 
-def find_upwards_dir(cwd: Path, name: str) -> Union[Path, None]:
+def find_upwards_dir(cwd: Path, name: str) -> Path | None:
     fullpath = find_upwards(cwd, name)
 
     return fullpath.parent if fullpath else None
 
 
-def find_workspace_root(cwd: Path) -> Union[Path, None]:
+def find_workspace_root(cwd: Path) -> Path | None:
     return find_upwards_dir(cwd, workspace_file)

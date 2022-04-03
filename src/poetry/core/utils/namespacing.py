@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
 
 
-def extract_namespace(path: Path, workspace: Path) -> Union[str, None]:
+def extract_namespace(path: Path, workspace: Path) -> str | None:
     grandparent = path.parent.parent
 
     return grandparent.name if len(grandparent.relative_to(workspace).name) else None
