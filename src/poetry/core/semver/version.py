@@ -8,13 +8,13 @@ from poetry.core.semver.empty_constraint import EmptyConstraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.semver.version_union import VersionUnion
 from poetry.core.version.pep440 import Release
-from poetry.core.version.pep440 import ReleaseTag
 from poetry.core.version.pep440.version import PEP440Version
 
 
 if TYPE_CHECKING:
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.pep440 import LocalSegmentType
+    from poetry.core.version.pep440 import ReleaseTag
 
 
 @dataclasses.dataclass(frozen=True)
