@@ -9,12 +9,12 @@ from typing import Match
 from packaging.version import VERSION_PATTERN
 
 from poetry.core.version.exceptions import InvalidVersion
-from poetry.core.version.pep440 import LocalSegmentType
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440 import ReleaseTag
 
 
 if TYPE_CHECKING:
+    from poetry.core.version.pep440 import LocalSegmentType
     from poetry.core.version.pep440.version import PEP440Version
 
 
