@@ -71,9 +71,15 @@ class PackageSpecification:
     def features(self) -> frozenset[str]:
         return self._features
 
-    def is_same_package_as(self, other: PackageSpecification) -> bool:
-        if other.complete_name != self.complete_name:
-            return False
+    def is_same_package_as(
+        self, other: PackageSpecification, *, ignore_features: bool = False
+    ) -> bool:
+        if ignore_features:
+            if other.name != self.name:
+                return False
+        else:
+            if other.complete_name != self.complete_name:
+                return False
 
         if self._source_type:
             if self._source_type != other.source_type:
