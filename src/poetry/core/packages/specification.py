@@ -75,9 +75,10 @@ class PackageSpecification:
         if other.complete_name != self.complete_name:
             return False
 
+        if self._source_type != other.source_type:
+            return False
+
         if self._source_type:
-            if self._source_type != other.source_type:
-                return False
 
             if (
                 self._source_url or other.source_url
