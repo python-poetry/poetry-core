@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
 
+
+if TYPE_CHECKING:
+    from poetry.core.factory import DependencyConstraint
+    from poetry.core.version.markers import BaseMarker
 
 fixtures_dir = Path(__file__).parent / "fixtures"
 
@@ -261,3 +267,56 @@ def test_create_poetry_with_groups_and_explicit_default():
     assert {dependency.name for dependency in dependencies} == {
         "aiohttp",
     }
+
+
+@pytest.mark.parametrize(
+    "constraint, exp_python, exp_marker",
+    [
+        ({"python": "3.7"}, "~3.7", 'python_version == "3.7"'),
+        ({"platform": "linux"}, "*", 'sys_platform == "linux"'),
+        ({"markers": 'python_version == "3.7"'}, "~3.7", 'python_version == "3.7"'),
+        (
+            {"markers": 'platform_machine == "x86_64"'},
+            "*",
+            'platform_machine == "x86_64"',
+        ),
+        (
+            {"python": "3.7", "markers": 'platform_machine == "x86_64"'},
+            "~3.7",
+            'platform_machine == "x86_64" and python_version == "3.7"',
+        ),
+        (
+            {"platform": "linux", "markers": 'platform_machine == "x86_64"'},
+            "*",
+            'platform_machine == "x86_64" and sys_platform == "linux"',
+        ),
+        (
+            {
+                "python": "3.7",
+                "platform": "linux",
+                "markers": 'platform_machine == "x86_64"',
+            },
+            "~3.7",
+            'platform_machine == "x86_64" and python_version == "3.7" and sys_platform'
+            ' == "linux"',
+        ),
+        (
+            {"python": ">=3.7", "markers": 'python_version < "4.0"'},
+            "<4.0 >=3.7",
+            'python_version < "4.0" and python_version >= "3.7"',
+        ),
+        (
+            {"platform": "linux", "markers": 'sys_platform == "win32"'},
+            "*",
+            "<empty>",
+        ),
+    ],
+)
+def test_create_dependency_marker_variants(
+    constraint: DependencyConstraint, exp_python: str, exp_marker: BaseMarker
+):
+    constraint["version"] = "1.0.0"
+    dep = Factory.create_dependency("foo", constraint)
+    assert dep.python_versions == exp_python
+    assert dep.python_constraint == parse_constraint(exp_python)
+    assert str(dep.marker) == exp_marker
