@@ -12,6 +12,7 @@ from typing import Iterable
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
 )
+from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
@@ -62,7 +63,7 @@ class Dependency(PackageSpecification):
         self._optional = optional
 
         if not groups:
-            groups = ["default"]
+            groups = [MAIN_GROUP]
 
         self._groups = frozenset(groups)
 

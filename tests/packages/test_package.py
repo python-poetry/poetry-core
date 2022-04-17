@@ -51,7 +51,7 @@ def test_package_authors_invalid():
     )
 
 
-@pytest.mark.parametrize("groups", [["default"], ["dev"]])
+@pytest.mark.parametrize("groups", [["main"], ["dev"]])
 def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory):
     package = Package("foo", "0.1.0")
 
@@ -73,10 +73,10 @@ def test_package_add_dependency_vcs_groups_default_main(f: Factory):
             "poetry", {"git": "https://github.com/python-poetry/poetry.git"}
         )
     )
-    assert dependency.groups == frozenset(["default"])
+    assert dependency.groups == frozenset(["main"])
 
 
-@pytest.mark.parametrize("groups", [["default"], ["dev"]])
+@pytest.mark.parametrize("groups", [["main"], ["dev"]])
 @pytest.mark.parametrize("optional", [True, False])
 def test_package_url_groups_optional(groups: list[str], optional: bool, f: Factory):
     package = Package("foo", "0.1.0")
@@ -405,7 +405,7 @@ def test_only_with_dependency_groups(package_with_groups: Package):
     assert len(package.requires) == 0
     assert len(package.all_requires) == 2
 
-    package = package_with_groups.with_dependency_groups(["default"], only=True)
+    package = package_with_groups.with_dependency_groups(["main"], only=True)
 
     assert len(package.requires) == 2
     assert len(package.all_requires) == 2

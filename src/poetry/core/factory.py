@@ -78,6 +78,8 @@ class Factory:
         group: str | DependencyGroup,
         dependencies: DependencyConfig,
     ) -> None:
+        from poetry.core.packages.dependency_group import MAIN_GROUP
+
         if isinstance(group, str):
             if package.has_dependency_group(group):
                 group = package.dependency_group(group)
@@ -92,7 +94,7 @@ class Factory:
             )
             for _constraint in _constraints:
                 if name.lower() == "python":
-                    if group.name == "default" and isinstance(_constraint, str):
+                    if group.name == MAIN_GROUP and isinstance(_constraint, str):
                         package.python_versions = _constraint
                     continue
 
@@ -116,6 +118,7 @@ class Factory:
         with_groups: bool = True,
     ) -> ProjectPackage:
         from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.dependency_group import MAIN_GROUP
         from poetry.core.packages.dependency_group import DependencyGroup
         from poetry.core.spdx.helpers import license_by_id
 
@@ -151,7 +154,7 @@ class Factory:
 
         if "dependencies" in config:
             cls._add_package_group_dependencies(
-                package=package, group="default", dependencies=config["dependencies"]
+                package=package, group=MAIN_GROUP, dependencies=config["dependencies"]
             )
 
         if with_groups and "group" in config:
@@ -229,6 +232,7 @@ class Factory:
             parse_constraint as parse_generic_constraint,
         )
         from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.dependency_group import MAIN_GROUP
         from poetry.core.packages.directory_dependency import DirectoryDependency
         from poetry.core.packages.file_dependency import FileDependency
         from poetry.core.packages.url_dependency import URLDependency
@@ -239,7 +243,7 @@ class Factory:
         from poetry.core.version.markers import parse_marker
 
         if groups is None:
-            groups = ["default"]
+            groups = [MAIN_GROUP]
 
         if constraint is None:
             constraint = "*"

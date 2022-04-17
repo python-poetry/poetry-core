@@ -7,7 +7,7 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 
-[tool.poetry.group.default.dependencies]
+[tool.poetry.group.main.dependencies]
 aiohttp = "^2.17.0"
 
 [tools.poetry]
