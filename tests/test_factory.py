@@ -249,9 +249,9 @@ def test_create_poetry_with_groups_and_legacy_dev():
     assert {dependency.name for dependency in dependencies} == {"pytest", "pre-commit"}
 
 
-def test_create_poetry_with_groups_and_explicit_default():
+def test_create_poetry_with_groups_and_explicit_main():
     poetry = Factory().create_poetry(
-        fixtures_dir / "project_with_groups_and_explicit_default"
+        fixtures_dir / "project_with_groups_and_explicit_main"
     )
 
     package = poetry.package

@@ -7,6 +7,9 @@ if TYPE_CHECKING:
     from poetry.core.packages.types import DependencyTypes
 
 
+MAIN_GROUP = "main"
+
+
 class DependencyGroup:
     def __init__(self, name: str, optional: bool = False) -> None:
         self._name: str = name

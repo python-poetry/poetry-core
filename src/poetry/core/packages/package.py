@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from typing import Collection
 from typing import Iterable
 
+from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.semver.helpers import parse_constraint
@@ -185,19 +186,19 @@ class Package(PackageSpecification):
     @property
     def requires(self) -> list[DependencyTypes]:
         """
-        Returns the default dependencies
+        Returns the main dependencies
         """
-        if not self._dependency_groups or "default" not in self._dependency_groups:
+        if not self._dependency_groups or MAIN_GROUP not in self._dependency_groups:
             return []
 
-        return self._dependency_groups["default"].dependencies
+        return self._dependency_groups[MAIN_GROUP].dependencies
 
     @property
     def all_requires(
         self,
     ) -> list[DependencyTypes]:
         """
-        Returns the default dependencies and group dependencies.
+        Returns the main dependencies and group dependencies.
         """
         return [
             dependency
