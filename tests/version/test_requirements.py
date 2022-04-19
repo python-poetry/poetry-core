@@ -43,6 +43,7 @@ def assert_requirement(
         ("name<3.*", {"name": "name", "constraint": "<3.0"}),
         ("name>3.5.*", {"name": "name", "constraint": ">3.5"}),
         ("name==1.0.post1", {"name": "name", "constraint": "==1.0.post1"}),
+        ("name==1.2.0b1.dev0", {"name": "name", "constraint": "==1.2.0b1.dev0"}),
         (
             "name>=1.2.3;python_version=='2.6'",
             {
