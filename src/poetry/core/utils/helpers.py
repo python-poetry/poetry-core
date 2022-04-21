@@ -17,7 +17,7 @@ from typing import no_type_check
 from poetry.core.version.pep440 import PEP440Version
 
 
-_canonicalize_regex = re.compile(r"[-_]+")
+_canonicalize_regex = re.compile(r"[-_.]+")
 
 
 def combine_unicode(string: str) -> str:

@@ -73,7 +73,7 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
     assert result == expected
 
 
-@pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c"])
+@pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c", "a.b-c"])
 def test_utils_helpers_canonical_names(raw: str) -> None:
     assert canonicalize_name(raw) == "a-b-c"
 
