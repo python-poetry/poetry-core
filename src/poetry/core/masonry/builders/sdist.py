@@ -117,7 +117,9 @@ class SdistBuilder(Builder):
 
         # If we have a build script, use it
         if self._package.build_script:
-            import_name = self._package.build_script.split(".")[0]
+            import_name = ".".join(
+                Path(self._package.build_script).with_suffix("").parts
+            )
             after += [f"from {import_name} import *", "build(setup_kwargs)"]
 
         modules = []
