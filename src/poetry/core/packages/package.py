@@ -17,8 +17,8 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.semver.version import Version
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.spdx.license import License
@@ -186,7 +186,7 @@ class Package(PackageSpecification):
         return self._get_maintainer()["email"]
 
     @property
-    def requires(self) -> list[DependencyTypes]:
+    def requires(self) -> list[Dependency]:
         """
         Returns the default dependencies
         """
@@ -198,7 +198,7 @@ class Package(PackageSpecification):
     @property
     def all_requires(
         self,
-    ) -> list[DependencyTypes]:
+    ) -> list[Dependency]:
         """
         Returns the default dependencies and group dependencies.
         """
@@ -392,8 +392,8 @@ class Package(PackageSpecification):
 
     def add_dependency(
         self,
-        dependency: DependencyTypes,
-    ) -> DependencyTypes:
+        dependency: Dependency,
+    ) -> Dependency:
         from poetry.core.packages.dependency_group import DependencyGroup
 
         for group_name in dependency.groups:
@@ -448,9 +448,7 @@ class Package(PackageSpecification):
 
         return package
 
-    def to_dependency(
-        self,
-    ) -> DependencyTypes:
+    def to_dependency(self) -> Dependency:
         from pathlib import Path
 
         from poetry.core.packages.dependency import Dependency

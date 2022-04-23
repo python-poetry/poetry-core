@@ -16,9 +16,9 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
@@ -224,7 +224,7 @@ class Factory:
         constraint: DependencyConstraint,
         groups: list[str] | None = None,
         root_dir: Path | None = None,
-    ) -> DependencyTypes:
+    ) -> Dependency:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
         )

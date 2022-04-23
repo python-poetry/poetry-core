@@ -8,7 +8,7 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.types import DependencyTypes
+    from poetry.core.packages.dependency import Dependency
     from poetry.core.semver.version import Version
 
 from poetry.core.packages.package import Package
@@ -40,7 +40,7 @@ class ProjectPackage(Package):
     def is_root(self) -> bool:
         return True
 
-    def to_dependency(self) -> DependencyTypes:
+    def to_dependency(self) -> Dependency:
         dependency = super().to_dependency()
 
         dependency.is_root = True
