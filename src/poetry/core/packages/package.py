@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Collection
 from typing import Iterable
+from typing import TypeVar
 
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -24,6 +25,8 @@ if TYPE_CHECKING:
     from poetry.core.version.markers import BaseMarker
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
+
+T = TypeVar("T", bound="Package")
 
 
 class Package(PackageSpecification):
@@ -103,7 +106,7 @@ class Package(PackageSpecification):
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._python_marker = AnyMarker()
+        self._python_marker: BaseMarker = AnyMarker()
 
         self.platform = None
         self.marker = AnyMarker()
@@ -427,8 +430,8 @@ class Package(PackageSpecification):
         return package
 
     def with_dependency_groups(
-        self, groups: Collection[str], only: bool = False
-    ) -> Package:
+        self: T, groups: Collection[str], only: bool = False
+    ) -> T:
         """
         Returns a clone of the package with the given dependency groups opted in.
 

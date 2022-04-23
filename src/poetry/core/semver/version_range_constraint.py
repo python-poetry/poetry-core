@@ -13,17 +13,17 @@ if TYPE_CHECKING:
 class VersionRangeConstraint(VersionConstraint):
     @property
     @abstractmethod
-    def min(self) -> Version:
+    def min(self) -> Version | None:
         raise NotImplementedError()
 
     @property
     @abstractmethod
-    def max(self) -> Version:
+    def max(self) -> Version | None:
         raise NotImplementedError()
 
     @property
     @abstractmethod
-    def full_max(self) -> Version:
+    def full_max(self) -> Version | None:
         raise NotImplementedError()
 
     @property

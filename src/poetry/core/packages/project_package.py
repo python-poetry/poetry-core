@@ -9,7 +9,7 @@ from poetry.core.version.markers import parse_marker
 
 if TYPE_CHECKING:
     from poetry.core.packages.types import DependencyTypes
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.semver.version import Version
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -19,16 +19,16 @@ class ProjectPackage(Package):
     def __init__(
         self,
         name: str,
-        version: str | VersionConstraint,
+        version: str | Version,
         pretty_version: str | None = None,
     ) -> None:
         super().__init__(name, version, pretty_version)
 
-        self.build_config = {}
-        self.packages = []
-        self.include = []
-        self.exclude = []
-        self.custom_urls = {}
+        self.build_config: dict[str, Any] = {}
+        self.packages: list[dict[str, Any]] = []
+        self.include: list[dict[str, Any]] = []
+        self.exclude: list[dict[str, Any]] = []
+        self.custom_urls: dict[str, str] = {}
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
@@ -64,7 +64,7 @@ class ProjectPackage(Package):
         )
 
     @property
-    def urls(self) -> dict[str, Any]:
+    def urls(self) -> dict[str, str]:
         urls = super().urls
 
         urls.update(self.custom_urls)
