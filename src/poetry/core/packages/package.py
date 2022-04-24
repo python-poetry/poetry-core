@@ -99,7 +99,7 @@ class Package(PackageSpecification):
 
         # For compatibility with previous version, we keep the category
         self.category = "main"
-        self.files = []
+        self.files: list[dict[str, str]] = []
         self.optional = False
 
         self.classifiers = []
@@ -109,7 +109,7 @@ class Package(PackageSpecification):
         self._python_marker: BaseMarker = AnyMarker()
 
         self.platform = None
-        self.marker = AnyMarker()
+        self.marker: BaseMarker = AnyMarker()
 
         self.root_dir: Path | None = None
 
