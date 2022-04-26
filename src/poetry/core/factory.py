@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.types import DependencyTypes
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
-    from poetry.core.version.markers import BaseMarker
 
     DependencyConstraint = Union[str, Dict[str, Any]]
     DependencyConfig = Mapping[
@@ -339,27 +338,25 @@ class Factory:
                     extras=constraint.get("extras", []),
                 )
 
-            if not markers:
-                marker: BaseMarker = AnyMarker()
-                if python_versions:
-                    marker = marker.intersect(
-                        parse_marker(
-                            create_nested_marker(
-                                "python_version", parse_constraint(python_versions)
-                            )
-                        )
-                    )
+            marker = parse_marker(markers) if markers else AnyMarker()
 
-                if platform:
-                    marker = marker.intersect(
-                        parse_marker(
-                            create_nested_marker(
-                                "sys_platform", parse_generic_constraint(platform)
-                            )
+            if python_versions:
+                marker = marker.intersect(
+                    parse_marker(
+                        create_nested_marker(
+                            "python_version", parse_constraint(python_versions)
                         )
                     )
-            else:
-                marker = parse_marker(markers)
+                )
+
+            if platform:
+                marker = marker.intersect(
+                    parse_marker(
+                        create_nested_marker(
+                            "sys_platform", parse_generic_constraint(platform)
+                        )
+                    )
+                )
 
             if not marker.is_any():
                 dependency.marker = marker
