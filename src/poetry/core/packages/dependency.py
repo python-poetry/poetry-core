@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
     from poetry.core.packages.package import Package
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
@@ -482,7 +481,7 @@ class Dependency(PackageSpecification):
     @classmethod
     def create_from_pep_508(
         cls, name: str, relative_to: Path | None = None
-    ) -> DependencyTypes:
+    ) -> Dependency:
         """
         Resolve a PEP-508 requirement string to a `Dependency` instance. If a `relative_to`
         path is specified, this is used as the base directory if the identified dependency is
