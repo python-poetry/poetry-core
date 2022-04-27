@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Collection
 from typing import Iterable
+from typing import TypeVar
 
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
@@ -17,14 +18,16 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.semver.version import Version
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
 
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
+
+T = TypeVar("T", bound="Package")
 
 
 class Package(PackageSpecification):
@@ -97,17 +100,17 @@ class Package(PackageSpecification):
 
         # For compatibility with previous version, we keep the category
         self.category = "main"
-        self.files = []
+        self.files: list[dict[str, str]] = []
         self.optional = False
 
         self.classifiers = []
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._python_marker = AnyMarker()
+        self._python_marker: BaseMarker = AnyMarker()
 
         self.platform = None
-        self.marker = AnyMarker()
+        self.marker: BaseMarker = AnyMarker()
 
         self.root_dir: Path | None = None
 
@@ -184,7 +187,7 @@ class Package(PackageSpecification):
         return self._get_maintainer()["email"]
 
     @property
-    def requires(self) -> list[DependencyTypes]:
+    def requires(self) -> list[Dependency]:
         """
         Returns the main dependencies
         """
@@ -196,7 +199,7 @@ class Package(PackageSpecification):
     @property
     def all_requires(
         self,
-    ) -> list[DependencyTypes]:
+    ) -> list[Dependency]:
         """
         Returns the main dependencies and group dependencies.
         """
@@ -390,8 +393,8 @@ class Package(PackageSpecification):
 
     def add_dependency(
         self,
-        dependency: DependencyTypes,
-    ) -> DependencyTypes:
+        dependency: Dependency,
+    ) -> Dependency:
         from poetry.core.packages.dependency_group import DependencyGroup
 
         for group_name in dependency.groups:
@@ -428,8 +431,8 @@ class Package(PackageSpecification):
         return package
 
     def with_dependency_groups(
-        self, groups: Collection[str], only: bool = False
-    ) -> Package:
+        self: T, groups: Collection[str], only: bool = False
+    ) -> T:
         """
         Returns a clone of the package with the given dependency groups opted in.
 
@@ -446,9 +449,7 @@ class Package(PackageSpecification):
 
         return package
 
-    def to_dependency(
-        self,
-    ) -> DependencyTypes:
+    def to_dependency(self) -> Dependency:
         from pathlib import Path
 
         from poetry.core.packages.dependency import Dependency

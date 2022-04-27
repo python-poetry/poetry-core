@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tomlkit.container import Container
-    from tomlkit.items import Item
     from tomlkit.toml_document import TOMLDocument
 
     from poetry.core.pyproject.tables import BuildSystem
@@ -60,7 +59,7 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Item | Container:
+    def poetry_config(self) -> Container:
         from tomlkit.exceptions import NonExistentKey
 
         try:

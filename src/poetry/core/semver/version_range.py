@@ -39,15 +39,15 @@ class VersionRange(VersionRangeConstraint):
         self._include_max = include_max
 
     @property
-    def min(self) -> Version:
+    def min(self) -> Version | None:
         return self._min
 
     @property
-    def max(self) -> Version:
+    def max(self) -> Version | None:
         return self._max
 
     @property
-    def full_max(self) -> Version:
+    def full_max(self) -> Version | None:
         return self._full_max
 
     @property
@@ -177,6 +177,7 @@ class VersionRange(VersionRangeConstraint):
             # Because we already verified that the lower range isn't strictly
             # lower, there must be some overlap.
             assert intersect_include_min and intersect_include_max
+            assert intersect_min is not None
 
             return intersect_min
 
@@ -267,6 +268,7 @@ class VersionRange(VersionRangeConstraint):
             if not self.allows_any(other):
                 return self
 
+            before: VersionConstraint | None
             if not self.allows_lower(other):
                 before = None
             elif self.min == other.min:
@@ -276,6 +278,7 @@ class VersionRange(VersionRangeConstraint):
                     self.min, other.min, self.include_min, not other.include_min
                 )
 
+            after: VersionConstraint | None
             if not self.allows_higher(other):
                 after = None
             elif self.max == other.max:
@@ -289,6 +292,7 @@ class VersionRange(VersionRangeConstraint):
                 return EmptyConstraint()
 
             if before is None:
+                assert after is not None
                 return after
 
             if after is None:

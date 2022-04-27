@@ -79,6 +79,7 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 [[tool.mypy.overrides]]
 module = [
   'jsonschema.*',
+  'lark.*',
   'setuptools.*',
   'tomlkit.*',
 ]
@@ -99,8 +100,6 @@ module = [
   'poetry.core.packages.utils.utils',
   'poetry.core.packages.dependency',
   'poetry.core.packages.package',
-  'poetry.core.packages.project_package',
-  'poetry.core.semver.version_range',
   'poetry.core.semver.version_union',
   'poetry.core.toml.exceptions',
   'poetry.core.toml.file',
