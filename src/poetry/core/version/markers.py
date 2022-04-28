@@ -4,6 +4,7 @@ import re
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Iterable
 
 from poetry.core.semver.version_constraint import VersionConstraint
@@ -188,11 +189,16 @@ class SingleMarker(BaseMarker):
         )
         from poetry.core.semver.helpers import parse_constraint
 
+        self._constraint: BaseConstraint | VersionConstraint
+        self._parser: Callable[[str], BaseConstraint | VersionConstraint]
         self._name = ALIASES.get(name, name)
         self._constraint_string = str(constraint)
 
         # Extract operator and value
         m = self._CONSTRAINT_RE.match(self._constraint_string)
+        if m is None:
+            raise ValueError(f"Invalid marker '{self._constraint_string}'")
+
         self._operator = m.group(1)
         if self._operator is None:
             self._operator = "=="
@@ -281,7 +287,11 @@ class SingleMarker(BaseMarker):
         if self._name not in environment:
             return True
 
-        return self._constraint.allows(self._parser(environment[self._name]))
+        # The type of constraint returned by the parser matches our constraint: either
+        # both are BaseConstraint or both are VersionConstraint.  But it's hard for mypy
+        # to know that.
+        constraint = self._parser(environment[self._name])
+        return self._constraint.allows(constraint)  # type: ignore[arg-type]
 
     def without_extras(self) -> BaseMarker:
         return self.exclude("extra")
@@ -366,7 +376,10 @@ def _flatten_markers(
 
     for marker in markers:
         if isinstance(marker, flatten_class):
-            flattened += _flatten_markers(marker.markers, flatten_class)
+            flattened += _flatten_markers(
+                marker.markers,  # type: ignore[attr-defined]
+                flatten_class,
+            )
         else:
             flattened.append(marker)
 
@@ -407,13 +420,17 @@ class MultiMarker(BaseMarker):
                                 and marker.name in PYTHON_VERSION_MARKERS
                             )
                         ):
-                            intersection = mark.constraint.intersect(marker.constraint)
-                            if intersection == mark.constraint:
+                            # Markers with the same name have the same constraint type,
+                            # but mypy can't see that.
+                            constraint_intersection = mark.constraint.intersect(
+                                marker.constraint  # type: ignore[arg-type]
+                            )
+                            if constraint_intersection == mark.constraint:
                                 intersected = True
-                            elif intersection == marker.constraint:
+                            elif constraint_intersection == marker.constraint:
                                 new_markers[i] = marker
                                 intersected = True
-                            elif intersection.is_empty():
+                            elif constraint_intersection.is_empty():
                                 return EmptyMarker()
                         elif isinstance(mark, MarkerUnion):
                             intersection = mark.intersect(marker)
@@ -601,7 +618,11 @@ class MarkerUnion(BaseMarker):
                                 and marker.name in PYTHON_VERSION_MARKERS
                             )
                         ):
-                            constraint_union = mark.constraint.union(marker.constraint)
+                            # Markers with the same name have the same constraint type,
+                            # but mypy can't see that.
+                            constraint_union = mark.constraint.union(
+                                marker.constraint  # type: ignore[arg-type]
+                            )
                             if constraint_union == mark.constraint:
                                 included = True
                                 break

@@ -105,10 +105,6 @@ module = [
   'poetry.core.semver.version_union',
   'poetry.core.toml.exceptions',
   'poetry.core.toml.file',
-  'poetry.core.version.markers',
-  'poetry.core.version.pep440.parser',
-  'poetry.core.version.pep440.segments',
-  'poetry.core.version.pep440.version',
 ]
 ignore_errors = true
 
