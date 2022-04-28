@@ -201,6 +201,15 @@ class WheelBuilder(Builder):
             )
 
     def _run_build_command(self, setup: Path) -> None:
+        if self._editable:
+            subprocess.check_call(
+                [
+                    self.executable.as_posix(),
+                    str(setup),
+                    "build_ext",
+                    "--inplace",
+                ]
+            )
         subprocess.check_call(
             [
                 self.executable.as_posix(),
