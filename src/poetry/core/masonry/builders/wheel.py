@@ -169,7 +169,7 @@ class WheelBuilder(Builder):
 
                     build_dir = self._path / "build"
                     lib = list(build_dir.glob("lib.*"))
-                    if not lib:
+                    if self._editable or not lib:
                         # The result of building the extensions
                         # does not exist, this may due to conditional
                         # builds, so we assume that it's okay
