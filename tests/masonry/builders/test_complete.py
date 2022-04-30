@@ -228,7 +228,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_cpp_extensions_defined_in_pyproject():
+def test_wheel_c_cpp_extensions_defined_in_pyproject() -> None:
     module_path = fixtures_dir / "extended_with_lib_defined_in_pyproject"
 
     # Perform "clean' build
@@ -299,7 +299,7 @@ $""",
         "extended_defined_in_build_py_lib_in_pyproject",
     ],
 )
-def test_extensions_defined_in_pyproject_with_build_py_raises_error(dir: str):
+def test_extensions_defined_in_pyproject_with_build_py_raises_error(dir: str) -> None:
     module_path = fixtures_dir / dir
 
     with pytest.raises(RuntimeError):
