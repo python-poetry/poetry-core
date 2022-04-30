@@ -12,7 +12,7 @@ from poetry.core.packages.directory_dependency import DirectoryDependency
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"
 
 
-def test_directory_dependency_must_exist():
+def test_directory_dependency_must_exist() -> None:
     with pytest.raises(ValueError):
         DirectoryDependency("demo", DIST_PATH / "invalid")
 
@@ -31,7 +31,7 @@ def _test_directory_dependency_pep_508(
     assert dep.to_pep_508() == pep_508_output or pep_508_input
 
 
-def test_directory_dependency_pep_508_local_absolute():
+def test_directory_dependency_pep_508_local_absolute() -> None:
     path = (
         Path(__file__).parent.parent
         / "fixtures"
@@ -44,7 +44,7 @@ def test_directory_dependency_pep_508_local_absolute():
     _test_directory_dependency_pep_508("demo", path, requirement)
 
 
-def test_directory_dependency_pep_508_localhost():
+def test_directory_dependency_pep_508_localhost() -> None:
     path = (
         Path(__file__).parent.parent
         / "fixtures"
@@ -55,7 +55,7 @@ def test_directory_dependency_pep_508_localhost():
     _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
 
 
-def test_directory_dependency_pep_508_local_relative():
+def test_directory_dependency_pep_508_local_relative() -> None:
     path = Path("..") / "fixtures" / "project_with_multi_constraints_dependency"
 
     with pytest.raises(ValueError):
@@ -66,7 +66,7 @@ def test_directory_dependency_pep_508_local_relative():
     _test_directory_dependency_pep_508("demo", path, requirement)
 
 
-def test_directory_dependency_pep_508_extras():
+def test_directory_dependency_pep_508_extras() -> None:
     path = (
         Path(__file__).parent.parent
         / "fixtures"

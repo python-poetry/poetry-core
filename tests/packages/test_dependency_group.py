@@ -4,7 +4,7 @@ from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 
 
-def test_dependency_group_remove_dependency():
+def test_dependency_group_remove_dependency() -> None:
     group = DependencyGroup(name="linter")
     group.add_dependency(Dependency(name="black", constraint="*"))
     group.add_dependency(Dependency(name="isort", constraint="*"))

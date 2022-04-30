@@ -4,7 +4,7 @@ from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.version.markers import SingleMarker
 
 
-def test_to_pep_508():
+def test_to_pep_508() -> None:
     dependency = URLDependency(
         "pytorch",
         "https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp38-cp38-linux_x86_64.whl",
@@ -17,7 +17,7 @@ def test_to_pep_508():
     assert dependency.to_pep_508() == expected
 
 
-def test_to_pep_508_with_extras():
+def test_to_pep_508_with_extras() -> None:
     dependency = URLDependency(
         "pytorch",
         "https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp38-cp38-linux_x86_64.whl",
@@ -31,7 +31,7 @@ def test_to_pep_508_with_extras():
     assert expected == dependency.to_pep_508()
 
 
-def test_to_pep_508_with_marker():
+def test_to_pep_508_with_marker() -> None:
     dependency = URLDependency(
         "pytorch",
         "https://download.pytorch.org/whl/cpu/torch-1.5.1%2Bcpu-cp38-cp38-linux_x86_64.whl",

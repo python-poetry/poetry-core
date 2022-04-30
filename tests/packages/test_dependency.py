@@ -7,7 +7,7 @@ from poetry.core.packages.package import Package
 from poetry.core.version.markers import parse_marker
 
 
-def test_accepts():
+def test_accepts() -> None:
     dependency = Dependency("A", "^1.0")
     package = Package("A", "1.4")
 
@@ -27,18 +27,18 @@ def test_accepts():
         ("^1.0.0-1", False),
     ],
 )
-def test_allows_prerelease(constraint: str, result: bool):
+def test_allows_prerelease(constraint: str, result: bool) -> None:
     assert Dependency("A", constraint).allows_prereleases() == result
 
 
-def test_accepts_prerelease():
+def test_accepts_prerelease() -> None:
     dependency = Dependency("A", "^1.0", allows_prereleases=True)
     package = Package("A", "1.4-beta.1")
 
     assert dependency.accepts(package)
 
 
-def test_accepts_python_versions():
+def test_accepts_python_versions() -> None:
     dependency = Dependency("A", "^1.0")
     dependency.python_versions = "^3.6"
     package = Package("A", "1.4")
@@ -47,28 +47,28 @@ def test_accepts_python_versions():
     assert dependency.accepts(package)
 
 
-def test_accepts_fails_with_different_names():
+def test_accepts_fails_with_different_names() -> None:
     dependency = Dependency("A", "^1.0")
     package = Package("B", "1.4")
 
     assert not dependency.accepts(package)
 
 
-def test_accepts_fails_with_version_mismatch():
+def test_accepts_fails_with_version_mismatch() -> None:
     dependency = Dependency("A", "~1.0")
     package = Package("B", "1.4")
 
     assert not dependency.accepts(package)
 
 
-def test_accepts_fails_with_prerelease_mismatch():
+def test_accepts_fails_with_prerelease_mismatch() -> None:
     dependency = Dependency("A", "^1.0")
     package = Package("B", "1.4-beta.1")
 
     assert not dependency.accepts(package)
 
 
-def test_accepts_fails_with_python_versions_mismatch():
+def test_accepts_fails_with_python_versions_mismatch() -> None:
     dependency = Dependency("A", "^1.0")
     dependency.python_versions = "^3.6"
     package = Package("B", "1.4")
@@ -77,7 +77,7 @@ def test_accepts_fails_with_python_versions_mismatch():
     assert not dependency.accepts(package)
 
 
-def test_to_pep_508():
+def test_to_pep_508() -> None:
     dependency = Dependency("Django", "^1.23")
 
     result = dependency.to_pep_508()
@@ -95,14 +95,14 @@ def test_to_pep_508():
     )
 
 
-def test_to_pep_508_wilcard():
+def test_to_pep_508_wilcard() -> None:
     dependency = Dependency("Django", "*")
 
     result = dependency.to_pep_508()
     assert result == "Django"
 
 
-def test_to_pep_508_in_extras():
+def test_to_pep_508_in_extras() -> None:
     dependency = Dependency("Django", "^1.23")
     dependency.in_extras.append("foo")
 
@@ -139,7 +139,7 @@ def test_to_pep_508_in_extras():
     )
 
 
-def test_to_pep_508_in_extras_parsed():
+def test_to_pep_508_in_extras_parsed() -> None:
     dependency = Dependency.create_from_pep_508(
         'foo[baz,bar] (>=1.23,<2.0) ; extra == "baz"'
     )
@@ -151,7 +151,7 @@ def test_to_pep_508_in_extras_parsed():
     assert result == "foo[bar,baz] (>=1.23,<2.0)"
 
 
-def test_to_pep_508_with_single_version_excluded():
+def test_to_pep_508_with_single_version_excluded() -> None:
     dependency = Dependency("foo", "!=1.2.3")
 
     assert dependency.to_pep_508() == "foo (!=1.2.3)"
@@ -167,7 +167,9 @@ def test_to_pep_508_with_single_version_excluded():
         ("== 3.5.4", 'python_full_version == "3.5.4"'),
     ],
 )
-def test_to_pep_508_with_patch_python_version(python_versions: str, marker: str):
+def test_to_pep_508_with_patch_python_version(
+    python_versions: str, marker: str
+) -> None:
     dependency = Dependency("Django", "^1.23")
     dependency.python_versions = python_versions
 
@@ -177,7 +179,7 @@ def test_to_pep_508_with_patch_python_version(python_versions: str, marker: str)
     assert str(dependency.marker) == marker
 
 
-def test_to_pep_508_tilde():
+def test_to_pep_508_tilde() -> None:
     dependency = Dependency("foo", "~1.2.3")
 
     assert dependency.to_pep_508() == "foo (>=1.2.3,<1.3.0)"
@@ -195,7 +197,7 @@ def test_to_pep_508_tilde():
     assert dependency.to_pep_508() == "foo (>=0.2,<0.3)"
 
 
-def test_to_pep_508_caret():
+def test_to_pep_508_caret() -> None:
     dependency = Dependency("foo", "^1.2.3")
 
     assert dependency.to_pep_508() == "foo (>=1.2.3,<2.0.0)"
@@ -213,7 +215,7 @@ def test_to_pep_508_caret():
     assert dependency.to_pep_508() == "foo (>=0.2,<0.3)"
 
 
-def test_to_pep_508_combination():
+def test_to_pep_508_combination() -> None:
     dependency = Dependency("foo", "^1.2,!=1.3.5")
 
     assert dependency.to_pep_508() == "foo (>=1.2,<2.0,!=1.3.5)"
@@ -223,7 +225,7 @@ def test_to_pep_508_combination():
     assert dependency.to_pep_508() == "foo (>=1.2,<1.3,!=1.2.5)"
 
 
-def test_complete_name():
+def test_complete_name() -> None:
     assert Dependency("foo", ">=1.2.3").complete_name == "foo"
     assert (
         Dependency("foo", ">=1.2.3", extras=["baz", "bar"]).complete_name
@@ -247,19 +249,19 @@ def test_complete_name():
 )
 def test_dependency_string_representation(
     name: str, constraint: str, extras: list[str] | None, expected: str
-):
+) -> None:
     dependency = Dependency(name=name, constraint=constraint, extras=extras)
     assert str(dependency) == expected
 
 
-def test_set_constraint_sets_pretty_constraint():
+def test_set_constraint_sets_pretty_constraint() -> None:
     dependency = Dependency("A", "^1.0")
     assert dependency.pretty_constraint == "^1.0"
     dependency.set_constraint("^2.0")
     assert dependency.pretty_constraint == "^2.0"
 
 
-def test_with_constraint():
+def test_with_constraint() -> None:
     dependency = Dependency(
         "foo",
         "^1.2.3",
@@ -291,7 +293,7 @@ def test_with_constraint():
     assert new.transitive_python_constraint == dependency.transitive_python_constraint
 
 
-def test_marker_properly_sets_python_constraint():
+def test_marker_properly_sets_python_constraint() -> None:
     dependency = Dependency("foo", "^1.2.3")
 
     dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'  # type: ignore[assignment]
@@ -299,14 +301,14 @@ def test_marker_properly_sets_python_constraint():
     assert str(dependency.python_constraint) == ">=3.6,<4.0"
 
 
-def test_dependency_markers_are_the_same_as_markers():
+def test_dependency_markers_are_the_same_as_markers() -> None:
     dependency = Dependency.create_from_pep_508('foo ; extra=="bar"')
     marker = parse_marker('extra=="bar"')
 
     assert dependency.marker == marker
 
 
-def test_marker_properly_unsets_python_constraint():
+def test_marker_properly_unsets_python_constraint() -> None:
     dependency = Dependency("foo", "^1.2.3")
 
     dependency.marker = 'python_version >= "3.6"'  # type: ignore[assignment]

@@ -5,7 +5,7 @@ import pytest
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 
-def test_to_pep_508():
+def test_to_pep_508() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git"
     )
@@ -15,7 +15,7 @@ def test_to_pep_508():
     assert dependency.to_pep_508() == expected
 
 
-def test_to_pep_508_ssh():
+def test_to_pep_508_ssh() -> None:
     dependency = VCSDependency("poetry", "git", "git@github.com:sdispater/poetry.git")
 
     expected = "poetry @ git+ssh://git@github.com/sdispater/poetry.git"
@@ -23,7 +23,7 @@ def test_to_pep_508_ssh():
     assert dependency.to_pep_508() == expected
 
 
-def test_to_pep_508_with_extras():
+def test_to_pep_508_with_extras() -> None:
     dependency = VCSDependency(
         "poetry",
         "git",
@@ -36,7 +36,7 @@ def test_to_pep_508_with_extras():
     assert dependency.to_pep_508() == expected
 
 
-def test_to_pep_508_in_extras():
+def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git"
     )
@@ -72,7 +72,7 @@ def test_to_pep_508_in_extras():
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
-def test_category(groups: list[str]):
+def test_category(groups: list[str]) -> None:
     dependency = VCSDependency(
         "poetry",
         "git",
@@ -82,7 +82,7 @@ def test_category(groups: list[str]):
     assert dependency.groups == frozenset(groups)
 
 
-def test_vcs_dependency_can_have_resolved_reference_specified():
+def test_vcs_dependency_can_have_resolved_reference_specified() -> None:
     dependency = VCSDependency(
         "poetry",
         "git",
@@ -96,7 +96,7 @@ def test_vcs_dependency_can_have_resolved_reference_specified():
     assert dependency.source_resolved_reference == "123456"
 
 
-def test_vcs_dependencies_are_equal_if_resolved_references_match():
+def test_vcs_dependencies_are_equal_if_resolved_references_match() -> None:
     dependency1 = VCSDependency(
         "poetry",
         "git",

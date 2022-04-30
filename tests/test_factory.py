@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 from typing import Any
 from typing import cast
 
@@ -13,14 +12,10 @@ from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
 
 
-if TYPE_CHECKING:
-    from poetry.core.factory import DependencyConstraint
-    from poetry.core.version.markers import BaseMarker
-
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
-def test_create_poetry():
+def test_create_poetry() -> None:
     poetry = Factory().create_poetry(fixtures_dir / "sample_project")
 
     package = poetry.package
@@ -144,7 +139,7 @@ def test_create_poetry():
     ]
 
 
-def test_create_poetry_with_packages_and_includes():
+def test_create_poetry_with_packages_and_includes() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir.parent / "masonry" / "builders" / "fixtures" / "with-include"
     )
@@ -167,7 +162,7 @@ def test_create_poetry_with_packages_and_includes():
     ]
 
 
-def test_create_poetry_with_multi_constraints_dependency():
+def test_create_poetry_with_multi_constraints_dependency() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_multi_constraints_dependency"
     )
@@ -177,14 +172,14 @@ def test_create_poetry_with_multi_constraints_dependency():
     assert len(package.requires) == 2
 
 
-def test_validate():
+def test_validate() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
     content = complete.read()["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
-def test_validate_fails():
+def test_validate_fails() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
     content = complete.read()["tool"]["poetry"]
     content["this key is not in the schema"] = ""
@@ -197,14 +192,14 @@ def test_validate_fails():
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
 
-def test_strict_validation_success_on_multiple_readme_files():
+def test_strict_validation_success_on_multiple_readme_files() -> None:
     with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
     content = with_readme_files.read()["tool"]["poetry"]
 
     assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
 
 
-def test_strict_validation_fails_on_readme_files_with_unmatching_types():
+def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None:
     with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
     content = with_readme_files.read()["tool"]["poetry"]
     content["readme"][0] = "README.md"
@@ -218,7 +213,7 @@ def test_strict_validation_fails_on_readme_files_with_unmatching_types():
     }
 
 
-def test_create_poetry_fails_on_invalid_configuration():
+def test_create_poetry_fails_on_invalid_configuration() -> None:
     with pytest.raises(RuntimeError) as e:
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "invalid_pyproject" / "pyproject.toml"
@@ -231,7 +226,7 @@ The Poetry configuration is invalid:
     assert str(e.value) == expected
 
 
-def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
+def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false() -> None:
     poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_groups=False)
     assert not any("dev" in r.groups for r in poetry.package.all_requires)
 
@@ -239,7 +234,7 @@ def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true():
+def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true() -> None:
     with pytest.raises(ValueError) as err:
         Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
     assert "does not exist" in str(err.value)
@@ -249,7 +244,7 @@ def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true(
     )
 
 
-def test_create_poetry_with_groups_and_legacy_dev():
+def test_create_poetry_with_groups_and_legacy_dev() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_groups_and_legacy_dev"
     )
@@ -261,7 +256,7 @@ def test_create_poetry_with_groups_and_legacy_dev():
     assert {dependency.name for dependency in dependencies} == {"pytest", "pre-commit"}
 
 
-def test_create_poetry_with_groups_and_explicit_main():
+def test_create_poetry_with_groups_and_explicit_main() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_groups_and_explicit_main"
     )
@@ -320,7 +315,7 @@ def test_create_poetry_with_groups_and_explicit_main():
 )
 def test_create_dependency_marker_variants(
     constraint: dict[str, Any], exp_python: str, exp_marker: str
-):
+) -> None:
     constraint["version"] = "1.0.0"
     dep = Factory.create_dependency("foo", constraint)
     assert dep.python_versions == exp_python
