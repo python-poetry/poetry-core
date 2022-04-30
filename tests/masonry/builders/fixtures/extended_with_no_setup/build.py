@@ -9,7 +9,7 @@ from distutils.core import Extension
 extensions = [Extension("extended.extended", ["extended/extended.c"])]
 
 
-def build():
+def build() -> None:
     distribution = Distribution({"name": "extended", "ext_modules": extensions})
     distribution.package_dir = "extended"
 

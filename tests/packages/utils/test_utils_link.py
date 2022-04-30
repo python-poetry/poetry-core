@@ -15,7 +15,7 @@ def make_url(ext: str) -> Link:
     )
 
 
-def test_package_link_is_checks():
+def test_package_link_is_checks() -> None:
     assert make_url("egg").is_egg
     assert make_url("tar.gz").is_sdist
     assert make_url("zip").is_sdist

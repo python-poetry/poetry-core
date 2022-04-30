@@ -208,5 +208,7 @@ from poetry.core.version.pep440 import ReleaseTag
         ),
     ],
 )
-def test_parse_constraint(constraint: str, version: VersionRange | VersionUnion):
+def test_parse_constraint(
+    constraint: str, version: VersionRange | VersionUnion
+) -> None:
     assert parse_constraint(constraint) == version

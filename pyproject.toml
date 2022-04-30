@@ -72,6 +72,7 @@ known_third_party = ["poetry.core._vendor"]
 strict = true
 explicit_package_bases = true
 namespace_packages = true
+show_error_codes = true
 mypy_path = "src"
 files = "src, tests"
 exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
@@ -110,6 +111,11 @@ module = [
   'poetry.core.version.pep440.version',
 ]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ['tests.*']
+# TODO: remove when mypy runs in environment with dependencies
+disallow_untyped_decorators = false
 
 [tool.vendoring]
 destination = "src/poetry/core/_vendor/"

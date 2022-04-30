@@ -8,7 +8,7 @@ from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
-def test_convert_markers():
+def test_convert_markers() -> None:
     marker = parse_marker(
         'sys_platform == "win32" and python_version < "3.6" or sys_platform == "linux"'
         ' and python_version < "3.6" and python_version >= "3.3" or sys_platform =='
@@ -45,7 +45,7 @@ def test_convert_markers():
         ('sys_platform == "linux"', "*"),
     ],
 )
-def test_get_python_constraint_from_marker(marker: str, constraint: str):
+def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None:
     marker_parsed = parse_marker(marker)
     constraint_parsed = parse_constraint(constraint)
     assert constraint_parsed == get_python_constraint_from_marker(marker_parsed)

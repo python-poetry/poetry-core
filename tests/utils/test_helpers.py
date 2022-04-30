@@ -14,7 +14,7 @@ from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
 
 
-def test_parse_requires():
+def test_parse_requires() -> None:
     requires = """\
 jsonschema>=2.6.0.0,<3.0.0.0
 lockfile>=0.12.0.0,<0.13.0.0
@@ -74,11 +74,11 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
 
 
 @pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c"])
-def test_utils_helpers_canonical_names(raw: str):
+def test_utils_helpers_canonical_names(raw: str) -> None:
     assert canonicalize_name(raw) == "a-b-c"
 
 
-def test_utils_helpers_combine_unicode():
+def test_utils_helpers_combine_unicode() -> None:
     combined_expected = "é"
     decomposed = "é"
     assert combined_expected != decomposed
@@ -87,7 +87,7 @@ def test_utils_helpers_combine_unicode():
     assert combined == combined_expected
 
 
-def test_utils_helpers_temporary_directory_readonly_file():
+def test_utils_helpers_temporary_directory_readonly_file() -> None:
     with temporary_directory() as temp_dir:
         readonly_filename = os.path.join(temp_dir, "file.txt")
         with open(readonly_filename, "w+") as readonly_file:
@@ -109,5 +109,7 @@ def test_utils_helpers_temporary_directory_readonly_file():
         (Path("README"), "text/plain"),
     ],
 )
-def test_utils_helpers_readme_content_type(readme: str | Path, content_type: str):
+def test_utils_helpers_readme_content_type(
+    readme: str | Path, content_type: str
+) -> None:
     assert readme_content_type(readme) == content_type

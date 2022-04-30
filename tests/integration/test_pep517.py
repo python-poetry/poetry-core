@@ -29,16 +29,18 @@ pytestmark = pytest.mark.integration
 )
 def test_pep517_check_poetry_managed(
     request: FixtureRequest, getter: str, project: str
-):
+) -> None:
     with temporary_project_directory(request.getfixturevalue(getter)(project)) as path:
         assert project_wheel_metadata(path)
 
 
-def test_pep517_check(project_source_root: Path):
+def test_pep517_check(project_source_root: Path) -> None:
     assert project_wheel_metadata(str(project_source_root))
 
 
-def test_pep517_build_sdist(temporary_directory: Path, project_source_root: Path):
+def test_pep517_build_sdist(
+    temporary_directory: Path, project_source_root: Path
+) -> None:
     build_package(
         srcdir=str(project_source_root),
         outdir=str(temporary_directory),
@@ -48,7 +50,9 @@ def test_pep517_build_sdist(temporary_directory: Path, project_source_root: Path
     assert len(distributions) == 1
 
 
-def test_pep517_build_wheel(temporary_directory: Path, project_source_root: Path):
+def test_pep517_build_wheel(
+    temporary_directory: Path, project_source_root: Path
+) -> None:
     build_package(
         srcdir=str(project_source_root),
         outdir=str(temporary_directory),
@@ -58,7 +62,7 @@ def test_pep517_build_wheel(temporary_directory: Path, project_source_root: Path
     assert len(distributions) == 1
 
 
-def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path):
+def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path) -> None:
     tmp = str(temporary_directory)
     pip = subprocess_run(
         "pip", "wheel", "--use-pep517", "-w", tmp, str(project_source_root)
@@ -71,7 +75,7 @@ def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path):
     assert len(wheels) == 1
 
 
-def test_pip_install_no_binary(python: str, project_source_root: Path):
+def test_pip_install_no_binary(python: str, project_source_root: Path) -> None:
     subprocess_run(
         python,
         "-m",

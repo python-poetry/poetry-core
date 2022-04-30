@@ -49,7 +49,7 @@ def clear_samples_dist() -> None:
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension():
+def test_wheel_c_extension() -> None:
     module_path = fixtures_dir / "extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -104,7 +104,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_with_no_setup():
+def test_wheel_c_extension_with_no_setup() -> None:
     module_path = fixtures_dir / "extended_with_no_setup"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -159,7 +159,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_src_layout():
+def test_wheel_c_extension_src_layout() -> None:
     module_path = fixtures_dir / "src_extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -208,7 +208,7 @@ $""",
         zip.close()
 
 
-def test_complete():
+def test_complete() -> None:
     module_path = fixtures_dir / "complete"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -317,7 +317,7 @@ My Package
         zip.close()
 
 
-def test_complete_no_vcs():
+def test_complete_no_vcs() -> None:
     # Copy the complete fixtures dir to a temporary directory
     module_path = fixtures_dir / "complete"
     temporary_dir = Path(tempfile.mkdtemp()) / "complete"
@@ -420,7 +420,7 @@ My Package
         zip.close()
 
 
-def test_module_src():
+def test_module_src() -> None:
     module_path = fixtures_dir / "source_file"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -444,7 +444,7 @@ def test_module_src():
         zip.close()
 
 
-def test_package_src():
+def test_package_src() -> None:
     module_path = fixtures_dir / "source_package"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -469,7 +469,7 @@ def test_package_src():
         zip.close()
 
 
-def test_split_source():
+def test_split_source() -> None:
     module_path = fixtures_dir / "split_source"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -495,7 +495,7 @@ def test_split_source():
         zip.close()
 
 
-def test_package_with_include(mocker: MockerFixture):
+def test_package_with_include(mocker: MockerFixture) -> None:
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
@@ -582,7 +582,7 @@ def test_package_with_include(mocker: MockerFixture):
         assert "src_package/__init__.py" in names
 
 
-def test_respect_format_for_explicit_included_files():
+def test_respect_format_for_explicit_included_files() -> None:
     module_path = fixtures_dir / "exclude-whl-include-sdist"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")

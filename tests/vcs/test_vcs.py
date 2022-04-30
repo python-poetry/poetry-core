@@ -104,7 +104,7 @@ if TYPE_CHECKING:
         ),
     ],
 )
-def test_normalize_url(url: str, normalized: GitUrl):
+def test_normalize_url(url: str, normalized: GitUrl) -> None:
     assert normalized == Git.normalize_url(url)
 
 
@@ -346,7 +346,7 @@ def test_normalize_url(url: str, normalized: GitUrl):
         ),
     ],
 )
-def test_parse_url(url: str, parsed: ParsedUrl):
+def test_parse_url(url: str, parsed: ParsedUrl) -> None:
     result = ParsedUrl.parse(url)
     assert parsed.name == result.name
     assert parsed.pathname == result.pathname
@@ -358,24 +358,24 @@ def test_parse_url(url: str, parsed: ParsedUrl):
     assert parsed.user == result.user
 
 
-def test_parse_url_should_fail():
+def test_parse_url_should_fail() -> None:
     url = "https://" + "@" * 64 + "!"
 
     with pytest.raises(ValueError):
         ParsedUrl.parse(url)
 
 
-def test_git_clone_raises_error_on_invalid_repository():
+def test_git_clone_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().clone("-u./payload", Path("foo"))
 
 
-def test_git_checkout_raises_error_on_invalid_repository():
+def test_git_checkout_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().checkout("-u./payload")
 
 
-def test_git_rev_parse_raises_error_on_invalid_repository():
+def test_git_rev_parse_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().rev_parse("-u./payload")
 
@@ -387,7 +387,7 @@ def test_git_rev_parse_raises_error_on_invalid_repository():
         " reasons"
     ),
 )
-def test_ensure_absolute_path_to_git(mocker: MockerFixture):
+def test_ensure_absolute_path_to_git(mocker: MockerFixture) -> None:
     _reset_executable()
 
     def checkout_output(cmd: list[str], *args: Any, **kwargs: Any) -> str | bytes:
@@ -418,7 +418,7 @@ def test_ensure_absolute_path_to_git(mocker: MockerFixture):
         " reasons"
     ),
 )
-def test_ensure_existing_git_executable_is_found(mocker: MockerFixture):
+def test_ensure_existing_git_executable_is_found(mocker: MockerFixture) -> None:
     mock = mocker.patch.object(subprocess, "check_output", return_value=b"")
 
     Git().run("config")

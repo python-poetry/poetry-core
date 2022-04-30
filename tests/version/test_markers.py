@@ -10,7 +10,7 @@ from poetry.core.version.markers import SingleMarker
 from poetry.core.version.markers import parse_marker
 
 
-def test_single_marker():
+def test_single_marker() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     assert isinstance(m, SingleMarker)
@@ -74,7 +74,7 @@ def test_single_marker():
     )
 
 
-def test_single_marker_intersect():
+def test_single_marker_intersect() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     intersection = m.intersect(parse_marker('implementation_name == "cpython"'))
@@ -89,14 +89,14 @@ def test_single_marker_intersect():
     assert str(intersection) == 'python_version >= "3.4" and python_version < "3.6"'
 
 
-def test_single_marker_intersect_compacts_constraints():
+def test_single_marker_intersect_compacts_constraints() -> None:
     m = parse_marker('python_version < "3.6"')
 
     intersection = m.intersect(parse_marker('python_version < "3.4"'))
     assert str(intersection) == 'python_version < "3.4"'
 
 
-def test_single_marker_intersect_with_multi():
+def test_single_marker_intersect_with_multi() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     intersection = m.intersect(
@@ -109,7 +109,7 @@ def test_single_marker_intersect_with_multi():
     )
 
 
-def test_single_marker_intersect_with_multi_with_duplicate():
+def test_single_marker_intersect_with_multi_with_duplicate() -> None:
     m = parse_marker('python_version < "4.0"')
 
     intersection = m.intersect(
@@ -118,7 +118,7 @@ def test_single_marker_intersect_with_multi_with_duplicate():
     assert str(intersection) == 'sys_platform == "darwin" and python_version < "4.0"'
 
 
-def test_single_marker_intersect_with_multi_compacts_constraint():
+def test_single_marker_intersect_with_multi_compacts_constraint() -> None:
     m = parse_marker('python_version < "3.6"')
 
     intersection = m.intersect(
@@ -130,7 +130,7 @@ def test_single_marker_intersect_with_multi_compacts_constraint():
     )
 
 
-def test_single_marker_intersect_with_union_leads_to_single_marker():
+def test_single_marker_intersect_with_union_leads_to_single_marker() -> None:
     m = parse_marker('python_version >= "3.6"')
 
     intersection = m.intersect(
@@ -139,7 +139,7 @@ def test_single_marker_intersect_with_union_leads_to_single_marker():
     assert str(intersection) == 'python_version >= "3.7"'
 
 
-def test_single_marker_intersect_with_union_leads_to_empty():
+def test_single_marker_intersect_with_union_leads_to_empty() -> None:
     m = parse_marker('python_version == "3.7"')
 
     intersection = m.intersect(
@@ -148,7 +148,7 @@ def test_single_marker_intersect_with_union_leads_to_empty():
     assert intersection.is_empty()
 
 
-def test_single_marker_not_in_python_intersection():
+def test_single_marker_not_in_python_intersection() -> None:
     m = parse_marker('python_version not in "2.7, 3.0, 3.1"')
 
     intersection = m.intersect(
@@ -157,7 +157,7 @@ def test_single_marker_not_in_python_intersection():
     assert str(intersection) == 'python_version not in "2.7, 3.0, 3.1, 3.2"'
 
 
-def test_marker_intersection_of_python_version_and_python_full_version():
+def test_marker_intersection_of_python_version_and_python_full_version() -> None:
     m = parse_marker('python_version >= "3.6"')
     m2 = parse_marker('python_full_version >= "3.0.0"')
     intersection = m.intersect(m2)
@@ -165,14 +165,14 @@ def test_marker_intersection_of_python_version_and_python_full_version():
     assert str(intersection) == 'python_version >= "3.6"'
 
 
-def test_single_marker_union():
+def test_single_marker_union() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     union = m.union(parse_marker('implementation_name == "cpython"'))
     assert str(union) == 'sys_platform == "darwin" or implementation_name == "cpython"'
 
 
-def test_single_marker_union_is_any():
+def test_single_marker_union_is_any() -> None:
     m = parse_marker('python_version >= "3.4"')
 
     union = m.union(parse_marker('python_version < "3.6"'))
@@ -211,14 +211,14 @@ def test_single_marker_union_is_any():
 )
 def test_single_marker_union_is_single_marker(
     marker1: str, marker2: str, expected: str
-):
+) -> None:
     m = parse_marker(marker1)
 
     union = m.union(parse_marker(marker2))
     assert str(union) == expected
 
 
-def test_single_marker_union_with_multi():
+def test_single_marker_union_with_multi() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     union = m.union(
@@ -231,7 +231,7 @@ def test_single_marker_union_with_multi():
     )
 
 
-def test_single_marker_union_with_multi_duplicate():
+def test_single_marker_union_with_multi_duplicate() -> None:
     m = parse_marker('sys_platform == "darwin" and python_version >= "3.6"')
 
     union = m.union(
@@ -257,13 +257,13 @@ def test_single_marker_union_with_multi_duplicate():
 )
 def test_single_marker_union_with_multi_is_single_marker(
     single_marker: str, multi_marker: str, expected: str
-):
+) -> None:
     m = parse_marker(single_marker)
     union = m.union(parse_marker(multi_marker))
     assert str(union) == expected
 
 
-def test_single_marker_union_with_multi_cannot_be_simplified():
+def test_single_marker_union_with_multi_cannot_be_simplified() -> None:
     m = parse_marker('python_version >= "3.7"')
     union = m.union(parse_marker('python_version >= "3.6" and sys_platform == "win32"'))
     assert (
@@ -273,13 +273,13 @@ def test_single_marker_union_with_multi_cannot_be_simplified():
     )
 
 
-def test_single_marker_union_with_multi_is_union_of_single_markers():
+def test_single_marker_union_with_multi_is_union_of_single_markers() -> None:
     m = parse_marker('python_version >= "3.6"')
     union = m.union(parse_marker('python_version < "3.6" and sys_platform == "win32"'))
     assert str(union) == 'sys_platform == "win32" or python_version >= "3.6"'
 
 
-def test_single_marker_union_with_multi_union_is_union_of_single_markers():
+def test_single_marker_union_with_multi_union_is_union_of_single_markers() -> None:
     m = parse_marker('python_version >= "3.6"')
     union = m.union(
         parse_marker(
@@ -294,7 +294,7 @@ def test_single_marker_union_with_multi_union_is_union_of_single_markers():
     )
 
 
-def test_single_marker_union_with_union():
+def test_single_marker_union_with_union() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     union = m.union(
@@ -307,14 +307,14 @@ def test_single_marker_union_with_union():
     )
 
 
-def test_single_marker_not_in_python_union():
+def test_single_marker_not_in_python_union() -> None:
     m = parse_marker('python_version not in "2.7, 3.0, 3.1"')
 
     union = m.union(parse_marker('python_version not in "2.7, 3.0, 3.1, 3.2"'))
     assert str(union) == 'python_version not in "2.7, 3.0, 3.1"'
 
 
-def test_single_marker_union_with_union_duplicate():
+def test_single_marker_union_with_union_duplicate() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
     union = m.union(parse_marker('sys_platform == "darwin" or python_version >= "3.6"'))
@@ -331,13 +331,13 @@ def test_single_marker_union_with_union_duplicate():
     assert str(union) == 'sys_platform == "darwin" or python_version <= "3.6"'
 
 
-def test_single_marker_union_with_inverse():
+def test_single_marker_union_with_inverse() -> None:
     m = parse_marker('sys_platform == "darwin"')
     union = m.union(parse_marker('sys_platform != "darwin"'))
     assert union.is_any()
 
 
-def test_multi_marker():
+def test_multi_marker() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
     assert isinstance(m, MultiMarker)
@@ -347,7 +347,7 @@ def test_multi_marker():
     ]
 
 
-def test_multi_marker_is_empty_is_contradictory():
+def test_multi_marker_is_empty_is_contradictory() -> None:
     m = parse_marker(
         'sys_platform == "linux" and python_version >= "3.5" and python_version < "2.8"'
     )
@@ -359,7 +359,7 @@ def test_multi_marker_is_empty_is_contradictory():
     assert m.is_empty()
 
 
-def test_multi_marker_intersect_multi():
+def test_multi_marker_intersect_multi() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
     intersection = m.intersect(
@@ -372,7 +372,7 @@ def test_multi_marker_intersect_multi():
     )
 
 
-def test_multi_marker_intersect_multi_with_overlapping_constraints():
+def test_multi_marker_intersect_multi_with_overlapping_constraints() -> None:
     m = parse_marker('sys_platform == "darwin" and python_version < "3.6"')
 
     intersection = m.intersect(
@@ -388,14 +388,14 @@ def test_multi_marker_intersect_multi_with_overlapping_constraints():
     )
 
 
-def test_multi_marker_intersect_with_union_drops_union():
+def test_multi_marker_intersect_with_union_drops_union() -> None:
     m = parse_marker('python_version >= "3" and python_version < "4"')
     m2 = parse_marker('python_version < "2" or python_version >= "3"')
     assert str(m.intersect(m2)) == str(m)
     assert str(m2.intersect(m)) == str(m)
 
 
-def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_one_step():
+def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_one_step() -> None:
     # empty marker in one step
     # py == 2 and (py < 2 or py >= 3) -> empty
     m = parse_marker('sys_platform == "darwin" and python_version == "2"')
@@ -406,7 +406,7 @@ def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_one_step():
     assert m2.intersect(m).is_empty()
 
 
-def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_two_steps():
+def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_two_steps() -> None:
     # empty marker in two steps
     # py >= 2 and (py < 2 or py >= 3) -> py >= 3
     # py < 3 and py >= 3 -> empty
@@ -418,7 +418,7 @@ def test_multi_marker_intersect_with_multi_union_leads_to_empty_in_two_steps():
     assert m2.intersect(m).is_empty()
 
 
-def test_multi_marker_union_multi():
+def test_multi_marker_union_multi() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
     union = m.union(parse_marker('python_version >= "3.6" and os_name == "Windows"'))
@@ -429,14 +429,14 @@ def test_multi_marker_union_multi():
     )
 
 
-def test_multi_marker_union_multi_is_single_marker():
+def test_multi_marker_union_multi_is_single_marker() -> None:
     m = parse_marker('python_version >= "3" and sys_platform == "win32"')
     m2 = parse_marker('sys_platform != "win32" and python_version >= "3"')
     assert str(m.union(m2)) == 'python_version >= "3"'
     assert str(m2.union(m)) == 'python_version >= "3"'
 
 
-def test_multi_marker_union_multi_is_multi():
+def test_multi_marker_union_multi_is_multi() -> None:
     m = parse_marker('python_version >= "3" and sys_platform == "win32"')
     m2 = parse_marker(
         'python_version >= "3" and sys_platform != "win32" and sys_platform != "linux"'
@@ -445,7 +445,7 @@ def test_multi_marker_union_multi_is_multi():
     assert str(m2.union(m)) == 'python_version >= "3" and sys_platform != "linux"'
 
 
-def test_multi_marker_union_with_union():
+def test_multi_marker_union_with_union() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
     union = m.union(parse_marker('python_version >= "3.6" or os_name == "Windows"'))
@@ -456,7 +456,7 @@ def test_multi_marker_union_with_union():
     )
 
 
-def test_multi_marker_union_with_multi_union_is_single_marker():
+def test_multi_marker_union_with_multi_union_is_single_marker() -> None:
     m = parse_marker('sys_platform == "darwin" and python_version == "3"')
     m2 = parse_marker(
         'sys_platform == "darwin" and python_version < "3" or sys_platform == "darwin"'
@@ -466,7 +466,7 @@ def test_multi_marker_union_with_multi_union_is_single_marker():
     assert str(m2.union(m)) == 'sys_platform == "darwin"'
 
 
-def test_multi_marker_union_with_union_multi_is_single_marker():
+def test_multi_marker_union_with_union_multi_is_single_marker() -> None:
     m = parse_marker('sys_platform == "darwin" and python_version == "3"')
     m2 = parse_marker(
         'sys_platform == "darwin" and (python_version < "3" or python_version > "3")'
@@ -475,7 +475,7 @@ def test_multi_marker_union_with_union_multi_is_single_marker():
     assert str(m2.union(m)) == 'sys_platform == "darwin"'
 
 
-def test_marker_union():
+def test_marker_union() -> None:
     m = parse_marker('sys_platform == "darwin" or implementation_name == "cpython"')
 
     assert isinstance(m, MarkerUnion)
@@ -485,7 +485,7 @@ def test_marker_union():
     ]
 
 
-def test_marker_union_deduplicate():
+def test_marker_union_deduplicate() -> None:
     m = parse_marker(
         'sys_platform == "darwin" or implementation_name == "cpython" or sys_platform'
         ' == "darwin"'
@@ -494,7 +494,7 @@ def test_marker_union_deduplicate():
     assert str(m) == 'sys_platform == "darwin" or implementation_name == "cpython"'
 
 
-def test_marker_union_of_python_version_and_python_full_version():
+def test_marker_union_of_python_version_and_python_full_version() -> None:
     m = parse_marker('python_version >= "3.6"')
     m2 = parse_marker('python_full_version >= "3.0.0"')
     union = m.union(m2)
@@ -502,7 +502,7 @@ def test_marker_union_of_python_version_and_python_full_version():
     assert str(union) == 'python_full_version >= "3.0.0"'
 
 
-def test_marker_union_intersect_single_marker():
+def test_marker_union_intersect_single_marker() -> None:
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     intersection = m.intersect(parse_marker('implementation_name == "cpython"'))
@@ -513,7 +513,7 @@ def test_marker_union_intersect_single_marker():
     )
 
 
-def test_marker_union_intersect_single_with_overlapping_constraints():
+def test_marker_union_intersect_single_with_overlapping_constraints() -> None:
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     intersection = m.intersect(parse_marker('python_version <= "3.6"'))
@@ -528,7 +528,7 @@ def test_marker_union_intersect_single_with_overlapping_constraints():
     assert str(intersection) == 'sys_platform == "darwin"'
 
 
-def test_marker_union_intersect_marker_union():
+def test_marker_union_intersect_marker_union() -> None:
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     intersection = m.intersect(
@@ -543,7 +543,7 @@ def test_marker_union_intersect_marker_union():
     )
 
 
-def test_marker_union_intersect_marker_union_drops_unnecessary_markers():
+def test_marker_union_intersect_marker_union_drops_unnecessary_markers() -> None:
     m = parse_marker(
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.4" and python_version < "4.0"'
@@ -561,7 +561,7 @@ def test_marker_union_intersect_marker_union_drops_unnecessary_markers():
     assert str(intersection) == expected
 
 
-def test_marker_union_intersect_multi_marker():
+def test_marker_union_intersect_multi_marker() -> None:
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     intersection = m.intersect(
@@ -575,7 +575,7 @@ def test_marker_union_intersect_multi_marker():
     )
 
 
-def test_marker_union_union_with_union():
+def test_marker_union_union_with_union() -> None:
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     union = m.union(
@@ -588,7 +588,7 @@ def test_marker_union_union_with_union():
     )
 
 
-def test_marker_union_union_duplicates():
+def test_marker_union_union_duplicates() -> None:
     m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
 
     union = m.union(parse_marker('sys_platform == "darwin" or os_name == "Windows"'))
@@ -611,25 +611,25 @@ def test_marker_union_union_duplicates():
     )
 
 
-def test_marker_union_all_any():
+def test_marker_union_all_any() -> None:
     union = MarkerUnion(parse_marker(""), parse_marker(""))
 
     assert union.is_any()
 
 
-def test_marker_union_not_all_any():
+def test_marker_union_not_all_any() -> None:
     union = MarkerUnion(parse_marker(""), parse_marker(""), parse_marker("<empty>"))
 
     assert union.is_any()
 
 
-def test_marker_union_all_empty():
+def test_marker_union_all_empty() -> None:
     union = MarkerUnion(parse_marker("<empty>"), parse_marker("<empty>"))
 
     assert union.is_empty()
 
 
-def test_marker_union_not_all_empty():
+def test_marker_union_not_all_empty() -> None:
     union = MarkerUnion(
         parse_marker("<empty>"), parse_marker("<empty>"), parse_marker("")
     )
@@ -637,7 +637,7 @@ def test_marker_union_not_all_empty():
     assert not union.is_empty()
 
 
-def test_marker_str_conversion_skips_empty_and_any():
+def test_marker_str_conversion_skips_empty_and_any() -> None:
     union = MarkerUnion(
         parse_marker("<empty>"),
         parse_marker(
@@ -653,14 +653,14 @@ def test_marker_str_conversion_skips_empty_and_any():
     )
 
 
-def test_intersect_compacts_constraints():
+def test_intersect_compacts_constraints() -> None:
     m = parse_marker('python_version < "4.0"')
 
     intersection = m.intersect(parse_marker('python_version < "5.0"'))
     assert str(intersection) == 'python_version < "4.0"'
 
 
-def test_multi_marker_removes_duplicates():
+def test_multi_marker_removes_duplicates() -> None:
     m = parse_marker('sys_platform == "win32" and sys_platform == "win32"')
 
     assert str(m) == 'sys_platform == "win32"'
@@ -745,7 +745,7 @@ def test_multi_marker_removes_duplicates():
 )
 def test_validate(
     marker_string: str, environment: dict[str, str] | None, expected: bool
-):
+) -> None:
     m = parse_marker(marker_string)
 
     assert m.validate(environment) is expected
@@ -760,7 +760,7 @@ def test_validate(
         )
     ],
 )
-def test_parse_version_like_markers(marker: str, env: dict[str, str]):
+def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
     m = parse_marker(marker)
 
     assert m.validate(env)
@@ -792,7 +792,7 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]):
         ),
     ],
 )
-def test_without_extras(marker: str, expected: str):
+def test_without_extras(marker: str, expected: str) -> None:
     m = parse_marker(marker)
 
     assert str(m.without_extras()) == expected
@@ -838,7 +838,7 @@ def test_without_extras(marker: str, expected: str):
         ),
     ],
 )
-def test_exclude(marker: str, excluded: str, expected: str):
+def test_exclude(marker: str, excluded: str, expected: str) -> None:
     m = parse_marker(marker)
 
     if expected == "*":
@@ -888,19 +888,19 @@ def test_exclude(marker: str, excluded: str, expected: str):
         ),
     ],
 )
-def test_only(marker: str, only: list[str], expected: str):
+def test_only(marker: str, only: list[str], expected: str) -> None:
     m = parse_marker(marker)
 
     assert str(m.only(*only)) == expected
 
 
-def test_union_of_a_single_marker_is_the_single_marker():
+def test_union_of_a_single_marker_is_the_single_marker() -> None:
     union = MarkerUnion.of(SingleMarker("python_version", ">= 2.7"))
 
     assert SingleMarker("python_version", ">= 2.7") == union
 
 
-def test_union_of_multi_with_a_containing_single():
+def test_union_of_multi_with_a_containing_single() -> None:
     single = parse_marker('python_version >= "2.7"')
     multi = parse_marker('python_version >= "2.7" and extra == "foo"')
     union = multi.union(single)
@@ -938,7 +938,7 @@ def test_union_of_multi_with_a_containing_single():
         ),
     ],
 )
-def test_invert(marker: str, inverse: str):
+def test_invert(marker: str, inverse: str) -> None:
     m = parse_marker(marker)
 
     assert parse_marker(inverse) == m.invert()
@@ -956,7 +956,7 @@ def test_invert(marker: str, inverse: str):
 )
 def test_union_should_drop_markers_if_their_complement_is_present(
     marker: str, expected: str
-):
+) -> None:
     m = parse_marker(marker)
 
     assert parse_marker(expected) == m

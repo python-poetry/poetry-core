@@ -31,7 +31,7 @@ def package_with_groups() -> Package:
     return package
 
 
-def test_package_authors():
+def test_package_authors() -> None:
     package = Package("foo", "0.1.0")
 
     package.authors.append("Sébastien Eustace <sebastien@eustace.io>")
@@ -43,7 +43,7 @@ def test_package_authors():
     assert package.author_email is None
 
 
-def test_package_authors_invalid():
+def test_package_authors_invalid() -> None:
     package = Package("foo", "0.1.0")
 
     package.authors.insert(0, "<John Doe")
@@ -57,7 +57,7 @@ def test_package_authors_invalid():
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
-def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory):
+def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory) -> None:
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -70,7 +70,7 @@ def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory):
     assert dependency.groups == frozenset(groups)
 
 
-def test_package_add_dependency_vcs_groups_default_main(f: Factory):
+def test_package_add_dependency_vcs_groups_default_main(f: Factory) -> None:
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -83,7 +83,9 @@ def test_package_add_dependency_vcs_groups_default_main(f: Factory):
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
 @pytest.mark.parametrize("optional", [True, False])
-def test_package_url_groups_optional(groups: list[str], optional: bool, f: Factory):
+def test_package_url_groups_optional(
+    groups: list[str], optional: bool, f: Factory
+) -> None:
     package = Package("foo", "0.1.0")
 
     dependency = package.add_dependency(
@@ -100,13 +102,13 @@ def test_package_url_groups_optional(groups: list[str], optional: bool, f: Facto
     assert dependency.is_optional() == optional
 
 
-def test_package_equality_simple():
+def test_package_equality_simple() -> None:
     assert Package("foo", "0.1.0") == Package("foo", "0.1.0")
     assert Package("foo", "0.1.0") != Package("foo", "0.1.1")
     assert Package("bar", "0.1.0") != Package("foo", "0.1.0")
 
 
-def test_package_equality_source_type():
+def test_package_equality_source_type() -> None:
     a1 = Package("a", "0.1.0", source_type="file")
     a2 = Package(a1.name, a1.version, source_type="directory")
     a3 = Package(a1.name, a1.version, source_type=a1.source_type)
@@ -120,7 +122,7 @@ def test_package_equality_source_type():
     assert a2 != a4
 
 
-def test_package_equality_source_url():
+def test_package_equality_source_url() -> None:
     a1 = Package("a", "0.1.0", source_type="file", source_url="/some/path")
     a2 = Package(
         a1.name, a1.version, source_type=a1.source_type, source_url="/some/other/path"
@@ -138,7 +140,7 @@ def test_package_equality_source_url():
     assert a2 != a4
 
 
-def test_package_equality_source_reference():
+def test_package_equality_source_reference() -> None:
     a1 = Package(
         "a",
         "0.1.0",
@@ -170,7 +172,7 @@ def test_package_equality_source_reference():
     assert a2 != a4
 
 
-def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages():
+def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> None:
     a1 = Package(
         "a",
         "0.1.0",
@@ -211,14 +213,14 @@ def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for
     assert a2 == a4
 
 
-def test_complete_name():
+def test_complete_name() -> None:
     assert Package("foo", "1.2.3").complete_name == "foo"
     assert (
         Package("foo", "1.2.3", features=["baz", "bar"]).complete_name == "foo[bar,baz]"
     )
 
 
-def test_to_dependency():
+def test_to_dependency() -> None:
     package = Package("foo", "1.2.3")
     dep = package.to_dependency()
 
@@ -226,7 +228,7 @@ def test_to_dependency():
     assert dep.constraint == package.version
 
 
-def test_to_dependency_with_python_constraint():
+def test_to_dependency_with_python_constraint() -> None:
     package = Package("foo", "1.2.3")
     package.python_versions = ">=3.6"
     dep = package.to_dependency()
@@ -236,7 +238,7 @@ def test_to_dependency_with_python_constraint():
     assert dep.python_versions == ">=3.6"
 
 
-def test_to_dependency_with_features():
+def test_to_dependency_with_features() -> None:
     package = Package("foo", "1.2.3", features=["baz", "bar"])
     dep = package.to_dependency()
 
@@ -245,7 +247,7 @@ def test_to_dependency_with_features():
     assert dep.features == frozenset({"bar", "baz"})
 
 
-def test_to_dependency_for_directory():
+def test_to_dependency_for_directory() -> None:
     path = Path(__file__).parent.parent.joinpath("fixtures/simple_project")
     package = Package(
         "foo",
@@ -266,7 +268,7 @@ def test_to_dependency_for_directory():
     assert dep.source_url == path.as_posix()
 
 
-def test_to_dependency_for_file():
+def test_to_dependency_for_file() -> None:
     path = Path(__file__).parent.parent.joinpath(
         "fixtures/distributions/demo-0.1.0.tar.gz"
     )
@@ -289,7 +291,7 @@ def test_to_dependency_for_file():
     assert dep.source_url == path.as_posix()
 
 
-def test_to_dependency_for_url():
+def test_to_dependency_for_url() -> None:
     package = Package(
         "foo",
         "1.2.3",
@@ -309,7 +311,7 @@ def test_to_dependency_for_url():
     assert dep.source_url == "https://example.com/path.tar.gz"
 
 
-def test_to_dependency_for_vcs():
+def test_to_dependency_for_vcs() -> None:
     package = Package(
         "foo",
         "1.2.3",
@@ -336,7 +338,7 @@ def test_to_dependency_for_vcs():
     assert dep.source_subdirectory == "baz"
 
 
-def test_package_clone(f: Factory):
+def test_package_clone(f: Factory) -> None:
     # TODO(nic): this test is not future-proof, in that any attributes added
     #  to the Package object and not filled out in this test setup might
     #  cause comparisons to match that otherwise should not.  A factory method
@@ -367,12 +369,12 @@ def test_package_clone(f: Factory):
     assert len(p2.all_requires) == 2
 
 
-def test_dependency_groups(package_with_groups: Package):
+def test_dependency_groups(package_with_groups: Package) -> None:
     assert len(package_with_groups.requires) == 2
     assert len(package_with_groups.all_requires) == 4
 
 
-def test_without_dependency_groups(package_with_groups: Package):
+def test_without_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.without_dependency_groups(["dev"])
 
     assert len(package.requires) == 2
@@ -384,7 +386,7 @@ def test_without_dependency_groups(package_with_groups: Package):
     assert len(package.all_requires) == 2
 
 
-def test_with_dependency_groups(package_with_groups: Package):
+def test_with_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.with_dependency_groups([])
 
     assert len(package.requires) == 2
@@ -396,14 +398,14 @@ def test_with_dependency_groups(package_with_groups: Package):
     assert len(package.all_requires) == 4
 
 
-def test_without_optional_dependency_groups(package_with_groups: Package):
+def test_without_optional_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.without_optional_dependency_groups()
 
     assert len(package.requires) == 2
     assert len(package.all_requires) == 3
 
 
-def test_only_with_dependency_groups(package_with_groups: Package):
+def test_only_with_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.with_dependency_groups(["dev"], only=True)
 
     assert len(package.requires) == 0
@@ -420,7 +422,7 @@ def test_only_with_dependency_groups(package_with_groups: Package):
     assert len(package.all_requires) == 2
 
 
-def test_get_readme_property_with_multiple_readme_files():
+def test_get_readme_property_with_multiple_readme_files() -> None:
     package = Package("foo", "0.1.0")
 
     package.readmes = (Path("README.md"), Path("HISTORY.md"))
@@ -428,7 +430,7 @@ def test_get_readme_property_with_multiple_readme_files():
         assert package.readme == Path("README.md")
 
 
-def test_set_readme_property():
+def test_set_readme_property() -> None:
     package = Package("foo", "0.1.0")
 
     with pytest.deprecated_call():

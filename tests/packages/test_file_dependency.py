@@ -20,17 +20,17 @@ DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
 TEST_FILE = "demo-0.1.0.tar.gz"
 
 
-def test_file_dependency_wrong_path():
+def test_file_dependency_wrong_path() -> None:
     with pytest.raises(ValueError):
         FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
 
 
-def test_file_dependency_dir():
+def test_file_dependency_dir() -> None:
     with pytest.raises(ValueError):
         FileDependency("demo", DIST_PATH)
 
 
-def test_default_hash():
+def test_default_hash() -> None:
     path = DIST_PATH / TEST_FILE
     dep = FileDependency("demo", path)
     SHA_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
@@ -87,7 +87,7 @@ except ImportError:
         if hash_name in ALGORITHMS_GUARANTEED
     ],
 )
-def test_guaranteed_hash(hash_name: str, expected: str):
+def test_guaranteed_hash(hash_name: str, expected: str) -> None:
     path = DIST_PATH / TEST_FILE
     dep = FileDependency("demo", path)
     assert dep.hash(hash_name) == expected
@@ -117,7 +117,7 @@ def _test_file_dependency_pep_508(
     assert dep.to_pep_508() == pep_508_output or pep_508_input
 
 
-def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture):
+def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
     requirement = f"demo @ file://{path.as_posix()}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
@@ -126,7 +126,7 @@ def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture):
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
 
-def test_file_dependency_pep_508_local_file_localhost(mocker: MockerFixture):
+def test_file_dependency_pep_508_local_file_localhost(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
     requirement = f"demo @ file://localhost{path.as_posix()}"
     requirement_expected = f"demo @ file://{path.as_posix()}"
@@ -135,7 +135,9 @@ def test_file_dependency_pep_508_local_file_localhost(mocker: MockerFixture):
     )
 
 
-def test_file_dependency_pep_508_local_file_relative_path(mocker: MockerFixture):
+def test_file_dependency_pep_508_local_file_relative_path(
+    mocker: MockerFixture,
+) -> None:
     path = Path("..") / "fixtures" / "distributions" / "demo-0.2.0.tar.gz"
 
     with pytest.raises(ValueError):
@@ -146,7 +148,7 @@ def test_file_dependency_pep_508_local_file_relative_path(mocker: MockerFixture)
     _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
 
-def test_absolute_file_dependency_to_pep_508_with_marker(mocker: MockerFixture):
+def test_absolute_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     abs_path = DIST_PATH / wheel
@@ -160,7 +162,7 @@ def test_absolute_file_dependency_to_pep_508_with_marker(mocker: MockerFixture):
     )
 
 
-def test_relative_file_dependency_to_pep_508_with_marker(mocker: MockerFixture):
+def test_relative_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
@@ -174,7 +176,7 @@ def test_relative_file_dependency_to_pep_508_with_marker(mocker: MockerFixture):
     )
 
 
-def test_file_dependency_pep_508_extras(mocker: MockerFixture):
+def test_file_dependency_pep_508_extras(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
