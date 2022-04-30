@@ -93,7 +93,7 @@ class Builder:
     def executable(self) -> Path:
         return self._executable
 
-    def build(self) -> Path:
+    def build(self, target_dir: Path | None) -> Path:
         raise NotImplementedError()
 
     def find_excluded_files(self, fmt: str | None = None) -> set[str]:
