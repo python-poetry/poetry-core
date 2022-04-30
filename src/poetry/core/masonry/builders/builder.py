@@ -32,6 +32,7 @@ class Builder:
     def __init__(
         self,
         poetry: Poetry,
+        ignore_packages_formats: bool = False,
         executable: Path | None = None,
     ) -> None:
         from poetry.core.masonry.metadata import Metadata
@@ -55,7 +56,12 @@ class Builder:
             if not isinstance(formats, list):
                 formats = [formats]
 
-            if formats and self.format and self.format not in formats:
+            if (
+                formats
+                and self.format
+                and self.format not in formats
+                and not ignore_packages_formats
+            ):
                 continue
 
             packages.append(p)
@@ -64,7 +70,12 @@ class Builder:
         for include in self._package.include:
             formats = include.get("format", [])
 
-            if formats and self.format and self.format not in formats:
+            if (
+                formats
+                and self.format
+                and self.format not in formats
+                and not ignore_packages_formats
+            ):
                 continue
 
             includes.append(include)
