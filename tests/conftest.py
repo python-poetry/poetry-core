@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -11,7 +12,6 @@ import pytest
 import virtualenv
 
 from poetry.core.factory import Factory
-from tests.testutils import tempfile
 
 
 if TYPE_CHECKING:

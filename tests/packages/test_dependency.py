@@ -294,7 +294,7 @@ def test_with_constraint():
 def test_marker_properly_sets_python_constraint():
     dependency = Dependency("foo", "^1.2.3")
 
-    dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'
+    dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'  # type: ignore[assignment]
 
     assert str(dependency.python_constraint) == ">=3.6,<4.0"
 
@@ -309,8 +309,8 @@ def test_dependency_markers_are_the_same_as_markers():
 def test_marker_properly_unsets_python_constraint():
     dependency = Dependency("foo", "^1.2.3")
 
-    dependency.marker = 'python_version >= "3.6"'
+    dependency.marker = 'python_version >= "3.6"'  # type: ignore[assignment]
     assert str(dependency.python_constraint) == ">=3.6"
 
-    dependency.marker = "*"
+    dependency.marker = "*"  # type: ignore[assignment]
     assert str(dependency.python_constraint) == "*"

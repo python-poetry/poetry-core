@@ -86,10 +86,10 @@ class Package(PackageSpecification):
         self._authors = []
         self._maintainers = []
 
-        self.homepage = None
-        self.repository_url = None
-        self.documentation_url = None
-        self.keywords = []
+        self.homepage: str | None = None
+        self.repository_url: str | None = None
+        self.documentation_url: str | None = None
+        self.keywords: list[str] = []
         self._license = None
         self.readmes: tuple[Path, ...] = ()
 

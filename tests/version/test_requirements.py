@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from typing import TYPE_CHECKING
+from typing import Any
 
 import pytest
 
@@ -21,7 +22,7 @@ def assert_requirement(
     url: str | None = None,
     extras: list[str] | None = None,
     constraint: str = "*",
-    marker: BaseMarker | None = None,
+    marker: str | None = None,
 ):
     if extras is None:
         extras = []
@@ -110,7 +111,7 @@ def assert_requirement(
         ),
     ],
 )
-def test_requirement(string: str, expected: dict[str, str]):
+def test_requirement(string: str, expected: dict[str, Any]):
     req = Requirement(string)
 
     assert_requirement(req, **expected)

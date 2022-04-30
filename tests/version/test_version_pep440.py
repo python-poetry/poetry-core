@@ -40,7 +40,7 @@ def test_pep440_release_segment_from_parts(parts: tuple[int, ...], result: Relea
     ],
 )
 def test_pep440_release_tag_normalisation(
-    parts: tuple[str, int | None], result: ReleaseTag
+    parts: tuple[str] | tuple[str, int], result: ReleaseTag
 ):
     tag = ReleaseTag(*parts)
     assert tag == result

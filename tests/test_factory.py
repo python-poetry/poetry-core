@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import cast
 
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
 
@@ -26,6 +29,7 @@ def test_create_poetry():
     assert package.version.text == "1.2.3"
     assert package.description == "Some description."
     assert package.authors == ["Sébastien Eustace <sebastien@eustace.io>"]
+    assert package.license
     assert package.license.id == "MIT"
     assert (
         package.readmes[0].relative_to(fixtures_dir).as_posix()
@@ -49,6 +53,7 @@ def test_create_poetry():
     pendulum = dependencies["pendulum"]
     assert pendulum.pretty_constraint == "branch 2.0"
     assert pendulum.is_vcs()
+    pendulum = cast(VCSDependency, pendulum)
     assert pendulum.vcs == "git"
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
@@ -58,6 +63,7 @@ def test_create_poetry():
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
     assert tomlkit.is_vcs()
+    tomlkit = cast(VCSDependency, tomlkit)
     assert tomlkit.vcs == "git"
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
@@ -313,7 +319,7 @@ def test_create_poetry_with_groups_and_explicit_main():
     ],
 )
 def test_create_dependency_marker_variants(
-    constraint: DependencyConstraint, exp_python: str, exp_marker: BaseMarker
+    constraint: dict[str, Any], exp_python: str, exp_marker: str
 ):
     constraint["version"] = "1.0.0"
     dep = Factory.create_dependency("foo", constraint)

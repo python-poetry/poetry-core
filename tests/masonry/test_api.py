@@ -32,13 +32,13 @@ fixtures = os.path.join(os.path.dirname(__file__), "builders", "fixtures")
 
 
 def test_get_requires_for_build_wheel():
-    expected = []
+    expected: list[str] = []
     with cwd(os.path.join(fixtures, "complete")):
         assert api.get_requires_for_build_wheel() == expected
 
 
 def test_get_requires_for_build_sdist():
-    expected = []
+    expected: list[str] = []
     with cwd(os.path.join(fixtures, "complete")):
         assert api.get_requires_for_build_sdist() == expected
 

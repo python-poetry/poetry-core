@@ -15,7 +15,7 @@ from posixpath import join as pjoin
 from pprint import pformat
 from tarfile import TarInfo
 from typing import TYPE_CHECKING
-from typing import ContextManager
+from typing import Iterator
 
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
@@ -213,7 +213,7 @@ class SdistBuilder(Builder):
         ).encode()
 
     @contextmanager
-    def setup_py(self) -> ContextManager[Path]:
+    def setup_py(self) -> Iterator[Path]:
         setup = self._path / "setup.py"
         has_setup = setup.exists()
 

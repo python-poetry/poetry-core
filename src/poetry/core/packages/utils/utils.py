@@ -161,7 +161,7 @@ def group_markers(
     return groups
 
 
-def convert_markers(marker: BaseMarker) -> dict[str, list[tuple[str, str]]]:
+def convert_markers(marker: BaseMarker) -> dict[str, list[list[tuple[str, str]]]]:
     groups = group_markers([marker])
 
     requirements = {}

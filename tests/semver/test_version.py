@@ -40,7 +40,7 @@ def test_parse_valid(text: str, version: Version):
 @pytest.mark.parametrize("value", [None, "example"])
 def test_parse_invalid(value: str | None):
     with pytest.raises(InvalidVersion):
-        Version.parse(value)
+        Version.parse(value)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

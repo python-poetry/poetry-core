@@ -64,7 +64,7 @@ class BaseMarker:
     def is_empty(self) -> bool:
         return False
 
-    def validate(self, environment: dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any] | None) -> bool:
         raise NotImplementedError()
 
     def without_extras(self) -> BaseMarker:
@@ -96,7 +96,7 @@ class AnyMarker(BaseMarker):
     def is_empty(self) -> bool:
         return False
 
-    def validate(self, environment: dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any] | None) -> bool:
         return True
 
     def without_extras(self) -> BaseMarker:
@@ -140,7 +140,7 @@ class EmptyMarker(BaseMarker):
     def is_empty(self) -> bool:
         return True
 
-    def validate(self, environment: dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any] | None) -> bool:
         return False
 
     def without_extras(self) -> BaseMarker:
@@ -274,7 +274,7 @@ class SingleMarker(BaseMarker):
 
         return other.union(self)
 
-    def validate(self, environment: dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any] | None) -> bool:
         if environment is None:
             return True
 
@@ -505,7 +505,7 @@ class MultiMarker(BaseMarker):
 
         return None
 
-    def validate(self, environment: dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any] | None) -> bool:
         return all(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> BaseMarker:
@@ -695,7 +695,7 @@ class MarkerUnion(BaseMarker):
 
         return MarkerUnion.of(*new_markers)
 
-    def validate(self, environment: dict[str, Any]) -> bool:
+    def validate(self, environment: dict[str, Any] | None) -> bool:
         return any(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> BaseMarker:

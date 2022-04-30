@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import cast
 
 import pytest
 
@@ -39,7 +40,7 @@ def test_default_hash():
 try:
     from hashlib import algorithms_guaranteed as ALGORITHMS_GUARANTEED
 except ImportError:
-    ALGORITHMS_GUARANTEED = "md5,sha1,sha224,sha256,sha384,sha512".split(",")
+    ALGORITHMS_GUARANTEED = set("md5,sha1,sha224,sha256,sha384,sha512".split(","))
 
 
 @pytest.mark.parametrize(
@@ -110,6 +111,7 @@ def _test_file_dependency_pep_508(
         dep.marker = marker
 
     assert dep.is_file()
+    dep = cast(FileDependency, dep)
     assert dep.name == name
     assert dep.path == path
     assert dep.to_pep_508() == pep_508_output or pep_508_input

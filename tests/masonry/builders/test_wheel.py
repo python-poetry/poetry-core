@@ -7,6 +7,8 @@ import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Iterator
+from typing import TextIO
 
 import pytest
 
@@ -23,7 +25,7 @@ fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup() -> None:
+def setup() -> Iterator[None]:
     clear_samples_dist()
 
     yield
@@ -300,11 +302,11 @@ def test_wheel_file_is_closed(monkeypatch: MonkeyPatch):
     """Confirm that wheel zip files are explicitly closed."""
 
     # Using a list is a hack for Python 2.7 compatibility.
-    fd_file = [None]
+    fd_file: list[TextIO | None] = [None]
 
     real_fdopen = os.fdopen
 
-    def capturing_fdopen(*args: Any, **kwargs: Any):
+    def capturing_fdopen(*args: Any, **kwargs: Any) -> TextIO | None:
         fd_file[0] = real_fdopen(*args, **kwargs)
         return fd_file[0]
 
