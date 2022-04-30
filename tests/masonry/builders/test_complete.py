@@ -12,6 +12,8 @@ import zipfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Iterator
 
 import pytest
 
@@ -27,7 +29,7 @@ fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup() -> None:
+def setup() -> Iterator[None]:
     clear_samples_dist()
 
     yield
@@ -541,11 +543,13 @@ def test_package_with_include(mocker: MockerFixture):
         assert "with-include-1.2.3/for_wheel_only/__init__.py" not in names
         assert "with-include-1.2.3/src/src_package/__init__.py" in names
 
-        setup = tar.extractfile("with-include-1.2.3/setup.py").read()
+        file = tar.extractfile("with-include-1.2.3/setup.py")
+        assert file
+        setup = file.read()
         setup_ast = ast.parse(setup)
 
         setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-        ns = {}
+        ns: dict[str, Any] = {}
         exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
         assert ns["package_dir"] == {"": "src"}
         assert ns["packages"] == [

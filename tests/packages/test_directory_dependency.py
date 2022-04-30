@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -24,6 +25,7 @@ def _test_directory_dependency_pep_508(
     )
 
     assert dep.is_directory()
+    dep = cast(DirectoryDependency, dep)
     assert dep.name == name
     assert dep.path == path
     assert dep.to_pep_508() == pep_508_output or pep_508_input

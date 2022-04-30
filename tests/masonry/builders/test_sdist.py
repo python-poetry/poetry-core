@@ -9,6 +9,8 @@ import tarfile
 from email.parser import Parser
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Iterator
 
 import pytest
 
@@ -16,7 +18,7 @@ from poetry.core.factory import Factory
 from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.package_include import PackageInclude
 from poetry.core.packages.dependency import Dependency
-from poetry.core.packages.package import Package
+from poetry.core.packages.project_package import ProjectPackage
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 
@@ -27,7 +29,7 @@ fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup() -> None:
+def setup() -> Iterator[None]:
     clear_samples_dist()
 
     yield
@@ -46,7 +48,7 @@ def project(name: str) -> Path:
 
 
 def test_convert_dependencies():
-    package = Package("foo", "1.2.3")
+    package = ProjectPackage("foo", "1.2.3")
     result = SdistBuilder.convert_dependencies(
         package,
         [
@@ -66,11 +68,11 @@ def test_convert_dependencies():
         "E>=1.0,<2.0",
         "F>=1.0,<2.0,!=1.3",
     ]
-    extras = {}
+    extras: dict[str, Any] = {}
 
     assert result == (main, extras)
 
-    package = Package("foo", "1.2.3")
+    package = ProjectPackage("foo", "1.2.3")
     package.extras = {"bar": [Dependency("A", "*")]}
 
     result = SdistBuilder.convert_dependencies(
@@ -120,7 +122,7 @@ def test_make_setup():
     setup_ast = ast.parse(setup)
 
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-    ns = {}
+    ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
     assert ns["packages"] == [
         "my_package",
@@ -368,7 +370,7 @@ def test_with_src_module_file():
     setup_ast = ast.parse(setup)
 
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-    ns = {}
+    ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
     assert ns["package_dir"] == {"": "src"}
     assert ns["modules"] == ["module_src"]
@@ -393,7 +395,7 @@ def test_with_src_module_dir():
     setup_ast = ast.parse(setup)
 
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-    ns = {}
+    ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
     assert ns["package_dir"] == {"": "src"}
     assert ns["packages"] == ["package_src"]
@@ -436,7 +438,7 @@ def test_default_with_excluded_data(mocker: MockerFixture):
     setup_ast = ast.parse(setup)
 
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-    ns = {}
+    ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
     assert "package_dir" not in ns
     assert ns["packages"] == ["my_package"]
@@ -578,7 +580,7 @@ def test_excluded_subpackage():
     setup_ast = ast.parse(setup)
 
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-    ns = {}
+    ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
 
     assert ns["packages"] == ["example"]
@@ -648,6 +650,6 @@ def test_split_source():
     setup_ast = ast.parse(setup)
 
     setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-    ns = {}
+    ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
     assert "" in ns["package_dir"] and "module_b" in ns["package_dir"]

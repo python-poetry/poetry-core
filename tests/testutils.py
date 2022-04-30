@@ -50,7 +50,7 @@ def temporary_project_directory(
         yield str(dst)
 
 
-def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
+def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess[str]:
     """
     Helper method to run a subprocess. Asserts for success.
     """

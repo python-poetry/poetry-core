@@ -3,12 +3,17 @@ from __future__ import annotations
 import random
 
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency_group import DependencyGroup
+from poetry.core.packages.directory_dependency import DirectoryDependency
+from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.package import Package
+from poetry.core.packages.url_dependency import URLDependency
+from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 @pytest.fixture()
@@ -255,6 +260,7 @@ def test_to_dependency_for_directory():
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_directory()
+    dep = cast(DirectoryDependency, dep)
     assert dep.path == path
     assert dep.source_type == "directory"
     assert dep.source_url == path.as_posix()
@@ -277,6 +283,7 @@ def test_to_dependency_for_file():
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_file()
+    dep = cast(FileDependency, dep)
     assert dep.path == path
     assert dep.source_type == "file"
     assert dep.source_url == path.as_posix()
@@ -296,6 +303,7 @@ def test_to_dependency_for_url():
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_url()
+    dep = cast(URLDependency, dep)
     assert dep.url == "https://example.com/path.tar.gz"
     assert dep.source_type == "url"
     assert dep.source_url == "https://example.com/path.tar.gz"
@@ -318,6 +326,7 @@ def test_to_dependency_for_vcs():
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_vcs()
+    dep = cast(VCSDependency, dep)
     assert dep.source_type == "git"
     assert dep.source == "https://github.com/foo/foo.git"
     assert dep.reference == "master"
@@ -346,7 +355,7 @@ def test_package_clone(f: Factory):
     )
     p.add_dependency(Factory.create_dependency("foo", "^1.2.3"))
     p.add_dependency(Factory.create_dependency("foo", "^1.2.3", groups=["dev"]))
-    p.files = (["file1", "file2", "file3"],)
+    p.files = (["file1", "file2", "file3"],)  # type: ignore[assignment]
     p.homepage = "https://some.other.url"
     p.repository_url = "http://bug.farm"
     p.documentation_url = "http://lorem.ipsum/dolor/sit.amet"
@@ -414,17 +423,17 @@ def test_only_with_dependency_groups(package_with_groups: Package):
 def test_get_readme_property_with_multiple_readme_files():
     package = Package("foo", "0.1.0")
 
-    package.readmes = ("README.md", "HISTORY.md")
+    package.readmes = (Path("README.md"), Path("HISTORY.md"))
     with pytest.deprecated_call():
-        assert package.readme == "README.md"
+        assert package.readme == Path("README.md")
 
 
 def test_set_readme_property():
     package = Package("foo", "0.1.0")
 
     with pytest.deprecated_call():
-        package.readme = "README.md"
+        package.readme = Path("README.md")
 
-    assert package.readmes == ("README.md",)
+    assert package.readmes == (Path("README.md"),)
     with pytest.deprecated_call():
-        assert package.readme == "README.md"
+        assert package.readme == Path("README.md")
