@@ -60,14 +60,15 @@ class SdistBuilder(Builder):
         self,
         poetry: Poetry,
         executable: Path | None = None,
-        target_dir: Path | None = None,
     ) -> None:
         super().__init__(poetry, executable=executable)
-        self._target_dir = target_dir
 
-    def build(self) -> Path:
+    def build(
+        self,
+        target_dir: Path | None = None,
+    ) -> Path:
         logger.info("Building <info>sdist</info>")
-        target_dir = self._target_dir or self._path / "dist"
+        target_dir = target_dir or self._path / "dist"
 
         if not target_dir.exists():
             target_dir.mkdir(parents=True)

@@ -49,7 +49,6 @@ class WheelBuilder(Builder):
     def __init__(
         self,
         poetry: Poetry,
-        target_dir: Path | None = None,
         original: Path | None = None,
         executable: Path | None = None,
         editable: bool = False,
@@ -58,7 +57,6 @@ class WheelBuilder(Builder):
 
         self._records: list[tuple[str, str, int]] = []
         self._original_path = self._path
-        self._target_dir = target_dir or (self._poetry.file.parent / "dist")
         if original:
             self._original_path = original.parent
         self._editable = editable
@@ -74,12 +72,11 @@ class WheelBuilder(Builder):
     ) -> str:
         wb = WheelBuilder(
             poetry,
-            target_dir=directory,
             original=original,
             executable=executable,
             editable=editable,
         )
-        wb.build()
+        wb.build(target_dir=directory)
 
         return wb.wheel_filename
 
@@ -88,10 +85,13 @@ class WheelBuilder(Builder):
         """Build a wheel in the dist/ directory, and optionally upload it."""
         cls.make_in(poetry, executable=executable)
 
-    def build(self) -> Path:
+    def build(
+        self,
+        target_dir: Path | None = None,
+    ) -> Path:
         logger.info("Building wheel")
 
-        dist_dir = self._target_dir
+        dist_dir = target_dir or (self._poetry.file.parent / "dist")
         if not dist_dir.exists():
             dist_dir.mkdir()
 
