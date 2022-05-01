@@ -7,9 +7,13 @@ import sys
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Sequence
+from typing import cast
 from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
+
+from poetry.core.semver.version_range import VersionRange
 
 
 if TYPE_CHECKING:
@@ -25,7 +29,7 @@ XZ_EXTENSIONS = (".tar.xz", ".txz", ".tlz", ".tar.lz", ".tar.lzma")
 ZIP_EXTENSIONS = (".zip", ".whl")
 TAR_EXTENSIONS = (".tar.gz", ".tgz", ".tar")
 ARCHIVE_EXTENSIONS = ZIP_EXTENSIONS + BZ2_EXTENSIONS + TAR_EXTENSIONS + XZ_EXTENSIONS
-SUPPORTED_EXTENSIONS = ZIP_EXTENSIONS + TAR_EXTENSIONS
+SUPPORTED_EXTENSIONS: tuple[str, ...] = ZIP_EXTENSIONS + TAR_EXTENSIONS
 
 try:
     import bz2  # noqa: F401, TC002
@@ -97,7 +101,7 @@ def is_url(name: str) -> bool:
     ]
 
 
-def strip_extras(path: str) -> tuple[str, str]:
+def strip_extras(path: str) -> tuple[str, str | None]:
     m = re.match(r"^(.+)(\[[^\]]+\])$", path)
     extras = None
     if m:
@@ -138,12 +142,12 @@ def splitext(path: str) -> tuple[str, str]:
 
 def group_markers(
     markers: list[BaseMarker], or_: bool = False
-) -> list[tuple[str, str, str] | list[tuple[str, str, str]]]:
+) -> list[list[tuple[str, str, str]]]:
     from poetry.core.version.markers import MarkerUnion
     from poetry.core.version.markers import MultiMarker
     from poetry.core.version.markers import SingleMarker
 
-    groups = [[]]
+    groups: list[list[tuple[str, str, str]]] = [[]]
 
     for marker in markers:
         if or_:
@@ -151,7 +155,7 @@ def group_markers(
 
         if isinstance(marker, (MultiMarker, MarkerUnion)):
             groups[-1].append(
-                group_markers(marker.markers, isinstance(marker, MarkerUnion))
+                group_markers(marker.markers, isinstance(marker, MarkerUnion))  # type: ignore[arg-type]
             )
         elif isinstance(marker, SingleMarker):
             lhs, op, rhs = marker.name, marker.operator, marker.value
@@ -164,10 +168,10 @@ def group_markers(
 def convert_markers(marker: BaseMarker) -> dict[str, list[list[tuple[str, str]]]]:
     groups = group_markers([marker])
 
-    requirements = {}
+    requirements: dict[str, list[list[tuple[str, str]]]] = {}
 
     def _group(
-        _groups: list[tuple[str, str, str] | list[tuple[str, str, str]]],
+        _groups: Sequence[tuple[str, str, str] | Sequence[tuple[str, str, str]]],
         or_: bool = False,
     ) -> None:
         ors = {}
@@ -215,32 +219,25 @@ def create_nested_marker(
         return ""
 
     if isinstance(constraint, (MultiConstraint, UnionConstraint)):
-        parts = []
+        multi_parts = []
         for c in constraint.constraints:
-            multi = False
-            if isinstance(c, (MultiConstraint, UnionConstraint)):
-                multi = True
-
-            parts.append((multi, create_nested_marker(name, c)))
+            multi = isinstance(c, (MultiConstraint, UnionConstraint))
+            multi_parts.append((multi, create_nested_marker(name, c)))
 
         glue = " and "
         if isinstance(constraint, UnionConstraint):
-            parts = [f"({part[1]})" if part[0] else part[1] for part in parts]
+            parts = [f"({part[1]})" if part[0] else part[1] for part in multi_parts]
             glue = " or "
         else:
-            parts = [part[1] for part in parts]
+            parts = [part[1] for part in multi_parts]
 
         marker = glue.join(parts)
     elif isinstance(constraint, Constraint):
         marker = f'{name} {constraint.operator} "{constraint.version}"'
     elif isinstance(constraint, VersionUnion):
-        parts = []
-        for c in constraint.ranges:
-            parts.append(create_nested_marker(name, c))
-
+        parts = [create_nested_marker(name, c) for c in constraint.ranges]
         glue = " or "
         parts = [f"({part})" for part in parts]
-
         marker = glue.join(parts)
     elif isinstance(constraint, Version):
         if name == "python_version" and constraint.precision >= 3:
@@ -248,6 +245,7 @@ def create_nested_marker(
 
         marker = f'{name} == "{constraint.text}"'
     else:
+        constraint = cast(VersionRange, constraint)
         if constraint.min is not None:
             op = ">="
             if not constraint.include_min:

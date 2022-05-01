@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
+from typing import cast
 
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
@@ -55,8 +56,8 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
-        self._constraint: str | VersionConstraint | None = None
-        self._pretty_constraint: str | None = None
+        self._constraint: VersionConstraint
+        self._pretty_constraint: str
         self.set_constraint(constraint=constraint)
 
         self._optional = optional
@@ -78,17 +79,17 @@ class Dependency(PackageSpecification):
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._transitive_python_versions = None
+        self._transitive_python_versions: str | None = None
         self._transitive_python_constraint: VersionConstraint | None = None
-        self._transitive_marker = None
+        self._transitive_marker: BaseMarker | None = None
         self._extras = frozenset(extras or [])
 
-        self._in_extras = []
+        self._in_extras: list[str] = []
 
         self._activated = not self._optional
 
         self.is_root = False
-        self._marker = AnyMarker()
+        self._marker: BaseMarker = AnyMarker()
         self.source_name = None
 
     @property
@@ -269,9 +270,9 @@ class Dependency(PackageSpecification):
                 # no functional difference with the logic in the else branch.
                 requirement += f" ({str(constraint)})"
             else:
-                constraints = self.pretty_constraint.split(",")
-                constraints = [parse_constraint(c) for c in constraints]
-                constraints = ",".join(str(c) for c in constraints)
+                constraints = ",".join(
+                    str(parse_constraint(c)) for c in self.pretty_constraint.split(",")
+                )
                 requirement += f" ({constraints})"
         elif isinstance(constraint, Version):
             requirement += f" (=={constraint.text})"
@@ -349,8 +350,8 @@ class Dependency(PackageSpecification):
                 requirement += " "
 
             if len(markers) > 1:
-                markers = " and ".join(f"({m})" for m in markers)
-                requirement += f"; {markers}"
+                marker_str = " and ".join(f"({m})" for m in markers)
+                requirement += f"; {marker_str}"
             else:
                 requirement += f"; {markers[0]}"
 
@@ -366,29 +367,23 @@ class Dependency(PackageSpecification):
         from poetry.core.semver.version_union import VersionUnion
 
         if isinstance(constraint, (MultiConstraint, UnionConstraint)):
-            parts = []
+            multi_parts = []
             for c in constraint.constraints:
-                multi = False
-                if isinstance(c, (MultiConstraint, UnionConstraint)):
-                    multi = True
-
-                parts.append((multi, self._create_nested_marker(name, c)))
+                multi = isinstance(c, (MultiConstraint, UnionConstraint))
+                multi_parts.append((multi, self._create_nested_marker(name, c)))
 
             glue = " and "
             if isinstance(constraint, UnionConstraint):
-                parts = [f"({part[1]})" if part[0] else part[1] for part in parts]
+                parts = [f"({part[1]})" if part[0] else part[1] for part in multi_parts]
                 glue = " or "
             else:
-                parts = [part[1] for part in parts]
+                parts = [part[1] for part in multi_parts]
 
             marker = glue.join(parts)
         elif isinstance(constraint, Constraint):
             marker = f'{name} {constraint.operator} "{constraint.version}"'
         elif isinstance(constraint, VersionUnion):
-            parts = []
-            for c in constraint.ranges:
-                parts.append(self._create_nested_marker(name, c))
-
+            parts = [self._create_nested_marker(name, c) for c in constraint.ranges]
             glue = " or "
             parts = [f"({part})" for part in parts]
 
@@ -412,7 +407,7 @@ class Dependency(PackageSpecification):
                 if not constraint.include_min:
                     op = ">"
 
-                version = constraint.min.text
+                version: Version | str = constraint.min.text
                 if constraint.max is not None:
                     max_name = name
                     if constraint.max.precision >= 3 and name == "python_version":
@@ -517,7 +512,6 @@ class Dependency(PackageSpecification):
         req = Requirement(name)
 
         name = req.name
-        path = os.path.normpath(os.path.abspath(name))
         link = None
 
         if is_url(name):
@@ -525,7 +519,8 @@ class Dependency(PackageSpecification):
         elif req.url:
             link = Link(req.url)
         else:
-            p, extras = strip_extras(path)
+            path_str = os.path.normpath(os.path.abspath(name))
+            p, extras = strip_extras(path_str)
             if os.path.isdir(p) and (os.path.sep in name or name.startswith(".")):
 
                 if not is_installable_dir(p):
@@ -538,6 +533,7 @@ class Dependency(PackageSpecification):
                 link = Link(path_to_url(p))
 
         # it's a local file, dir, or url
+        dep: Dependency | None
         if link:
             is_file_uri = link.scheme == "file"
             is_relative_uri = is_file_uri and re.search(r"\.\./", link.url)
@@ -558,7 +554,7 @@ class Dependency(PackageSpecification):
                 name = m.group("name")
                 version = m.group("ver")
 
-            name = req.name or link.egg_fragment
+            name = cast(str, req.name or link.egg_fragment)
             dep = None
 
             if link.scheme.startswith("git+"):
@@ -599,11 +595,11 @@ class Dependency(PackageSpecification):
             if version:
                 dep._constraint = parse_constraint(version)
         else:
+            constraint: VersionConstraint | str
             if req.pretty_constraint:
                 constraint = req.constraint
             else:
                 constraint = "*"
-
             dep = Dependency(name, constraint, extras=req.extras)
 
         if req.marker:
