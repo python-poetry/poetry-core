@@ -104,8 +104,6 @@ module = [
   'poetry.core.packages.dependency',
   'poetry.core.packages.package',
   'poetry.core.semver.version_union',
-  'poetry.core.toml.exceptions',
-  'poetry.core.toml.file',
 ]
 ignore_errors = true
 

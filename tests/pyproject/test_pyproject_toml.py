@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -37,7 +38,8 @@ def test_pyproject_toml_poetry_config(
     pyproject_toml: Path, poetry_section: str
 ) -> None:
     pyproject = PyProjectTOML(pyproject_toml)
-    config = TOMLFile(pyproject_toml.as_posix()).read()["tool"]["poetry"]
+    doc: dict[str, Any] = TOMLFile(pyproject_toml.as_posix()).read()
+    config = doc["tool"]["poetry"]
 
     assert pyproject.is_poetry_project()
     assert pyproject.poetry_config == config
