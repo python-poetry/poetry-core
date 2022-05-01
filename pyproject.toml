@@ -89,21 +89,6 @@ module = [
 ]
 ignore_missing_imports = true
 
-# The following whitelist is used to allow for incremental adoption
-# of Mypy. Modules should be removed from this whitelist as and when
-# their respective type errors have been addressed. No new modules
-# should be added to this whitelist.
-# see https://github.com/python-poetry/poetry-core/pull/199.
-
-[[tool.mypy.overrides]]
-module = [
-  # src modules
-  'poetry.core.packages.utils.utils',
-  'poetry.core.packages.dependency',
-  'poetry.core.packages.package',
-]
-ignore_errors = true
-
 [tool.vendoring]
 destination = "src/poetry/core/_vendor/"
 requirements = "src/poetry/core/_vendor/vendor.txt"

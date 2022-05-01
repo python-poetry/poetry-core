@@ -85,9 +85,7 @@ class FileDependency(Dependency):
             extras=list(self._extras),
         )
 
-        new._constraint = constraint
-        new._pretty_constraint = str(constraint)
-
+        new.set_constraint(constraint)
         new.is_root = self.is_root
         new.python_versions = self.python_versions
         new.marker = self.marker
