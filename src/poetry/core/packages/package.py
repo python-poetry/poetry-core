@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Collection
 from typing import Iterable
+from typing import Iterator
 from typing import TypeVar
+from typing import cast
 
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
@@ -83,18 +85,18 @@ class Package(PackageSpecification):
 
         self.description = ""
 
-        self._authors = []
-        self._maintainers = []
+        self._authors: list[str] = []
+        self._maintainers: list[str] = []
 
         self.homepage: str | None = None
         self.repository_url: str | None = None
         self.documentation_url: str | None = None
         self.keywords: list[str] = []
-        self._license = None
+        self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
 
-        self.extras = {}
-        self.requires_extras = []
+        self.extras: dict[str, list[str | Dependency]] = {}
+        self.requires_extras: list[str] = []
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 
@@ -103,7 +105,7 @@ class Package(PackageSpecification):
         self.files: list[dict[str, str]] = []
         self.optional = False
 
-        self.classifiers = []
+        self.classifiers: list[str] = []
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
@@ -151,12 +153,13 @@ class Package(PackageSpecification):
         if self.source_type not in ["hg", "git"]:
             return self._pretty_version
 
+        ref: str | None
         if self.source_resolved_reference and len(self.source_resolved_reference) == 40:
             ref = self.source_resolved_reference[0:7]
             return f"{self._pretty_version} {ref}"
 
         # if source reference is a sha1 hash -- truncate
-        if len(self.source_reference) == 40:
+        if self.source_reference and len(self.source_reference) == 40:
             return f"{self._pretty_version} {self.source_reference[0:7]}"
 
         ref = self._source_resolved_reference or self._source_reference
@@ -167,11 +170,11 @@ class Package(PackageSpecification):
         return self._authors
 
     @property
-    def author_name(self) -> str:
+    def author_name(self) -> str | None:
         return self._get_author()["name"]
 
     @property
-    def author_email(self) -> str:
+    def author_email(self) -> str | None:
         return self._get_author()["email"]
 
     @property
@@ -179,11 +182,11 @@ class Package(PackageSpecification):
         return self._maintainers
 
     @property
-    def maintainer_name(self) -> str:
+    def maintainer_name(self) -> str | None:
         return self._get_maintainer()["name"]
 
     @property
-    def maintainer_email(self) -> str:
+    def maintainer_email(self) -> str | None:
         return self._get_maintainer()["email"]
 
     @property
@@ -345,7 +348,7 @@ class Package(PackageSpecification):
         return urls
 
     @property
-    def readme(self) -> Path:
+    def readme(self) -> Path | None:
         import warnings
 
         warnings.warn(
@@ -458,10 +461,11 @@ class Package(PackageSpecification):
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.vcs_dependency import VCSDependency
 
+        dep: Dependency
         if self.source_type == "directory":
             dep = DirectoryDependency(
                 self._name,
-                Path(self._source_url),
+                Path(cast(str, self._source_url)),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
@@ -471,7 +475,7 @@ class Package(PackageSpecification):
         elif self.source_type == "file":
             dep = FileDependency(
                 self._name,
-                Path(self._source_url),
+                Path(cast(str, self._source_url)),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
@@ -480,7 +484,7 @@ class Package(PackageSpecification):
         elif self.source_type == "url":
             dep = URLDependency(
                 self._name,
-                self._source_url,
+                cast(str, self._source_url),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,
@@ -489,7 +493,7 @@ class Package(PackageSpecification):
             dep = VCSDependency(
                 self._name,
                 self.source_type,
-                self.source_url,
+                cast(str, self.source_url),
                 rev=self.source_reference,
                 resolved_rev=self.source_resolved_reference,
                 directory=self.source_subdirectory,
@@ -513,7 +517,7 @@ class Package(PackageSpecification):
         return dep.with_constraint(self._version)
 
     @contextmanager
-    def with_python_versions(self, python_versions: str) -> None:
+    def with_python_versions(self, python_versions: str) -> Iterator[None]:
         original_python_versions = self.python_versions
 
         self.python_versions = python_versions
@@ -532,7 +536,7 @@ class Package(PackageSpecification):
     def without_features(self) -> Package:
         return self.with_features([])
 
-    def clone(self) -> Package:
+    def clone(self: T) -> T:
         clone = self.__class__(self.pretty_name, self.version)
         clone.__dict__ = copy.deepcopy(self.__dict__)
         return clone
@@ -540,7 +544,7 @@ class Package(PackageSpecification):
     def __hash__(self) -> int:
         return super().__hash__() ^ hash(self._version)
 
-    def __eq__(self, other: Package) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):
             return NotImplemented
 
@@ -569,5 +573,5 @@ class Package(PackageSpecification):
             if self._source_subdirectory:
                 args.append(f"source_subdirectory={repr(self._source_subdirectory)}")
 
-        args = ", ".join(args)
-        return f"Package({args})"
+        args_str = ", ".join(args)
+        return f"Package({args_str})"
