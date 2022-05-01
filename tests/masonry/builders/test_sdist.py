@@ -360,6 +360,15 @@ def test_with_c_extensions_src_layout() -> None:
         assert "extended-0.1/src/extended/extended.c" in tar.getnames()
 
 
+def test_with_build_script_in_subdir() -> None:
+    poetry = Factory().create_poetry(project("build_script_in_subdir"))
+
+    builder = SdistBuilder(poetry)
+    setup = builder.build_setup()
+    # should not error
+    ast.parse(setup)
+
+
 def test_with_src_module_file() -> None:
     poetry = Factory().create_poetry(project("source_file"))
 
