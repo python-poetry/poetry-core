@@ -651,6 +651,10 @@
         "links": {
           "type": "boolean",
           "description": "Declare this as a link source. Links at uri/path can point to sdist or bdist archives."
+        },
+        "indexed": {
+          "type": "boolean",
+          "description": "For PEP 503 simple API repositories, pre-fetch and index the available packages. (experimental)"
         }
       }
     },
