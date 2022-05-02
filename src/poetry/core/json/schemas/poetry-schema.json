@@ -654,7 +654,7 @@
         },
         "indexed": {
           "type": "boolean",
-          "description": "For simple/PEP503 repositories, pre-fetch and index the available packages."
+          "description": "For PEP 503 simple API repositories, pre-fetch and index the available packages. (experimental)"
         }
       }
     },
