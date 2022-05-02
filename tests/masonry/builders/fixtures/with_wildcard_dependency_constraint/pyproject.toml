@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "People Everywhere <people@everywhere.com>"
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+google-api-python-client = ">=1.8,!=2.0.*"
