@@ -16,6 +16,7 @@ class Link:
         url: str,
         comes_from: Any | None = None,
         requires_python: str | None = None,
+        metadata: str | bool | None = None,
     ) -> None:
         """
         Object representing a parsed link from https://pypi.python.org/simple/*
@@ -28,6 +29,11 @@ class Link:
             String containing the `Requires-Python` metadata field, specified
             in PEP 345. This may be specified by a data-requires-python
             attribute in the HTML link tag, as described in PEP 503.
+        metadata:
+            String of the syntax `<hashname>=<hashvalue>` representing the hash
+            of the Core Metadata file. This may be specified by a
+            data-dist-info-metadata attribute in the HTML link tag, as described
+            in PEP 658.
         """
 
         # url can be a UNC windows share
@@ -37,6 +43,13 @@ class Link:
         self.url = url
         self.comes_from = comes_from
         self.requires_python = requires_python if requires_python else None
+
+        if isinstance(metadata, str):
+            metadata = {"true": True, "": False, "false": False}.get(
+                metadata.strip().lower(), metadata
+            )
+
+        self._metadata = metadata
 
     def __str__(self) -> str:
         if self.requires_python:
@@ -135,6 +148,34 @@ class Link:
         return match.group(1)
 
     _hash_re = re.compile(r"(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)")
+
+    @property
+    def has_metadata(self) -> bool:
+        if self._metadata is None:
+            return False
+        return bool(self._metadata) and (self.is_wheel or self.is_sdist)
+
+    @property
+    def metadata_url(self) -> str | None:
+        if self.has_metadata:
+            return f"{self.url_without_fragment.split('?', 1)[0]}.metadata"
+        return None
+
+    @property
+    def metadata_hash(self) -> str | None:
+        if self.has_metadata and isinstance(self._metadata, str):
+            match = self._hash_re.search(self._metadata)
+            if match:
+                return match.group(2)
+        return None
+
+    @property
+    def metadata_hash_name(self) -> str | None:
+        if self.has_metadata and isinstance(self._metadata, str):
+            match = self._hash_re.search(self._metadata)
+            if match:
+                return match.group(1)
+        return None
 
     @property
     def hash(self) -> str | None:
