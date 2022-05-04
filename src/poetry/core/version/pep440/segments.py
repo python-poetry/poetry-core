@@ -23,6 +23,15 @@ RELEASE_PHASES = {
     RELEASE_PHASE_REV: "r",
     RELEASE_PHASE_DEV: "dev",
 }
+RELEASE_PHASES_NORMALIZED = {
+    RELEASE_PHASE_ALPHA: "a",
+    RELEASE_PHASE_BETA: "b",
+    RELEASE_PHASE_RC: "rc",
+    RELEASE_PHASE_PREVIEW: "rc",
+    RELEASE_PHASE_POST: "post",
+    RELEASE_PHASE_REV: "post",
+    RELEASE_PHASE_DEV: "dev",
+}
 RELEASE_PHASES_SHORT = {v: k for k, v in RELEASE_PHASES.items() if k != "post"}
 
 
@@ -110,6 +119,10 @@ class ReleaseTag:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "phase", self.expand(self.phase))
+
+    def normalize(self) -> str:
+        normalized_phase = RELEASE_PHASES_NORMALIZED.get(self.phase, self.phase)
+        return f"{normalized_phase}{self.number}"
 
     @classmethod
     def shorten(cls, phase: str) -> str:

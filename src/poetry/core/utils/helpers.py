@@ -33,7 +33,7 @@ def module_name(name: str) -> str:
 
 
 def normalize_version(version: str) -> str:
-    return PEP440Version.parse(version).to_string(short=True)
+    return PEP440Version.parse(version).normalize()
 
 
 @contextmanager

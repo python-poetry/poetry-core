@@ -142,6 +142,28 @@ class PEP440Version:
         assert isinstance(self.release.extra, tuple)
         return self.release.extra
 
+    def normalize(self) -> str:
+        version_string = self.release.to_string()
+
+        if self.epoch:
+            # if epoch is non-zero we should include it
+            version_string = f"{self.epoch}!{version_string}"
+
+        if self.pre:
+            version_string += self.pre.normalize()
+
+        if self.post:
+            version_string = f"{version_string}.{self.post.normalize()}"
+
+        if self.dev:
+            version_string = f"{version_string}.{self.dev.normalize()}"
+
+        if self.local:
+            assert isinstance(self.local, tuple)
+            version_string += "+" + ".".join(map(str, self.local))
+
+        return version_string.lower()
+
     def to_string(self, short: bool = False) -> str:
         dash = "-" if not short else ""
 
