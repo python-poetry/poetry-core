@@ -33,17 +33,16 @@ class Release:
     patch: int | None = dataclasses.field(default=None, compare=False)
     # some projects use non-semver versioning schemes, eg: 1.2.3.4
     extra: int | tuple[int, ...] | None = dataclasses.field(default=None, compare=False)
-    precision: int = dataclasses.field(default=None, init=False, compare=False)
-    text: str = dataclasses.field(default=None, init=False, compare=False)
-    _compare_key: tuple[int, ...] = dataclasses.field(
-        default=None, init=False, compare=True
-    )
+    precision: int = dataclasses.field(init=False, compare=False)
+    text: str = dataclasses.field(init=False, compare=False)
+    _compare_key: tuple[int, ...] = dataclasses.field(init=False, compare=True)
 
     def __post_init__(self) -> None:
         if self.extra is None:
             object.__setattr__(self, "extra", ())
         elif not isinstance(self.extra, tuple):
             object.__setattr__(self, "extra", (self.extra,))
+        assert isinstance(self.extra, tuple)
 
         parts = [
             str(part)
@@ -74,6 +73,7 @@ class Release:
         return self.text
 
     def next_major(self) -> Release:
+        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major + 1,
@@ -83,6 +83,7 @@ class Release:
         )
 
     def next_minor(self) -> Release:
+        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major,
@@ -92,6 +93,7 @@ class Release:
         )
 
     def next_patch(self) -> Release:
+        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major,
