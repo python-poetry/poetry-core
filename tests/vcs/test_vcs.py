@@ -108,6 +108,14 @@ if TYPE_CHECKING:
                 "project",
             ),
         ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@commit#subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
     ],
 )
 def test_normalize_url(url: str, normalized: GitUrl) -> None:
