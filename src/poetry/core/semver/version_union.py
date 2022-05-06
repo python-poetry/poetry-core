@@ -238,6 +238,157 @@ class VersionUnion(VersionConstraint):
 
         raise ValueError(f"Unknown VersionConstraint type {constraint}")
 
+    def _exclude_single_wildcard_range_string(self) -> str:
+        """
+        Helper method to convert this instance into a wild card range
+        string.
+        """
+        if not self.excludes_single_wildcard_range():
+            raise ValueError("Not a valid wildcard range")
+
+        # we assume here that since it is a single exclusion range
+        # that it is one of "< 2.0.0 || >= 2.1.0" or ">= 2.1.0 || < 2.0.0"
+        # and the one with the max is the first part
+        idx_order = (0, 1) if self._ranges[0].max else (1, 0)
+        one = self._ranges[idx_order[0]].max
+        two = self._ranges[idx_order[1]].min
+
+        # versions can have both semver and non semver parts
+        parts_one = [
+            one.major,
+            one.minor or 0,
+            one.patch or 0,
+            *list(one.non_semver_parts or []),
+        ]
+        parts_two = [
+            two.major,
+            two.minor or 0,
+            two.patch or 0,
+            *list(two.non_semver_parts or []),
+        ]
+
+        # we assume here that a wildcard range implies that the part following the
+        # first part that is different in the second range is the wildcard, this means
+        # that multiple wildcards are not supported right now.
+        parts = []
+
+        for idx, part in enumerate(parts_one):
+            parts.append(str(part))
+            if parts_two[idx] != part:
+                # since this part is different the next one is the wildcard
+                # for example, "< 2.0.0 || >= 2.1.0" gets us a wildcard range
+                # 2.0.*
+                parts.append("*")
+                break
+        else:
+            # we should not ever get here, however it is likely that poorly
+            # constructed metadata exists
+            raise ValueError("Not a valid wildcard range")
+
+        return f"!={'.'.join(parts)}"
+
+    @staticmethod
+    def _excludes_single_wildcard_range_check_is_valid_range(
+        one: VersionRangeConstraint, two: VersionRangeConstraint
+    ) -> bool:
+        """
+        Helper method to determine if two versions define a single wildcard range.
+
+        In cases where !=2.0.* was parsed by us, the union is of the range
+        <2.0.0 || >=2.1.0. In user defined ranges, precision might be different.
+        For example, a union <2.0 || >= 2.1.0 is still !=2.0.*. In order to
+        handle these cases we make sure that if precisions do not match, extra
+        checks are performed to validate that the constraint is a valid single
+        wildcard range.
+        """
+
+        max_precision = max(one.max.precision, two.min.precision)
+
+        if max_precision <= 3:
+            # In cases where both versions have a precision less than 3,
+            # we can make use of the next major/minor/patch versions.
+            return two.min in {
+                one.max.next_major(),
+                one.max.next_minor(),
+                one.max.next_patch(),
+            }
+        else:
+            # When there are non-semver parts in one of the versions, we need to
+            # ensure we use zero padded version and in addition to next major/minor/
+            # patch versions, also check each next release for the extra parts.
+            from_parts = one.max.__class__.from_parts
+
+            _extras: list[list[int]] = []
+            _versions: list[Version] = []
+
+            for _version in [one.max, two.min]:
+                _extra = list(_version.non_semver_parts or [])
+
+                while len(_extra) < (max_precision - 3):
+                    # pad zeros for extra parts to ensure precisions are equal
+                    _extra.append(0)
+
+                # create a new release with unspecified parts padded with zeros
+                _padded_version: Version = from_parts(
+                    major=_version.major,
+                    minor=_version.minor or 0,
+                    patch=_version.patch or 0,
+                    extra=tuple(_extra),
+                )
+
+                _extras.append(_extra)
+                _versions.append(_padded_version)
+
+            _extra_one = _extras[0]
+            _padded_version_one = _versions[0]
+            _padded_version_two = _versions[1]
+
+            _check_versions = {
+                _padded_version_one.next_major(),
+                _padded_version_one.next_minor(),
+                _padded_version_one.next_patch(),
+            }
+
+            # for each non-semver (extra) part, bump a version
+            for idx in range(len(_extra_one)):
+                _extra = [
+                    *_extra_one[: idx - 1],
+                    (_extra_one[idx] + 1),
+                    *_extra_one[idx + 1 :],
+                ]
+                _check_versions.add(
+                    from_parts(
+                        _padded_version_one.major,
+                        _padded_version_one.minor,
+                        _padded_version_one.patch,
+                        *_extra,
+                    )
+                )
+
+            return _padded_version_two in _check_versions
+
+    def excludes_single_wildcard_range(self) -> bool:
+        from poetry.core.semver.version_range import VersionRange
+
+        if len(self._ranges) != 2:
+            return False
+
+        idx_order = (0, 1) if self._ranges[0].max else (1, 0)
+        one = self._ranges[idx_order[0]]
+        two = self._ranges[idx_order[1]]
+
+        is_range_exclusion = (
+            one.max and not one.include_max and two.min and two.include_min
+        )
+
+        if not is_range_exclusion:
+            return False
+
+        if not self._excludes_single_wildcard_range_check_is_valid_range(one, two):
+            return False
+
+        return isinstance(VersionRange().difference(self), VersionRange)
+
     def excludes_single_version(self) -> bool:
         from poetry.core.semver.version import Version
         from poetry.core.semver.version_range import VersionRange
@@ -264,7 +415,10 @@ class VersionUnion(VersionConstraint):
         if self.excludes_single_version():
             return f"!={VersionRange().difference(self)}"
 
-        return " || ".join([str(r) for r in self._ranges])
+        try:
+            return self._exclude_single_wildcard_range_string()
+        except ValueError:
+            return " || ".join([str(r) for r in self._ranges])
 
     def __repr__(self) -> str:
         return f"<VersionUnion {str(self)}>"

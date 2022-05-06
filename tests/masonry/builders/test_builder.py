@@ -285,3 +285,15 @@ def test_metadata_with_readme_files() -> None:
     description = "\n".join([readme1.read_text(), readme2.read_text(), ""])
 
     assert metadata.get_payload() == description
+
+
+def test_metadata_with_wildcard_dependency_constraint() -> None:
+    test_path = (
+        Path(__file__).parent / "fixtures" / "with_wildcard_dependency_constraint"
+    )
+    builder = Builder(Factory().create_poetry(test_path))
+
+    metadata = Parser().parsestr(builder.get_metadata_content())
+
+    requires = metadata.get_all("Requires-Dist")
+    assert requires == ["google-api-python-client (>=1.8,!=2.0.*)"]

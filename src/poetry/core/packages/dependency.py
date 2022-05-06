@@ -260,7 +260,13 @@ class Dependency(PackageSpecification):
 
         constraint = self.constraint
         if isinstance(constraint, VersionUnion):
-            if constraint.excludes_single_version():
+            if (
+                constraint.excludes_single_version()
+                or constraint.excludes_single_wildcard_range()
+            ):
+                # This branch is a short-circuit logic for special cases and
+                # avoids having to split and parse constraint again. This has
+                # no functional difference with the logic in the else branch.
                 requirement += f" ({str(constraint)})"
             else:
                 constraints = self.pretty_constraint.split(",")
