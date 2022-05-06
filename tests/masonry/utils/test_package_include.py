@@ -69,7 +69,6 @@ def test_pep_561_stub_only_partial_namespace_package_good_name_suffix() -> None:
     pkg_include = PackageInclude(
         base=fixtures_dir / "pep_561_stub_only_partial_namespace", include="good-stubs"
     )
-    print(pkg_include.elements)
     assert pkg_include.elements == [
         fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/module.pyi",
         fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/",
