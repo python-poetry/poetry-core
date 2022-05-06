@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import TypeVar
 
-from poetry.core.version.pep440.segments import RELEASE_PHASE_ALPHA
-from poetry.core.version.pep440.segments import RELEASE_PHASE_DEV
-from poetry.core.version.pep440.segments import RELEASE_PHASE_POST
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_ALPHA
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_DEV
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_POST
 from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
 
@@ -142,7 +142,17 @@ class PEP440Version:
         assert isinstance(self.release.extra, tuple)
         return self.release.extra
 
-    def normalize(self) -> str:
+    def to_string(self, short: bool = False) -> str:
+        if short:
+            import warnings
+
+            warnings.warn(
+                "Parameter 'short' has no effect and will be removed. "
+                "(Versions are always normalized according to PEP 440 now.)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         version_string = self.release.to_string()
 
         if self.epoch:
@@ -150,43 +160,19 @@ class PEP440Version:
             version_string = f"{self.epoch}!{version_string}"
 
         if self.pre:
-            version_string += self.pre.normalize()
+            version_string += self.pre.to_string()
 
         if self.post:
-            version_string = f"{version_string}.{self.post.normalize()}"
+            version_string = f"{version_string}.{self.post.to_string()}"
 
         if self.dev:
-            version_string = f"{version_string}.{self.dev.normalize()}"
+            version_string = f"{version_string}.{self.dev.to_string()}"
 
         if self.local:
             assert isinstance(self.local, tuple)
             version_string += "+" + ".".join(map(str, self.local))
 
         return version_string.lower()
-
-    def to_string(self, short: bool = False) -> str:
-        dash = "-" if not short else ""
-
-        version_string = dash.join(
-            part
-            for part in [
-                self.release.to_string(),
-                self.pre.to_string(short) if self.pre else None,
-                self.post.to_string(short) if self.post else None,
-                self.dev.to_string(short) if self.dev else None,
-            ]
-            if part
-        )
-
-        if self.epoch:
-            # if epoch is non-zero we should include it
-            version_string = f"{self.epoch}!{version_string}"
-
-        if self.local:
-            assert isinstance(self.local, tuple)
-            version_string += "+" + ".".join(map(str, self.local))
-
-        return version_string
 
     @classmethod
     def parse(cls: type[T], value: str) -> T:
@@ -241,7 +227,7 @@ class PEP440Version:
             assert self.pre is not None
             pre = self.pre.next_phase() if next_phase else self.pre.next()
         else:
-            pre = ReleaseTag(RELEASE_PHASE_ALPHA)
+            pre = ReleaseTag(RELEASE_PHASE_ID_ALPHA)
         return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
 
     def next_postrelease(self: T) -> T:
@@ -249,7 +235,7 @@ class PEP440Version:
             assert self.post is not None
             post = self.post.next()
         else:
-            post = ReleaseTag(RELEASE_PHASE_POST)
+            post = ReleaseTag(RELEASE_PHASE_ID_POST)
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
@@ -263,7 +249,7 @@ class PEP440Version:
             assert self.dev is not None
             dev = self.dev.next()
         else:
-            dev = ReleaseTag(RELEASE_PHASE_DEV)
+            dev = ReleaseTag(RELEASE_PHASE_ID_DEV)
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
@@ -274,7 +260,9 @@ class PEP440Version:
 
     def first_prerelease(self: T) -> T:
         return self.__class__(
-            epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
+            epoch=self.epoch,
+            release=self.release,
+            pre=ReleaseTag(RELEASE_PHASE_ID_ALPHA),
         )
 
     def replace(self: T, **kwargs: Any) -> T:

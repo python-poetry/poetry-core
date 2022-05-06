@@ -6,8 +6,7 @@ from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.pep440 import PEP440Version
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440 import ReleaseTag
-from poetry.core.version.pep440.segments import RELEASE_PHASES
-from poetry.core.version.pep440.segments import RELEASE_PHASES_SHORT
+from poetry.core.version.pep440.segments import RELEASE_PHASE_NORMALIZATIONS
 
 
 @pytest.mark.parametrize(
@@ -67,12 +66,10 @@ def test_pep440_release_tag_next_phase(
     assert ReleaseTag(*parts).next_phase() == result
 
 
-@pytest.mark.parametrize(
-    "phase", list({*RELEASE_PHASES.keys(), *RELEASE_PHASES_SHORT.keys()})
-)
+@pytest.mark.parametrize("phase", list({*RELEASE_PHASE_NORMALIZATIONS.keys()}))
 def test_pep440_release_tag_next(phase: str) -> None:
     tag = ReleaseTag(phase=phase).next()
-    assert tag.phase == ReleaseTag.expand(phase)
+    assert tag.phase == RELEASE_PHASE_NORMALIZATIONS[phase]
     assert tag.number == 1
 
 
