@@ -347,3 +347,8 @@ def test_marker_properly_unsets_python_constraint() -> None:
 
     dependency.marker = "*"  # type: ignore[assignment]
     assert str(dependency.python_constraint) == "*"
+
+
+def test_create_from_pep_508_url_with_activated_extras() -> None:
+    dependency = Dependency.create_from_pep_508("name [fred,bar] @ http://foo.com")
+    assert dependency.extras == {"fred", "bar"}

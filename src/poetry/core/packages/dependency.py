@@ -576,7 +576,7 @@ class Dependency(PackageSpecification):
                     name, "git", link.url_without_fragment, extras=req.extras
                 )
             elif link.scheme in ["http", "https"]:
-                dep = URLDependency(name, link.url)
+                dep = URLDependency(name, link.url, extras=req.extras)
             elif is_file_uri:
                 # handle RFC 8089 references
                 path = url_to_path(req.url)
