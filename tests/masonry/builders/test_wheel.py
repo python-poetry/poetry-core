@@ -215,6 +215,20 @@ def test_wheel_package_pep_561_stub_only(package: str) -> None:
         assert "pkg-stubs/subpkg/__init__.pyi" in z.namelist()
 
 
+def test_wheel_package_pep_561_stub_only_partial_namespace() -> None:
+    root = fixtures_dir / "pep_561_stub_only_partial_namespace"
+    WheelBuilder.make(Factory().create_poetry(root))
+
+    whl = root / "dist" / "pep_561_stubs-0.1-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "pkg-stubs/module.pyi" in z.namelist()
+        assert "pkg-stubs/subpkg/__init__.pyi" in z.namelist()
+        assert "pkg-stubs/subpkg/py.typed" in z.namelist()
+
+
 def test_wheel_package_pep_561_stub_only_includes_typed_marker() -> None:
     root = fixtures_dir / "pep_561_stub_only_partial"
     WheelBuilder.make(Factory().create_poetry(root))

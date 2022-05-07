@@ -65,6 +65,19 @@ def test_pep_561_stub_only_package_good_name_suffix() -> None:
     ]
 
 
+def test_pep_561_stub_only_partial_namespace_package_good_name_suffix() -> None:
+    pkg_include = PackageInclude(
+        base=fixtures_dir / "pep_561_stub_only_partial_namespace", include="good-stubs"
+    )
+    assert pkg_include.elements == [
+        fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/module.pyi",
+        fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/",
+        fixtures_dir
+        / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/__init__.pyi",
+        fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/py.typed",
+    ]
+
+
 def test_pep_561_stub_only_package_bad_name_suffix() -> None:
     with pytest.raises(ValueError) as e:
         PackageInclude(base=fixtures_dir / "pep_561_stub_only", include="bad")
