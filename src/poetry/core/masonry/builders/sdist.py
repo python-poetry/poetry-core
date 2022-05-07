@@ -60,7 +60,7 @@ class SdistBuilder(Builder):
         target_dir: Path | None = None,
     ) -> Path:
         logger.info("Building <info>sdist</info>")
-        target_dir = target_dir or self._path / "dist"
+        target_dir = target_dir or self.default_target_dir
 
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
@@ -326,15 +326,15 @@ class SdistBuilder(Builder):
         additional_files.update(self.convert_script_files())
 
         # Include project files
-        additional_files.add("pyproject.toml")
+        additional_files.add(Path("pyproject.toml"))
 
         # add readme if it is specified
         if "readme" in self._poetry.local_config:
             additional_files.add(self._poetry.local_config["readme"])
 
-        for file in additional_files:
+        for additional_file in additional_files:
             file = BuildIncludeFile(
-                path=file, project_root=self._path, source_root=self._path
+                path=additional_file, project_root=self._path, source_root=self._path
             )
             if file.path.exists():
                 logger.debug(f"Adding: {file.relative_to_source_root()}")
