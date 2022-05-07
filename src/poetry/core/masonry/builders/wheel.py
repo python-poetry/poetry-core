@@ -91,9 +91,9 @@ class WheelBuilder(Builder):
     ) -> Path:
         logger.info("Building wheel")
 
-        dist_dir = target_dir or (self._poetry.file.parent / "dist")
-        if not dist_dir.exists():
-            dist_dir.mkdir()
+        target_dir = target_dir or self.default_target_dir
+        if not target_dir.exists():
+            target_dir.mkdir()
 
         (fd, temp_path) = tempfile.mkstemp(suffix=".whl")
 
@@ -119,7 +119,7 @@ class WheelBuilder(Builder):
             self._write_metadata(zip_file)
             self._write_record(zip_file)
 
-        wheel_path = dist_dir / self.wheel_filename
+        wheel_path = target_dir / self.wheel_filename
         if wheel_path.exists():
             wheel_path.unlink()
         shutil.move(temp_path, str(wheel_path))

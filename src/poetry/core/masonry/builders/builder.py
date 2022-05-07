@@ -40,7 +40,7 @@ class Builder:
 
         self._poetry = poetry
         self._package = poetry.package
-        self._path = poetry.file.parent
+        self._path: Path = poetry.file.parent
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
 
@@ -92,6 +92,10 @@ class Builder:
     @property
     def executable(self) -> Path:
         return self._executable
+
+    @property
+    def default_target_dir(self) -> Path:
+        return self._path / "dist"
 
     def build(self, target_dir: Path | None) -> Path:
         raise NotImplementedError()
