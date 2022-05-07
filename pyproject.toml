@@ -47,6 +47,7 @@ pytest-mock = "^3.5"
 tox = "^3.0"
 vendoring = {version = "^0.3", python = "^3.8"}
 build = "^0.7.0"
+mypy = ">=0.950"
 
 [tool.black]
 line-length = 88
@@ -107,11 +108,6 @@ module = [
   'poetry.core.toml.file',
 ]
 ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = ['tests.*']
-# TODO: remove when mypy runs in environment with dependencies
-disallow_untyped_decorators = false
 
 [tool.vendoring]
 destination = "src/poetry/core/_vendor/"
