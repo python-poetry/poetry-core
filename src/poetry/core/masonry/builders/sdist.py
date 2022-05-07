@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from poetry.core.masonry.utils.package_include import PackageInclude
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.project_package import ProjectPackage
-    from poetry.core.poetry import Poetry
 
 SETUP = """\
 # -*- coding: utf-8 -*-
@@ -55,13 +54,6 @@ logger = logging.getLogger(__name__)
 class SdistBuilder(Builder):
 
     format = "sdist"
-
-    def __init__(
-        self,
-        poetry: Poetry,
-        executable: Path | None = None,
-    ) -> None:
-        super().__init__(poetry, executable=executable)
 
     def build(
         self,
