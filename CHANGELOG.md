@@ -1,5 +1,35 @@
 # Change Log
 
+## [1.1.0b1] - 2022-05-23
+
+### Fixed
+
+- Fixed an issue where canonicalize package names leads to infinite loops ([#328](https://github.com/python-poetry/poetry-core/pull/328)).
+- Fixed an issue where versions wasn't correct normalized to PEP-440 ([#344](https://github.com/python-poetry/poetry-core/pull/344)).
+- Fixed an issue with union of multi markers if one marker is a subset of the other marker ([#352](https://github.com/python-poetry/poetry-core/pull/352)).
+- Fixed an issue with markers which are not in disjunctive normal form (DNF) ([#347](https://github.com/python-poetry/poetry-core/pull/347)).
+- Fixed an issue where stub-only partial namespace packages were not recognized as packages ([#221](https://github.com/python-poetry/poetry-core/pull/221)).
+- Fixed an issue where PEP-508 url requirements with extras were not parsed correctly ([#345](https://github.com/python-poetry/poetry-core/pull/345)).
+- Fixed an issue where PEP-508 strings with wildcard exclusion constraints were incorrectly exported ([#343](https://github.com/python-poetry/poetry-core/pull/343)).
+- Allow hidden directories on Windows bare repos ([#341](https://github.com/python-poetry/poetry-core/pull/341)).
+- Fixed an issue where dependencies with an epoch are parsed as empty ([#316](https://github.com/python-poetry/poetry-core/pull/316)).
+- Fixed an issue where a package consisting of multiple packages wasn't build correctly ([#292](https://github.com/python-poetry/poetry-core/pull/292)).
+
+### Added
+
+- Added support for handling git urls with subdirectory ([#288](https://github.com/python-poetry/poetry-core/pull/288)).
+- Added support for metadata files as described in PEP-658 for PEP-503 "simple" API repositories ([#333](https://github.com/python-poetry/poetry-core/pull/333)).
+
+### Changed
+
+- Renamed dependency group of runtime dependencies to from `default` to `main` ([#326](https://github.com/python-poetry/poetry-core/pull/326)).
+
+### Improvements
+
+- `poetry-core` is now completely type checked.
+- Improved the SemVer constraint parsing ([#327](https://github.com/python-poetry/poetry-core/pull/327)).
+- Improved the speed when cloning git repositories ([#290](https://github.com/python-poetry/poetry-core/pull/290)).
+
 ## [1.1.0a7] - 2022-03-05
 
 ### Fixed
@@ -253,7 +283,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0a7...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0b1...master
+[1.1.0b1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b1
 [1.1.0a7]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a7
 [1.1.0a6]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a6
 [1.1.0a5]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a5
