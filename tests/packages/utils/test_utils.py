@@ -38,6 +38,19 @@ from poetry.core.version.markers import parse_marker
             'python_version == "2.7" or python_version == "2.6"',
             {"python_version": [[("==", "2.7")], [("==", "2.6")]]},
         ),
+        (
+            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+            ' python_full_version < "3.6.0"',
+            {"python_version": [[("<", "2.7")], [(">=", "3.0.0"), ("<", "3.6.0")]]},
+        ),
+        (
+            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+            ' extra == "foo"',
+            {
+                "extra": [[("==", "foo")]],
+                "python_version": [[("<", "2.7")], [(">=", "3.0.0")]],
+            },
+        ),
     ],
 )
 def test_convert_markers(
@@ -55,6 +68,11 @@ def test_convert_markers(
         (
             'python_full_version >= "3.6.1" and python_full_version < "4.0.0"',
             ">=3.6.1, <4.0.0",
+        ),
+        (
+            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+            ' python_full_version < "3.6.0"',
+            "<2.7 || >=3.0,<3.6",
         ),
         ('sys_platform == "linux"', "*"),
     ],
