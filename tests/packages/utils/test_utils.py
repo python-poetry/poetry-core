@@ -64,20 +64,53 @@ def test_convert_markers(
 @pytest.mark.parametrize(
     ["marker", "constraint"],
     [
+        # ==
+        ('python_version == "3.6"', "~3.6"),
+        ('python_version == "3.6.*"', "==3.6.*"),
+        ('python_version == "3.6.* "', "==3.6.*"),
+        # !=
+        ('python_version != "3.6"', "!=3.6.*"),
+        ('python_version != "3.6.*"', "!=3.6.*"),
+        ('python_version != "3.6.* "', "!=3.6.*"),
+        # <, <=, >, >= precision 1
+        ('python_version < "3"', "<3"),
+        ('python_version <= "3"', "<4"),
+        ('python_version > "3"', ">=4"),
+        ('python_version >= "3"', ">=3"),
+        # <, <=, >, >= precision 2
+        ('python_version < "3.6"', "<3.6"),
+        ('python_version <= "3.6"', "<3.7"),
+        ('python_version > "3.6"', ">=3.7"),
+        ('python_version >= "3.6"', ">=3.6"),
+        # in, not in
+        ('python_version in "2.7, 3.6"', ">=2.7.0,<2.8.0 || >=3.6.0,<3.7.0"),
+        ('python_version in "2.7, 3.6.2"', ">=2.7.0,<2.8.0 || 3.6.2"),
+        ('python_version not in "2.7, 3.6"', "<2.7.0 || >=2.8.0,<3.6.0 || >=3.7.0"),
+        ('python_version not in "2.7, 3.6.2"', "<2.7.0 || >=2.8.0,<3.6.2 || >3.6.2"),
+        # and
         ('python_version >= "3.6" and python_full_version < "4.0"', ">=3.6, <4.0"),
         (
             'python_full_version >= "3.6.1" and python_full_version < "4.0.0"',
             ">=3.6.1, <4.0.0",
+        ),
+        # or
+        ('python_version < "3.6" or python_version >= "3.9"', "<3.6 || >=3.9"),
+        # and or
+        (
+            'python_version >= "3.7" and python_version < "3.8" or python_version >='
+            ' "3.9" and python_version < "3.10"',
+            ">=3.7,<3.8 || >=3.9,<3.10",
         ),
         (
             '(python_version < "2.7" or python_full_version >= "3.0.0") and'
             ' python_full_version < "3.6.0"',
             "<2.7 || >=3.0,<3.6",
         ),
+        # no python_version
         ('sys_platform == "linux"', "*"),
     ],
 )
 def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None:
     marker_parsed = parse_marker(marker)
     constraint_parsed = parse_constraint(constraint)
-    assert constraint_parsed == get_python_constraint_from_marker(marker_parsed)
+    assert get_python_constraint_from_marker(marker_parsed) == constraint_parsed
