@@ -11,6 +11,8 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
+from poetry.core.version.markers import dnf
+
 
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
@@ -162,7 +164,7 @@ def group_markers(
 
 
 def convert_markers(marker: BaseMarker) -> dict[str, list[list[tuple[str, str]]]]:
-    groups = group_markers([marker])
+    groups = group_markers([dnf(marker)])
 
     requirements = {}
 
@@ -197,6 +199,13 @@ def convert_markers(marker: BaseMarker) -> dict[str, list[list[tuple[str, str]]]
                 ors[group_name] = False
 
     _group(groups, or_=True)
+
+    for group_name in requirements:
+        # remove duplicates
+        seen = []
+        requirements[group_name] = [
+            r for r in requirements[group_name] if not (r in seen or seen.append(r))
+        ]
 
     return requirements
 
