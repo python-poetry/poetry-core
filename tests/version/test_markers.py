@@ -2,12 +2,21 @@ from __future__ import annotations
 
 import os
 
+from typing import TYPE_CHECKING
+
 import pytest
 
+from poetry.core.version.markers import AnyMarker
+from poetry.core.version.markers import EmptyMarker
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
+from poetry.core.version.markers import dnf
 from poetry.core.version.markers import parse_marker
+
+
+if TYPE_CHECKING:
+    from poetry.core.version.markers import BaseMarker
 
 
 def test_single_marker() -> None:
@@ -960,3 +969,193 @@ def test_union_should_drop_markers_if_their_complement_is_present(
     m = parse_marker(marker)
 
     assert parse_marker(expected) == m
+
+
+@pytest.mark.parametrize(
+    "scheme, marker, expected",
+    [
+        ("empty", EmptyMarker(), EmptyMarker()),
+        ("any", AnyMarker(), AnyMarker()),
+        (
+            "A_",
+            SingleMarker("python_version", ">=3.7"),
+            SingleMarker("python_version", ">=3.7"),
+        ),
+        (
+            "AB_",
+            MultiMarker(
+                SingleMarker("python_version", ">=3.7"),
+                SingleMarker("python_version", "<3.9"),
+            ),
+            MultiMarker(
+                SingleMarker("python_version", ">=3.7"),
+                SingleMarker("python_version", "<3.9"),
+            ),
+        ),
+        (
+            "A+B_",
+            MarkerUnion(
+                SingleMarker("python_version", "<3.7"),
+                SingleMarker("python_version", ">=3.9"),
+            ),
+            MarkerUnion(
+                SingleMarker("python_version", "<3.7"),
+                SingleMarker("python_version", ">=3.9"),
+            ),
+        ),
+        (
+            "AB+AC_",
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("python_version", "<3.9"),
+                ),
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("python_version", "<3.9"),
+                ),
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+        ),
+        (
+            "A(B+C)_AB+AC",
+            MultiMarker(
+                SingleMarker("python_version", ">=3.7"),
+                MarkerUnion(
+                    SingleMarker("python_version", "<3.9"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("python_version", "<3.9"),
+                ),
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+        ),
+        (
+            "(A+B)(C+D)_AC+AD+BC+BD",
+            MultiMarker(
+                MarkerUnion(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("sys_platform", "win32"),
+                ),
+                MarkerUnion(
+                    SingleMarker("python_version", "<3.9"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("python_version", "<3.9"),
+                ),
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.7"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+                MultiMarker(
+                    SingleMarker("sys_platform", "win32"),
+                    SingleMarker("python_version", "<3.9"),
+                ),
+            ),
+        ),
+        (
+            "A(B+C)+(D+E)(F+G)_AB+AC+DF+DG+EF+DG",
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("sys_platform", "win32"),
+                    MarkerUnion(
+                        SingleMarker("python_version", "<3.7"),
+                        SingleMarker("python_version", ">=3.9"),
+                    ),
+                ),
+                MultiMarker(
+                    MarkerUnion(
+                        SingleMarker("python_version", "<3.8"),
+                        SingleMarker("python_version", ">=3.9"),
+                    ),
+                    MarkerUnion(
+                        SingleMarker("sys_platform", "linux"),
+                        SingleMarker("python_version", ">=3.9"),
+                    ),
+                ),
+            ),
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("sys_platform", "win32"),
+                    SingleMarker("python_version", "<3.7"),
+                ),
+                SingleMarker("python_version", ">=3.9"),
+                MultiMarker(
+                    SingleMarker("python_version", "<3.8"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+        ),
+        (
+            "(A+B(C+D))(E+F)_AE+AF+BCE+BCF+BDE+BDF",
+            MultiMarker(
+                MarkerUnion(
+                    SingleMarker("python_version", ">=3.9"),
+                    MultiMarker(
+                        SingleMarker("implementation_name", "cpython"),
+                        MarkerUnion(
+                            SingleMarker("python_version", "<3.7"),
+                            SingleMarker("python_version", ">=3.8"),
+                        ),
+                    ),
+                ),
+                MarkerUnion(
+                    SingleMarker("sys_platform", "win32"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+            MarkerUnion(
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.9"),
+                    SingleMarker("sys_platform", "win32"),
+                ),
+                MultiMarker(
+                    SingleMarker("python_version", ">=3.9"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+                MultiMarker(
+                    SingleMarker("implementation_name", "cpython"),
+                    SingleMarker("python_version", "<3.7"),
+                    SingleMarker("sys_platform", "win32"),
+                ),
+                MultiMarker(
+                    SingleMarker("implementation_name", "cpython"),
+                    SingleMarker("python_version", "<3.7"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+                MultiMarker(
+                    SingleMarker("implementation_name", "cpython"),
+                    SingleMarker("python_version", ">=3.8"),
+                    SingleMarker("sys_platform", "win32"),
+                ),
+                MultiMarker(
+                    SingleMarker("implementation_name", "cpython"),
+                    SingleMarker("python_version", ">=3.8"),
+                    SingleMarker("sys_platform", "linux"),
+                ),
+            ),
+        ),
+    ],
+)
+def test_dnf(scheme: str, marker: BaseMarker, expected: BaseMarker) -> None:
+    assert dnf(marker) == expected
