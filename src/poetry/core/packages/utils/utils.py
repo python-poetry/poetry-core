@@ -322,10 +322,12 @@ def get_python_constraint_from_marker(
         for op, version in or_:
             # Expand python version
             if op == "==":
-                version = "~" + version
-                op = ""
+                if "*" not in version:
+                    version = "~" + version
+                    op = ""
             elif op == "!=":
-                version += ".*"
+                if "*" not in version:
+                    version += ".*"
             elif op in ("<=", ">"):
                 parsed_version = Version.parse(version)
                 if parsed_version.precision == 1:
