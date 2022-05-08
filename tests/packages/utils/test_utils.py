@@ -8,30 +8,35 @@ from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
-def test_convert_markers() -> None:
-    marker = parse_marker(
-        'sys_platform == "win32" and python_version < "3.6" or sys_platform == "linux"'
-        ' and python_version < "3.6" and python_version >= "3.3" or sys_platform =='
-        ' "darwin" and python_version < "3.3"'
-    )
-    converted = convert_markers(marker)
-    assert converted["python_version"] == [
-        [("<", "3.6")],
-        [("<", "3.6"), (">=", "3.3")],
-        [("<", "3.3")],
-    ]
-
-    marker = parse_marker(
-        'sys_platform == "win32" and python_version < "3.6" or sys_platform == "win32"'
-        ' and python_version < "3.6" and python_version >= "3.3" or sys_platform =='
-        ' "win32" and python_version < "3.3"'
-    )
-    converted = convert_markers(marker)
-    assert converted["python_version"] == [[("<", "3.6")]]
-
-    marker = parse_marker('python_version == "2.7" or python_version == "2.6"')
-    converted = convert_markers(marker)
-    assert converted["python_version"] == [[("==", "2.7")], [("==", "2.6")]]
+@pytest.mark.parametrize(
+    "marker, expected",
+    [
+        (
+            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+            ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
+            ' sys_platform == "darwin" and python_version < "3.3"',
+            [
+                [("<", "3.6")],
+                [("<", "3.6"), (">=", "3.3")],
+                [("<", "3.3")],
+            ],
+        ),
+        (
+            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+            ' "win32" and python_version < "3.6" and python_version >= "3.3" or'
+            ' sys_platform == "win32" and python_version < "3.3"',
+            [[("<", "3.6")]],
+        ),
+        (
+            'python_version == "2.7" or python_version == "2.6"',
+            [[("==", "2.7")], [("==", "2.6")]],
+        ),
+    ],
+)
+def test_convert_markers(marker: str, expected: list[list[tuple[str, str]]]) -> None:
+    parsed_marker = parse_marker(marker)
+    converted = convert_markers(parsed_marker)
+    assert converted["python_version"] == expected
 
 
 @pytest.mark.parametrize(
