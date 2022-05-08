@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import re
 
 from typing import TYPE_CHECKING
@@ -841,3 +842,18 @@ def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> BaseMarker:
         return groups[0]
 
     return MarkerUnion.of(*groups)
+
+
+def dnf(marker: BaseMarker) -> BaseMarker:
+    """Transforms the marker into DNF (disjunctive normal form)."""
+    if isinstance(marker, MultiMarker):
+        dnf_markers = [dnf(m) for m in marker.markers]
+        sub_marker_lists = [
+            m.markers if isinstance(m, MarkerUnion) else [m] for m in dnf_markers
+        ]
+        return MarkerUnion.of(
+            *[MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)]
+        )
+    if isinstance(marker, MarkerUnion):
+        return MarkerUnion.of(*[dnf(m) for m in marker.markers])
+    return marker
