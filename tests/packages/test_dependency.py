@@ -324,12 +324,19 @@ def test_with_constraint() -> None:
     assert new.transitive_python_constraint == dependency.transitive_python_constraint
 
 
-def test_marker_properly_sets_python_constraint() -> None:
+@pytest.mark.parametrize(
+    "marker, expected",
+    [
+        ('python_version >= "3.6" and python_version < "4.0"', ">=3.6,<4.0"),
+        ('sys_platform == "linux"', "*"),
+        ('python_version >= "3.9" or sys_platform == "linux"', "*"),
+        ('python_version >= "3.9" and sys_platform == "linux"', ">=3.9"),
+    ],
+)
+def test_marker_properly_sets_python_constraint(marker: str, expected: str) -> None:
     dependency = Dependency("foo", "^1.2.3")
-
-    dependency.marker = 'python_version >= "3.6" and python_version < "4.0"'  # type: ignore[assignment]
-
-    assert str(dependency.python_constraint) == ">=3.6,<4.0"
+    dependency.marker = marker  # type: ignore[assignment]
+    assert str(dependency.python_constraint) == expected
 
 
 def test_dependency_markers_are_the_same_as_markers() -> None:

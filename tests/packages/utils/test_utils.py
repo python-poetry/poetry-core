@@ -51,6 +51,20 @@ from poetry.core.version.markers import parse_marker
                 "python_version": [[("<", "2.7")], [(">=", "3.0.0")]],
             },
         ),
+        (
+            'python_version >= "3.9" or sys_platform == "linux"',
+            {
+                "python_version": [[(">=", "3.9")], []],
+                "sys_platform": [[], [("==", "linux")]],
+            },
+        ),
+        (
+            'python_version >= "3.9" and sys_platform == "linux"',
+            {
+                "python_version": [[(">=", "3.9")]],
+                "sys_platform": [[("==", "linux")]],
+            },
+        ),
     ],
 )
 def test_convert_markers(
@@ -108,6 +122,10 @@ def test_convert_markers(
         ),
         # no python_version
         ('sys_platform == "linux"', "*"),
+        # no relevant python_version
+        ('python_version >= "3.9" or sys_platform == "linux"', "*"),
+        # relevant python_version
+        ('python_version >= "3.9" and sys_platform == "linux"', ">=3.9"),
     ],
 )
 def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None:
