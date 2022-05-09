@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from poetry.core.semver.version_union import VersionUnion
     from poetry.core.version.markers import BaseMarker
 
+    ConvertedMarkers = dict[str, list[list[tuple[str, str]]]]
+
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
 XZ_EXTENSIONS = (".tar.xz", ".txz", ".tlz", ".tar.lz", ".tar.lzma")
@@ -138,67 +140,34 @@ def splitext(path: str) -> tuple[str, str]:
     return base, ext
 
 
-def group_markers(
-    markers: list[BaseMarker], or_: bool = False
-) -> list[tuple[str, str, str] | list[tuple[str, str, str]]]:
+def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
     from poetry.core.version.markers import MarkerUnion
     from poetry.core.version.markers import MultiMarker
     from poetry.core.version.markers import SingleMarker
 
-    groups = [[]]
-
-    for marker in markers:
-        if or_:
-            groups.append([])
-
-        if isinstance(marker, (MultiMarker, MarkerUnion)):
-            groups[-1].append(
-                group_markers(marker.markers, isinstance(marker, MarkerUnion))
-            )
-        elif isinstance(marker, SingleMarker):
-            lhs, op, rhs = marker.name, marker.operator, marker.value
-
-            groups[-1].append((lhs, op, rhs))
-
-    return groups
-
-
-def convert_markers(marker: BaseMarker) -> dict[str, list[list[tuple[str, str]]]]:
-    groups = group_markers([dnf(marker)])
-
     requirements = {}
+    marker = dnf(marker)
+    conjunctions = marker.markers if isinstance(marker, MarkerUnion) else [marker]
+    group_count = len(conjunctions)
 
-    def _group(
-        _groups: list[tuple[str, str, str] | list[tuple[str, str, str]]],
-        or_: bool = False,
+    def add_constraint(
+        marker_name: str, constraint: tuple[str, str], group_index: int
     ) -> None:
-        ors = {}
-        for group in _groups:
-            if isinstance(group, list):
-                _group(group, or_=True)
-            else:
-                variable, op, value = group
-                group_name = str(variable)
+        # python_full_version is equivalent to python_version
+        # for Poetry so we merge them
+        if marker_name == "python_full_version":
+            marker_name = "python_version"
+        if marker_name not in requirements:
+            requirements[marker_name] = [[] for _ in range(group_count)]
+        requirements[marker_name][group_index].append(constraint)
 
-                # python_full_version is equivalent to python_version
-                # for Poetry so we merge them
-                if group_name == "python_full_version":
-                    group_name = "python_version"
-
-                if group_name not in requirements:
-                    requirements[group_name] = []
-
-                if group_name not in ors:
-                    ors[group_name] = or_
-
-                if ors[group_name] or not requirements[group_name]:
-                    requirements[group_name].append([])
-
-                requirements[group_name][-1].append((str(op), str(value)))
-
-                ors[group_name] = False
-
-    _group(groups, or_=True)
+    for i, sub_marker in enumerate(conjunctions):
+        if isinstance(sub_marker, MultiMarker):
+            for m in sub_marker.markers:
+                if isinstance(m, SingleMarker):
+                    add_constraint(m.name, (m.operator, m.value), i)
+        elif isinstance(sub_marker, SingleMarker):
+            add_constraint(sub_marker.name, (sub_marker.operator, sub_marker.value), i)
 
     for group_name in requirements:
         # remove duplicates
@@ -208,6 +177,10 @@ def convert_markers(marker: BaseMarker) -> dict[str, list[list[tuple[str, str]]]
         ]
 
     return requirements
+
+
+def contains_group_without_marker(markers: ConvertedMarkers, marker_name: str) -> bool:
+    return marker_name not in markers or [] in markers[marker_name]
 
 
 def create_nested_marker(
@@ -315,6 +288,11 @@ def get_python_constraint_from_marker(
         return EmptyConstraint()
 
     markers = convert_markers(marker)
+    if contains_group_without_marker(markers, "python_version"):
+        # groups are in disjunctive normal form (DNF),
+        # an empty group means that python_version does not appear in this group,
+        # which means that python_version is arbitrary for this group
+        return VersionRange()
 
     ors = []
     for or_ in markers["python_version"]:

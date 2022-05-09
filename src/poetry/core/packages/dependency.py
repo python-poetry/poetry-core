@@ -14,6 +14,7 @@ from poetry.core.packages.constraints import (
 )
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
+from poetry.core.packages.utils.utils import contains_group_without_marker
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.version.markers import parse_marker
@@ -180,7 +181,7 @@ class Dependency(PackageSpecification):
 
         # Recalculate python versions.
         self._python_versions = "*"
-        if "python_version" in markers:
+        if not contains_group_without_marker(markers, "python_version"):
             ors = []
             for or_ in markers["python_version"]:
                 ands = []
