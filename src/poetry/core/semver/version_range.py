@@ -20,7 +20,7 @@ class VersionRange(VersionRangeConstraint):
         include_min: bool = False,
         include_max: bool = False,
         always_include_max_prerelease: bool = False,
-    ):
+    ) -> None:
         full_max = max
         if (
             not always_include_max_prerelease

@@ -3,7 +3,6 @@ min_python_version = 3.7.0
 max-line-length = 88
 ignore = E501, E203, W503, ANN101, ANN102, SIM106
 ban-relative-imports = True
-mypy-init-return = True
 enable-extensions = TC, TC1
 type-checking-exempt-modules = typing, typing-extensions
 format-greedy = 1

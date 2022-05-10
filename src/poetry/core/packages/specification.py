@@ -13,7 +13,7 @@ class PackageSpecification:
         source_resolved_reference: str | None = None,
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
-    ):
+    ) -> None:
         from poetry.core.utils.helpers import canonicalize_name
 
         self._pretty_name = name
