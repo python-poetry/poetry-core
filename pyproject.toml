@@ -74,6 +74,7 @@ strict = true
 explicit_package_bases = true
 namespace_packages = true
 show_error_codes = true
+enable_error_code = ["ignore-without-code"]
 mypy_path = "src"
 files = "src, tests"
 exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
