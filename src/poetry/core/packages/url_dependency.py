@@ -19,7 +19,7 @@ class URLDependency(Dependency):
         groups: Iterable[str] | None = None,
         optional: bool = False,
         extras: Iterable[str] | None = None,
-    ):
+    ) -> None:
         self._url = url
 
         parsed = urlparse(url)

@@ -362,7 +362,7 @@ class BuildIncludeFile:
         path: Path | str,
         project_root: Path | str,
         source_root: Path | str | None = None,
-    ):
+    ) -> None:
         """
         :param project_root: the full path of the project's root
         :param path: a full path to the file to be included

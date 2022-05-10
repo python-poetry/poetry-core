@@ -103,7 +103,7 @@ class ParsedUrl:
         name: str | None,
         rev: str | None,
         subdirectory: str | None = None,
-    ):
+    ) -> None:
         self.protocol = protocol
         self.resource = resource
         self.pathname = pathname

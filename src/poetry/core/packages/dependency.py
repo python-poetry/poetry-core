@@ -43,7 +43,7 @@ class Dependency(PackageSpecification):
         source_reference: str | None = None,
         source_resolved_reference: str | None = None,
         source_subdirectory: str | None = None,
-    ):
+    ) -> None:
         from poetry.core.version.markers import AnyMarker
 
         super().__init__(

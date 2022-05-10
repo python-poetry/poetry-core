@@ -29,7 +29,7 @@ class VCSDependency(Dependency):
         optional: bool = False,
         develop: bool = False,
         extras: Iterable[str] | None = None,
-    ):
+    ) -> None:
         self._vcs = vcs
         self._source = source
 
