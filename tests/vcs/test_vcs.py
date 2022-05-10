@@ -116,6 +116,38 @@ if TYPE_CHECKING:
                 "project",
             ),
         ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git#commit&subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git#commit#subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@commit&subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@subdirectory#subdirectory=subdirectory",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "subdirectory",
+                "subdirectory",
+            ),
+        ),
     ],
 )
 def test_normalize_url(url: str, normalized: GitUrl) -> None:
