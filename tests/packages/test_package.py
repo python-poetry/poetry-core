@@ -172,37 +172,6 @@ def test_package_equality_source_reference() -> None:
     assert a2 != a4
 
 
-def test_package_equality_source_subdirectory() -> None:
-    a1 = Package(
-        "a",
-        "0.1.0",
-        source_type="git",
-        source_url="https://foo.bar",
-        source_subdirectory="baz",
-    )
-    a2 = Package(
-        a1.name,
-        a1.version,
-        source_type="git",
-        source_url="https://foo.bar",
-        source_subdirectory="qux",
-    )
-    a3 = Package(
-        a1.name,
-        a1.version,
-        source_type="git",
-        source_url="https://foo.bar",
-        source_subdirectory="baz",
-    )
-    a4 = Package(a1.name, a1.version, source_type="git")
-
-    assert a1 == a3
-    assert a1 != a2
-    assert a2 != a3
-    assert a1 != a4
-    assert a2 != a4
-
-
 def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> None:
     a1 = Package(
         "a",
@@ -242,6 +211,37 @@ def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for
     assert a2 != a3
     assert a1 == a4
     assert a2 == a4
+
+
+def test_package_equality_source_subdirectory() -> None:
+    a1 = Package(
+        "a",
+        "0.1.0",
+        source_type="git",
+        source_url="https://foo.bar",
+        source_subdirectory="baz",
+    )
+    a2 = Package(
+        a1.name,
+        a1.version,
+        source_type="git",
+        source_url="https://foo.bar",
+        source_subdirectory="qux",
+    )
+    a3 = Package(
+        a1.name,
+        a1.version,
+        source_type="git",
+        source_url="https://foo.bar",
+        source_subdirectory="baz",
+    )
+    a4 = Package(a1.name, a1.version, source_type="git")
+
+    assert a1 == a3
+    assert a1 != a2
+    assert a2 != a3
+    assert a1 != a4
+    assert a2 != a4
 
 
 def test_complete_name() -> None:
