@@ -84,6 +84,11 @@ class PackageSpecification:
             ) and self._source_url != other.source_url:
                 return False
 
+            if (
+                self._source_subdirectory or other.source_subdirectory
+            ) and self._source_subdirectory != other.source_subdirectory:
+                return False
+
             # We check the resolved reference first:
             # if they match we assume equality regardless
             # of their source reference.
