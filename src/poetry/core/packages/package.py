@@ -566,6 +566,8 @@ class Package(PackageSpecification):
                 args.append(
                     f"source_resolved_reference={repr(self._source_resolved_reference)}"
                 )
+            if self._source_subdirectory:
+                args.append(f"source_subdirectory={repr(self._source_subdirectory)}")
 
         args = ", ".join(args)
         return f"Package({args})"
