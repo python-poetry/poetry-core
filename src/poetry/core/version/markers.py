@@ -513,7 +513,11 @@ class MultiMarker(BaseMarker):
             other_markers = set(other.markers)
             common_markers = markers & other_markers
             unique_markers = markers - common_markers
+            if not unique_markers:
+                return self
             other_unique_markers = other_markers - common_markers
+            if not other_unique_markers:
+                return other
             if common_markers:
                 unique_union = self.of(*unique_markers).union(
                     self.of(*other_unique_markers)

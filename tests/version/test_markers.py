@@ -445,13 +445,30 @@ def test_multi_marker_union_multi_is_single_marker() -> None:
     assert str(m2.union(m)) == 'python_version >= "3"'
 
 
-def test_multi_marker_union_multi_is_multi() -> None:
-    m = parse_marker('python_version >= "3" and sys_platform == "win32"')
-    m2 = parse_marker(
-        'python_version >= "3" and sys_platform != "win32" and sys_platform != "linux"'
-    )
-    assert str(m.union(m2)) == 'python_version >= "3" and sys_platform != "linux"'
-    assert str(m2.union(m)) == 'python_version >= "3" and sys_platform != "linux"'
+@pytest.mark.parametrize(
+    "marker1, marker2, expected",
+    [
+        (
+            'python_version >= "3" and sys_platform == "win32"',
+            'python_version >= "3" and sys_platform != "win32" and sys_platform !='
+            ' "linux"',
+            'python_version >= "3" and sys_platform != "linux"',
+        ),
+        (
+            'python_version >= "3.8" and python_version < "4.0" and sys_platform =='
+            ' "win32"',
+            'python_version >= "3.8" and python_version < "4.0"',
+            'python_version >= "3.8" and python_version < "4.0"',
+        ),
+    ],
+)
+def test_multi_marker_union_multi_is_multi(
+    marker1: str, marker2: str, expected: str
+) -> None:
+    m1 = parse_marker(marker1)
+    m2 = parse_marker(marker2)
+    assert str(m1.union(m2)) == expected
+    assert str(m2.union(m1)) == expected
 
 
 def test_multi_marker_union_with_union() -> None:
