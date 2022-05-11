@@ -196,7 +196,6 @@ def test_package_equality_source_subdirectory() -> None:
     )
     a4 = Package(a1.name, a1.version, source_type="git")
 
-    assert a1 == a1
     assert a1 == a3
     assert a1 != a2
     assert a2 != a3
