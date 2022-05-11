@@ -1,6 +1,3 @@
-default_language_version:
-    python: python3.8
-
 exclude: |
           (?x)(
               ^tests/.*/fixtures/.*
