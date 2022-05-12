@@ -68,7 +68,9 @@ class VersionUnion(VersionConstraint):
             ):
                 merged.append(constraint)
             else:
-                merged[-1] = merged[-1].union(constraint)
+                new_constraint = merged[-1].union(constraint)
+                assert isinstance(new_constraint, VersionRangeConstraint)
+                merged[-1] = new_constraint
 
         if len(merged) == 1:
             return merged[0]
@@ -147,7 +149,7 @@ class VersionUnion(VersionConstraint):
     def difference(self, other: VersionConstraint) -> VersionConstraint:
         our_ranges = iter(self._ranges)
         their_ranges = iter(self._ranges_for(other))
-        new_ranges = []
+        new_ranges: list[VersionConstraint] = []
 
         state = {
             "current": next(our_ranges, None),
@@ -159,6 +161,7 @@ class VersionUnion(VersionConstraint):
             if state["their_range"]:
                 return True
 
+            assert state["current"] is not None
             new_ranges.append(state["current"])
             our_current = next(our_ranges, None)
             while our_current:
@@ -169,6 +172,7 @@ class VersionUnion(VersionConstraint):
 
         def our_next_range(include_current: bool = True) -> bool:
             if include_current:
+                assert state["current"] is not None
                 new_ranges.append(state["current"])
 
             our_current = next(our_ranges, None)
@@ -183,6 +187,7 @@ class VersionUnion(VersionConstraint):
             if state["their_range"] is None:
                 break
 
+            assert state["current"] is not None
             if state["their_range"].is_strictly_lower(state["current"]):
                 if not their_next_range():
                     break
@@ -207,6 +212,7 @@ class VersionUnion(VersionConstraint):
                 if not our_next_range(False):
                     break
             else:
+                assert isinstance(difference, VersionRangeConstraint)
                 state["current"] = difference
 
                 if state["current"].allows_higher(state["their_range"]):
@@ -251,7 +257,9 @@ class VersionUnion(VersionConstraint):
         # and the one with the max is the first part
         idx_order = (0, 1) if self._ranges[0].max else (1, 0)
         one = self._ranges[idx_order[0]].max
+        assert one is not None
         two = self._ranges[idx_order[1]].min
+        assert two is not None
 
         # versions can have both semver and non semver parts
         parts_one = [
@@ -301,6 +309,9 @@ class VersionUnion(VersionConstraint):
         checks are performed to validate that the constraint is a valid single
         wildcard range.
         """
+
+        assert one.max is not None
+        assert two.min is not None
 
         max_precision = max(one.max.precision, two.min.precision)
 
@@ -361,7 +372,7 @@ class VersionUnion(VersionConstraint):
                         _padded_version_one.major,
                         _padded_version_one.minor,
                         _padded_version_one.patch,
-                        *_extra,
+                        tuple(_extra),
                     )
                 )
 
