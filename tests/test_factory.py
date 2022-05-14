@@ -174,14 +174,16 @@ def test_create_poetry_with_multi_constraints_dependency() -> None:
 
 def test_validate() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
-    content = complete.read()["tool"]["poetry"]
+    doc: dict[str, Any] = complete.read()
+    content = doc["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
 def test_validate_fails() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
-    content = complete.read()["tool"]["poetry"]
+    doc: dict[str, Any] = complete.read()
+    content = doc["tool"]["poetry"]
     content["this key is not in the schema"] = ""
 
     expected = (
@@ -194,14 +196,16 @@ def test_validate_fails() -> None:
 
 def test_strict_validation_success_on_multiple_readme_files() -> None:
     with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
-    content = with_readme_files.read()["tool"]["poetry"]
+    doc: dict[str, Any] = with_readme_files.read()
+    content = doc["tool"]["poetry"]
 
     assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
 
 
 def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None:
     with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
-    content = with_readme_files.read()["tool"]["poetry"]
+    doc: dict[str, Any] = with_readme_files.read()
+    content = doc["tool"]["poetry"]
     content["readme"][0] = "README.md"
 
     assert Factory.validate(content, strict=True) == {
