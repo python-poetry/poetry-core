@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
-from typing import cast
 
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
@@ -408,7 +407,7 @@ class Dependency(PackageSpecification):
                 if not constraint.include_min:
                     op = ">"
 
-                version: Version | str = constraint.min.text
+                version = constraint.min.text
                 if constraint.max is not None:
                     max_name = name
                     if constraint.max.precision >= 3 and name == "python_version":
@@ -420,7 +419,7 @@ class Dependency(PackageSpecification):
                     if not constraint.include_max:
                         op = "<"
 
-                    version = constraint.max
+                    version = constraint.max.text
 
                     text += f' and {max_name} {op} "{version}"'
 
@@ -433,7 +432,7 @@ class Dependency(PackageSpecification):
                 if not constraint.include_max:
                     op = "<"
 
-                version = constraint.max
+                version = constraint.max.text
             else:
                 return ""
 
@@ -534,7 +533,6 @@ class Dependency(PackageSpecification):
                 link = Link(path_to_url(p))
 
         # it's a local file, dir, or url
-        dep: Dependency | None
         if link:
             is_file_uri = link.scheme == "file"
             is_relative_uri = is_file_uri and re.search(r"\.\./", link.url)
@@ -555,8 +553,7 @@ class Dependency(PackageSpecification):
                 name = m.group("name")
                 version = m.group("ver")
 
-            name = cast(str, req.name or link.egg_fragment)
-            dep = None
+            dep: Dependency | None = None
 
             if link.scheme.startswith("git+"):
                 url = ParsedUrl.parse(link.url)

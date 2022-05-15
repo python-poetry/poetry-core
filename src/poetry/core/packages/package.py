@@ -95,7 +95,7 @@ class Package(PackageSpecification):
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
 
-        self.extras: dict[str, list[str | Dependency]] = {}
+        self.extras: dict[str, list[Dependency]] = {}
         self.requires_extras: list[str] = []
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
