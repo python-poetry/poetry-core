@@ -7,7 +7,9 @@ import sys
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import cast
+from typing import Dict
+from typing import List
+from typing import Tuple
 from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
@@ -23,7 +25,9 @@ if TYPE_CHECKING:
     from poetry.core.semver.version_union import VersionUnion
     from poetry.core.version.markers import BaseMarker
 
-    ConvertedMarkers = dict[str, list[list[tuple[str, str]]]]
+    # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
+    # this as `dict[str, ...]`
+    ConvertedMarkers = Dict[str, List[List[Tuple[str, str]]]]
 
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
@@ -147,7 +151,7 @@ def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
     from poetry.core.version.markers import MultiMarker
     from poetry.core.version.markers import SingleMarker
 
-    requirements: dict[str, list[list[tuple[str, str]]]] = {}
+    requirements: ConvertedMarkers = {}
     marker = dnf(marker)
     conjunctions = marker.markers if isinstance(marker, MarkerUnion) else [marker]
     group_count = len(conjunctions)
@@ -174,9 +178,10 @@ def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
     for group_name in requirements:
         # remove duplicates
         seen = []
-        requirements[group_name] = [
-            r for r in requirements[group_name] if not (r in seen or seen.append(r))
-        ]
+        for r in requirements[group_name]:
+            if r not in seen:
+                seen.append(r)
+        requirements[group_name] = seen
 
     return requirements
 
@@ -225,7 +230,7 @@ def create_nested_marker(
 
         marker = f'{name} == "{constraint.text}"'
     else:
-        constraint = cast(VersionRange, constraint)
+        assert isinstance(constraint, VersionRange)
         if constraint.min is not None:
             op = ">="
             if not constraint.include_min:
