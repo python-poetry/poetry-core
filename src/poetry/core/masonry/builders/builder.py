@@ -175,7 +175,10 @@ class Builder:
                 if (
                     isinstance(include, PackageInclude)
                     and include.source
-                    and self.format == "wheel"
+                    and (
+                        include.source.startswith("..")
+                        or self.format == "wheel"  # noqa: FS002
+                    )
                 ):
                     source_root = include.base
                 else:
