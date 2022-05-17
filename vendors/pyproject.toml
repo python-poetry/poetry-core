@@ -21,7 +21,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.7"
 
-jsonschema = "^3.2.0"
+jsonschema = "^4.5.1"
 lark = "^1.1.2"
 packaging = ">=20.9"
 tomlkit = ">=0.10.2,<1.0.0"
