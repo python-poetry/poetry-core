@@ -8,7 +8,7 @@ authors = [
 license = "MIT"
 
 packages = [
-  { include = "simple_version.py", from = "../simple_version" }
+  { include = "lib", from = "../src" }
 ]
 
 readme = "README.rst"
