@@ -6,6 +6,7 @@ import sys
 import warnings
 
 from collections import defaultdict
+from os.path import relpath
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -393,10 +394,10 @@ class BuildIncludeFile:
         return str(self.path)
 
     def relative_to_project_root(self) -> Path:
-        return self.path.relative_to(self.project_root)
+        return Path(relpath(self.path, self.project_root))
 
     def relative_to_source_root(self) -> Path:
         if self.source_root is not None:
-            return self.path.relative_to(self.source_root)
+            return Path(relpath(self.path, self.source_root))
 
         return self.path
