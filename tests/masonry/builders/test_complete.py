@@ -496,7 +496,7 @@ def test_split_source() -> None:
 
 
 def test_source_outside_project_root() -> None:
-    module_path = fixtures_dir / "src_outside_root"
+    module_path = fixtures_dir / "src_outside_root" / "project"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
@@ -505,7 +505,7 @@ def test_source_outside_project_root() -> None:
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "src-outside-root-1.2.3/../simple_version/simple_version.py" in tar.getnames()
+        assert "src-outside-root-1.2.3/lib/__init__.py" in tar.getnames()
 
     whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
 
@@ -514,7 +514,7 @@ def test_source_outside_project_root() -> None:
     zip = zipfile.ZipFile(str(whl))
 
     try:
-        assert "simple_version.py" in zip.namelist()
+        assert "lib/__init__.py" in zip.namelist()
     finally:
         zip.close()
 
