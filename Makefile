@@ -1,3 +1,4 @@
+SHELL                           := /bin/bash
 MAKEFILE_PATH                   := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR                        := $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))
 
