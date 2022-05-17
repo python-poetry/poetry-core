@@ -46,7 +46,6 @@ def test_pep440_release_tag_normalisation(
     tag = ReleaseTag(*parts)
     assert tag == result
     assert tag.to_string() == result.to_string()
-    assert tag.to_string(short=True) == result.to_string(short=True)
 
 
 @pytest.mark.parametrize(
