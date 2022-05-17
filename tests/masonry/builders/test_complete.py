@@ -505,7 +505,10 @@ def test_source_outside_project_root() -> None:
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "src-outside-root-1.2.3/../simple_version/simple_version.py" in tar.getnames()
+        assert (
+            "src-outside-root-1.2.3/../simple_version/simple_version.py"
+            in tar.getnames()
+        )
 
     whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
 
