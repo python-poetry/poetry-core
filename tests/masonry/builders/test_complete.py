@@ -495,6 +495,30 @@ def test_split_source() -> None:
         zip.close()
 
 
+def test_source_outside_project_root() -> None:
+    module_path = fixtures_dir / "src_outside_root"
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = module_path / "dist" / "src-outside-root-1.2.3.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "src-outside-root-1.2.3/../simple_version/simple_version.py" in tar.getnames()
+
+    whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
+
+    assert whl.exists()
+
+    zip = zipfile.ZipFile(str(whl))
+
+    try:
+        assert "simple_version.py" in zip.namelist()
+    finally:
+        zip.close()
+
+
 def test_package_with_include(mocker: MockerFixture) -> None:
     module_path = fixtures_dir / "with-include"
 
