@@ -94,24 +94,16 @@ destination = "src/poetry/core/_vendor/"
 requirements = "src/poetry/core/_vendor/vendor.txt"
 namespace = ""
 
-protected-files = ["__init__.py", "README.md", "vendor.txt"]
+protected-files = ["vendor.txt"]
 patches-dir = "vendors/patches"
 
 [tool.vendoring.transformations]
-substitute = []
 drop = [
     "bin/",
     "*.so",
     "typing.*",
     "*/tests/"
 ]
-
-[tool.vendoring.typing-stubs]
-six = ["six.__init__", "six.moves.__init__", "six.moves.configparser"]
-appdirs = []
-
-[tool.vendoring.license.directories]
-
 
 [tool.vendoring.license.fallback-urls]
 pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"
