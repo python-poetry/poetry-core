@@ -409,7 +409,7 @@ class Package(PackageSpecification):
 
         return dependency
 
-    def without_dependency_groups(self, groups: Collection[str]) -> Package:
+    def without_dependency_groups(self: T, groups: Collection[str]) -> T:
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
@@ -421,7 +421,7 @@ class Package(PackageSpecification):
 
         return package
 
-    def without_optional_dependency_groups(self) -> Package:
+    def without_optional_dependency_groups(self: T) -> T:
         """
         Returns a clone of the package without optional dependency groups.
         """
