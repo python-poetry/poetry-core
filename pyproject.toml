@@ -29,6 +29,9 @@ exclude = [
     "**/*.pyi",
 ]
 
+[tool.poetry.build]
+generate-setup-file = false
+
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
