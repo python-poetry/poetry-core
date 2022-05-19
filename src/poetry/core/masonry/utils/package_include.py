@@ -26,7 +26,7 @@ class PackageInclude(Include):
         if source is not None:
             base = base / source
 
-            if source.startswith('..'):
+            if source.startswith(".."):
                 # Source folder is outside of project root folder
                 self.source_outside_root = True
 
@@ -84,7 +84,7 @@ class PackageInclude(Include):
         else:
             if root.is_dir():
                 # If it's a directory, we include everything inside it
-                self._package = str(root.relative_to(self.base)).replace('/', '.')
+                self._package = str(root.relative_to(self.base)).replace("/", ".")
                 self._elements: list[Path] = sorted(root.glob("**/*"))
 
                 if not self.is_stub_only() and not self.has_modules():

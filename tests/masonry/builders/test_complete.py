@@ -516,12 +516,7 @@ def test_namespace_package_with_source_outside_project_root() -> None:
         setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
         ns: dict[str, Any] = {}
         exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
-        #assert ns["package_dir"] == {"": ""}
-        assert ns["packages"] == [
-            "namespace.lib",
-            "namespace.lib.sub"
-        ]
-
+        assert ns["packages"] == ["namespace.lib", "namespace.lib.sub"]
 
     whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
 
