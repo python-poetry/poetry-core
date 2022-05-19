@@ -174,11 +174,16 @@ class Builder:
 
                 if (
                     isinstance(include, PackageInclude)
+                    and include.source_outside_root
+                ):
+                    # When file source dir is outside of project root,
+                    # source_root should alway be calculated from base
+                    # Regardless of whether we're building a wheel or an sdist
+                    source_root = include.base
+                elif (
+                    isinstance(include, PackageInclude)
                     and include.source
-                    and (
-                        include.source.startswith("..")
-                        or self.format == "wheel"  # noqa: FS002
-                    )
+                    and self.format == "wheel"  # noqa: FS002
                 ):
                     source_root = include.base
                 else:
