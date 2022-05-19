@@ -16,11 +16,11 @@ from typing import Any
 from typing import Iterator
 
 import pytest
+import tomlkit
 
 from poetry.core import __version__
 from poetry.core.factory import Factory
 from poetry.core.masonry.builder import Builder
-import tomlkit
 
 
 if TYPE_CHECKING:
@@ -512,9 +512,9 @@ def test_namespace_package_with_source_outside_project_root() -> None:
         file = tar.extractfile("src-outside-root-1.2.3/pyproject.toml")
         assert file
         pyproject_data = tomlkit.loads(file.read())
-        # when a package's source is outside the project root, Builder moves it to the root of the sdist. 
+        # when a package's source is outside the project root, Builder moves it to the root of the sdist.
         # the pyproject.toml file in the sdist should reflect this
-        assert pyproject_data['tool']['poetry']['packages'][0]['from'] == ''
+        assert pyproject_data["tool"]["poetry"]["packages"][0]["from"] == ""
 
         file = tar.extractfile("src-outside-root-1.2.3/setup.py")
         assert file
@@ -527,10 +527,9 @@ def test_namespace_package_with_source_outside_project_root() -> None:
 
         assert ns["packages"] == ["namespace.lib", "namespace.lib.sub"]
 
-        # when a package's source is outside the project root, Builder moves it to the root of the sdist. 
+        # when a package's source is outside the project root, Builder moves it to the root of the sdist.
         # the generated setup.py file should reflect this
         assert ns["package_dir"] == {"": ""}
-        
 
     whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
 
