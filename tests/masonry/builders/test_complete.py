@@ -507,11 +507,20 @@ def test_namespace_package_with_source_outside_project_root() -> None:
     with tarfile.open(str(sdist), "r") as tar:
         assert "src-outside-root-1.2.3/namespace/lib/__init__.py" in tar.getnames()
         assert "src-outside-root-1.2.3/namespace/lib/sub/__init__.py" in tar.getnames()
-        generated_setup = tar.extractfile('src-outside-root-1.2.3/setup.py')
-        assert generated_setup is not None
-        generated_setup_contents = generated_setup.read().decode()
-        #assert "package_dir = \\\n{'': ''}" in generated_setup_contents
-        assert "packages = \\\n['namespace.lib', 'namespace.lib.sub']" in generated_setup_contents
+
+        file = tar.extractfile("src-outside-root-1.2.3/setup.py")
+        assert file
+        setup_file = file.read()
+        setup_ast = ast.parse(setup_file)
+
+        setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
+        ns: dict[str, Any] = {}
+        exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
+        #assert ns["package_dir"] == {"": ""}
+        assert ns["packages"] == [
+            "namespace.lib",
+            "namespace.lib.sub"
+        ]
 
 
     whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
