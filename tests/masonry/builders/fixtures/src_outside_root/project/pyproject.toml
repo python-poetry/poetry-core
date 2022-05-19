@@ -8,7 +8,7 @@ authors = [
 license = "MIT"
 
 packages = [
-  { include = "lib", from = "../src" }
+  { include = "namespace/lib", from = "../src" }
 ]
 
 readme = "README.rst"

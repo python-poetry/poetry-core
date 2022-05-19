@@ -495,7 +495,7 @@ def test_split_source() -> None:
         zip.close()
 
 
-def test_source_outside_project_root() -> None:
+def test_namespace_package_with_source_outside_project_root() -> None:
     module_path = fixtures_dir / "src_outside_root" / "project"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -505,7 +505,14 @@ def test_source_outside_project_root() -> None:
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "src-outside-root-1.2.3/lib/__init__.py" in tar.getnames()
+        assert "src-outside-root-1.2.3/namespace/lib/__init__.py" in tar.getnames()
+        assert "src-outside-root-1.2.3/namespace/lib/sub/__init__.py" in tar.getnames()
+        generated_setup = tar.extractfile('src-outside-root-1.2.3/setup.py')
+        assert generated_setup is not None
+        generated_setup_contents = generated_setup.read().decode()
+        #assert "package_dir = \\\n{'': ''}" in generated_setup_contents
+        assert "packages = \\\n['namespace.lib', 'namespace.lib.sub']" in generated_setup_contents
+
 
     whl = module_path / "dist" / "src_outside_root-1.2.3-py2.py3-none-any.whl"
 
@@ -514,7 +521,8 @@ def test_source_outside_project_root() -> None:
     zip = zipfile.ZipFile(str(whl))
 
     try:
-        assert "lib/__init__.py" in zip.namelist()
+        assert "namespace/lib/__init__.py" in zip.namelist()
+        assert "namespace/lib/sub/__init__.py" in zip.namelist()
     finally:
         zip.close()
 
