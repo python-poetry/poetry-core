@@ -54,6 +54,12 @@ repos:
         args:
           - --py37-plus
 
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v1.3.3
+    hooks:
+      - id: pycln
+        args: [--all]
+
   - repo: https://github.com/pycqa/isort
     rev: 5.10.1
     hooks:
