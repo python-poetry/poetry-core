@@ -526,14 +526,14 @@ class Package(PackageSpecification):
 
         self.python_versions = original_python_versions
 
-    def with_features(self, features: Iterable[str]) -> Package:
+    def with_features(self: T, features: Iterable[str]) -> T:
         package = self.clone()
 
         package._features = frozenset(features)
 
         return package
 
-    def without_features(self) -> Package:
+    def without_features(self: T) -> T:
         return self.with_features([])
 
     def clone(self: T) -> T:
