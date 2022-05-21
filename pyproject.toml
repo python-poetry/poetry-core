@@ -52,6 +52,7 @@ vendoring = {version = "^1.0", python = "^3.8"}
 build = "^0.7.0"
 mypy = ">=0.950"
 types-jsonschema = ">=4.4.4"
+types-setuptools = ">=57.4.14"
 
 [tool.black]
 line-length = 88
@@ -86,7 +87,6 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 [[tool.mypy.overrides]]
 module = [
   'lark.*',
-  'setuptools.*',
   'tomlkit.*',
   'virtualenv.*',
 ]

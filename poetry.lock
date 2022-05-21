@@ -506,6 +506,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "types-setuptools"
+version = "57.4.14"
+description = "Typing stubs for setuptools"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.2.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -580,7 +588,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "20e46388c357808e7a6a077b363e47375ac10c8183b2fb2c75b4a8609296759a"
+content-hash = "7b56fd3f95ff65af24a86bbadda3d16ba6f875828f5d999c68b92f770235150d"
 
 [metadata.files]
 atomicwrites = [
@@ -882,6 +890,10 @@ typed-ast = [
 types-jsonschema = [
     {file = "types-jsonschema-4.4.4.tar.gz", hash = "sha256:d03f0c1a97ff06dda9535dfa51916a98f38bf40d6828ef4d93bc40708effe507"},
     {file = "types_jsonschema-4.4.4-py3-none-any.whl", hash = "sha256:294d2de9ea3564fbec6c56153e84d1f3f7d9b2ada36e183d88a63c126da7bc3d"},
+]
+types-setuptools = [
+    {file = "types-setuptools-57.4.14.tar.gz", hash = "sha256:df02fe1dd244f58cf4e67cfc3d0a97930a2d61a72dd89f21d81c71017cd83f9a"},
+    {file = "types_setuptools-57.4.14-py3-none-any.whl", hash = "sha256:828f7e7e51e157876f47c80518b23ba0c3c36aa8081efd39d5d39f393938aec9"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},
