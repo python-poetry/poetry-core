@@ -40,7 +40,7 @@ def test_default_hash() -> None:
 try:
     from hashlib import algorithms_guaranteed as ALGORITHMS_GUARANTEED
 except ImportError:
-    ALGORITHMS_GUARANTEED = set("md5,sha1,sha224,sha256,sha384,sha512".split(","))
+    ALGORITHMS_GUARANTEED = {"md5", "sha1", "sha224", "sha256", "sha384", "sha512"}
 
 
 @pytest.mark.parametrize(
