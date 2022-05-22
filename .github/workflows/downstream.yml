@@ -16,17 +16,17 @@ jobs:
         python-version: [3.9]
         experimental: [false]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: poetry-core
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: python-poetry/poetry
           path: poetry
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -44,7 +44,7 @@ jobs:
         run: poetry config virtualenvs.in-project true
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache
         with:
           path: ./poetry/.venv
