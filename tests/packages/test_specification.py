@@ -21,3 +21,18 @@ def test_is_same_package_source_type(
     expected: bool,
 ) -> None:
     assert spec1.is_same_package_as(spec2) == expected
+
+
+@pytest.mark.parametrize(
+    ("source_type", "result"),
+    [
+        ("directory", True),
+        ("file", True),
+        ("url", True),
+        ("git", True),
+        ("legacy", False),
+        (None, False),
+    ],
+)
+def test_is_direct_origin(source_type: str | None, result: bool) -> None:
+    assert PackageSpecification("package", source_type).is_direct_origin() == result

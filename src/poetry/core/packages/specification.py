@@ -71,6 +71,14 @@ class PackageSpecification:
     def features(self) -> frozenset[str]:
         return self._features
 
+    def is_direct_origin(self) -> bool:
+        return self._source_type in [
+            "directory",
+            "file",
+            "url",
+            "git",
+        ]
+
     def is_same_package_as(self, other: PackageSpecification) -> bool:
         if other.complete_name != self.complete_name:
             return False
