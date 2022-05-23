@@ -90,61 +90,66 @@ class PackageSpecification:
         """
         return self.name == other.name and self.features.issuperset(other.features)
 
+    def is_same_source_as(self, other: PackageSpecification) -> bool:
+        if self._source_type != other.source_type:
+            return False
+
+        if not self._source_type:
+            # both packages are of source type None
+            # no need to check further
+            return True
+
+        if (
+            self._source_url or other.source_url
+        ) and self._source_url != other.source_url:
+            return False
+
+        if (
+            self._source_subdirectory or other.source_subdirectory
+        ) and self._source_subdirectory != other.source_subdirectory:
+            return False
+
+        # We check the resolved reference first:
+        # if they match we assume equality regardless
+        # of their source reference.
+        # This is important when comparing a resolved branch VCS
+        # dependency to a direct commit reference VCS dependency
+        if (
+            self._source_resolved_reference
+            and other.source_resolved_reference
+            and self._source_resolved_reference == other.source_resolved_reference
+        ):
+            return True
+
+        if self._source_reference or other.source_reference:
+            # special handling for packages with references
+            if not self._source_reference or not other.source_reference:
+                # case: one reference is defined and is non-empty, but other is not
+                return False
+
+            if not (
+                self._source_reference == other.source_reference
+                or self._source_reference.startswith(other.source_reference)
+                or other.source_reference.startswith(self._source_reference)
+            ):
+                # case: both references defined, but one is not equal to or a short
+                # representation of the other
+                return False
+
+            if (
+                self._source_resolved_reference
+                and other.source_resolved_reference
+                and self._source_resolved_reference != other.source_resolved_reference
+            ):
+                return False
+
+        return True
+
     def is_same_package_as(self, other: PackageSpecification) -> bool:
         if other.complete_name != self.complete_name:
             return False
 
-        if self._source_type != other.source_type:
-            return False
-
-        if self._source_type:
-
-            if (
-                self._source_url or other.source_url
-            ) and self._source_url != other.source_url:
-                return False
-
-            if (
-                self._source_subdirectory or other.source_subdirectory
-            ) and self._source_subdirectory != other.source_subdirectory:
-                return False
-
-            # We check the resolved reference first:
-            # if they match we assume equality regardless
-            # of their source reference.
-            # This is important when comparing a resolved branch VCS
-            # dependency to a direct commit reference VCS dependency
-            if (
-                self._source_resolved_reference
-                and other.source_resolved_reference
-                and self._source_resolved_reference == other.source_resolved_reference
-            ):
-                return True
-
-            if self._source_reference or other.source_reference:
-                # special handling for packages with references
-                if not self._source_reference or not other.source_reference:
-                    # case: one reference is defined and is non-empty, but other is not
-                    return False
-
-                if not (
-                    self._source_reference == other.source_reference
-                    or self._source_reference.startswith(other.source_reference)
-                    or other.source_reference.startswith(self._source_reference)
-                ):
-                    # case: both references defined, but one is not equal to or a short
-                    # representation of the other
-                    return False
-
-                if (
-                    self._source_resolved_reference
-                    and other.source_resolved_reference
-                    and self._source_resolved_reference
-                    != other.source_resolved_reference
-                ):
-                    return False
-
-        return True
+        return self.is_same_source_as(other)
 
     def __hash__(self) -> int:
         if not self._source_type:
