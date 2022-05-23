@@ -8,6 +8,7 @@ from typing import cast
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.directory_dependency import DirectoryDependency
 from poetry.core.packages.file_dependency import FileDependency
@@ -470,3 +471,34 @@ def test_set_readme_property() -> None:
     assert package.readmes == (Path("README.md"),)
     with pytest.deprecated_call():
         assert package.readme == Path("README.md")
+
+
+@pytest.mark.parametrize(
+    ("package", "dependency", "ignore_source_type", "result"),
+    [
+        (Package("foo", "0.1.0"), Dependency("foo", ">=0.1.0"), False, True),
+        (Package("foo", "0.1.0"), Dependency("foo", "<0.1.0"), False, False),
+        (
+            Package("foo", "0.1.0"),
+            Dependency("foo", ">=0.1.0", source_type="git"),
+            False,
+            False,
+        ),
+        (
+            Package("foo", "0.1.0"),
+            Dependency("foo", ">=0.1.0", source_type="git"),
+            True,
+            True,
+        ),
+        (
+            Package("foo", "0.1.0"),
+            Dependency("foo", "<0.1.0", source_type="git"),
+            True,
+            False,
+        ),
+    ],
+)
+def test_package_satisfies(
+    package: Package, dependency: Dependency, ignore_source_type: bool, result: bool
+) -> None:
+    assert package.satisfies(dependency, ignore_source_type) == result
