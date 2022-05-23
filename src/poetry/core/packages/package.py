@@ -511,7 +511,7 @@ class Package(PackageSpecification):
         if not self.python_constraint.is_any():
             dep.python_versions = self.python_versions
 
-        if self._source_type not in ["directory", "file", "url", "git"]:
+        if not self.is_direct_origin():
             return dep
 
         return dep.with_constraint(self._version)
