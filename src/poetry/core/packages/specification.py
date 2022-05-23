@@ -79,6 +79,17 @@ class PackageSpecification:
             "git",
         ]
 
+    def provides(self, other: PackageSpecification) -> bool:
+        """
+        Helper method to determine if this package provides the given specification.
+
+        This determination is made to be true, if the names are the same and this
+        package provides all features required by the other specification.
+
+        Source type checks are explicitly ignored here as this is not of interest.
+        """
+        return self.name == other.name and self.features.issuperset(other.features)
+
     def is_same_package_as(self, other: PackageSpecification) -> bool:
         if other.complete_name != self.complete_name:
             return False
