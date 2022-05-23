@@ -82,7 +82,7 @@ def test_wheel_c_extension() -> None:
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -137,7 +137,7 @@ def test_wheel_c_extension_with_no_setup() -> None:
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -192,7 +192,7 @@ def test_wheel_c_extension_src_layout() -> None:
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -247,7 +247,7 @@ my-script=my_package:main
             wheel_data
             == f"""\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """
@@ -371,7 +371,7 @@ my-script=my_package:main
             wheel_data
             == f"""\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """
