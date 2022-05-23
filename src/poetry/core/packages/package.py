@@ -536,6 +536,23 @@ class Package(PackageSpecification):
     def without_features(self: T) -> T:
         return self.with_features([])
 
+    def satisfies(
+        self, dependency: Dependency, ignore_source_type: bool = False
+    ) -> bool:
+        """
+        Helper method to check if this package satisfies a given dependency.
+
+        This is determined by assessing if this instance provides the package and
+        features specified by the given dependency. Further, version and source
+        types are checked.
+        """
+        if not self.provides(dependency) or not dependency.constraint.allows(
+            self.version
+        ):
+            return False
+
+        return ignore_source_type or self.is_same_source_as(dependency)
+
     def clone(self: T) -> T:
         clone = self.__class__(self.pretty_name, self.version)
         clone.__dict__ = copy.deepcopy(self.__dict__)
