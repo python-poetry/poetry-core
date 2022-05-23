@@ -3,7 +3,7 @@ name: Poetry Downstream Tests
 on:
   pull_request: {}
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   Tests:

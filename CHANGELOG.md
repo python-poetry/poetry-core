@@ -283,7 +283,7 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0b1...master
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0b1...main
 [1.1.0b1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b1
 [1.1.0a7]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a7
 [1.1.0a6]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a6
