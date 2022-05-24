@@ -1,5 +1,16 @@
 # Change Log
 
+## [1.1.0b2] - 2022-05-24
+
+### Fixed
+
+- Fixed a regression where `poetry-core` no longer handled improper Python version constraints from package metadata ([#371](https://github.com/python-poetry/poetry-core/pull/371))
+- Fixed missing version bump in `poetry.core.__version__` ([#367](https://github.com/python-poetry/poetry-core/pull/367))
+
+### Improvements
+
+- `poetry-core` generated wheel's now correctly identify `Generator` metadata as `poetry-core` instead of `poetry` ([#367](https://github.com/python-poetry/poetry-core/pull/367))
+
 ## [1.1.0b1] - 2022-05-23
 
 ### Fixed
@@ -283,7 +294,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0b1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0b2...main
+[1.1.0b2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b2
 [1.1.0b1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b1
 [1.1.0a7]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a7
 [1.1.0a6]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0a6
