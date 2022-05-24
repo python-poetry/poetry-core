@@ -348,6 +348,41 @@ def test_parse_constraints_negative_wildcard(
 
 
 @pytest.mark.parametrize(
+    "input,constraint",
+    [
+        (">3.7,", VersionRange(min=Version.parse("3.7"))),
+        (">3.7 , ", VersionRange(min=Version.parse("3.7"))),
+        (
+            ">3.7,<3.8,",
+            VersionRange(min=Version.parse("3.7"), max=Version.parse("3.8")),
+        ),
+        (
+            ">3.7,||<3.6,",
+            VersionRange(min=Version.parse("3.7")).union(
+                VersionRange(max=Version.parse("3.6"))
+            ),
+        ),
+        (
+            ">3.7 , || <3.6 , ",
+            VersionRange(min=Version.parse("3.7")).union(
+                VersionRange(max=Version.parse("3.6"))
+            ),
+        ),
+        (
+            ">3.7, <3.8, || <3.6, >3.5",
+            VersionRange(min=Version.parse("3.7"), max=Version.parse("3.8")).union(
+                VersionRange(min=Version.parse("3.5"), max=Version.parse("3.6"))
+            ),
+        ),
+    ],
+)
+def test_parse_constraints_with_trailing_comma(
+    input: str, constraint: VersionRange
+) -> None:
+    assert parse_constraint(input) == constraint
+
+
+@pytest.mark.parametrize(
     "input, expected",
     [
         ("1", "1"),

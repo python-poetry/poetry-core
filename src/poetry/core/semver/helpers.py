@@ -18,6 +18,9 @@ def parse_constraint(constraints: str) -> VersionConstraint:
     or_constraints = re.split(r"\s*\|\|?\s*", constraints.strip())
     or_groups = []
     for constraints in or_constraints:
+        # allow trailing commas for robustness (even though it may not be
+        # standard-compliant it seems to occur in some packages)
+        constraints = constraints.rstrip(",").rstrip()
         and_constraints = re.split(
             "(?<!^)(?<![~=>< ,]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
         )
