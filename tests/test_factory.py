@@ -184,12 +184,9 @@ def test_validate_fails() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
     doc: dict[str, Any] = complete.read()
     content = doc["tool"]["poetry"]
-    content["this key is not in the schema"] = ""
+    content["authors"] = "this is not a valid array"
 
-    expected = (
-        "Additional properties are not allowed "
-        "('this key is not in the schema' was unexpected)"
-    )
+    expected = "[authors] 'this is not a valid array' is not of type 'array'"
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
