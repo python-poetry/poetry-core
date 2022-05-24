@@ -75,3 +75,21 @@ def test_directory_dependency_pep_508_extras() -> None:
     requirement = f"demo[foo,bar] @ file://{path.as_posix()}"
     requirement_expected = f"demo[bar,foo] @ file://{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
+
+
+@pytest.mark.parametrize(
+    ("fixture", "name"),
+    [
+        ("project_with_pep517_non_poetry", "PEP 517"),
+        ("project_with_setup_cfg_only", "setup.cfg"),
+    ],
+)
+def test_directory_dependency_non_poetry_pep517(fixture: str, name: str) -> None:
+    path = Path(__file__).parent.parent / "fixtures" / fixture
+
+    try:
+        DirectoryDependency("package", path)
+    except ValueError as e:
+        if "does not seem to be a Python package" not in str(e):
+            raise e from e
+        pytest.fail(f"A {name} project not recognized as valid directory dependency")

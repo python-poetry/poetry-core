@@ -36,7 +36,6 @@ class DirectoryDependency(Dependency):
                 raise ValueError(f"Directory {self._path} does not exist")
 
         self._develop = develop
-        self._supports_poetry = False
 
         if not self._full_path.exists():
             raise ValueError(f"Directory {self._path} does not exist")
@@ -45,12 +44,17 @@ class DirectoryDependency(Dependency):
             raise ValueError(f"{self._path} is a file, expected a directory")
 
         # Checking content to determine actions
-        setup = self._full_path / "setup.py"
-        self._supports_poetry = PyProjectTOML(
-            self._full_path / "pyproject.toml"
-        ).is_poetry_project()
+        setup_py = self._full_path / "setup.py"
+        setup_cfg = self._full_path / "setup.cfg"
+        setuptools_project = setup_py.exists() or setup_cfg.exists()
+        pyproject = PyProjectTOML(self._full_path / "pyproject.toml")
 
-        if not setup.exists() and not self._supports_poetry:
+        self._supports_pep517 = (
+            setuptools_project or pyproject.is_build_system_defined()
+        )
+        self._supports_poetry = pyproject.is_poetry_project()
+
+        if not (self._supports_pep517 or self._supports_poetry):
             raise ValueError(
                 f"Directory {self._full_path} does not seem to be a Python package"
             )
