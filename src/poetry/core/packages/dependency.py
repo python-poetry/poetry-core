@@ -244,6 +244,9 @@ class Dependency(PackageSpecification):
     def extras(self) -> frozenset[str]:
         return self._extras
 
+    def set_extras(self, extras: Iterable[str]) -> None:
+        self._extras = frozenset(extras)
+
     @property
     def in_extras(self) -> list[str]:
         return self._in_extras

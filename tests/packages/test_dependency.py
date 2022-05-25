@@ -285,6 +285,13 @@ def test_dependency_string_representation(
     assert str(dependency) == expected
 
 
+def test_set_extras_sets_extras() -> None:
+    dependency = Dependency("A", "^1.0")
+    assert not dependency.extras
+    dependency.set_extras(["foo", "bar"])
+    assert dependency.extras == frozenset(["foo", "bar"])
+
+
 def test_set_constraint_sets_pretty_constraint() -> None:
     dependency = Dependency("A", "^1.0")
     assert dependency.pretty_constraint == "^1.0"
