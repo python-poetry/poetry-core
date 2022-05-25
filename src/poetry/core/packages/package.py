@@ -96,7 +96,6 @@ class Package(PackageSpecification):
         self.readmes: tuple[Path, ...] = ()
 
         self.extras: dict[str, list[Dependency]] = {}
-        self.requires_extras: list[str] = []
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 
