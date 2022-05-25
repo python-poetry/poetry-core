@@ -62,7 +62,7 @@ class URLDependency(Dependency):
             url=self._url,
             optional=self.is_optional(),
             groups=list(self._groups),
-            extras=list(self._extras),
+            extras=list(self.extras),
         )
 
         new.set_constraint(constraint)

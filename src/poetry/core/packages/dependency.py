@@ -82,7 +82,6 @@ class Dependency(PackageSpecification):
         self._transitive_python_versions: str | None = None
         self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
-        self._extras = frozenset(extras or [])
 
         self._in_extras: list[str] = []
 
@@ -242,7 +241,7 @@ class Dependency(PackageSpecification):
 
     @property
     def extras(self) -> frozenset[str]:
-        return self._extras
+        return self._features
 
     @property
     def in_extras(self) -> list[str]:
@@ -462,7 +461,7 @@ class Dependency(PackageSpecification):
             optional=self.is_optional(),
             groups=list(self._groups),
             allows_prereleases=self.allows_prereleases(),
-            extras=self._extras,
+            extras=self.extras,
             source_type=self._source_type,
             source_url=self._source_url,
             source_reference=self._source_reference,
@@ -612,14 +611,14 @@ class Dependency(PackageSpecification):
         return (
             self.is_same_package_as(other)
             and self._constraint == other.constraint
-            and self._extras == other.extras
+            and self.extras == other.extras
         )
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
     def __hash__(self) -> int:
-        return super().__hash__() ^ hash(self._constraint) ^ hash(self._extras)
+        return super().__hash__() ^ hash(self._constraint) ^ hash(self.extras)
 
     def __str__(self) -> str:
         if self.is_root:

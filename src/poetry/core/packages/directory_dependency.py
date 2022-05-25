@@ -98,7 +98,7 @@ class DirectoryDependency(Dependency):
             optional=self.is_optional(),
             groups=list(self._groups),
             develop=self._develop,
-            extras=list(self._extras),
+            extras=list(self.extras),
         )
 
         new.set_constraint(constraint)
