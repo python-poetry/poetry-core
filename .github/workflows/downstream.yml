@@ -58,7 +58,9 @@ jobs:
       - name: Update poetry-core version
         working-directory: ./poetry
         run: |
-          poetry add ../poetry-core
+          # workaround 1.1.13 bug not respecting direct origin dep changes
+          poetry run pip uninstall -y poetry-core
+          poetry add --lock ../poetry-core
           git diff
 
       - name: Install poetry (downstream)
