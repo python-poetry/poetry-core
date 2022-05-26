@@ -622,9 +622,6 @@ class Dependency(PackageSpecification):
 
         return super().__eq__(other) and self._constraint == other.constraint
 
-    def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
-
     def __hash__(self) -> int:
         # don't include _constraint in hash because it is mutable!
         return super().__hash__()
