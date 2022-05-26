@@ -151,19 +151,25 @@ class PackageSpecification:
 
         return self.is_same_source_as(other)
 
-    def __hash__(self) -> int:
-        if not self._source_type:
-            return hash(self._name)
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PackageSpecification):
+            return NotImplemented
+        return self.is_same_package_as(other)
 
-        return (
-            hash(self._name)
-            ^ hash(self._source_type)
-            ^ hash(self._source_url)
-            ^ hash(self._source_reference)
-            ^ hash(self._source_resolved_reference)
-            ^ hash(self._source_subdirectory)
-            ^ hash(self._features)
-        )
+    def __hash__(self) -> int:
+        result = hash(self.complete_name)  # complete_name includes features
+
+        if self._source_type:
+            # Don't include _source_reference and _source_resolved_reference in hash
+            # because two specs can be equal even if these attributes are not equal.
+            # (They must still meet certain conditions. See is_same_source_as().)
+            result ^= (
+                hash(self._source_type)
+                ^ hash(self._source_url)
+                ^ hash(self._source_subdirectory)
+            )
+
+        return result
 
     def __str__(self) -> str:
         raise NotImplementedError()

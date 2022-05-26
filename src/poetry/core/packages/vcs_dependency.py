@@ -169,6 +169,3 @@ class VCSDependency(Dependency):
             reference += f" rev {self._rev}"
 
         return f"{self._pretty_name} ({self._constraint} {reference})"
-
-    def __hash__(self) -> int:
-        return hash((self._name, self._vcs, self._branch, self._tag, self._rev))

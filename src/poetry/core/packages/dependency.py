@@ -241,6 +241,7 @@ class Dependency(PackageSpecification):
 
     @property
     def extras(self) -> frozenset[str]:
+        # extras activated in a dependency is the same as features
         return self._features
 
     @property
@@ -608,17 +609,14 @@ class Dependency(PackageSpecification):
         if not isinstance(other, Dependency):
             return NotImplemented
 
-        return (
-            self.is_same_package_as(other)
-            and self._constraint == other.constraint
-            and self.extras == other.extras
-        )
+        return super().__eq__(other) and self._constraint == other.constraint
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
     def __hash__(self) -> int:
-        return super().__hash__() ^ hash(self._constraint) ^ hash(self.extras)
+        # don't include _constraint in hash because it is mutable!
+        return super().__hash__()
 
     def __str__(self) -> str:
         if self.is_root:

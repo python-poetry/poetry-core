@@ -78,6 +78,3 @@ class URLDependency(Dependency):
 
     def __str__(self) -> str:
         return f"{self._pretty_name} ({self._pretty_constraint} url)"
-
-    def __hash__(self) -> int:
-        return hash((self._name, self._url))

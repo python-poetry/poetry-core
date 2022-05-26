@@ -114,6 +114,3 @@ class FileDependency(Dependency):
             return self._pretty_name
 
         return f"{self._pretty_name} ({self._pretty_constraint} {self._path})"
-
-    def __hash__(self) -> int:
-        return hash((self._name, self._full_path))
