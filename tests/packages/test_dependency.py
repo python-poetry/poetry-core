@@ -288,7 +288,7 @@ def test_dependency_string_representation(
 def test_set_constraint_sets_pretty_constraint() -> None:
     dependency = Dependency("A", "^1.0")
     assert dependency.pretty_constraint == "^1.0"
-    dependency.set_constraint("^2.0")
+    dependency.constraint = "^2.0"  # type: ignore[assignment]
     assert dependency.pretty_constraint == "^2.0"
 
 
