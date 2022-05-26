@@ -145,7 +145,7 @@ def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None
         ("project_with_setup", True),
         ("project_with_pep517_non_poetry", True),
         ("project_without_pep517", False),
-        ("does_not_exists", False),
+        ("does_not_exist", False),
     ],
 )
 def test_package_utils_is_python_project(fixture: str, result: bool) -> None:
