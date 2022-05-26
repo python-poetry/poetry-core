@@ -359,3 +359,23 @@ def test_marker_properly_unsets_python_constraint() -> None:
 def test_create_from_pep_508_url_with_activated_extras() -> None:
     dependency = Dependency.create_from_pep_508("name [fred,bar] @ http://foo.com")
     assert dependency.extras == {"fred", "bar"}
+
+
+@pytest.mark.parametrize(
+    "attr_name, value",
+    [
+        ("constraint", "2.0"),
+        ("python_versions", "<3.8"),
+        ("transitive_python_versions", "<3.8"),
+        ("marker", "sys_platform == 'linux'"),
+        ("transitive_marker", "sys_platform == 'linux'"),
+    ],
+)
+def test_mutable_attributes_not_in_hash(attr_name: str, value: str) -> None:
+    dependency = Dependency("foo", "^1.2.3")
+    ref_hash = hash(dependency)
+
+    ref_value = getattr(dependency, attr_name)
+    setattr(dependency, attr_name, value)
+    assert value != ref_value
+    assert hash(dependency) == ref_hash
