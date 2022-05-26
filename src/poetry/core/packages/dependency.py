@@ -490,7 +490,7 @@ class Dependency(PackageSpecification):
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.link import Link
         from poetry.core.packages.utils.utils import is_archive_file
-        from poetry.core.packages.utils.utils import is_installable_dir
+        from poetry.core.packages.utils.utils import is_python_project
         from poetry.core.packages.utils.utils import is_url
         from poetry.core.packages.utils.utils import path_to_url
         from poetry.core.packages.utils.utils import strip_extras
@@ -521,10 +521,9 @@ class Dependency(PackageSpecification):
             path_str = os.path.normpath(os.path.abspath(name))
             p, extras = strip_extras(path_str)
             if os.path.isdir(p) and (os.path.sep in name or name.startswith(".")):
-
-                if not is_installable_dir(p):
+                if not is_python_project(Path(name)):
                     raise ValueError(
-                        f"Directory {name!r} is not installable. File 'setup.py' "
+                        f"Directory {name!r} is not installable. File 'setup.[py|cfg]' "
                         "not found."
                     )
                 link = Link(path_to_url(p))

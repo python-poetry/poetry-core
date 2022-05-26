@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import functools
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterable
+
+from poetry.core.pyproject.toml import PyProjectTOML
 
 
 if TYPE_CHECKING:
     from poetry.core.semver.version_constraint import VersionConstraint
 
 from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.utils.utils import is_python_project
 from poetry.core.packages.utils.utils import path_to_url
 
 
@@ -23,7 +28,6 @@ class DirectoryDependency(Dependency):
         develop: bool = False,
         extras: Iterable[str] | None = None,
     ) -> None:
-        from poetry.core.pyproject.toml import PyProjectTOML
 
         self._path = path
         self._base = base or Path.cwd()
@@ -43,18 +47,7 @@ class DirectoryDependency(Dependency):
         if self._full_path.is_file():
             raise ValueError(f"{self._path} is a file, expected a directory")
 
-        # Checking content to determine actions
-        setup_py = self._full_path / "setup.py"
-        setup_cfg = self._full_path / "setup.cfg"
-        setuptools_project = setup_py.exists() or setup_cfg.exists()
-        pyproject = PyProjectTOML(self._full_path / "pyproject.toml")
-
-        self._supports_pep517 = (
-            setuptools_project or pyproject.is_build_system_defined()
-        )
-        self._supports_poetry = pyproject.is_poetry_project()
-
-        if not (self._supports_pep517 or self._supports_poetry):
+        if not is_python_project(self._full_path):
             raise ValueError(
                 f"Directory {self._full_path} does not seem to be a Python package"
             )
@@ -69,6 +62,9 @@ class DirectoryDependency(Dependency):
             source_url=self._full_path.as_posix(),
             extras=extras,
         )
+
+        # cache this function to avoid multiple IO reads and parsing
+        self.supports_poetry = functools.lru_cache(maxsize=1)(self._supports_poetry)
 
     @property
     def path(self) -> Path:
@@ -86,8 +82,8 @@ class DirectoryDependency(Dependency):
     def develop(self) -> bool:
         return self._develop
 
-    def supports_poetry(self) -> bool:
-        return self._supports_poetry
+    def _supports_poetry(self) -> bool:
+        return PyProjectTOML(self._full_path / "pyproject.toml").is_poetry_project()
 
     def is_directory(self) -> bool:
         return True
