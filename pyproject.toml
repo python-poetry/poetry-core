@@ -50,7 +50,7 @@ pytest-mock = "^3.5"
 tox = "^3.0"
 vendoring = {version = "^1.0", python = "^3.8"}
 build = "^0.7.0"
-mypy = ">=0.950"
+mypy = ">=0.960"
 types-jsonschema = ">=4.4.4"
 types-setuptools = ">=57.4.14"
 
