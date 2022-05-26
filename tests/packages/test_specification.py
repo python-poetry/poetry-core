@@ -77,3 +77,41 @@ def test_specification_provides(
     expected: bool,
 ) -> None:
     assert spec1.provides(spec2) == expected
+
+
+@pytest.mark.parametrize(
+    "spec1, spec2",
+    [
+        (
+            # nothing except for name and features matters if no source
+            PackageSpecification("a", None, "url1", "ref1", "resref1", "sub1"),
+            PackageSpecification("a", None, "url2", "ref2", "resref2", "sub2"),
+        ),
+        (
+            # ref does not matter if resolved ref is equal
+            PackageSpecification("a", "type", "url", "ref1", "resref1"),
+            PackageSpecification("a", "type", "url", "ref2", "resref1"),
+        ),
+        (
+            # resolved ref does not matter if no ref
+            PackageSpecification("a", "type", "url", None, "resref1"),
+            PackageSpecification("a", "type", "url", None, "resref2"),
+        ),
+        (
+            # resolved ref unset when ref starts with other
+            PackageSpecification("a", "type", "url", "ref/a", "resref1"),
+            PackageSpecification("a", "type", "url", "ref", None),
+        ),
+        (
+            # resolved ref unset when ref starts with other
+            PackageSpecification("a", "type", "url", "ref/a", None),
+            PackageSpecification("a", "type", "url", "ref", "resref2"),
+        ),
+    ],
+)
+def test_equal_specifications_have_same_hash(
+    spec1: PackageSpecification, spec2: PackageSpecification
+) -> None:
+    assert spec1 == spec2
+    assert spec2 == spec1
+    assert hash(spec1) == hash(spec2)
