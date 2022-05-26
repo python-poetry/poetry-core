@@ -69,6 +69,11 @@ class VersionRange(VersionRangeConstraint):
 
     def allows(self, other: Version) -> bool:
         if self._min is not None:
+            if self._min.is_local() and (
+                not other.is_local() or self._min.local != other.local
+            ):
+                return False
+
             if other < self._min:
                 return False
 
@@ -81,6 +86,10 @@ class VersionRange(VersionRangeConstraint):
             if not _this.is_local() and _other.is_local():
                 # allow weak equality to allow `3.0.0+local.1` for `<=3.0.0`
                 _other = _other.without_local()
+            elif _this.is_local() and (
+                not _other.is_local() or _this.local != _other.local
+            ):
+                return False
 
             if not _this.is_postrelease() and _other.is_postrelease():
                 # allow weak equality to allow `3.0.0-1` for `<=3.0.0`

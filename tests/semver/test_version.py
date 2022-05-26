@@ -127,7 +127,8 @@ def test_allows_with_local() -> None:
     assert not v.allows(Version.parse("1.3.3"))
     assert not v.allows(Version.parse("1.2.3-dev"))
     assert not v.allows(Version.parse("1.2.3+build.2"))
-    assert v.allows(Version.parse("1.2.3-1"))
+    assert not v.allows(Version.parse("1.2.3-1"))
+    assert v.allows(Version.parse("1.2.3-1+build.1"))
     assert v.allows(Version.parse("1.2.3-1+build.1"))
 
 
