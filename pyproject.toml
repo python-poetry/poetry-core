@@ -81,6 +81,7 @@ namespace_packages = true
 show_error_codes = true
 enable_error_code = [
     "ignore-without-code",
+    "redundant-expr",
     "truthy-bool",
 ]
 mypy_path = "src"
