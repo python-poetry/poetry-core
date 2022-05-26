@@ -65,7 +65,7 @@ class URLDependency(Dependency):
             extras=list(self.extras),
         )
 
-        new.set_constraint(constraint)
+        new.constraint = constraint  # type: ignore[assignment]
         new.is_root = self.is_root
         new.python_versions = self.python_versions
         new.marker = self.marker

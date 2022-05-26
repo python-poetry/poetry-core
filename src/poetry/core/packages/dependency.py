@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import warnings
 
 from contextlib import suppress
 from pathlib import Path
@@ -58,7 +59,7 @@ class Dependency(PackageSpecification):
 
         self._constraint: VersionConstraint
         self._pretty_constraint: str
-        self.set_constraint(constraint=constraint)
+        self.constraint = constraint  # type: ignore[assignment]
 
         self._optional = optional
 
@@ -99,7 +100,8 @@ class Dependency(PackageSpecification):
     def constraint(self) -> VersionConstraint:
         return self._constraint
 
-    def set_constraint(self, constraint: str | VersionConstraint) -> None:
+    @constraint.setter
+    def constraint(self, constraint: str | VersionConstraint) -> None:
         from poetry.core.semver.version_constraint import VersionConstraint
 
         try:
@@ -110,6 +112,15 @@ class Dependency(PackageSpecification):
         except ValueError:
             self._constraint = parse_constraint("*")
         self._pretty_constraint = str(constraint)
+
+    def set_constraint(self, constraint: str | VersionConstraint) -> None:
+        warnings.warn(
+            "Calling method 'set_constraint' is deprecated and will be removed. "
+            "It has been replaced by the property 'constraint' for consistency.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.constraint = constraint  # type: ignore[assignment]
 
     @property
     def pretty_constraint(self) -> str:
