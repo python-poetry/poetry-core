@@ -173,4 +173,4 @@ def test_pep440_parse_text(text: str, result: PEP440Version) -> None:
 )
 def test_pep440_parse_text_invalid_versions(text: str) -> None:
     with pytest.raises(InvalidVersion):
-        assert PEP440Version.parse(text)
+        PEP440Version.parse(text)

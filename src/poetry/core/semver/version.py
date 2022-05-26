@@ -92,8 +92,6 @@ class Version(PEP440Version, VersionRangeConstraint):
         # allow weak equality to allow `3.0.0-1` for `3.0.0`
         if not _this.is_postrelease() and _other.is_postrelease():
             _other = _other.without_postrelease()
-        elif _this.without_postrelease() and not _other.without_postrelease():
-            _this = _this.without_postrelease()
 
         return _this == _other
 
