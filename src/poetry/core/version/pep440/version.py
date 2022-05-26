@@ -205,7 +205,7 @@ class PEP440Version:
         release = self.release
         if self.is_stable() or Release(self.release.major, 0, 0) < self.release:
             release = self.release.next_major()
-        return self.__class__(epoch=self.epoch, release=release)
+        return self.__class__(epoch=self.epoch, release=release, local=self.local)
 
     def next_minor(self: T) -> T:
         release = self.release
@@ -214,12 +214,13 @@ class PEP440Version:
             or Release(self.release.major, self.release.minor, 0) < self.release
         ):
             release = self.release.next_minor()
-        return self.__class__(epoch=self.epoch, release=release)
+        return self.__class__(epoch=self.epoch, release=release, local=self.local)
 
     def next_patch(self: T) -> T:
         return self.__class__(
             epoch=self.epoch,
             release=self.release.next_patch() if self.is_stable() else self.release,
+            local=self.local,
         )
 
     def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
@@ -228,7 +229,9 @@ class PEP440Version:
             pre = self.pre.next_phase() if next_phase else self.pre.next()
         else:
             pre = ReleaseTag(RELEASE_PHASE_ID_ALPHA)
-        return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
+        return self.__class__(
+            epoch=self.epoch, release=self.release, pre=pre, local=self.local
+        )
 
     def next_postrelease(self: T) -> T:
         if self.is_postrelease():
@@ -242,6 +245,7 @@ class PEP440Version:
             pre=self.pre,
             dev=self.dev,
             post=post,
+            local=self.local,
         )
 
     def next_devrelease(self: T) -> T:
@@ -256,6 +260,7 @@ class PEP440Version:
             pre=self.pre,
             post=self.post,
             dev=dev,
+            local=self.local,
         )
 
     def first_prerelease(self: T) -> T:
@@ -263,6 +268,7 @@ class PEP440Version:
             epoch=self.epoch,
             release=self.release,
             pre=ReleaseTag(RELEASE_PHASE_ID_ALPHA),
+            local=self.local,
         )
 
     def replace(self: T, **kwargs: Any) -> T:
