@@ -342,7 +342,7 @@ class SingleMarker(BaseMarker):
                 )
 
             min_ = self._constraint.min
-            min_operator = ">=" if self._constraint.include_min else "<"
+            min_operator = ">=" if self._constraint.include_min else ">"
             max_ = self._constraint.max
             max_operator = "<=" if self._constraint.include_max else "<"
 
