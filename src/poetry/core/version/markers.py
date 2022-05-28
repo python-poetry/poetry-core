@@ -433,6 +433,14 @@ class MultiMarker(BaseMarker):
                                 intersected = True
                             elif constraint_intersection.is_empty():
                                 return EmptyMarker()
+                            elif (
+                                isinstance(constraint_intersection, VersionConstraint)
+                                and constraint_intersection.is_simple()
+                            ):
+                                new_markers[i] = SingleMarker(
+                                    mark.name, constraint_intersection
+                                )
+                                intersected = True
                         elif isinstance(mark, MarkerUnion):
                             intersection = mark.intersect(marker)
                             if isinstance(intersection, SingleMarker):

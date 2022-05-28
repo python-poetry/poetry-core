@@ -1176,3 +1176,16 @@ def test_union_should_drop_markers_if_their_complement_is_present(
 )
 def test_dnf(scheme: str, marker: BaseMarker, expected: BaseMarker) -> None:
     assert dnf(marker) == expected
+
+
+def test_single_markers_are_found_in_complex_intersection() -> None:
+    m1 = parse_marker('implementation_name != "pypy" and python_version <= "3.6"')
+    m2 = parse_marker(
+        'python_version >= "3.6" and python_version < "4.0" and implementation_name =='
+        ' "cpython"'
+    )
+    intersection = m1.intersect(m2)
+    assert (
+        str(intersection)
+        == 'implementation_name == "cpython" and python_version == "3.6"'
+    )
