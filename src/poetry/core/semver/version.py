@@ -140,6 +140,9 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return self
 
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return [self]
+
     def __str__(self) -> str:
         return self.text
 

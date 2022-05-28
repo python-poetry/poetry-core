@@ -230,6 +230,9 @@ class VersionUnion(VersionConstraint):
 
         return VersionUnion.of(*new_ranges)
 
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return self.ranges
+
     def _ranges_for(
         self, constraint: VersionConstraint
     ) -> list[VersionRangeConstraint]:

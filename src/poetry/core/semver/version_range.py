@@ -332,6 +332,9 @@ class VersionRange(VersionRangeConstraint):
 
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return [self]
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionRangeConstraint):
             return False
