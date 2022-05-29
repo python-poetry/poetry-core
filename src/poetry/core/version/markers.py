@@ -47,8 +47,6 @@ ALIASES = {
     "python_implementation": "platform_python_implementation",
 }
 
-PYTHON_VERSION_MARKERS = ["python_version", "python_full_version"]
-
 # Parser: PEP 508 Environment Markers
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
@@ -416,10 +414,6 @@ class MultiMarker(BaseMarker):
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
-                            or (
-                                mark.name in PYTHON_VERSION_MARKERS
-                                and marker.name in PYTHON_VERSION_MARKERS
-                            )
                         ):
                             # Markers with the same name have the same constraint type,
                             # but mypy can't see that.
@@ -626,10 +620,6 @@ class MarkerUnion(BaseMarker):
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
-                            or (
-                                mark.name in PYTHON_VERSION_MARKERS
-                                and marker.name in PYTHON_VERSION_MARKERS
-                            )
                         ):
                             # Markers with the same name have the same constraint type,
                             # but mypy can't see that.

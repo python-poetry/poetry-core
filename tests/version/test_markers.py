@@ -167,11 +167,15 @@ def test_single_marker_not_in_python_intersection() -> None:
 
 
 def test_marker_intersection_of_python_version_and_python_full_version() -> None:
-    m = parse_marker('python_version >= "3.6"')
-    m2 = parse_marker('python_full_version >= "3.0.0"')
+    m = parse_marker('python_version > "3.6"')
+    m2 = parse_marker('python_full_version >= "3.6.2"')
     intersection = m.intersect(m2)
 
-    assert str(intersection) == 'python_version >= "3.6"'
+    # 'python_version > "3.6"' would be good, but not
+    # 'python_full_version >= "3.6.2"'.
+    assert (
+        str(intersection) == 'python_version > "3.6" and python_full_version >= "3.6.2"'
+    )
 
 
 def test_single_marker_union() -> None:
@@ -521,11 +525,13 @@ def test_marker_union_deduplicate() -> None:
 
 
 def test_marker_union_of_python_version_and_python_full_version() -> None:
-    m = parse_marker('python_version >= "3.6"')
-    m2 = parse_marker('python_full_version >= "3.0.0"')
+    m = parse_marker('python_version > "3.6"')
+    m2 = parse_marker('python_full_version >= "3.6.2"')
     union = m.union(m2)
 
-    assert str(union) == 'python_full_version >= "3.0.0"'
+    # 'python_full_version >= "3.6.2"' would be good, but not
+    # 'python_version > "3.6"'.
+    assert str(union) == 'python_version > "3.6" or python_full_version >= "3.6.2"'
 
 
 def test_marker_union_intersect_single_marker() -> None:
