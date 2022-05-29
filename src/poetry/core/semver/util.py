@@ -9,12 +9,14 @@ if TYPE_CHECKING:
     from poetry.core.semver.version_constraint import VersionConstraint
 
 
-# Transform a list of VersionConstraints into a list of VersionRanges that mark out the
-# distinct regions of version-space.
-#
-# eg input >=3.6 and >=2.7,<3.0.0 || >=3.4.0
-# output <2.7, >=2.7,<3.0.0, >=3.0.0,<3.4.0, >=3.4.0,<3.6, >=3.6.
 def constraint_regions(constraints: list[VersionConstraint]) -> list[VersionRange]:
+    """
+    Transform a list of VersionConstraints into a list of VersionRanges that mark out
+    the distinct regions of version-space.
+
+    eg input >=3.6 and >=2.7,<3.0.0 || >=3.4.0
+    output <2.7, >=2.7,<3.0.0, >=3.0.0,<3.4.0, >=3.4.0,<3.6, >=3.6.
+    """
     flattened = []
     for constraint in constraints:
         flattened += constraint.flatten()
