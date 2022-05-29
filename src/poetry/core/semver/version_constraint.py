@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 
 
 class VersionConstraint:
@@ -43,4 +44,8 @@ class VersionConstraint:
 
     @abstractmethod
     def difference(self, other: VersionConstraint) -> VersionConstraint:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def flatten(self) -> list[VersionRangeConstraint]:
         raise NotImplementedError()
