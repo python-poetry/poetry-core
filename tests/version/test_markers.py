@@ -612,17 +612,20 @@ def test_marker_union_intersect_marker_union_drops_unnecessary_markers() -> None
 
 
 def test_marker_union_intersect_multi_marker() -> None:
-    m = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
+    m1 = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
+    m2 = parse_marker('implementation_name == "cpython" and os_name == "Windows"')
 
-    intersection = m.intersect(
-        parse_marker('implementation_name == "cpython" and os_name == "Windows"')
-    )
-    assert (
-        str(intersection)
-        == 'implementation_name == "cpython" and os_name == "Windows" and sys_platform'
+    expected = (
+        'implementation_name == "cpython" and os_name == "Windows" and sys_platform'
         ' == "darwin" or implementation_name == "cpython" and os_name == "Windows"'
         ' and python_version < "3.4"'
     )
+
+    intersection = m1.intersect(m2)
+    assert str(intersection) == expected
+
+    intersection = m2.intersect(m1)
+    assert str(intersection) == expected
 
 
 def test_marker_union_union_with_union() -> None:
