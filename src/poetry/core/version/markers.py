@@ -415,26 +415,13 @@ class MultiMarker(BaseMarker):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
                         ):
-                            # Markers with the same name have the same constraint type,
-                            # but mypy can't see that.
-                            constraint_intersection = mark.constraint.intersect(
-                                marker.constraint  # type: ignore[arg-type]
-                            )
-                            if constraint_intersection == mark.constraint:
+                            new_marker = _merge_single_markers(mark, marker, cls)
+                            if new_marker is not None:
+                                if new_marker.is_empty():
+                                    return new_marker
+                                new_markers[i] = new_marker
                                 intersected = True
-                            elif constraint_intersection == marker.constraint:
-                                new_markers[i] = marker
-                                intersected = True
-                            elif constraint_intersection.is_empty():
-                                return EmptyMarker()
-                            elif (
-                                isinstance(constraint_intersection, VersionConstraint)
-                                and constraint_intersection.is_simple()
-                            ):
-                                new_markers[i] = SingleMarker(
-                                    mark.name, constraint_intersection
-                                )
-                                intersected = True
+
                         elif isinstance(mark, MarkerUnion):
                             intersection = mark.intersect(marker)
                             if isinstance(intersection, SingleMarker):
@@ -631,27 +618,11 @@ class MarkerUnion(BaseMarker):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
                         ):
-                            # Markers with the same name have the same constraint type,
-                            # but mypy can't see that.
-                            constraint_union = mark.constraint.union(
-                                marker.constraint  # type: ignore[arg-type]
-                            )
-                            if constraint_union == mark.constraint:
-                                included = True
-                                break
-                            elif constraint_union == marker.constraint:
-                                new_markers[i] = marker
-                                included = True
-                                break
-                            elif constraint_union.is_any():
-                                return AnyMarker()
-                            elif (
-                                isinstance(constraint_union, VersionConstraint)
-                                and constraint_union.is_simple()
-                            ):
-                                new_markers[i] = SingleMarker(
-                                    mark.name, constraint_union
-                                )
+                            new_marker = _merge_single_markers(mark, marker, cls)
+                            if new_marker is not None:
+                                if new_marker.is_any():
+                                    return new_marker
+                                new_markers[i] = new_marker
                                 included = True
                                 break
 
@@ -869,3 +840,33 @@ def dnf(marker: BaseMarker) -> BaseMarker:
     if isinstance(marker, MarkerUnion):
         return MarkerUnion.of(*[dnf(m) for m in marker.markers])
     return marker
+
+
+def _merge_single_markers(
+    marker1: SingleMarker,
+    marker2: SingleMarker,
+    merge_class: type[MultiMarker | MarkerUnion],
+) -> BaseMarker | None:
+    if merge_class == MultiMarker:
+        merge_method = marker1.constraint.intersect
+    else:
+        merge_method = marker1.constraint.union
+    # Markers with the same name have the same constraint type,
+    # but mypy can't see that.
+    result_constraint = merge_method(marker2.constraint)  # type: ignore[arg-type]
+
+    result_marker: BaseMarker | None = None
+    if result_constraint.is_empty():
+        result_marker = EmptyMarker()
+    elif result_constraint.is_any():
+        result_marker = AnyMarker()
+    elif result_constraint == marker1.constraint:
+        result_marker = marker1
+    elif result_constraint == marker2.constraint:
+        result_marker = marker2
+    elif (
+        isinstance(result_constraint, VersionConstraint)
+        and result_constraint.is_simple()
+    ):
+        return SingleMarker(marker1.name, result_constraint)
+    return result_marker
