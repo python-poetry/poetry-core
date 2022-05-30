@@ -511,15 +511,22 @@ class MultiMarker(BaseMarker):
                 return other
 
         elif isinstance(other, MultiMarker):
-            markers = set(self._markers)
-            other_markers = set(other.markers)
-            common_markers = markers & other_markers
-            unique_markers = markers - common_markers
+            common_markers = [
+                marker for marker in self.markers if marker in other.markers
+            ]
+
+            unique_markers = [
+                marker for marker in self.markers if marker not in common_markers
+            ]
             if not unique_markers:
                 return self
-            other_unique_markers = other_markers - common_markers
+
+            other_unique_markers = [
+                marker for marker in other.markers if marker not in common_markers
+            ]
             if not other_unique_markers:
                 return other
+
             if common_markers:
                 unique_union = self.of(*unique_markers).union(
                     self.of(*other_unique_markers)
