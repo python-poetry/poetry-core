@@ -475,6 +475,9 @@ class MultiMarker(BaseMarker):
         if other.is_empty():
             return other
 
+        if isinstance(other, MarkerUnion):
+            return other.intersect(self)
+
         new_markers = self._markers + [other]
 
         return MultiMarker.of(*new_markers)

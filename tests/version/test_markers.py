@@ -372,6 +372,24 @@ def test_multi_marker_is_empty_is_contradictory() -> None:
     assert m.is_empty()
 
 
+def test_multi_complex_multi_marker_is_empty() -> None:
+    m1 = parse_marker(
+        'python_full_version >= "3.0.0" and python_full_version < "3.4.0"'
+    )
+    m2 = parse_marker(
+        'python_version >= "3.6" and python_full_version < "3.0.0" and python_version <'
+        ' "3.7"'
+    )
+    m3 = parse_marker(
+        'python_version >= "3.6" and python_version < "3.7" and python_full_version >='
+        ' "3.5.0"'
+    )
+
+    m = m1.intersect(m2.union(m3))
+
+    assert m.is_empty()
+
+
 def test_multi_marker_intersect_multi() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
