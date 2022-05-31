@@ -166,18 +166,6 @@ def test_single_marker_not_in_python_intersection() -> None:
     assert str(intersection) == 'python_version not in "2.7, 3.0, 3.1, 3.2"'
 
 
-def test_marker_intersection_of_python_version_and_python_full_version() -> None:
-    m = parse_marker('python_version > "3.6"')
-    m2 = parse_marker('python_full_version >= "3.6.2"')
-    intersection = m.intersect(m2)
-
-    # 'python_version > "3.6"' would be good, but not
-    # 'python_full_version >= "3.6.2"'.
-    assert (
-        str(intersection) == 'python_version > "3.6" and python_full_version >= "3.6.2"'
-    )
-
-
 def test_single_marker_union() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
@@ -540,16 +528,6 @@ def test_marker_union_deduplicate() -> None:
     )
 
     assert str(m) == 'sys_platform == "darwin" or implementation_name == "cpython"'
-
-
-def test_marker_union_of_python_version_and_python_full_version() -> None:
-    m = parse_marker('python_version > "3.6"')
-    m2 = parse_marker('python_full_version >= "3.6.2"')
-    union = m.union(m2)
-
-    # 'python_full_version >= "3.6.2"' would be good, but not
-    # 'python_version > "3.6"'.
-    assert str(union) == 'python_version > "3.6" or python_full_version >= "3.6.2"'
 
 
 def test_marker_union_intersect_single_marker() -> None:
@@ -1216,3 +1194,160 @@ def test_single_markers_are_found_in_complex_intersection() -> None:
         str(intersection)
         == 'implementation_name == "cpython" and python_version == "3.6"'
     )
+
+
+@pytest.mark.parametrize(
+    "python_version, python_full_version, "
+    "expected_intersection_version, expected_union_version",
+    [
+        # python_version > 3.6 (equal to python_full_version >= 3.7.0)
+        ('> "3.6"', '> "3.5.2"', '> "3.6"', '> "3.5.2"'),
+        ('> "3.6"', '>= "3.5.2"', '> "3.6"', '>= "3.5.2"'),
+        ('> "3.6"', '> "3.6.2"', '> "3.6"', '> "3.6.2"'),
+        ('> "3.6"', '>= "3.6.2"', '> "3.6"', '>= "3.6.2"'),
+        ('> "3.6"', '> "3.7.0"', '> "3.7.0"', '> "3.6"'),
+        ('> "3.6"', '>= "3.7.0"', '> "3.6"', '> "3.6"'),
+        ('> "3.6"', '> "3.7.1"', '> "3.7.1"', '> "3.6"'),
+        ('> "3.6"', '>= "3.7.1"', '>= "3.7.1"', '> "3.6"'),
+        ('> "3.6"', '== "3.6.2"', "<empty>", None),
+        ('> "3.6"', '== "3.7.0"', '== "3.7.0"', '> "3.6"'),
+        ('> "3.6"', '== "3.7.1"', '== "3.7.1"', '> "3.6"'),
+        ('> "3.6"', '!= "3.6.2"', '> "3.6"', '!= "3.6.2"'),
+        ('> "3.6"', '!= "3.7.0"', '> "3.7.0"', ""),
+        ('> "3.6"', '!= "3.7.1"', None, ""),
+        ('> "3.6"', '< "3.7.0"', "<empty>", ""),
+        ('> "3.6"', '<= "3.7.0"', '== "3.7.0"', ""),
+        ('> "3.6"', '< "3.7.1"', None, ""),
+        ('> "3.6"', '<= "3.7.1"', None, ""),
+        # python_version >= 3.6 (equal to python_full_version >= 3.6.0)
+        ('>= "3.6"', '> "3.5.2"', '>= "3.6"', '> "3.5.2"'),
+        ('>= "3.6"', '>= "3.5.2"', '>= "3.6"', '>= "3.5.2"'),
+        ('>= "3.6"', '> "3.6.0"', '> "3.6.0"', '>= "3.6"'),
+        ('>= "3.6"', '>= "3.6.0"', '>= "3.6"', '>= "3.6"'),
+        ('>= "3.6"', '> "3.6.1"', '> "3.6.1"', '>= "3.6"'),
+        ('>= "3.6"', '>= "3.6.1"', '>= "3.6.1"', '>= "3.6"'),
+        ('>= "3.6"', '== "3.5.2"', "<empty>", None),
+        ('>= "3.6"', '== "3.6.0"', '== "3.6.0"', '>= "3.6"'),
+        ('>= "3.6"', '!= "3.5.2"', '>= "3.6"', '!= "3.5.2"'),
+        ('>= "3.6"', '!= "3.6.0"', '> "3.6.0"', ""),
+        ('>= "3.6"', '!= "3.6.1"', None, ""),
+        ('>= "3.6"', '!= "3.7.1"', None, ""),
+        ('>= "3.6"', '< "3.6.0"', "<empty>", ""),
+        ('>= "3.6"', '<= "3.6.0"', '== "3.6.0"', ""),
+        ('>= "3.6"', '< "3.6.1"', None, ""),  # '== "3.6.0"'
+        ('>= "3.6"', '<= "3.6.1"', None, ""),
+        # python_version < 3.6 (equal to python_full_version < 3.6.0)
+        ('< "3.6"', '< "3.5.2"', '< "3.5.2"', '< "3.6"'),
+        ('< "3.6"', '<= "3.5.2"', '<= "3.5.2"', '< "3.6"'),
+        ('< "3.6"', '< "3.6.0"', '< "3.6"', '< "3.6"'),
+        ('< "3.6"', '<= "3.6.0"', '< "3.6"', '<= "3.6.0"'),
+        ('< "3.6"', '< "3.6.1"', '< "3.6"', '< "3.6.1"'),
+        ('< "3.6"', '<= "3.6.1"', '< "3.6"', '<= "3.6.1"'),
+        ('< "3.6"', '== "3.5.2"', '== "3.5.2"', '< "3.6"'),
+        ('< "3.6"', '== "3.6.0"', "<empty>", '<= "3.6.0"'),
+        ('< "3.6"', '!= "3.5.2"', None, ""),
+        ('< "3.6"', '!= "3.6.0"', '< "3.6"', '!= "3.6.0"'),
+        ('< "3.6"', '> "3.6.0"', "<empty>", '!= "3.6.0"'),
+        ('< "3.6"', '>= "3.6.0"', "<empty>", ""),
+        ('< "3.6"', '> "3.5.2"', None, ""),
+        ('< "3.6"', '>= "3.5.2"', None, ""),
+        # python_version <= 3.6 (equal to python_full_version < 3.7.0)
+        ('<= "3.6"', '< "3.6.1"', '< "3.6.1"', '<= "3.6"'),
+        ('<= "3.6"', '<= "3.6.1"', '<= "3.6.1"', '<= "3.6"'),
+        ('<= "3.6"', '< "3.7.0"', '<= "3.6"', '<= "3.6"'),
+        ('<= "3.6"', '<= "3.7.0"', '<= "3.6"', '<= "3.7.0"'),
+        ('<= "3.6"', '== "3.6.1"', '== "3.6.1"', '<= "3.6"'),
+        ('<= "3.6"', '== "3.7.0"', "<empty>", '<= "3.7.0"'),
+        ('<= "3.6"', '!= "3.6.1"', None, ""),
+        ('<= "3.6"', '!= "3.7.0"', '<= "3.6"', '!= "3.7.0"'),
+        ('<= "3.6"', '> "3.7.0"', "<empty>", '!= "3.7.0"'),
+        ('<= "3.6"', '>= "3.7.0"', "<empty>", ""),
+        ('<= "3.6"', '> "3.6.2"', None, ""),
+        ('<= "3.6"', '>= "3.6.2"', None, ""),
+        # python_version == 3.6  # noqa: E800
+        # (equal to python_full_version >= 3.6.0 and python_full_version < 3.7.0)
+        ('== "3.6"', '< "3.5.2"', "<empty>", None),
+        ('== "3.6"', '<= "3.5.2"', "<empty>", None),
+        ('== "3.6"', '> "3.5.2"', '== "3.6"', '> "3.5.2"'),
+        ('== "3.6"', '>= "3.5.2"', '== "3.6"', '>= "3.5.2"'),
+        ('== "3.6"', '!= "3.5.2"', '== "3.6"', '!= "3.5.2"'),
+        ('== "3.6"', '< "3.6.0"', "<empty>", '< "3.7.0"'),
+        ('== "3.6"', '<= "3.6.0"', '== "3.6.0"', '< "3.7.0"'),
+        ('== "3.6"', '> "3.6.0"', None, '>= "3.6.0"'),
+        ('== "3.6"', '>= "3.6.0"', '== "3.6"', '>= "3.6.0"'),
+        ('== "3.6"', '!= "3.6.0"', None, ""),
+        ('== "3.6"', '< "3.6.1"', None, '< "3.7.0"'),
+        ('== "3.6"', '<= "3.6.1"', None, '< "3.7.0"'),
+        ('== "3.6"', '> "3.6.1"', None, '>= "3.6.0"'),
+        ('== "3.6"', '>= "3.6.1"', None, '>= "3.6.0"'),
+        ('== "3.6"', '!= "3.6.1"', None, ""),
+        ('== "3.6"', '< "3.7.0"', '== "3.6"', '< "3.7.0"'),
+        ('== "3.6"', '<= "3.7.0"', '== "3.6"', '<= "3.7.0"'),
+        ('== "3.6"', '> "3.7.0"', "<empty>", None),
+        ('== "3.6"', '>= "3.7.0"', "<empty>", '>= "3.6.0"'),
+        ('== "3.6"', '!= "3.7.0"', '== "3.6"', '!= "3.7.0"'),
+        ('== "3.6"', '<= "3.7.1"', '== "3.6"', '<= "3.7.1"'),
+        ('== "3.6"', '< "3.7.1"', '== "3.6"', '< "3.7.1"'),
+        ('== "3.6"', '> "3.7.1"', "<empty>", None),
+        ('== "3.6"', '>= "3.7.1"', "<empty>", None),
+        ('== "3.6"', '!= "3.7.1"', '== "3.6"', '!= "3.7.1"'),
+        # python_version != 3.6  # noqa: E800
+        # (equal to python_full_version < 3.6.0 or python_full_version >= 3.7.0)
+        ('!= "3.6"', '< "3.5.2"', '< "3.5.2"', '!= "3.6"'),
+        ('!= "3.6"', '<= "3.5.2"', '<= "3.5.2"', '!= "3.6"'),
+        ('!= "3.6"', '> "3.5.2"', None, ""),
+        ('!= "3.6"', '>= "3.5.2"', None, ""),
+        ('!= "3.6"', '!= "3.5.2"', None, ""),
+        ('!= "3.6"', '< "3.6.0"', '< "3.6.0"', '!= "3.6"'),
+        ('!= "3.6"', '<= "3.6.0"', '< "3.6.0"', None),
+        ('!= "3.6"', '> "3.6.0"', '>= "3.7.0"', '!= "3.6.0"'),
+        ('!= "3.6"', '>= "3.6.0"', '>= "3.7.0"', ""),
+        ('!= "3.6"', '!= "3.6.0"', '!= "3.6"', '!= "3.6.0"'),
+        ('!= "3.6"', '< "3.6.1"', '< "3.6.0"', None),
+        ('!= "3.6"', '<= "3.6.1"', '< "3.6.0"', None),
+        ('!= "3.6"', '> "3.6.1"', '>= "3.7.0"', None),
+        ('!= "3.6"', '>= "3.6.1"', '>= "3.7.0"', None),
+        ('!= "3.6"', '!= "3.6.1"', '!= "3.6"', '!= "3.6.1"'),
+        ('!= "3.6"', '< "3.7.0"', '< "3.6.0"', ""),
+        ('!= "3.6"', '<= "3.7.0"', None, ""),
+        ('!= "3.6"', '> "3.7.0"', '> "3.7.0"', '!= "3.6"'),
+        ('!= "3.6"', '>= "3.7.0"', '>= "3.7.0"', '!= "3.6"'),
+        ('!= "3.6"', '!= "3.7.0"', None, ""),
+        ('!= "3.6"', '<= "3.7.1"', None, ""),
+        ('!= "3.6"', '< "3.7.1"', None, ""),
+        ('!= "3.6"', '> "3.7.1"', '> "3.7.1"', '!= "3.6"'),
+        ('!= "3.6"', '>= "3.7.1"', '>= "3.7.1"', '!= "3.6"'),
+        ('!= "3.6"', '!= "3.7.1"', None, ""),
+    ],
+)
+def test_merging_python_version_and_python_full_version(
+    python_version: str,
+    python_full_version: str,
+    expected_intersection_version: str,
+    expected_union_version: str,
+) -> None:
+    m = f"python_version {python_version}"
+    m2 = f"python_full_version {python_full_version}"
+
+    def get_expected_marker(expected_version: str, op: str) -> str:
+        if expected_version is None:
+            expected = f"{m} {op} {m2}"
+        elif expected_version in ("", "<empty>"):
+            expected = expected_version
+        else:
+            expected_marker_name = (
+                "python_version"
+                if expected_version.count(".") < 2
+                else "python_full_version"
+            )
+            expected = f"{expected_marker_name} {expected_version}"
+        return expected
+
+    expected_intersection = get_expected_marker(expected_intersection_version, "and")
+    expected_union = get_expected_marker(expected_union_version, "or")
+
+    intersection = parse_marker(m).intersect(parse_marker(m2))
+    assert str(intersection) == expected_intersection
+
+    union = parse_marker(m).union(parse_marker(m2))
+    assert str(union) == expected_union
