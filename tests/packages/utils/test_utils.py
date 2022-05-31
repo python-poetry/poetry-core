@@ -44,12 +44,7 @@ from poetry.core.version.markers import parse_marker
         (
             '(python_version < "2.7" or python_full_version >= "3.0.0") and'
             ' python_full_version < "3.6.0"',
-            {
-                "python_version": [
-                    [("<", "2.7"), ("<", "3.6.0")],
-                    [(">=", "3.0.0"), ("<", "3.6.0")],
-                ]
-            },
+            {"python_version": [[("<", "2.7")], [(">=", "3.0.0"), ("<", "3.6.0")]]},
         ),
         (
             '(python_version < "2.7" or python_full_version >= "3.0.0") and'

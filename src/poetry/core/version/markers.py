@@ -47,6 +47,8 @@ ALIASES = {
     "python_implementation": "platform_python_implementation",
 }
 
+PYTHON_VERSION_MARKERS = {"python_version", "python_full_version"}
+
 # Parser: PEP 508 Environment Markers
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
@@ -414,11 +416,10 @@ class MultiMarker(BaseMarker):
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
+                            or {mark.name, marker.name} == PYTHON_VERSION_MARKERS
                         ):
                             new_marker = _merge_single_markers(mark, marker, cls)
                             if new_marker is not None:
-                                if new_marker.is_empty():
-                                    return new_marker
                                 new_markers[i] = new_marker
                                 intersected = True
 
@@ -617,11 +618,10 @@ class MarkerUnion(BaseMarker):
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
+                            or {mark.name, marker.name} == PYTHON_VERSION_MARKERS
                         ):
                             new_marker = _merge_single_markers(mark, marker, cls)
                             if new_marker is not None:
-                                if new_marker.is_any():
-                                    return new_marker
                                 new_markers[i] = new_marker
                                 included = True
                                 break
@@ -847,6 +847,9 @@ def _merge_single_markers(
     marker2: SingleMarker,
     merge_class: type[MultiMarker | MarkerUnion],
 ) -> BaseMarker | None:
+    if {marker1.name, marker2.name} == PYTHON_VERSION_MARKERS:
+        return _merge_python_version_single_markers(marker1, marker2, merge_class)
+
     if merge_class == MultiMarker:
         merge_method = marker1.constraint.intersect
     else:
@@ -868,5 +871,43 @@ def _merge_single_markers(
         isinstance(result_constraint, VersionConstraint)
         and result_constraint.is_simple()
     ):
-        return SingleMarker(marker1.name, result_constraint)
+        result_marker = SingleMarker(marker1.name, result_constraint)
     return result_marker
+
+
+def _merge_python_version_single_markers(
+    marker1: SingleMarker,
+    marker2: SingleMarker,
+    merge_class: type[MultiMarker | MarkerUnion],
+) -> BaseMarker | None:
+    from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+
+    if marker1.name == "python_version":
+        version_marker = marker1
+        full_version_marker = marker2
+    else:
+        version_marker = marker2
+        full_version_marker = marker1
+
+    normalized_constraint = get_python_constraint_from_marker(version_marker)
+    normalized_marker = SingleMarker("python_full_version", normalized_constraint)
+    merged_marker = _merge_single_markers(
+        normalized_marker, full_version_marker, merge_class
+    )
+    if merged_marker == normalized_marker:
+        # prefer original marker to avoid unnecessary changes
+        return version_marker
+    if merged_marker and isinstance(merged_marker, SingleMarker):
+        # We have to fix markers like 'python_full_version == "3.6"'
+        # to receive 'python_full_version == "3.6.0"'.
+        # It seems a bit hacky to convert to string and back to marker,
+        # but it's probably much simpler than to consider the different constraint
+        # classes (mostly VersonRangeConstraint, but VersionUnion for "!=") and
+        # since this conversion is only required for python_full_version markers
+        # it may be sufficient to handle it here.
+        marker_string = str(merged_marker)
+        precision = marker_string.count(".") + 1
+        if precision < 3:
+            marker_string = marker_string[:-1] + ".0" * (3 - precision) + '"'
+            merged_marker = parse_marker(marker_string)
+    return merged_marker
