@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import functools
 import posixpath
 import re
 import sys
@@ -14,6 +14,7 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
+from poetry.core.pyproject.toml import PyProjectTOML
 from poetry.core.semver.version_range import VersionRange
 from poetry.core.version.markers import dnf
 
@@ -119,14 +120,22 @@ def strip_extras(path: str) -> tuple[str, str | None]:
     return path_no_extras, extras
 
 
-def is_installable_dir(path: str) -> bool:
-    """Return True if `path` is a directory containing a setup.py file."""
-    if not os.path.isdir(path):
+@functools.lru_cache(maxsize=None)
+def is_python_project(path: Path) -> bool:
+    """Return true if the directory is a Python project"""
+    if not path.is_dir():
         return False
-    setup_py = os.path.join(path, "setup.py")
-    if os.path.isfile(setup_py):
-        return True
-    return False
+
+    setup_py = path / "setup.py"
+    setup_cfg = path / "setup.cfg"
+    setuptools_project = setup_py.exists() or setup_cfg.exists()
+
+    pyproject = PyProjectTOML(path / "pyproject.toml")
+
+    supports_pep517 = setuptools_project or pyproject.is_build_system_defined()
+    supports_poetry = pyproject.is_poetry_project()
+
+    return supports_pep517 or supports_poetry
 
 
 def is_archive_file(name: str) -> bool:
