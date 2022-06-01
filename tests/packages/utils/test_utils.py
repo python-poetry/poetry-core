@@ -96,8 +96,8 @@ def test_convert_markers(
         ('python_version != "3.6.* "', "!=3.6.*"),
         # <, <=, >, >= precision 1
         ('python_version < "3"', "<3"),
-        ('python_version <= "3"', "<4"),
-        ('python_version > "3"', ">=4"),
+        ('python_version <= "3"', "<=3"),
+        ('python_version > "3"', ">3"),
         ('python_version >= "3"', ">=3"),
         # <, <=, >, >= precision 2
         ('python_version < "3.6"', "<3.6"),

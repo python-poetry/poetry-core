@@ -15,13 +15,14 @@ from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
 from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.core.semver.helpers import parse_constraint
+from poetry.core.semver.version import Version
 from poetry.core.semver.version_range import VersionRange
 from poetry.core.version.markers import dnf
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
-    from poetry.core.semver.version import Version
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.semver.version_union import VersionUnion
     from poetry.core.version.markers import BaseMarker
@@ -206,7 +207,6 @@ def create_nested_marker(
     from poetry.core.packages.constraints.constraint import Constraint
     from poetry.core.packages.constraints.multi_constraint import MultiConstraint
     from poetry.core.packages.constraints.union_constraint import UnionConstraint
-    from poetry.core.semver.version import Version
     from poetry.core.semver.version_union import VersionUnion
 
     if constraint.is_any():
@@ -286,8 +286,6 @@ def get_python_constraint_from_marker(
     marker: BaseMarker,
 ) -> VersionConstraint:
     from poetry.core.semver.empty_constraint import EmptyConstraint
-    from poetry.core.semver.helpers import parse_constraint
-    from poetry.core.semver.version import Version
     from poetry.core.semver.version_range import VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
@@ -304,8 +302,15 @@ def get_python_constraint_from_marker(
         # which means that python_version is arbitrary for this group
         return VersionRange()
 
+    python_version_markers = markers["python_version"]
+    normalized = normalize_python_version_markers(python_version_markers)
+    constraint = parse_constraint(normalized)
+    return constraint
+
+
+def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -> str:
     ors = []
-    for or_ in markers["python_version"]:
+    for or_ in disjunction:
         ands = []
         for op, version in or_:
             # Expand python version
@@ -318,14 +323,7 @@ def get_python_constraint_from_marker(
                     version += ".*"
             elif op in ("<=", ">"):
                 parsed_version = Version.parse(version)
-                if parsed_version.precision == 1:
-                    if op == "<=":
-                        op = "<"
-                        version = parsed_version.next_major().text
-                    elif op == ">":
-                        op = ">="
-                        version = parsed_version.next_major().text
-                elif parsed_version.precision == 2:
+                if parsed_version.precision == 2:
                     if op == "<=":
                         op = "<"
                         version = parsed_version.next_minor().text
@@ -354,4 +352,4 @@ def get_python_constraint_from_marker(
 
         ors.append(" ".join(ands))
 
-    return parse_constraint(" || ".join(ors))
+    return " || ".join(ors)

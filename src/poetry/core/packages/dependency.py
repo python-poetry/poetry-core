@@ -16,6 +16,7 @@ from poetry.core.packages.constraints import (
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker
+from poetry.core.packages.utils.utils import normalize_python_version_markers
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.version.markers import parse_marker
@@ -192,39 +193,10 @@ class Dependency(PackageSpecification):
         # Recalculate python versions.
         self._python_versions = "*"
         if not contains_group_without_marker(markers, "python_version"):
-            ors = []
-            for or_ in markers["python_version"]:
-                ands = []
-                for op, version in or_:
-                    # Expand python version
-                    if op == "==" and "*" not in version:
-                        version = "~" + version
-                        op = ""
-                    elif op == "!=":
-                        version += ".*"
-                    elif op in ("in", "not in"):
-                        versions = []
-                        for v in re.split("[ ,]+", version):
-                            split = v.split(".")
-                            if len(split) in [1, 2]:
-                                split.append("*")
-                                op_ = "" if op == "in" else "!="
-                            else:
-                                op_ = "==" if op == "in" else "!="
-
-                            versions.append(op_ + ".".join(split))
-
-                        glue = " || " if op == "in" else ", "
-                        if versions:
-                            ands.append(glue.join(versions))
-
-                        continue
-
-                    ands.append(f"{op}{version}")
-
-                ors.append(" ".join(ands))
-
-            self._python_versions = " || ".join(ors)
+            python_version_markers = markers["python_version"]
+            self._python_versions = normalize_python_version_markers(
+                python_version_markers
+            )
 
         self._python_constraint = parse_constraint(self._python_versions)
 
