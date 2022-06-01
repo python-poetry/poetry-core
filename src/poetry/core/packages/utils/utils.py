@@ -322,8 +322,33 @@ def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -
                 if "*" not in version:
                     version += ".*"
             elif op in ("<=", ">"):
+                # Make adjustments on encountering versions with less than full
+                # precision.
+                #
+                # Per PEP-508:
+                # python_version <-> '.'.join(platform.python_version_tuple()[:2])
+                #
+                # So for two digits of precision we make the following adjustments:
+                # - `python_version > "x.y"` requires version >= x.(y+1).anything
+                # - `python_version <= "x.y"` requires version < x.(y+1).anything
+                #
+                # Treatment when we see a single digit of precision is less clear: is
+                # that even a legitimate marker?
+                #
+                # Experiment suggests that pip behaviour is essentially to make a
+                # lexicographical comparison, for example `python_version > "3"` is
+                # satisfied by version 3.anything, whereas `python_version <= "3"` is
+                # satisfied only by version 2.anything.
+                #
+                # We achieve the above by fiddling with the operator and version in the
+                # marker.
                 parsed_version = Version.parse(version)
-                if parsed_version.precision == 2:
+                if parsed_version.precision == 1:
+                    if op == "<=":
+                        op = "<"
+                    elif op == ">":
+                        op = ">="
+                elif parsed_version.precision == 2:
                     if op == "<=":
                         op = "<"
                         version = parsed_version.next_minor().text
