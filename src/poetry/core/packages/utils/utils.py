@@ -314,13 +314,11 @@ def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -
         ands = []
         for op, version in or_:
             # Expand python version
-            if op == "==":
-                if "*" not in version:
-                    version = "~" + version
-                    op = ""
-            elif op == "!=":
-                if "*" not in version:
-                    version += ".*"
+            if op == "==" and "*" not in version:
+                version = "~" + version
+                op = ""
+            elif op == "!=" and "*" not in version:
+                version += ".*"
             elif op in ("<=", ">"):
                 # Make adjustments on encountering versions with less than full
                 # precision.
@@ -343,18 +341,15 @@ def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -
                 # We achieve the above by fiddling with the operator and version in the
                 # marker.
                 parsed_version = Version.parse(version)
-                if parsed_version.precision == 1:
+                if parsed_version.precision < 3:
                     if op == "<=":
                         op = "<"
                     elif op == ">":
                         op = ">="
-                elif parsed_version.precision == 2:
-                    if op == "<=":
-                        op = "<"
-                        version = parsed_version.next_minor().text
-                    elif op == ">":
-                        op = ">="
-                        version = parsed_version.next_minor().text
+
+                if parsed_version.precision == 2:
+                    version = parsed_version.next_minor().text
+
             elif op in ("in", "not in"):
                 versions = []
                 for v in re.split("[ ,]+", version):
@@ -367,8 +362,8 @@ def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -
 
                     versions.append(op_ + ".".join(split))
 
-                glue = " || " if op == "in" else ", "
                 if versions:
+                    glue = " || " if op == "in" else ", "
                     ands.append(glue.join(versions))
 
                 continue
