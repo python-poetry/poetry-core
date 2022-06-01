@@ -308,7 +308,9 @@ def get_python_constraint_from_marker(
     return constraint
 
 
-def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -> str:
+def normalize_python_version_markers(  # NOSONAR
+    disjunction: list[list[tuple[str, str]]],
+) -> str:
     ors = []
     for or_ in disjunction:
         ands = []
@@ -317,8 +319,10 @@ def normalize_python_version_markers(disjunction: list[list[tuple[str, str]]]) -
             if op == "==" and "*" not in version:
                 version = "~" + version
                 op = ""
+
             elif op == "!=" and "*" not in version:
                 version += ".*"
+
             elif op in ("<=", ">"):
                 # Make adjustments on encountering versions with less than full
                 # precision.
