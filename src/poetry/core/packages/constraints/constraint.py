@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import operator
 
-from typing import Any
-
 from poetry.core.packages.constraints import AnyConstraint
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
@@ -128,7 +126,7 @@ class Constraint(BaseConstraint):
     def is_empty(self) -> bool:
         return False
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Constraint):
             return NotImplemented
 

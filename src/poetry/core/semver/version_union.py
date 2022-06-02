@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing import Any
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
 from poetry.core.semver.version_constraint import VersionConstraint
@@ -395,7 +394,7 @@ class VersionUnion(VersionConstraint):
 
         return isinstance(VersionRange().difference(self), Version)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionUnion):
             return False
 

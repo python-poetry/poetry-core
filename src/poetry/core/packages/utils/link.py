@@ -64,32 +64,32 @@ class Link:
     def __repr__(self) -> str:
         return f"<Link {self!s}>"
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url == other.url
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url != other.url
 
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url < other.url
 
-    def __le__(self, other: Any) -> bool:
+    def __le__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url <= other.url
 
-    def __gt__(self, other: Any) -> bool:
+    def __gt__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url > other.url
 
-    def __ge__(self, other: Any) -> bool:
+    def __ge__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url >= other.url
