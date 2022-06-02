@@ -8,7 +8,7 @@ on:
 jobs:
   Tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: "${{ matrix.os }}-latest"
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
