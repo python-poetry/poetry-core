@@ -7,7 +7,6 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import Iterable
 
 from poetry.core.packages.constraints import (
@@ -587,7 +586,7 @@ class Dependency(PackageSpecification):
 
         return dep
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Dependency):
             return NotImplemented
 
