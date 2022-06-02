@@ -4,8 +4,6 @@ import posixpath
 import re
 import urllib.parse as urlparse
 
-from typing import Any
-
 from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.packages.utils.utils import splitext
 
@@ -14,7 +12,6 @@ class Link:
     def __init__(
         self,
         url: str,
-        comes_from: Any | None = None,
         requires_python: str | None = None,
         metadata: str | bool | None = None,
     ) -> None:
@@ -23,8 +20,6 @@ class Link:
 
         url:
             url of the resource pointed to (href of the link)
-        comes_from:
-            instance of HTMLPage where the link was found, or string.
         requires_python:
             String containing the `Requires-Python` metadata field, specified
             in PEP 345. This may be specified by a data-requires-python
@@ -41,7 +36,6 @@ class Link:
             url = path_to_url(url)
 
         self.url = url
-        self.comes_from = comes_from
         self.requires_python = requires_python if requires_python else None
 
         if isinstance(metadata, str):
@@ -56,10 +50,8 @@ class Link:
             rp = f" (requires-python:{self.requires_python})"
         else:
             rp = ""
-        if self.comes_from:
-            return f"{self.url} (from {self.comes_from}){rp}"
-        else:
-            return str(self.url)
+
+        return f"{self.url}{rp}"
 
     def __repr__(self) -> str:
         return f"<Link {self!s}>"
