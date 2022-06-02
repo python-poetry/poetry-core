@@ -294,10 +294,10 @@ def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correc
 
     assert dep.name == "pytest-mypy"
     assert str(dep.constraint) == "*"
-    assert dep.python_versions == "<=3.10 >3"
+    assert dep.python_versions == "<3.11 >=3"
     assert dep.python_constraint.allows(Version.parse("3.6"))
-    assert dep.python_constraint.allows(Version.parse("3.10"))
-    assert not dep.python_constraint.allows(Version.parse("3"))
+    assert dep.python_constraint.allows(Version.parse("3.10.4"))
+    assert dep.python_constraint.allows(Version.parse("3"))
     assert dep.python_constraint.allows(Version.parse("3.0.1"))
     assert (
         str(dep.marker)
