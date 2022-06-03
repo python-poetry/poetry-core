@@ -525,6 +525,20 @@ class MultiMarker(BaseMarker):
                 if not isinstance(unique_union, MarkerUnion):
                     return self.of(*common_markers).intersect(unique_union)
 
+            else:
+                # Usually this operation just complicates things, but the special case
+                # where it doesn't allows the collapse of adjacent ranges eg
+                #
+                # 'python_version >= "3.6" and python_version < "3.6.2"' union
+                # 'python_version >= "3.6.2" and python_version < "3.7"' ->
+                #
+                # 'python_version >= "3.6" and python_version < "3.7"'.
+                conjunction = [
+                    m1.union(m2) for m2 in other_unique_markers for m1 in unique_markers
+                ]
+                if not any(isinstance(m, MarkerUnion) for m in conjunction):
+                    return self.of(*conjunction)
+
         return None
 
     def validate(self, environment: dict[str, Any] | None) -> bool:
