@@ -523,6 +523,37 @@ def test_multi_marker_union_multi_is_multi(
             'python_version >= "3.6.2" and python_version <= "3.7"',
             'python_version <= "3.7" and python_version >= "3.6"',
         ),
+        # A range covers an exact marker.
+        (
+            'python_version >= "3.6" and python_version <= "3.7"',
+            'python_version == "3.6"',
+            'python_version >= "3.6" and python_version <= "3.7"',
+        ),
+        (
+            'python_version >= "3.6" and python_version <= "3.7"',
+            'python_version == "3.6" and implementation_name == "cpython"',
+            'python_version >= "3.6" and python_version <= "3.7"',
+        ),
+        (
+            'python_version >= "3.6" and python_version <= "3.7"',
+            'python_version == "3.6.2"',
+            'python_version >= "3.6" and python_version <= "3.7"',
+        ),
+        (
+            'python_version >= "3.6" and python_version <= "3.7"',
+            'python_version == "3.6.2" and implementation_name == "cpython"',
+            'python_version >= "3.6" and python_version <= "3.7"',
+        ),
+        (
+            'python_version >= "3.6" and python_version <= "3.7"',
+            'python_version == "3.7"',
+            'python_version >= "3.6" and python_version <= "3.7"',
+        ),
+        (
+            'python_version >= "3.6" and python_version <= "3.7"',
+            'python_version == "3.7" and implementation_name == "cpython"',
+            'python_version >= "3.6" and python_version <= "3.7"',
+        ),
     ],
 )
 def test_version_ranges_collapse_on_union(

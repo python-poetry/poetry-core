@@ -501,6 +501,9 @@ class MultiMarker(BaseMarker):
             ):
                 return other
 
+            if not any(isinstance(m, MarkerUnion) for m in new_markers):
+                return self.of(*new_markers)
+
         elif isinstance(other, MultiMarker):
             common_markers = [
                 marker for marker in self.markers if marker in other.markers
@@ -533,11 +536,14 @@ class MultiMarker(BaseMarker):
                 # 'python_version >= "3.6.2" and python_version < "3.7"' ->
                 #
                 # 'python_version >= "3.6" and python_version < "3.7"'.
-                conjunction = [
+                unions = [
                     m1.union(m2) for m2 in other_unique_markers for m1 in unique_markers
                 ]
-                if not any(isinstance(m, MarkerUnion) for m in conjunction):
-                    return self.of(*conjunction)
+                conjunction = self.of(*unions)
+                if not isinstance(conjunction, MultiMarker) or not any(
+                    isinstance(m, MarkerUnion) for m in conjunction.markers
+                ):
+                    return conjunction
 
         return None
 
