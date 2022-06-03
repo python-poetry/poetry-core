@@ -1,6 +1,9 @@
 name: Integration
 
-on: [push, pull_request]
+on:
+  pull_request: {}
+  push:
+    branches: [main]
 
 jobs:
   Tests:
@@ -10,6 +13,7 @@ jobs:
       matrix:
         os: [Ubuntu, MacOS, Windows]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11-dev"]
+      fail-fast: false
     defaults:
       run:
         shell: bash
