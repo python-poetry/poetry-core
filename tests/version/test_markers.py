@@ -486,41 +486,41 @@ def test_multi_marker_union_multi_is_multi(
     [
         # Ranges with same start
         (
-            'python_version >= "3.6" and python_version < "3.6.2"',
+            'python_version >= "3.6" and python_full_version < "3.6.2"',
             'python_version >= "3.6" and python_version < "3.7"',
             'python_version >= "3.6" and python_version < "3.7"',
         ),
         (
-            'python_version > "3.6" and python_version < "3.6.2"',
+            'python_version > "3.6" and python_full_version < "3.6.2"',
             'python_version > "3.6" and python_version < "3.7"',
             'python_version > "3.6" and python_version < "3.7"',
         ),
         # Ranges meet exactly
         (
-            'python_version >= "3.6" and python_version < "3.6.2"',
-            'python_version >= "3.6.2" and python_version < "3.7"',
+            'python_version >= "3.6" and python_full_version < "3.6.2"',
+            'python_full_version >= "3.6.2" and python_version < "3.7"',
             'python_version >= "3.6" and python_version < "3.7"',
         ),
         (
-            'python_version >= "3.6" and python_version <= "3.6.2"',
-            'python_version > "3.6.2" and python_version < "3.7"',
+            'python_version >= "3.6" and python_full_version <= "3.6.2"',
+            'python_full_version > "3.6.2" and python_version < "3.7"',
             'python_version >= "3.6" and python_version < "3.7"',
         ),
         # Ranges overlap
         (
-            'python_version >= "3.6" and python_version <= "3.6.8"',
-            'python_version >= "3.6.2" and python_version < "3.7"',
+            'python_version >= "3.6" and python_full_version <= "3.6.8"',
+            'python_full_version >= "3.6.2" and python_version < "3.7"',
             'python_version >= "3.6" and python_version < "3.7"',
         ),
         # Ranges with same end.  Ideally the union would give the lower version first.
         (
             'python_version >= "3.6" and python_version < "3.7"',
-            'python_version >= "3.6.2" and python_version < "3.7"',
+            'python_full_version >= "3.6.2" and python_version < "3.7"',
             'python_version < "3.7" and python_version >= "3.6"',
         ),
         (
             'python_version >= "3.6" and python_version <= "3.7"',
-            'python_version >= "3.6.2" and python_version <= "3.7"',
+            'python_full_version >= "3.6.2" and python_version <= "3.7"',
             'python_version <= "3.7" and python_version >= "3.6"',
         ),
         # A range covers an exact marker.
@@ -536,12 +536,12 @@ def test_multi_marker_union_multi_is_multi(
         ),
         (
             'python_version >= "3.6" and python_version <= "3.7"',
-            'python_version == "3.6.2"',
+            'python_full_version == "3.6.2"',
             'python_version >= "3.6" and python_version <= "3.7"',
         ),
         (
             'python_version >= "3.6" and python_version <= "3.7"',
-            'python_version == "3.6.2" and implementation_name == "cpython"',
+            'python_full_version == "3.6.2" and implementation_name == "cpython"',
             'python_version >= "3.6" and python_version <= "3.7"',
         ),
         (
@@ -1048,8 +1048,8 @@ def test_union_of_multi_with_a_containing_single() -> None:
             'python_version < "3.6" or python_version >= "4.0"',
         ),
         (
-            'python_version ~= "3.6.3"',
-            'python_version < "3.6.3" or python_version >= "3.7.0"',
+            'python_full_version ~= "3.6.3"',
+            'python_full_version < "3.6.3" or python_full_version >= "3.7.0"',
         ),
     ],
 )
