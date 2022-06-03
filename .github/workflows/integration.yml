@@ -1,15 +1,19 @@
 name: Integration
 
-on: [push, pull_request]
+on:
+  pull_request: {}
+  push:
+    branches: [main]
 
 jobs:
   Tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: "${{ matrix.os }}-latest"
     strategy:
       matrix:
         os: [Ubuntu, MacOS, Windows]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11-dev"]
+      fail-fast: false
     defaults:
       run:
         shell: bash
