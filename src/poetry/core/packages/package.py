@@ -553,9 +553,7 @@ class Package(PackageSpecification):
         return ignore_source_type or self.is_same_source_as(dependency)
 
     def clone(self: T) -> T:
-        clone = self.__class__(self.pretty_name, self.version)
-        clone.__dict__ = copy.deepcopy(self.__dict__)
-        return clone
+        return copy.deepcopy(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):
