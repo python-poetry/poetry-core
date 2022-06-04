@@ -8,6 +8,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterable
+from typing import TypeVar
 
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
@@ -28,6 +29,8 @@ if TYPE_CHECKING:
     from poetry.core.packages.package import Package
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
+
+    T = TypeVar("T", bound="Dependency")
 
 
 class Dependency(PackageSpecification):
@@ -437,29 +440,10 @@ class Dependency(PackageSpecification):
 
         self._activated = False
 
-    def with_constraint(self, constraint: str | VersionConstraint) -> Dependency:
-        new = Dependency(
-            self.pretty_name,
-            constraint,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            allows_prereleases=self.allows_prereleases(),
-            extras=self.extras,
-            source_type=self._source_type,
-            source_url=self._source_url,
-            source_reference=self._source_reference,
-        )
-
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.transitive_python_versions = self.transitive_python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
+    def with_constraint(self: T, constraint: str | VersionConstraint) -> T:
+        dependency = self.clone()
+        dependency.constraint = constraint  # type: ignore[assignment]
+        return dependency
 
     @classmethod
     def create_from_pep_508(
