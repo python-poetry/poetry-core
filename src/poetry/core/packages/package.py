@@ -27,9 +27,9 @@ if TYPE_CHECKING:
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
+    T = TypeVar("T", bound="Package")
 
-T = TypeVar("T", bound="Package")
+AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
@@ -525,16 +525,6 @@ class Package(PackageSpecification):
 
         self.python_versions = original_python_versions
 
-    def with_features(self: T, features: Iterable[str]) -> T:
-        package = self.clone()
-
-        package._features = frozenset(features)
-
-        return package
-
-    def without_features(self: T) -> T:
-        return self.with_features([])
-
     def satisfies(
         self, dependency: Dependency, ignore_source_type: bool = False
     ) -> bool:
@@ -551,9 +541,6 @@ class Package(PackageSpecification):
             return False
 
         return ignore_source_type or self.is_same_source_as(dependency)
-
-    def clone(self: T) -> T:
-        return copy.deepcopy(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):
