@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
-
-
-if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class VCSDependency(Dependency):
@@ -131,33 +126,6 @@ class VCSDependency(Dependency):
 
     def accepts_prereleases(self) -> bool:
         return True
-
-    def with_constraint(self, constraint: str | VersionConstraint) -> VCSDependency:
-        new = VCSDependency(
-            self.pretty_name,
-            self._vcs,
-            self._source,
-            branch=self._branch,
-            tag=self._tag,
-            rev=self._rev,
-            resolved_rev=self._source_resolved_reference,
-            directory=self.directory,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            develop=self._develop,
-            extras=list(self.extras),
-        )
-
-        new.constraint = constraint  # type: ignore[assignment]
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
 
     def __str__(self) -> str:
         reference = self._vcs

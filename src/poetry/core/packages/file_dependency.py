@@ -4,15 +4,10 @@ import hashlib
 import io
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
-
-
-if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class FileDependency(Dependency):
@@ -74,27 +69,6 @@ class FileDependency(Dependency):
                 h.update(content)
 
         return h.hexdigest()
-
-    def with_constraint(self, constraint: str | VersionConstraint) -> FileDependency:
-        new = FileDependency(
-            self.pretty_name,
-            path=self.path,
-            base=self.base,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            extras=list(self.extras),
-        )
-
-        new.constraint = constraint  # type: ignore[assignment]
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
 
     @property
     def base_pep_508_name(self) -> str:
