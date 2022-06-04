@@ -1,6 +1,14 @@
 from __future__ import annotations
 
+import copy
+
+from typing import TYPE_CHECKING
 from typing import Iterable
+from typing import TypeVar
+
+
+if TYPE_CHECKING:
+    T = TypeVar("T", bound="PackageSpecification")
 
 
 class PackageSpecification:
@@ -150,6 +158,19 @@ class PackageSpecification:
             return False
 
         return self.is_same_source_as(other)
+
+    def clone(self: T) -> T:
+        return copy.deepcopy(self)
+
+    def with_features(self: T, features: Iterable[str]) -> T:
+        package = self.clone()
+
+        package._features = frozenset(features)
+
+        return package
+
+    def without_features(self: T) -> T:
+        return self.with_features([])
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, PackageSpecification):
