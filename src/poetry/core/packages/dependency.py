@@ -90,7 +90,7 @@ class Dependency(PackageSpecification):
 
         self.is_root = False
         self._marker: BaseMarker = AnyMarker()
-        self.source_name = None
+        self.source_name: str | None = None
 
     @property
     def name(self) -> str:
