@@ -117,11 +117,10 @@ class Constraint(BaseConstraint):
         return False
 
     def __eq__(self, other: object) -> bool:
-        return (
-            (self.version, self.operator) == (other.version, other.operator)
-            if isinstance(other, Constraint)
-            else NotImplemented
-        )
+        if not isinstance(other, Constraint):
+            return NotImplemented
+
+        return (self.version, self.operator) == (other.version, other.operator)
 
     def __hash__(self) -> int:
         return hash((self._operator, self._version))

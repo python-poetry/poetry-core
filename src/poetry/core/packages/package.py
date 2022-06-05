@@ -557,11 +557,10 @@ class Package(PackageSpecification):
         return ignore_source_type or self.is_same_source_as(dependency)
 
     def __eq__(self, other: object) -> bool:
-        return (
-            super().__eq__(other) and self._version == other.version
-            if isinstance(other, Package)
-            else NotImplemented
-        )
+        if not isinstance(other, Package):
+            return NotImplemented
+
+        return super().__eq__(other) and self._version == other.version
 
     def __hash__(self) -> int:
         return super().__hash__() ^ hash(self._version)

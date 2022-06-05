@@ -123,11 +123,10 @@ class AnyMarker(BaseMarker):
         return hash(("<any>", "<any>"))
 
     def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, AnyMarker)
-            if isinstance(other, BaseMarker)
-            else NotImplemented
-        )
+        if not isinstance(other, BaseMarker):
+            return NotImplemented
+
+        return isinstance(other, AnyMarker)
 
 
 class EmptyMarker(BaseMarker):
@@ -168,11 +167,10 @@ class EmptyMarker(BaseMarker):
         return hash(("<empty>", "<empty>"))
 
     def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, EmptyMarker)
-            if isinstance(other, BaseMarker)
-            else NotImplemented
-        )
+        if not isinstance(other, BaseMarker):
+            return NotImplemented
+
+        return isinstance(other, EmptyMarker)
 
 
 class SingleMarker(BaseMarker):
@@ -382,7 +380,7 @@ def _flatten_markers(
 
 class MultiMarker(BaseMarker):
     def __init__(self, *markers: BaseMarker) -> None:
-        self._markers = []
+        self._markers: list[BaseMarker] = []
 
         flattened_markers = _flatten_markers(markers, MultiMarker)
 

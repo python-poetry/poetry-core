@@ -42,11 +42,11 @@ class DependencyGroup:
         self._dependencies = dependencies
 
     def __eq__(self, other: object) -> bool:
-        return (
-            self._name == other.name
-            and set(self._dependencies) == set(other.dependencies)
-            if isinstance(other, DependencyGroup)
-            else NotImplemented
+        if not isinstance(other, DependencyGroup):
+            return NotImplemented
+
+        return self._name == other.name and set(self._dependencies) == set(
+            other.dependencies
         )
 
     def __repr__(self) -> str:

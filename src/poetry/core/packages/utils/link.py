@@ -64,22 +64,34 @@ class Link:
         return f"<Link {self!s}>"
 
     def __eq__(self, other: object) -> bool:
-        return self.url == other.url if isinstance(other, Link) else NotImplemented
+        if not isinstance(other, Link):
+            return NotImplemented
+        return self.url == other.url
 
     def __ne__(self, other: object) -> bool:
-        return self.url != other.url if isinstance(other, Link) else NotImplemented
+        if not isinstance(other, Link):
+            return NotImplemented
+        return self.url != other.url
 
     def __lt__(self, other: object) -> bool:
-        return self.url < other.url if isinstance(other, Link) else NotImplemented
+        if not isinstance(other, Link):
+            return NotImplemented
+        return self.url < other.url
 
     def __le__(self, other: object) -> bool:
-        return self.url <= other.url if isinstance(other, Link) else NotImplemented
+        if not isinstance(other, Link):
+            return NotImplemented
+        return self.url <= other.url
 
     def __gt__(self, other: object) -> bool:
-        return self.url > other.url if isinstance(other, Link) else NotImplemented
+        if not isinstance(other, Link):
+            return NotImplemented
+        return self.url > other.url
 
     def __ge__(self, other: object) -> bool:
-        return self.url >= other.url if isinstance(other, Link) else NotImplemented
+        if not isinstance(other, Link):
+            return NotImplemented
+        return self.url >= other.url
 
     def __hash__(self) -> int:
         return hash(self.url)
