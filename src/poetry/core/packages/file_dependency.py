@@ -82,9 +82,3 @@ class FileDependency(Dependency):
         requirement += f" @ {path}"
 
         return requirement
-
-    def __str__(self) -> str:
-        if self.is_root:
-            return self._pretty_name
-
-        return f"{self._pretty_name} ({self._pretty_constraint} {self._path})"

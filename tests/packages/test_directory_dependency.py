@@ -10,6 +10,7 @@ from poetry.core.packages.directory_dependency import DirectoryDependency
 
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"
+SAMPLE_PROJECT = Path(__file__).parent.parent / "fixtures" / "sample_project"
 
 
 def test_directory_dependency_must_exist() -> None:
@@ -75,6 +76,38 @@ def test_directory_dependency_pep_508_extras() -> None:
     requirement = f"demo[foo,bar] @ file://{path.as_posix()}"
     requirement_expected = f"demo[bar,foo] @ file://{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
+
+
+@pytest.mark.parametrize(
+    "name,path,extras,constraint,expected",
+    [
+        (
+            "my-package",
+            SAMPLE_PROJECT,
+            None,
+            None,
+            f"my-package (*) @ {SAMPLE_PROJECT.as_uri()}",
+        ),
+        (
+            "my-package",
+            SAMPLE_PROJECT,
+            ["db"],
+            "1.2",
+            f"my-package[db] (1.2) @ {SAMPLE_PROJECT.as_uri()}",
+        ),
+    ],
+)
+def test_directory_dependency_string_representation(
+    name: str,
+    path: Path,
+    extras: list[str] | None,
+    constraint: str | None,
+    expected: str,
+) -> None:
+    dependency = DirectoryDependency(name=name, path=path, extras=extras)
+    if constraint:
+        dependency.constraint = constraint  # type: ignore[assignment]
+    assert str(dependency) == expected
 
 
 @pytest.mark.parametrize(

@@ -94,10 +94,3 @@ class DirectoryDependency(Dependency):
         requirement += f" @ {path}"
 
         return requirement
-
-    def __str__(self) -> str:
-        if self.is_root:
-            return self._pretty_name
-
-        path = self._path.as_posix()
-        return f"{self._pretty_name} ({self._pretty_constraint} {path})"

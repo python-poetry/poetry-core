@@ -188,3 +188,35 @@ def test_file_dependency_pep_508_extras(mocker: MockerFixture) -> None:
         requirement,
         f'demo[bar,foo] @ {rel_path.as_posix()} ; sys_platform == "linux"',
     )
+
+
+@pytest.mark.parametrize(
+    "name,path,extras,constraint,expected",
+    [
+        (
+            "demo",
+            DIST_PATH / TEST_FILE,
+            None,
+            None,
+            f"demo (*) @ {(DIST_PATH / TEST_FILE).as_uri()}",
+        ),
+        (
+            "demo",
+            DIST_PATH / TEST_FILE,
+            ["foo"],
+            "1.2",
+            f"demo[foo] (1.2) @ {(DIST_PATH / TEST_FILE).as_uri()}",
+        ),
+    ],
+)
+def test_file_dependency_string_representation(
+    name: str,
+    path: Path,
+    extras: list[str] | None,
+    constraint: str | None,
+    expected: str,
+) -> None:
+    dependency = FileDependency(name=name, path=path, extras=extras)
+    if constraint:
+        dependency.constraint = constraint  # type: ignore[assignment]
+    assert str(dependency) == expected
