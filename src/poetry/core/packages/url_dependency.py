@@ -50,6 +50,3 @@ class URLDependency(Dependency):
 
     def is_url(self) -> bool:
         return True
-
-    def __str__(self) -> str:
-        return f"{self._pretty_name} ({self._pretty_constraint} url)"

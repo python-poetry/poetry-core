@@ -126,14 +126,3 @@ class VCSDependency(Dependency):
 
     def accepts_prereleases(self) -> bool:
         return True
-
-    def __str__(self) -> str:
-        reference = self._vcs
-        if self._branch:
-            reference += f" branch {self._branch}"
-        elif self._tag:
-            reference += f" tag {self._tag}"
-        elif self._rev:
-            reference += f" rev {self._rev}"
-
-        return f"{self._pretty_name} ({self._constraint} {reference})"

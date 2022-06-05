@@ -583,6 +583,10 @@ class Dependency(PackageSpecification):
     def __str__(self) -> str:
         if self.is_root:
             return self._pretty_name
+        if self.is_direct_origin():
+            # adding version since this information is especially useful in debug output
+            parts = [p.strip() for p in self.base_pep_508_name.split("@", 1)]
+            return f"{parts[0]} ({self._pretty_constraint}) @ {parts[1]}"
         return self.base_pep_508_name
 
     def __repr__(self) -> str:
