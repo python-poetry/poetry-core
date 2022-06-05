@@ -106,11 +106,7 @@ class Builder:
 
             # Checking VCS
             vcs = get_vcs(self._path)
-            if not vcs:
-                vcs_ignored_files = set()
-            else:
-                vcs_ignored_files = set(vcs.get_ignored_files())
-
+            vcs_ignored_files = set(vcs.get_ignored_files()) if vcs else set()
             explicitely_excluded = set()
             for excluded_glob in self._package.exclude:
                 for excluded in self._path.glob(str(excluded_glob)):
@@ -130,10 +126,7 @@ class Builder:
                     )
 
             ignored = (vcs_ignored_files | explicitely_excluded) - explicitely_included
-            result = set()
-            for file in ignored:
-                result.add(file)
-
+            result = set(ignored)
             # The list of excluded files might be big and we will do a lot
             # containment check (x in excluded).
             # Returning a set make those tests much much faster.
@@ -372,7 +365,7 @@ class BuildIncludeFile:
         """
         self.path = Path(path)
         self.project_root = Path(project_root).resolve()
-        self.source_root = None if not source_root else Path(source_root).resolve()
+        self.source_root = Path(source_root).resolve() if source_root else None
         if not self.path.is_absolute() and self.source_root:
             self.path = self.source_root / self.path
         else:
@@ -381,10 +374,7 @@ class BuildIncludeFile:
         self.path = self.path.resolve()
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BuildIncludeFile):
-            return False
-
-        return self.path == other.path
+        return self.path == other.path if isinstance(other, BuildIncludeFile) else False
 
     def __hash__(self) -> int:
         return hash(self.path)

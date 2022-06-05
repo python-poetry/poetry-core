@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import posixpath
 import re
@@ -39,20 +40,15 @@ TAR_EXTENSIONS = (".tar.gz", ".tgz", ".tar")
 ARCHIVE_EXTENSIONS = ZIP_EXTENSIONS + BZ2_EXTENSIONS + TAR_EXTENSIONS + XZ_EXTENSIONS
 SUPPORTED_EXTENSIONS: tuple[str, ...] = ZIP_EXTENSIONS + TAR_EXTENSIONS
 
-try:
+with contextlib.suppress(ImportError):
     import bz2  # noqa: F401, TC002
 
     SUPPORTED_EXTENSIONS += BZ2_EXTENSIONS
-except ImportError:
-    pass
-
-try:
+with contextlib.suppress(ImportError):
     # Only for Python 3.3+
     import lzma  # noqa: F401, TC002
 
     SUPPORTED_EXTENSIONS += XZ_EXTENSIONS
-except ImportError:
-    pass
 
 
 def path_to_url(path: str | Path) -> str:

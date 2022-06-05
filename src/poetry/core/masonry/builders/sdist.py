@@ -154,9 +154,6 @@ class SdistBuilder(Builder):
 
                     if module not in modules:
                         modules.append(module)
-            else:
-                pass
-
         if package_dir:
             before.append(f"package_dir = \\\n{pformat(package_dir)}\n")
             extra.append("'package_dir': package_dir,")
@@ -364,7 +361,7 @@ class SdistBuilder(Builder):
                                         "\\1\\2", requirement.strip()
                                     )
 
-                                extras[extra_name + ":" + conditions.strip()].append(
+                                extras[f"{extra_name}:{conditions.strip()}"].append(
                                     requirement
                                 )
 
@@ -386,7 +383,7 @@ class SdistBuilder(Builder):
                 if req_regex.match(requirement):
                     requirement = req_regex.sub("\\1\\2", requirement.strip())
 
-                extras[":" + conditions.strip()].append(requirement)
+                extras[f":{conditions.strip()}"].append(requirement)
 
                 continue
 

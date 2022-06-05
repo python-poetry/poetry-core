@@ -104,7 +104,7 @@ class VersionRange(VersionRangeConstraint):
             return self.allows(other)
 
         if isinstance(other, VersionUnion):
-            return all([self.allows_all(constraint) for constraint in other.ranges])
+            return all(self.allows_all(constraint) for constraint in other.ranges)
 
         if isinstance(other, VersionRangeConstraint):
             return not other.allows_lower(self) and not other.allows_higher(self)
@@ -121,7 +121,7 @@ class VersionRange(VersionRangeConstraint):
             return self.allows(other)
 
         if isinstance(other, VersionUnion):
-            return any([self.allows_any(constraint) for constraint in other.ranges])
+            return any(self.allows_any(constraint) for constraint in other.ranges)
 
         if isinstance(other, VersionRangeConstraint):
             return not other.is_strictly_lower(self) and not other.is_strictly_higher(
@@ -141,11 +141,7 @@ class VersionRange(VersionRangeConstraint):
 
         # A range and a Version just yields the version if it's in the range.
         if isinstance(other, Version):
-            if self.allows(other):
-                return other
-
-            return EmptyConstraint()
-
+            return other if self.allows(other) else EmptyConstraint()
         if not isinstance(other, VersionRangeConstraint):
             raise ValueError(f"Unknown VersionConstraint type {other}.")
 
@@ -249,16 +245,18 @@ class VersionRange(VersionRangeConstraint):
                 return self
 
             if other == self.min:
-                if not self.include_min:
-                    return self
-
-                return VersionRange(self.min, self.max, False, self.include_max)
+                return (
+                    VersionRange(self.min, self.max, False, self.include_max)
+                    if self.include_min
+                    else self
+                )
 
             if other == self.max:
-                if not self.include_max:
-                    return self
-
-                return VersionRange(self.min, self.max, self.include_min, False)
+                return (
+                    VersionRange(self.min, self.max, self.include_min, False)
+                    if self.include_max
+                    else self
+                )
 
             return VersionUnion.of(
                 VersionRange(self.min, other, self.include_min, False),
@@ -336,14 +334,15 @@ class VersionRange(VersionRangeConstraint):
         return [self]
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, VersionRangeConstraint):
-            return False
-
         return (
-            self._min == other.min
-            and self._max == other.max
-            and self._include_min == other.include_min
-            and self._include_max == other.include_max
+            (
+                self._min == other.min
+                and self._max == other.max
+                and self._include_min == other.include_min
+                and self._include_max == other.include_max
+            )
+            if isinstance(other, VersionRangeConstraint)
+            else False
         )
 
     def __lt__(self, other: VersionRangeConstraint) -> bool:
@@ -360,10 +359,7 @@ class VersionRange(VersionRangeConstraint):
 
     def _cmp(self, other: VersionRangeConstraint) -> int:
         if self.min is None:
-            if other.min is None:
-                return self._compare_max(other)
-
-            return -1
+            return self._compare_max(other) if other.min is None else -1
         elif other.min is None:
             return 1
 
@@ -379,10 +375,7 @@ class VersionRange(VersionRangeConstraint):
 
     def _compare_max(self, other: VersionRangeConstraint) -> int:
         if self.max is None:
-            if other.max is None:
-                return 0
-
-            return 1
+            return 0 if other.max is None else 1
         elif other.max is None:
             return -1
 

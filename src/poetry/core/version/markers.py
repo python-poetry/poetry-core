@@ -123,10 +123,11 @@ class AnyMarker(BaseMarker):
         return hash(("<any>", "<any>"))
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BaseMarker):
-            return NotImplemented
-
-        return isinstance(other, AnyMarker)
+        return (
+            isinstance(other, AnyMarker)
+            if isinstance(other, BaseMarker)
+            else NotImplemented
+        )
 
 
 class EmptyMarker(BaseMarker):
@@ -167,10 +168,11 @@ class EmptyMarker(BaseMarker):
         return hash(("<empty>", "<empty>"))
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BaseMarker):
-            return NotImplemented
-
-        return isinstance(other, EmptyMarker)
+        return (
+            isinstance(other, EmptyMarker)
+            if isinstance(other, BaseMarker)
+            else NotImplemented
+        )
 
 
 class SingleMarker(BaseMarker):
@@ -213,7 +215,7 @@ class SingleMarker(BaseMarker):
                 versions = []
                 for v in re.split("[ ,]+", self._value):
                     split = v.split(".")
-                    if len(split) in [1, 2]:
+                    if len(split) in {1, 2}:
                         split.append("*")
                         op = "" if self._operator == "in" else "!="
                     else:
@@ -221,10 +223,7 @@ class SingleMarker(BaseMarker):
 
                     versions.append(op + ".".join(split))
 
-                glue = ", "
-                if self._operator == "in":
-                    glue = " || "
-
+                glue = " || " if self._operator == "in" else ", "
                 self._constraint = self._parser(glue.join(versions))
             else:
                 self._constraint = self._parser(self._constraint_string)
@@ -297,16 +296,10 @@ class SingleMarker(BaseMarker):
         return self.exclude("extra")
 
     def exclude(self, marker_name: str) -> BaseMarker:
-        if self.name == marker_name:
-            return AnyMarker()
-
-        return self
+        return AnyMarker() if self.name == marker_name else self
 
     def only(self, *marker_names: str) -> SingleMarker | AnyMarker:
-        if self.name not in marker_names:
-            return AnyMarker()
-
-        return self
+        return AnyMarker() if self.name not in marker_names else self
 
     def invert(self) -> BaseMarker:
         if self._operator in ("===", "=="):
@@ -356,10 +349,11 @@ class SingleMarker(BaseMarker):
         return parse_marker(f"{self._name} {operator} '{self._value}'")
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, SingleMarker):
-            return False
-
-        return self._name == other.name and self._constraint == other.constraint
+        return (
+            self._name == other.name and self._constraint == other.constraint
+            if isinstance(other, SingleMarker)
+            else False
+        )
 
     def __hash__(self) -> int:
         return hash((self._name, self._constraint_string))
@@ -392,8 +386,7 @@ class MultiMarker(BaseMarker):
 
         flattened_markers = _flatten_markers(markers, MultiMarker)
 
-        for m in flattened_markers:
-            self._markers.append(m)
+        self._markers.extend(iter(flattened_markers))
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
@@ -588,10 +581,11 @@ class MultiMarker(BaseMarker):
         return MarkerUnion.of(*markers)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, MultiMarker):
-            return False
-
-        return set(self._markers) == set(other.markers)
+        return (
+            set(self._markers) == set(other.markers)
+            if isinstance(other, MultiMarker)
+            else False
+        )
 
     def __hash__(self) -> int:
         h = hash("multi")
@@ -761,10 +755,11 @@ class MarkerUnion(BaseMarker):
         return MultiMarker.of(*markers)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, MarkerUnion):
-            return False
-
-        return set(self._markers) == set(other.markers)
+        return (
+            set(self._markers) == set(other.markers)
+            if isinstance(other, MarkerUnion)
+            else False
+        )
 
     def __hash__(self) -> int:
         h = hash("union")
@@ -794,9 +789,7 @@ def parse_marker(marker: str) -> BaseMarker:
 
     parsed = _parser.parse(marker)
 
-    markers = _compact_markers(parsed.children)
-
-    return markers
+    return _compact_markers(parsed.children)
 
 
 def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> BaseMarker:

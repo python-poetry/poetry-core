@@ -17,7 +17,7 @@ class Updater:
         if file is None:
             file = os.path.join(os.path.dirname(__file__), "data", "licenses.json")
 
-        licenses_url = self._base_url + "licenses.json"
+        licenses_url = f"{self._base_url}licenses.json"
 
         with open(file, "w", encoding="utf-8") as f:
             f.write(
@@ -25,15 +25,14 @@ class Updater:
             )
 
     def get_licenses(self, url: str) -> dict[str, Any]:
-        licenses = {}
         with urlopen(url) as r:
             data = json.loads(r.read().decode())
 
-        for info in data["licenses"]:
-            licenses[info["licenseId"]] = [
+        return {
+            info["licenseId"]: [
                 info["name"],
                 info["isOsiApproved"],
                 info["isDeprecatedLicenseId"],
             ]
-
-        return licenses
+            for info in data["licenses"]
+        }

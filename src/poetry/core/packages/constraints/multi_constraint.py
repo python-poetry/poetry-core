@@ -76,16 +76,13 @@ class MultiConstraint(BaseConstraint):
         return MultiConstraint(*constraints)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, MultiConstraint):
-            return False
-
-        return sorted(
-            self._constraints, key=lambda c: (c.operator, c.version)
-        ) == sorted(other.constraints, key=lambda c: (c.operator, c.version))
+        return (
+            sorted(self._constraints, key=lambda c: (c.operator, c.version))
+            == sorted(other.constraints, key=lambda c: (c.operator, c.version))
+            if isinstance(other, MultiConstraint)
+            else False
+        )
 
     def __str__(self) -> str:
-        constraints = []
-        for constraint in self._constraints:
-            constraints.append(str(constraint))
-
+        constraints = [str(constraint) for constraint in self._constraints]
         return ", ".join(constraints)

@@ -35,21 +35,18 @@ class DependencyGroup:
 
         name = canonicalize_name(name)
 
-        dependencies = []
-        for dependency in self.dependencies:
-            if dependency.name == name:
-                continue
-
-            dependencies.append(dependency)
+        dependencies = [
+            dependency for dependency in self.dependencies if dependency.name != name
+        ]
 
         self._dependencies = dependencies
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, DependencyGroup):
-            return NotImplemented
-
-        return self._name == other.name and set(self._dependencies) == set(
-            other.dependencies
+        return (
+            self._name == other.name
+            and set(self._dependencies) == set(other.dependencies)
+            if isinstance(other, DependencyGroup)
+            else NotImplemented
         )
 
     def __repr__(self) -> str:

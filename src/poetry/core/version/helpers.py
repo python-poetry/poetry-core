@@ -52,7 +52,7 @@ def format_python_constraint(constraint: VersionConstraint) -> str:
         version_constraint = parse_constraint(version)
         matches = constraint.allows_any(version_constraint)
         if not matches:
-            formatted.append("!=" + version)
+            formatted.append(f"!={version}")
         else:
             accepted.append(version)
 

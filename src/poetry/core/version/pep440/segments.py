@@ -59,14 +59,15 @@ class Release:
 
     @classmethod
     def from_parts(cls, *parts: int) -> Release:
-        if not parts:
-            return cls()
-
-        return cls(
-            major=parts[0],
-            minor=parts[1] if len(parts) > 1 else None,
-            patch=parts[2] if len(parts) > 2 else None,
-            extra=parts[3:] if len(parts) > 3 else (),
+        return (
+            cls(
+                major=parts[0],
+                minor=parts[1] if len(parts) > 1 else None,
+                patch=parts[2] if len(parts) > 2 else None,
+                extra=parts[3:] if len(parts) > 3 else (),
+            )
+            if parts
+            else cls()
         )
 
     def to_string(self) -> str:

@@ -33,7 +33,7 @@ class TOMLFile(BaseTOMLFile):  # type: ignore[misc]
         try:
             return super().read()
         except (ValueError, TOMLKitError) as e:
-            raise TOMLError(f"Invalid TOML file {self.path.as_posix()}: {e}")
+            raise TOMLError(f"Invalid TOML file {self.path.as_posix()}: {e}") from e
 
     def __getattr__(self, item: str) -> Any:
         return getattr(self.__path, item)

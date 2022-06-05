@@ -56,10 +56,7 @@ class Constraint(BaseConstraint):
         return False
 
     def allows_all(self, other: BaseConstraint) -> bool:
-        if not isinstance(other, Constraint):
-            return other.is_empty()
-
-        return other == self
+        return other == self if isinstance(other, Constraint) else other.is_empty()
 
     def allows_any(self, other: BaseConstraint) -> bool:
         if isinstance(other, Constraint):
@@ -72,10 +69,7 @@ class Constraint(BaseConstraint):
         return other.allows(self)
 
     def difference(self, other: BaseConstraint) -> Constraint | EmptyConstraint:
-        if other.allows(self):
-            return EmptyConstraint()
-
-        return self
+        return EmptyConstraint() if other.allows(self) else self
 
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
         from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -98,26 +92,23 @@ class Constraint(BaseConstraint):
         return other.intersect(self)
 
     def union(self, other: BaseConstraint) -> BaseConstraint:
-        if isinstance(other, Constraint):
-            from poetry.core.packages.constraints.union_constraint import (
-                UnionConstraint,
-            )
+        if not isinstance(other, Constraint):
+            return other.union(self)
+        from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
-            if other == self:
-                return self
+        if other == self:
+            return self
 
-            if self.operator == "!=" and other.operator == "==" and self.allows(other):
-                return self
+        if self.operator == "!=" and other.operator == "==" and self.allows(other):
+            return self
 
-            if other.operator == "!=" and self.operator == "==" and other.allows(self):
-                return other
+        if other.operator == "!=" and self.operator == "==" and other.allows(self):
+            return other
 
-            if other.operator == "==" and self.operator == "==":
-                return UnionConstraint(self, other)
+        if other.operator == "==" and self.operator == "==":
+            return UnionConstraint(self, other)
 
-            return AnyConstraint()
-
-        return other.union(self)
+        return AnyConstraint()
 
     def is_any(self) -> bool:
         return False
@@ -126,10 +117,11 @@ class Constraint(BaseConstraint):
         return False
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Constraint):
-            return NotImplemented
-
-        return (self.version, self.operator) == (other.version, other.operator)
+        return (
+            (self.version, self.operator) == (other.version, other.operator)
+            if isinstance(other, Constraint)
+            else NotImplemented
+        )
 
     def __hash__(self) -> int:
         return hash((self._operator, self._version))

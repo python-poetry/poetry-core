@@ -104,17 +104,16 @@ class WheelBuilder(Builder):
         with os.fdopen(fd, "w+b") as fd_file, zipfile.ZipFile(
             fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
         ) as zip_file:
-            if not self._editable:
-                if not self._poetry.package.build_should_generate_setup():
-                    self._build(zip_file)
-                    self._copy_module(zip_file)
-                else:
-                    self._copy_module(zip_file)
-                    self._build(zip_file)
-            else:
+            if self._editable:
                 self._build(zip_file)
                 self._add_pth(zip_file)
 
+            elif not self._poetry.package.build_should_generate_setup():
+                self._build(zip_file)
+                self._copy_module(zip_file)
+            else:
+                self._copy_module(zip_file)
+                self._build(zip_file)
             self._copy_file_scripts(zip_file)
             self._write_metadata(zip_file)
             self._write_record(zip_file)
@@ -128,68 +127,66 @@ class WheelBuilder(Builder):
         return wheel_path
 
     def _add_pth(self, wheel: zipfile.ZipFile) -> None:
-        paths = set()
-        for include in self._module.includes:
-            if isinstance(include, PackageInclude) and (
-                include.is_module() or include.is_package()
-            ):
-                paths.add(include.base.resolve().as_posix())
+        paths = {
+            include.base.resolve().as_posix()
+            for include in self._module.includes
+            if isinstance(include, PackageInclude)
+            and (include.is_module() or include.is_package())
+        }
 
-        content = ""
-        for path in paths:
-            content += path + os.linesep
-
+        content = "".join(path + os.linesep for path in paths)
         pth_file = Path(self._module.name).with_suffix(".pth")
 
         with self._write_to_zip(wheel, str(pth_file)) as f:
             f.write(content)
 
     def _build(self, wheel: zipfile.ZipFile) -> None:
-        if self._package.build_script:
-            if not self._poetry.package.build_should_generate_setup():
-                # Since we have a build script but no setup.py generation is required,
-                # we assume that the build script will build and copy the files
-                # directly.
-                # That way they will be picked up when adding files to the wheel.
+        if not self._package.build_script:
+            return
+        if not self._poetry.package.build_should_generate_setup():
+            # Since we have a build script but no setup.py generation is required,
+            # we assume that the build script will build and copy the files
+            # directly.
+            # That way they will be picked up when adding files to the wheel.
+            current_path = os.getcwd()
+            try:
+                os.chdir(str(self._path))
+                self._run_build_script(self._package.build_script)
+            finally:
+                os.chdir(current_path)
+        else:
+            with SdistBuilder(poetry=self._poetry).setup_py() as setup:
+                # We need to place ourselves in the temporary
+                # directory in order to build the package
                 current_path = os.getcwd()
                 try:
                     os.chdir(str(self._path))
-                    self._run_build_script(self._package.build_script)
+                    self._run_build_command(setup)
                 finally:
                     os.chdir(current_path)
-            else:
-                with SdistBuilder(poetry=self._poetry).setup_py() as setup:
-                    # We need to place ourselves in the temporary
-                    # directory in order to build the package
-                    current_path = os.getcwd()
-                    try:
-                        os.chdir(str(self._path))
-                        self._run_build_command(setup)
-                    finally:
-                        os.chdir(current_path)
 
-                    build_dir = self._path / "build"
-                    libs: list[Path] = list(build_dir.glob("lib.*"))
-                    if not libs:
-                        # The result of building the extensions
-                        # does not exist, this may due to conditional
-                        # builds, so we assume that it's okay
-                        return
+                build_dir = self._path / "build"
+                libs: list[Path] = list(build_dir.glob("lib.*"))
+                if not libs:
+                    # The result of building the extensions
+                    # does not exist, this may due to conditional
+                    # builds, so we assume that it's okay
+                    return
 
-                    lib = libs[0]
+                lib = libs[0]
 
-                    for pkg in lib.glob("**/*"):
-                        if pkg.is_dir() or self.is_excluded(pkg):
-                            continue
+                for pkg in lib.glob("**/*"):
+                    if pkg.is_dir() or self.is_excluded(pkg):
+                        continue
 
-                        rel_path = str(pkg.relative_to(lib))
+                    rel_path = str(pkg.relative_to(lib))
 
-                        if rel_path in wheel.namelist():
-                            continue
+                    if rel_path in wheel.namelist():
+                        continue
 
-                        logger.debug(f"Adding: {rel_path}")
+                    logger.debug(f"Adding: {rel_path}")
 
-                        self._add_file(wheel, pkg, rel_path)
+                    self._add_file(wheel, pkg, rel_path)
 
     def _copy_file_scripts(self, wheel: zipfile.ZipFile) -> None:
         file_scripts = self.convert_script_files()
@@ -229,13 +226,13 @@ class WheelBuilder(Builder):
             "scripts" in self._poetry.local_config
             or "plugins" in self._poetry.local_config
         ):
-            with self._write_to_zip(wheel, self.dist_info + "/entry_points.txt") as f:
+            with self._write_to_zip(wheel, f"{self.dist_info}/entry_points.txt") as f:
                 self._write_entry_points(f)
 
         license_files_to_add = []
         for base in ("COPYING", "LICENSE"):
             license_files_to_add.append(self._path / base)
-            license_files_to_add.extend(self._path.glob(base + ".*"))
+            license_files_to_add.extend(self._path.glob(f"{base}.*"))
 
         license_files_to_add.extend(self._path.joinpath("LICENSES").glob("**/*"))
 
@@ -246,15 +243,15 @@ class WheelBuilder(Builder):
             else:
                 logger.debug(f"Skipping: {path.as_posix()}")
 
-        with self._write_to_zip(wheel, self.dist_info + "/WHEEL") as f:
+        with self._write_to_zip(wheel, f"{self.dist_info}/WHEEL") as f:
             self._write_wheel_file(f)
 
-        with self._write_to_zip(wheel, self.dist_info + "/METADATA") as f:
+        with self._write_to_zip(wheel, f"{self.dist_info}/METADATA") as f:
             self._write_metadata_file(f)
 
     def _write_record(self, wheel: zipfile.ZipFile) -> None:
         # Write a record of the files in the wheel
-        with self._write_to_zip(wheel, self.dist_info + "/RECORD") as f:
+        with self._write_to_zip(wheel, f"{self.dist_info}/RECORD") as f:
             record = StringIO()
 
             csv_writer = csv.writer(
@@ -267,7 +264,7 @@ class WheelBuilder(Builder):
                 csv_writer.writerow((path, f"sha256={hash}", size))
 
             # RECORD itself is recorded with no hash or size
-            csv_writer.writerow((self.dist_info + "/RECORD", "", ""))
+            csv_writer.writerow((f"{self.dist_info}/RECORD", "", ""))
 
             f.write(record.getvalue())
 
@@ -303,11 +300,7 @@ class WheelBuilder(Builder):
             tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
             platform = "any"
-            if self.supports_python2():
-                impl = "py2.py3"
-            else:
-                impl = "py3"
-
+            impl = "py2.py3" if self.supports_python2() else "py3"
             tag = (impl, "none", platform)
 
         return "-".join(tag)

@@ -36,7 +36,7 @@ class Module:
         if not packages:
             # It must exist either as a .py file or a directory, but not both
             pkg_dir = Path(directory, self._name)
-            py_file = Path(directory, self._name + ".py")
+            py_file = Path(directory, f"{self._name}.py")
             if pkg_dir.is_dir() and py_file.is_file():
                 raise ValueError(f"Both {pkg_dir} and {py_file} exist")
             elif pkg_dir.is_dir():
@@ -47,7 +47,7 @@ class Module:
                 # Searching for a src module
                 src = Path(directory, "src")
                 src_pkg_dir = src / self._name
-                src_py_file = src / (self._name + ".py")
+                src_py_file = src / f"{self._name}.py"
 
                 if src_pkg_dir.is_dir() and src_py_file.is_file():
                     raise ValueError(f"Both {pkg_dir} and {py_file} exist")
@@ -84,10 +84,10 @@ class Module:
                 )
             )
 
-        for include in includes:
-            self._includes.append(
-                Include(self._path, include["path"], formats=include["format"])
-            )
+        self._includes.extend(
+            Include(self._path, include["path"], formats=include["format"])
+            for include in includes
+        )
 
     @property
     def name(self) -> str:
@@ -99,10 +99,7 @@ class Module:
 
     @property
     def file(self) -> Path:
-        if self._is_package:
-            return self._path / "__init__.py"
-        else:
-            return self._path
+        return self._path / "__init__.py" if self._is_package else self._path
 
     @property
     def includes(self) -> list[Include]:

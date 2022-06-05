@@ -108,10 +108,12 @@ class Dependency(PackageSpecification):
         from poetry.core.semver.version_constraint import VersionConstraint
 
         try:
-            if not isinstance(constraint, VersionConstraint):
-                self._constraint = parse_constraint(constraint)
-            else:
-                self._constraint = constraint
+            self._constraint = (
+                constraint
+                if isinstance(constraint, VersionConstraint)
+                else parse_constraint(constraint)
+            )
+
         except ValueError:
             self._constraint = parse_constraint("*")
         self._pretty_constraint = str(constraint)

@@ -29,10 +29,7 @@ class Version(PEP440Version, VersionRangeConstraint):
 
     @property
     def stable(self) -> Version:
-        if self.is_stable():
-            return self
-
-        return self.next_patch()
+        return self if self.is_stable() else self.next_patch()
 
     def next_breaking(self) -> Version:
         if self.major == 0:
@@ -98,8 +95,7 @@ class Version(PEP440Version, VersionRangeConstraint):
         return other.allows(self)
 
     def intersect(self, other: VersionConstraint) -> Version | EmptyConstraint:
-        if other.allows(self):
-            return self
+        return self if other.allows(self) else EmptyConstraint()
 
         if isinstance(other, Version) and self.allows(other):
             return other
@@ -132,10 +128,7 @@ class Version(PEP440Version, VersionRangeConstraint):
         return VersionUnion.of(self, other)
 
     def difference(self, other: VersionConstraint) -> Version | EmptyConstraint:
-        if other.allows(self):
-            return EmptyConstraint()
-
-        return self
+        return EmptyConstraint() if other.allows(self) else self
 
     def flatten(self) -> list[VersionRangeConstraint]:
         return [self]

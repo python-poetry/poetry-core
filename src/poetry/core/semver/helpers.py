@@ -32,10 +32,8 @@ def parse_constraint(constraints: str) -> VersionConstraint:
         else:
             constraint_objects.append(parse_single_constraint(and_constraints[0]))
 
-        if len(constraint_objects) == 1:
-            constraint = constraint_objects[0]
-        else:
-            constraint = constraint_objects[0]
+        constraint = constraint_objects[0]
+        if len(constraint_objects) != 1:
             for next_constraint in constraint_objects[1:]:
                 constraint = constraint.intersect(next_constraint)
 
@@ -43,10 +41,9 @@ def parse_constraint(constraints: str) -> VersionConstraint:
 
     if len(or_groups) == 1:
         return or_groups[0]
-    else:
-        from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.semver.version_union import VersionUnion
 
-        return VersionUnion.of(*or_groups)
+    return VersionUnion.of(*or_groups)
 
 
 def parse_single_constraint(constraint: str) -> VersionConstraint:
@@ -103,13 +100,12 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
             result: VersionConstraint = VersionRange(
                 version, version.next_minor(), include_min=True
             )
+        elif major == 0:
+            result = VersionRange(max=Version.from_parts(1, 0, 0))
         else:
-            if major == 0:
-                result = VersionRange(max=Version.from_parts(1, 0, 0))
-            else:
-                version = Version.from_parts(major, 0, 0)
+            version = Version.from_parts(major, 0, 0)
 
-                result = VersionRange(version, version.next_major(), include_min=True)
+            result = VersionRange(version, version.next_major(), include_min=True)
 
         if op == "!=":
             result = VersionRange().difference(result)

@@ -42,7 +42,7 @@ class Link:
             url = path_to_url(url)
 
         self.url = url
-        self.requires_python = requires_python if requires_python else None
+        self.requires_python = requires_python or None
 
         if isinstance(metadata, str):
             metadata = {"true": True, "": False, "false": False}.get(
@@ -64,34 +64,22 @@ class Link:
         return f"<Link {self!s}>"
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Link):
-            return NotImplemented
-        return self.url == other.url
+        return self.url == other.url if isinstance(other, Link) else NotImplemented
 
     def __ne__(self, other: object) -> bool:
-        if not isinstance(other, Link):
-            return NotImplemented
-        return self.url != other.url
+        return self.url != other.url if isinstance(other, Link) else NotImplemented
 
     def __lt__(self, other: object) -> bool:
-        if not isinstance(other, Link):
-            return NotImplemented
-        return self.url < other.url
+        return self.url < other.url if isinstance(other, Link) else NotImplemented
 
     def __le__(self, other: object) -> bool:
-        if not isinstance(other, Link):
-            return NotImplemented
-        return self.url <= other.url
+        return self.url <= other.url if isinstance(other, Link) else NotImplemented
 
     def __gt__(self, other: object) -> bool:
-        if not isinstance(other, Link):
-            return NotImplemented
-        return self.url > other.url
+        return self.url > other.url if isinstance(other, Link) else NotImplemented
 
     def __ge__(self, other: object) -> bool:
-        if not isinstance(other, Link):
-            return NotImplemented
-        return self.url >= other.url
+        return self.url >= other.url if isinstance(other, Link) else NotImplemented
 
     def __hash__(self) -> int:
         return hash(self.url)
@@ -216,8 +204,7 @@ class Link:
         Determines if this points to an actual artifact (e.g. a tarball) or if
         it points to an "abstract" thing like a path or a VCS location.
         """
-        if self.scheme in ["ssh", "git", "hg", "bzr", "sftp", "svn"]:
-            return False
+        return self.scheme not in ["ssh", "git", "hg", "bzr", "sftp", "svn"]
 
         return True
 

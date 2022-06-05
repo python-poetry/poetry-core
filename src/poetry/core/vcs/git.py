@@ -260,7 +260,7 @@ class Git:
         version = re.search(r"(\d+)\.(\d+)\.(\d+)", output)
         if not version:
             return (0, 0, 0)
-        return int(version.group(1)), int(version.group(2)), int(version.group(3))
+        return int(version[1]), int(version[2]), int(version[3])
 
     def clone(self, repository: str, dest: Path) -> str:
         self._check_parameter(repository)
@@ -311,7 +311,7 @@ class Git:
         # platforms (cygwin/msys to be specific), the braces are interpreted
         # as special characters and would require escaping, while on others
         # they should not be escaped.
-        args += ["rev-parse", rev + "^0"]
+        args += ["rev-parse", f"{rev}^0"]
 
         return self.run(*args, folder=folder)
 

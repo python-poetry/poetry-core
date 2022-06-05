@@ -49,10 +49,7 @@ class Factory:
         # Checking validity
         check_result = self.validate(local_config)
         if check_result["errors"]:
-            message = ""
-            for error in check_result["errors"]:
-                message += f"  - {error}\n"
-
+            message = "".join(f"  - {error}\n" for error in check_result["errors"])
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
@@ -295,11 +292,9 @@ class Factory:
             elif "path" in constraint:
                 path = Path(constraint["path"])
 
-                if root_dir:
-                    is_file = root_dir.joinpath(path).is_file()
-                else:
-                    is_file = path.is_file()
-
+                is_file = (
+                    root_dir.joinpath(path).is_file() if root_dir else path.is_file()
+                )
                 if is_file:
                     dependency = FileDependency(
                         name,
@@ -444,7 +439,6 @@ class Factory:
             if poetry_file.exists():
                 return poetry_file
 
-        else:
-            raise RuntimeError(
-                f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
-            )
+        raise RuntimeError(
+            f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
+        )

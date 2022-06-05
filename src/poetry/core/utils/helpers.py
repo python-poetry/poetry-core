@@ -61,11 +61,7 @@ def parse_requires(requires: str) -> list[str]:
         if line.startswith("["):
             # extras or conditional dependencies
             marker = line.lstrip("[").rstrip("]")
-            if ":" not in marker:
-                extra, marker = marker, None
-            else:
-                extra, marker = marker.split(":")
-
+            extra, marker = (marker, None) if ":" not in marker else marker.split(":")
             if extra:
                 if marker:
                     marker = f'{marker} and extra == "{extra}"'
@@ -101,7 +97,7 @@ def safe_rmtree(path: str | Path) -> None:
 
 
 def merge_dicts(d1: dict[Any, Any], d2: dict[Any, Any]) -> None:
-    for k in d2.keys():
+    for k in d2:
         if k in d1 and isinstance(d1[k], dict) and isinstance(d2[k], Mapping):
             merge_dicts(d1[k], d2[k])
         else:

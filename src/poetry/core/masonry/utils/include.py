@@ -25,10 +25,11 @@ class Include:
         self, base: Path, include: str, formats: list[str] | None = None
     ) -> None:
         self._base = base
+        # Actually, the typing already requires str
         self._include = str(include)
         self._formats = formats
 
-        self._elements: list[Path] = sorted(self._base.glob(str(self._include)))
+        self._elements: list[Path] = sorted(self._base.glob(self._include))
 
     @property
     def base(self) -> Path:

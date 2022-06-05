@@ -151,11 +151,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
     @property
     def classifier_name(self) -> str | None:
         if self.id not in self.CLASSIFIER_SUPPORTED:
-            if self.is_osi_approved:
-                return None
-
-            return "Other/Proprietary License"
-
+            return None if self.is_osi_approved else "Other/Proprietary License"
         if self.id in self.CLASSIFIER_NAMES:
             return self.CLASSIFIER_NAMES[self.id]
 

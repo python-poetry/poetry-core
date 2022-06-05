@@ -38,7 +38,7 @@ class Requirement:
             raise InvalidRequirement(
                 "The requirement is invalid: Unexpected character at column"
                 f" {e.column}\n\n{e.get_context(requirement_string)}"
-            )
+            ) from e
 
         self.name: str = next(parsed.scan_values(lambda t: t.type == "NAME")).value
         url = next(parsed.scan_values(lambda t: t.type == "URI"), None)
@@ -51,10 +51,7 @@ class Requirement:
                     raise InvalidRequirement(
                         f'The requirement is invalid: invalid URL "{url}"'
                     )
-            elif (
-                not (parsed_url.scheme and parsed_url.netloc)
-                or (not parsed_url.scheme and not parsed_url.netloc)
-            ) and not parsed_url.path:
+            elif not (parsed_url.scheme and parsed_url.netloc) and not parsed_url.path:
                 raise InvalidRequirement(
                     f'The requirement is invalid: invalid URL "{url}"'
                 )
@@ -64,17 +61,13 @@ class Requirement:
 
         self.extras = [e.value for e in parsed.scan_values(lambda t: t.type == "EXTRA")]
         constraint = next(parsed.find_data("version_specification"), None)
-        if not constraint:
-            constraint = "*"
-        else:
-            constraint = ",".join(constraint.children)
-
+        constraint = ",".join(constraint.children) if constraint else "*"
         try:
             self.constraint = parse_constraint(constraint)
-        except ParseConstraintError:
+        except ParseConstraintError as exc:
             raise InvalidRequirement(
                 f'The requirement is invalid: invalid version constraint "{constraint}"'
-            )
+            ) from exc
 
         self.pretty_constraint = constraint
 

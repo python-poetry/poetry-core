@@ -78,8 +78,7 @@ class VCSDependency(Dependency):
 
     @property
     def reference(self) -> str:
-        reference = self._branch or self._tag or self._rev or ""
-        return reference
+        return self._branch or self._tag or self._rev or ""
 
     @property
     def pretty_constraint(self) -> str:

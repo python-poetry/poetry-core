@@ -141,11 +141,11 @@ class Package(PackageSpecification):
         if self.is_root():
             return self._name
 
-        return self.complete_name + "-" + self._version.text
+        return f"{self.complete_name}-{self._version.text}"
 
     @property
     def pretty_string(self) -> str:
-        return self.pretty_name + " " + self.pretty_version
+        return f"{self.pretty_name} {self.pretty_version}"
 
     @property
     def full_pretty_version(self) -> str:
@@ -157,12 +157,12 @@ class Package(PackageSpecification):
 
         ref: str | None
         if self.source_resolved_reference and len(self.source_resolved_reference) == 40:
-            ref = self.source_resolved_reference[0:7]
+            ref = self.source_resolved_reference[:7]
             return f"{self._pretty_version} {ref}"
 
         # if source reference is a sha1 hash -- truncate
         if self.source_reference and len(self.source_reference) == 40:
-            return f"{self._pretty_version} {self.source_reference[0:7]}"
+            return f"{self._pretty_version} {self.source_reference[:7]}"
 
         ref = self._source_resolved_reference or self._source_reference
         return f"{self._pretty_version} {ref}"
@@ -304,7 +304,7 @@ class Package(PackageSpecification):
             self.AVAILABLE_PYTHONS, key=lambda x: tuple(map(int, x.split(".")))
         ):
             if len(version) == 1:
-                constraint = parse_constraint(version + ".*")
+                constraint = parse_constraint(f"{version}.*")
             else:
                 constraint = Version.parse(version)
 
@@ -557,10 +557,11 @@ class Package(PackageSpecification):
         return ignore_source_type or self.is_same_source_as(dependency)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Package):
-            return NotImplemented
-
-        return super().__eq__(other) and self._version == other.version
+        return (
+            super().__eq__(other) and self._version == other.version
+            if isinstance(other, Package)
+            else NotImplemented
+        )
 
     def __hash__(self) -> int:
         return super().__hash__() ^ hash(self._version)
@@ -575,8 +576,12 @@ class Package(PackageSpecification):
             args.append(f"features={repr(self._features)}")
 
         if self._source_type:
-            args.append(f"source_type={repr(self._source_type)}")
-            args.append(f"source_url={repr(self._source_url)}")
+            args.extend(
+                (
+                    f"source_type={repr(self._source_type)}",
+                    f"source_url={repr(self._source_url)}",
+                )
+            )
 
             if self._source_reference:
                 args.append(f"source_reference={repr(self._source_reference)}")

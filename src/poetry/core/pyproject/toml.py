@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import cast
@@ -33,11 +35,7 @@ class PyProjectTOML:
         from tomlkit.toml_document import TOMLDocument
 
         if self._data is None:
-            if not self._file.exists():
-                self._data = TOMLDocument()
-            else:
-                self._data = self._file.read()
-
+            self._data = self._file.read() if self._file.exists() else TOMLDocument()
         return self._data
 
     def is_build_system_defined(self) -> bool:
@@ -80,12 +78,9 @@ class PyProjectTOML:
         from poetry.core.pyproject.exceptions import PyProjectException
 
         if self.file.exists():
-            try:
+            with contextlib.suppress(PyProjectException):
                 _ = self.poetry_config
                 return True
-            except PyProjectException:
-                pass
-
         return False
 
     def __getattr__(self, item: str) -> Any:

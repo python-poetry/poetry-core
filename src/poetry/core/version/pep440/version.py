@@ -68,7 +68,7 @@ class PEP440Version:
 
         # we do this here to handle both None and tomlkit string values
         object.__setattr__(
-            self, "text", self.to_string() if not self.text else str(self.text)
+            self, "text", str(self.text) if self.text else self.to_string()
         )
 
         object.__setattr__(self, "_compare_key", self._make_compare_key())
