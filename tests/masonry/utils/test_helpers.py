@@ -28,9 +28,9 @@ def test_escape_version(version: str, expected: str) -> None:
     [
         ("foo", "foo"),
         ("foo-bar", "foo_bar"),
-        ("FOO-bAr", "FOO_bAr"),
-        ("foo.bar", "foo.bar"),
-        ("foo123-ba---.r", "foo123_ba_.r"),
+        ("FOO-bAr", "foo_bar"),
+        ("foo.bar", "foo_bar"),
+        ("foo123-ba---.r", "foo123_ba_r"),
     ],
 )
 def test_escape_name(name: str, expected: str) -> None:

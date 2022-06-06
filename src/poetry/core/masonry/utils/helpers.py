@@ -29,5 +29,5 @@ def escape_version(version: str) -> str:
 
 
 def escape_name(name: str) -> str:
-    """Escaped wheel name as specified in :pep:`427#escaping-and-unicode`."""
-    return re.sub(r"[^\w\d.]+", "_", name, flags=re.UNICODE)
+    """Escaped wheel name as specified in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode."""
+    return re.sub(r"[-_.]+", "_", name, flags=re.UNICODE).lower()
