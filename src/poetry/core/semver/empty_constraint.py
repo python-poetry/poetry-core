@@ -43,3 +43,9 @@ class EmptyConstraint(VersionConstraint):
 
     def __str__(self) -> str:
         return "<empty>"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, VersionConstraint):
+            return False
+
+        return other.is_empty()

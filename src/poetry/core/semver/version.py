@@ -107,6 +107,9 @@ class Version(PEP440Version, VersionRangeConstraint):
         if other.allows(self):
             return self
 
+        if isinstance(other, Version) and self.allows(other):
+            return other
+
         return EmptyConstraint()
 
     def union(self, other: VersionConstraint) -> VersionConstraint:
