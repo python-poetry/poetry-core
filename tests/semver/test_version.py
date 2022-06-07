@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
@@ -7,6 +9,10 @@ from poetry.core.semver.version import Version
 from poetry.core.semver.version_range import VersionRange
 from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.pep440 import ReleaseTag
+
+
+if TYPE_CHECKING:
+    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 @pytest.mark.parametrize(
@@ -163,19 +169,38 @@ def test_allows_any() -> None:
     assert not v.allows_any(EmptyConstraint())
 
 
-def test_intersect() -> None:
-    v = Version.parse("1.2.3")
-
-    assert v.intersect(v) == v
-    assert v.intersect(Version.parse("1.1.4")).is_empty()
-    assert (
-        v.intersect(VersionRange(Version.parse("1.1.4"), Version.parse("1.2.4"))) == v
-    )
-    assert (
-        Version.parse("1.1.4")
-        .intersect(VersionRange(v, Version.parse("1.2.4")))
-        .is_empty()
-    )
+@pytest.mark.parametrize(
+    ("version1", "version2", "expected"),
+    [
+        (
+            Version.parse("1.2.3"),
+            Version.parse("1.1.4"),
+            EmptyConstraint(),
+        ),
+        (
+            Version.parse("1.2.3"),
+            VersionRange(Version.parse("1.1.4"), Version.parse("1.2.4")),
+            Version.parse("1.2.3"),
+        ),
+        (
+            Version.parse("1.1.4"),
+            VersionRange(Version.parse("1.2.3"), Version.parse("1.2.4")),
+            EmptyConstraint(),
+        ),
+        (
+            Version.parse("1.2.3"),
+            Version.parse("1.2.3.post0"),
+            Version.parse("1.2.3.post0"),
+        ),
+    ],
+)
+def test_intersect(
+    version1: VersionConstraint,
+    version2: VersionConstraint,
+    expected: VersionConstraint,
+) -> None:
+    assert version1.intersect(version2) == expected
+    assert version2.intersect(version1) == expected
 
 
 def test_union() -> None:
