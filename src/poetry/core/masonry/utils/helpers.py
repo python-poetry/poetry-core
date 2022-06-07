@@ -29,5 +29,8 @@ def escape_version(version: str) -> str:
 
 
 def escape_name(name: str) -> str:
-    """Escaped wheel name as specified in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode."""
+    """
+    Escaped wheel name as specified in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode.
+    This method should only be used for the generation of wheels, and not for the artifact package names.
+    """
     return re.sub(r"[-_.]+", "_", name, flags=re.UNICODE).lower()
