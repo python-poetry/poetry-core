@@ -122,25 +122,30 @@ def test_allows() -> None:
     assert not v.allows(Version.parse("1.3.3"))
     assert not v.allows(Version.parse("1.2.4"))
     assert not v.allows(Version.parse("1.2.3-dev"))
+    assert not v.allows(Version.parse("1.2.3-1"))
+    assert not v.allows(Version.parse("1.2.3-1+build"))
     assert v.allows(Version.parse("1.2.3+build"))
-    assert v.allows(Version.parse("1.2.3-1"))
-    assert v.allows(Version.parse("1.2.3-1+build"))
 
 
 def test_allows_with_local() -> None:
     v = Version.parse("1.2.3+build.1")
     assert v.allows(v)
+    assert not v.allows(Version.parse("1.2.3"))
     assert not v.allows(Version.parse("1.3.3"))
     assert not v.allows(Version.parse("1.2.3-dev"))
     assert not v.allows(Version.parse("1.2.3+build.2"))
-    assert v.allows(Version.parse("1.2.3-1"))
-    assert v.allows(Version.parse("1.2.3-1+build.1"))
+    # local version with a great number of segments will always compare as
+    # greater than a local version with fewer segments
+    assert not v.allows(Version.parse("1.2.3+build.1.0"))
+    assert not v.allows(Version.parse("1.2.3-1"))
+    assert not v.allows(Version.parse("1.2.3-1+build.1"))
 
 
 def test_allows_with_post() -> None:
     v = Version.parse("1.2.3-1")
     assert v.allows(v)
     assert not v.allows(Version.parse("1.2.3"))
+    assert not v.allows(Version.parse("1.2.3-2"))
     assert not v.allows(Version.parse("2.2.3"))
     assert not v.allows(Version.parse("1.2.3-dev"))
     assert not v.allows(Version.parse("1.2.3+build.2"))
@@ -190,7 +195,12 @@ def test_allows_any() -> None:
         (
             Version.parse("1.2.3"),
             Version.parse("1.2.3.post0"),
-            Version.parse("1.2.3.post0"),
+            EmptyConstraint(),
+        ),
+        (
+            Version.parse("1.2.3"),
+            Version.parse("1.2.3+local"),
+            Version.parse("1.2.3+local"),
         ),
     ],
 )
