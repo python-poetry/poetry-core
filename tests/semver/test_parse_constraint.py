@@ -246,6 +246,45 @@ from poetry.core.version.pep440 import ReleaseTag
                 include_min=True,
             ),
         ),
+        (
+            "^1.10+cu113",
+            VersionRange(
+                min=Version.from_parts(1, 10, local="cu113"),
+                max=Version.from_parts(2, 0, local="cu113"),
+                include_min=True,
+            ),
+        ),
+        (
+            "~1.10.0+cu113",
+            VersionRange(
+                min=Version.from_parts(1, 10, 0, local="cu113"),
+                max=Version.from_parts(1, 11, 0, local="cu113"),
+                include_min=True,
+            ),
+        ),
+        (
+            ">=1.10.0+cu113",
+            VersionRange(
+                min=Version.from_parts(1, 10, 0, local="cu113"),
+                include_min=True,
+            ),
+        ),
+        (
+            ">=1.10.0+cu113,<2.0",
+            VersionRange(
+                min=Version.from_parts(1, 10, 0, local="cu113"),
+                max=Version.from_parts(2, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            ">=1.10.0+cu113,<2.0+cu113",
+            VersionRange(
+                min=Version.from_parts(1, 10, 0, local="cu113"),
+                max=Version.from_parts(2, 0, local="cu113"),
+                include_min=True,
+            ),
+        ),
     ],
 )
 @pytest.mark.parametrize(("with_whitespace_padding",), [(True,), (False,)])
