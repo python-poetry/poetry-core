@@ -17,7 +17,6 @@ extend-ignore =
     # ANN102: Missing type annotation for cls in classmethod
     ANN102,
 per-file-ignores =
-    __init__.py:F401
     tests/test_*:ANN201
     tests/**/test_*:ANN201
 exclude =
