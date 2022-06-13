@@ -14,6 +14,7 @@ class Link:
         url: str,
         requires_python: str | None = None,
         metadata: str | bool | None = None,
+        yanked: str | bool = False,
     ) -> None:
         """
         Object representing a parsed link from https://pypi.python.org/simple/*
@@ -29,6 +30,11 @@ class Link:
             of the Core Metadata file. This may be specified by a
             data-dist-info-metadata attribute in the HTML link tag, as described
             in PEP 658.
+        yanked:
+            False, if the data-yanked attribute is not present.
+            A string, if the data-yanked attribute has a string value.
+            True, if the data-yanked attribute is present but has no value.
+            According to PEP 592.
         """
 
         # url can be a UNC windows share
@@ -44,6 +50,7 @@ class Link:
             )
 
         self._metadata = metadata
+        self._yanked = yanked
 
     def __str__(self) -> str:
         if self.requires_python:
@@ -213,3 +220,13 @@ class Link:
             return False
 
         return True
+
+    @property
+    def yanked(self) -> bool:
+        return isinstance(self._yanked, str) or bool(self._yanked)
+
+    @property
+    def yanked_reason(self) -> str:
+        if isinstance(self._yanked, str):
+            return self._yanked
+        return ""
