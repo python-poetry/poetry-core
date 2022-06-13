@@ -502,3 +502,28 @@ def test_package_satisfies(
     package: Package, dependency: Dependency, ignore_source_type: bool, result: bool
 ) -> None:
     assert package.satisfies(dependency, ignore_source_type) == result
+
+
+def test_package_pep592_default_not_yanked() -> None:
+    package = Package("foo", "1.0")
+
+    assert not package.yanked
+    assert package.yanked_reason == ""
+
+
+@pytest.mark.parametrize(
+    ("yanked", "expected_yanked", "expected_yanked_reason"),
+    [
+        (True, True, ""),
+        (False, False, ""),
+        ("the reason", True, "the reason"),
+        ("", True, ""),
+    ],
+)
+def test_package_pep592_yanked(
+    yanked: str | bool, expected_yanked: bool, expected_yanked_reason: str
+) -> None:
+    package = Package("foo", "1.0", yanked=yanked)
+
+    assert package.yanked == expected_yanked
+    assert package.yanked_reason == expected_yanked_reason

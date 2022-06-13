@@ -59,6 +59,7 @@ class Package(PackageSpecification):
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
         develop: bool = False,
+        yanked: str | bool = False,
     ) -> None:
         """
         Creates a new in memory package.
@@ -116,6 +117,8 @@ class Package(PackageSpecification):
         self.root_dir: Path | None = None
 
         self.develop = develop
+
+        self._yanked = yanked
 
     @property
     def name(self) -> str:
@@ -367,6 +370,16 @@ class Package(PackageSpecification):
             DeprecationWarning,
         )
         self.readmes = (path,)
+
+    @property
+    def yanked(self) -> bool:
+        return isinstance(self._yanked, str) or bool(self._yanked)
+
+    @property
+    def yanked_reason(self) -> str:
+        if isinstance(self._yanked, str):
+            return self._yanked
+        return ""
 
     def is_prerelease(self) -> bool:
         return self._version.is_unstable()
