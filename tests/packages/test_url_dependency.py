@@ -33,6 +33,17 @@ def test_to_pep_508_with_extras() -> None:
     assert expected == dependency.to_pep_508()
 
 
+def test_to_pep_508_with_subdirectory() -> None:
+    dependency = URLDependency(
+        "demo",
+        "https://github.com/foo/bar/archive/0.1.0.zip",
+        directory="baz",
+    )
+
+    expected = "demo @ https://github.com/foo/bar/archive/0.1.0.zip#subdirectory=baz"
+    assert expected == dependency.to_pep_508()
+
+
 def test_to_pep_508_with_marker() -> None:
     dependency = URLDependency(
         "pytorch",

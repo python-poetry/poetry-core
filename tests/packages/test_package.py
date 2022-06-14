@@ -333,6 +333,7 @@ def test_to_dependency_for_url() -> None:
         "1.2.3",
         source_type="url",
         source_url="https://example.com/path.tar.gz",
+        source_subdirectory="qux",
         features=["baz", "bar"],
     )
     dep = package.to_dependency()
@@ -345,6 +346,7 @@ def test_to_dependency_for_url() -> None:
     assert dep.url == "https://example.com/path.tar.gz"
     assert dep.source_type == "url"
     assert dep.source_url == "https://example.com/path.tar.gz"
+    assert dep.source_subdirectory == "qux"
 
 
 def test_to_dependency_for_vcs() -> None:
