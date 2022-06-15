@@ -341,3 +341,21 @@ def test_first_prerelease() -> None:
 def test_first_devrelease() -> None:
     v = PEP440Version.parse("9!1.2.3a1.post2.dev3")
     assert v.first_devrelease().text == "9!1.2.3a1.post2.dev0"
+
+
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [
+        # simple versions (only "release" attribute) are tested in test_segments
+        # via Release.next()
+        ("1", "2"),
+        ("2!1", "2!2"),
+        ("1+local", "2+local"),
+        ("1.post4", "2"),
+        ("1.dev4", "1"),
+        ("1.a4", "1"),
+    ],
+)
+def test_next_stable(version: str, expected: str) -> None:
+    v = PEP440Version.parse(version)
+    assert v.next_stable().text == expected

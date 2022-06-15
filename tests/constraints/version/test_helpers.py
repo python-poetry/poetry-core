@@ -43,54 +43,54 @@ def test_parse_constraint(input: str, constraint: Version | VersionRange) -> Non
         (
             "v2.*",
             VersionRange(
-                Version.from_parts(2, 0, 0), Version.from_parts(3, 0, 0), True
+                Version.parse("2.0.0.dev0"), Version.from_parts(3, 0, 0), True
             ),
         ),
         (
             "2.*.*",
             VersionRange(
-                Version.from_parts(2, 0, 0), Version.from_parts(3, 0, 0), True
+                Version.parse("2.0.0.dev0"), Version.from_parts(3, 0, 0), True
             ),
         ),
         (
             "20.*",
             VersionRange(
-                Version.from_parts(20, 0, 0), Version.from_parts(21, 0, 0), True
+                Version.parse("20.0.0.dev0"), Version.from_parts(21, 0, 0), True
             ),
         ),
         (
             "20.*.*",
             VersionRange(
-                Version.from_parts(20, 0, 0), Version.from_parts(21, 0, 0), True
+                Version.parse("20.0.0.dev0"), Version.from_parts(21, 0, 0), True
             ),
         ),
         (
             "2.0.*",
             VersionRange(
-                Version.from_parts(2, 0, 0), Version.from_parts(2, 1, 0), True
+                Version.parse("2.0.0.dev0"), Version.from_parts(2, 1, 0), True
             ),
         ),
         (
             "2.x",
             VersionRange(
-                Version.from_parts(2, 0, 0), Version.from_parts(3, 0, 0), True
+                Version.parse("2.0.0.dev0"), Version.from_parts(3, 0, 0), True
             ),
         ),
         (
             "2.x.x",
             VersionRange(
-                Version.from_parts(2, 0, 0), Version.from_parts(3, 0, 0), True
+                Version.parse("2.0.0.dev0"), Version.from_parts(3, 0, 0), True
             ),
         ),
         (
             "2.2.X",
             VersionRange(
-                Version.from_parts(2, 2, 0), Version.from_parts(2, 3, 0), True
+                Version.parse("2.2.0.dev0"), Version.from_parts(2, 3, 0), True
             ),
         ),
-        ("0.*", VersionRange(max=Version.from_parts(1, 0, 0))),
-        ("0.*.*", VersionRange(max=Version.from_parts(1, 0, 0))),
-        ("0.x", VersionRange(max=Version.from_parts(1, 0, 0))),
+        ("0.*", VersionRange(Version.parse("0.dev0"), Version.parse("1"), True)),
+        ("0.*.*", VersionRange(Version.parse("0.dev0"), Version.parse("1"), True)),
+        ("0.x", VersionRange(Version.parse("0.dev0"), Version.parse("1"), True)),
     ],
 )
 def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None:
@@ -332,7 +332,7 @@ def test_parse_constraint_multi_with_epochs(input: str, output: VersionRange) ->
 def test_parse_constraint_multi_wilcard(input: str) -> None:
     assert parse_constraint(input) == VersionUnion(
         VersionRange(
-            Version.from_parts(2, 7, 0), Version.from_parts(3, 0, 0), True, False
+            Version.from_parts(2, 7, 0), Version.parse("3.0.0.dev0"), True, False
         ),
         VersionRange(Version.from_parts(3, 2, 0), None, True, False),
     )
@@ -343,24 +343,34 @@ def test_parse_constraint_multi_wilcard(input: str) -> None:
     [
         (
             "!=v2.*",
-            VersionRange(max=Version.parse("2.0")).union(
+            VersionRange(max=Version.parse("2.0.0.dev0")).union(
                 VersionRange(Version.parse("3.0"), include_min=True)
             ),
         ),
         (
             "!=2.*.*",
-            VersionRange(max=Version.parse("2.0")).union(
+            VersionRange(max=Version.parse("2.0.0.dev0")).union(
                 VersionRange(Version.parse("3.0"), include_min=True)
             ),
         ),
         (
             "!=2.0.*",
-            VersionRange(max=Version.parse("2.0")).union(
+            VersionRange(max=Version.parse("2.0.0.dev0")).union(
                 VersionRange(Version.parse("2.1"), include_min=True)
             ),
         ),
-        ("!=0.*", VersionRange(Version.parse("1.0"), include_min=True)),
-        ("!=0.*.*", VersionRange(Version.parse("1.0"), include_min=True)),
+        (
+            "!=0.*",
+            VersionRange(max=Version.parse("0.dev0")).union(
+                VersionRange(Version.parse("1.0"), include_min=True)
+            ),
+        ),
+        (
+            "!=0.*.*",
+            VersionRange(max=Version.parse("0.dev0")).union(
+                VersionRange(Version.parse("1.0"), include_min=True)
+            ),
+        ),
     ],
 )
 def test_parse_constraints_negative_wildcard(

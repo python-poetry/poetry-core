@@ -98,6 +98,24 @@ class Release:
             extra=tuple(0 for _ in self.extra),
         )
 
+    def next(self) -> Release:
+        if self.precision == 1:
+            return self.next_major()
+
+        if self.precision == 2:
+            return self.next_minor()
+
+        if self.precision == 3:
+            return self.next_patch()
+
+        return dataclasses.replace(
+            self,
+            major=self.major,
+            minor=self.minor,
+            patch=self.patch,
+            extra=(*self.extra[:-1], self.extra[-1] + 1),
+        )
+
 
 @dataclasses.dataclass(frozen=True, eq=True, order=True)
 class ReleaseTag:
