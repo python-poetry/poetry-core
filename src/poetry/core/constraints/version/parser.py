@@ -10,11 +10,22 @@ from poetry.core.version.exceptions import InvalidVersion
 
 
 if TYPE_CHECKING:
+    from poetry.core.constraints.version.version import Version
     from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
 @functools.lru_cache(maxsize=None)
 def parse_constraint(constraints: str) -> VersionConstraint:
+    return _parse_constraint(constraints=constraints)
+
+
+def parse_marker_version_constraint(constraints: str) -> VersionConstraint:
+    return _parse_constraint(constraints=constraints, is_marker_constraint=True)
+
+
+def _parse_constraint(
+    constraints: str, *, is_marker_constraint: bool = False
+) -> VersionConstraint:
     if constraints == "*":
         from poetry.core.constraints.version.version_range import VersionRange
 
@@ -33,9 +44,17 @@ def parse_constraint(constraints: str) -> VersionConstraint:
 
         if len(and_constraints) > 1:
             for constraint in and_constraints:
-                constraint_objects.append(parse_single_constraint(constraint))
+                constraint_objects.append(
+                    parse_single_constraint(
+                        constraint, is_marker_constraint=is_marker_constraint
+                    )
+                )
         else:
-            constraint_objects.append(parse_single_constraint(and_constraints[0]))
+            constraint_objects.append(
+                parse_single_constraint(
+                    and_constraints[0], is_marker_constraint=is_marker_constraint
+                )
+            )
 
         if len(constraint_objects) == 1:
             constraint = constraint_objects[0]
@@ -54,7 +73,9 @@ def parse_constraint(constraints: str) -> VersionConstraint:
         return VersionUnion.of(*or_groups)
 
 
-def parse_single_constraint(constraint: str) -> VersionConstraint:
+def parse_single_constraint(
+    constraint: str, *, is_marker_constraint: bool = False
+) -> VersionConstraint:
     from poetry.core.constraints.version.patterns import BASIC_CONSTRAINT
     from poetry.core.constraints.version.patterns import CARET_CONSTRAINT
     from poetry.core.constraints.version.patterns import TILDE_CONSTRAINT
@@ -117,25 +138,15 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
     m = X_CONSTRAINT.match(constraint)
     if m:
         op = m.group("op")
-        major = int(m.group(2))
-        minor = m.group(3)
 
-        if minor is not None:
-            version = Version.from_parts(major, int(minor), 0)
-            result: VersionConstraint = VersionRange(
-                version, version.next_minor(), include_min=True
+        try:
+            return _make_x_constraint_range(
+                version=Version.parse(m.group("version")),
+                invert=op == "!=",
+                is_marker_constraint=is_marker_constraint,
             )
-        elif major == 0:
-            result = VersionRange(max=Version.from_parts(1, 0, 0))
-        else:
-            version = Version.from_parts(major, 0, 0)
-
-            result = VersionRange(version, version.next_major(), include_min=True)
-
-        if op == "!=":
-            result = VersionRange().difference(result)
-
-        return result
+        except ValueError:
+            raise ValueError(f"Could not parse version constraint: {constraint}")
 
     # Basic comparator
     m = BASIC_CONSTRAINT.match(constraint)
@@ -161,8 +172,46 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
             return VersionRange(min=version)
         if op == ">=":
             return VersionRange(min=version, include_min=True)
+
+        if m.group("wildcard") is not None:
+            return _make_x_constraint_range(
+                version=version,
+                invert=op == "!=",
+                is_marker_constraint=is_marker_constraint,
+            )
+
         if op == "!=":
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
+
         return version
 
     raise ParseConstraintError(f"Could not parse version constraint: {constraint}")
+
+
+def _make_x_constraint_range(
+    version: Version, *, invert: bool = False, is_marker_constraint: bool = False
+) -> VersionConstraint:
+    from poetry.core.constraints.version.version_range import VersionRange
+
+    if version.is_postrelease():
+        _next = version.next_postrelease()
+    elif version.is_stable():
+        _next = version.next_stable()
+    elif version.is_prerelease():
+        _next = version.next_prerelease()
+    elif version.is_devrelease():
+        _next = version.next_devrelease()
+    else:
+        raise RuntimeError("version is neither stable, nor pre-release nor dev-release")
+
+    _min = version
+
+    if not is_marker_constraint and not _next.is_unstable():
+        _min = _min.first_devrelease()
+
+    result = VersionRange(_min, _next, include_min=True)
+
+    if invert:
+        return VersionRange().difference(result)
+
+    return result

@@ -21,22 +21,9 @@ class VersionRange(VersionRangeConstraint):
         max: Version | None = None,
         include_min: bool = False,
         include_max: bool = False,
-        always_include_max_prerelease: bool = False,
     ) -> None:
-        full_max = max
-        if (
-            not always_include_max_prerelease
-            and not include_max
-            and full_max is not None
-            and full_max.is_stable()
-            and not full_max.is_postrelease()
-            and (min is None or min.is_stable() or min.release != full_max.release)
-        ):
-            full_max = full_max.first_prerelease()
-
-        self._min = min
         self._max = max
-        self._full_max = full_max
+        self._min = min
         self._include_min = include_min
         self._include_max = include_max
 
@@ -47,10 +34,6 @@ class VersionRange(VersionRangeConstraint):
     @property
     def max(self) -> Version | None:
         return self._max
-
-    @property
-    def full_max(self) -> Version | None:
-        return self._full_max
 
     @property
     def include_min(self) -> bool:
@@ -71,27 +54,43 @@ class VersionRange(VersionRangeConstraint):
 
     def allows(self, other: Version) -> bool:
         if self._min is not None:
-            if other < self._min:
+            _this, _other = self.allowed_min, other
+
+            assert _this is not None
+
+            if not _this.is_postrelease() and _other.is_postrelease():
+                # The exclusive ordered comparison >V MUST NOT allow a post-release
+                # of the given version unless V itself is a post release.
+                # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
+                # e.g. "2.0.post1" does not match ">2"
+                _other = _other.without_postrelease()
+
+            if not _this.is_local() and _other.is_local():
+                # The exclusive ordered comparison >V MUST NOT match
+                # a local version of the specified version.
+                # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
+                # e.g. "2.0+local.version" does not match ">2"
+                _other = other.without_local()
+
+            if _other < _this:
                 return False
 
-            if not self._include_min and other == self._min:
+            if not self._include_min and (_other == self._min or _other == _this):
                 return False
 
-        if self.full_max is not None:
-            _this, _other = self.full_max, other
+        if self.max is not None:
+            _this, _other = self.allowed_max, other
+
+            assert _this is not None
 
             if not _this.is_local() and _other.is_local():
                 # allow weak equality to allow `3.0.0+local.1` for `<=3.0.0`
                 _other = _other.without_local()
 
-            if not _this.is_postrelease() and _other.is_postrelease():
-                # allow weak equality to allow `3.0.0-1` for `<=3.0.0`
-                _other = _other.without_postrelease()
-
             if _other > _this:
                 return False
 
-            if not self._include_max and _other == _this:
+            if not self._include_max and (_other == self._max or _other == _this):
                 return False
 
         return True

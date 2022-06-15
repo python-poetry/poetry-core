@@ -41,7 +41,7 @@ def test_dependency_from_pep_508_with_constraint() -> None:
     dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
-    assert str(dep.constraint) == ">=2.12.0,<2.17.0 || >=2.18.0,<3.0"
+    assert str(dep.constraint) == ">=2.12.0,<2.17.dev0 || >=2.18,<3.0"
 
 
 def test_dependency_from_pep_508_with_extras() -> None:

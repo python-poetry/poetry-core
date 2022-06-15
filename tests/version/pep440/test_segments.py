@@ -94,6 +94,25 @@ def test_release_next_patch(precision: int) -> None:
 
 
 @pytest.mark.parametrize(
+    ("release", "expected"),
+    [
+        (Release(0), Release(1)),
+        (Release(1), Release(2)),
+        (Release(0, 0), Release(0, 1)),
+        (Release(1, 2), Release(1, 3)),
+        (Release(0, 0, 0), Release(0, 0, 1)),
+        (Release(1, 2, 3), Release(1, 2, 4)),
+        (Release(0, 0, 0, (0,)), Release(0, 0, 0, (1,))),
+        (Release(1, 2, 3, (4,)), Release(1, 2, 3, (5,))),
+        (Release(0, 0, 0, (0, 0)), Release(0, 0, 0, (0, 1))),
+        (Release(1, 2, 3, (4, 5)), Release(1, 2, 3, (4, 6))),
+    ],
+)
+def test_release_next(release: Release, expected: Release) -> None:
+    assert release.next() == expected
+
+
+@pytest.mark.parametrize(
     "parts,result",
     [
         (("a",), ReleaseTag("alpha", 0)),

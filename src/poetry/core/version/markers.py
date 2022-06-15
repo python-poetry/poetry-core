@@ -303,9 +303,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
-        from poetry.core.constraints.version import (
-            parse_constraint as parse_version_constraint,
-        )
+        from poetry.core.constraints.version import parse_marker_version_constraint
 
         parsed_constraint: BaseConstraint | VersionConstraint
         parser: Callable[[str], BaseConstraint | VersionConstraint]
@@ -324,7 +322,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         parser = parse_generic_constraint
 
         if name in self._VERSION_LIKE_MARKER_NAME:
-            parser = parse_version_constraint
+            parser = parse_marker_version_constraint
 
             if self._operator in {"in", "not in"}:
                 versions = []

@@ -231,7 +231,11 @@ class PEP440Version:
             release = release.next_patch()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
+    def next_stable(self: T) -> T:
+        release = self.release.next() if self.is_stable() else self.release
+        return self.__class__(epoch=self.epoch, release=release, local=self.local)
+
+    def next_prerelease(self: T, next_phase: bool = False) -> T:
         if self.is_stable():
             warnings.warn(
                 (
@@ -320,4 +324,7 @@ class PEP440Version:
         return self.replace(local=None)
 
     def without_postrelease(self: T) -> T:
-        return self.replace(post=None)
+        return self.replace(post=None, dev=None)
+
+    def without_devrelease(self: T) -> T:
+        return self.replace(dev=None)

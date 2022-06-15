@@ -233,7 +233,7 @@ def test_complete_name() -> None:
         ("A", ">=1.8,!=2.0.*", None, "A (>=1.8,!=2.0.*)"),
         ("A", "!=0.0.*", None, "A (!=0.0.*)"),
         ("A", "!=0.1.*", None, "A (!=0.1.*)"),
-        ("A", "!=0.*", None, "A (>=1.0.0)"),
+        ("A", "!=0.*", None, "A (!=0.*)"),
         ("A", ">=1.8,!=2.*", None, "A (>=1.8,!=2.*)"),
         ("A", ">=1.8,!=2.*.*", None, "A (>=1.8,!=2.*)"),
         ("A", ">=1.8,<2.0 || >=2.1.0", None, "A (>=1.8,!=2.0.*)"),
@@ -248,10 +248,7 @@ def test_complete_name() -> None:
         ("A", ">=1.8,<2.0 || >=2.2.0", None, "A (>=1.8,<2.0 || >=2.2.0)"),
         ("A", ">=1.8,<2.0 || >=2.1.5", None, "A (>=1.8,<2.0 || >=2.1.5)"),
         ("A", ">=1.8.0.0,<2 || >=2.0.1.5", None, "A (>=1.8.0.0,<2 || >=2.0.1.5)"),
-        # non-semver version test is ignored due to existing bug in wildcard
-        # constraint parsing that ignores non-semver versions
-        # TODO: re-enable for verification once fixed
-        # ("A", ">=1.8.0.0,!=2.0.0.*", None, "A (>=1.8.0.0,!=2.0.0.*)"),  # noqa: ERA001
+        ("A", ">=1.8.0.0,!=2.0.0.*", None, "A (>=1.8.0.0,!=2.0.0.*)"),
     ],
 )
 def test_dependency_string_representation(

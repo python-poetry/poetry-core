@@ -23,7 +23,7 @@ from poetry.core.version.pep440 import ReleaseTag
         (
             "== 3.8.*",
             VersionRange(
-                min=Version.from_parts(3, 8),
+                min=Version.parse("3.8.0.dev0"),
                 max=Version.from_parts(3, 9, 0),
                 include_min=True,
             ),
@@ -31,7 +31,7 @@ from poetry.core.version.pep440 import ReleaseTag
         (
             "== 3.8.x",
             VersionRange(
-                min=Version.from_parts(3, 8),
+                min=Version.parse("3.8.0.dev0"),
                 max=Version.from_parts(3, 9, 0),
                 include_min=True,
             ),
@@ -244,6 +244,15 @@ from poetry.core.version.pep440 import ReleaseTag
                 min=Version.from_parts(0, 0),
                 max=Version.from_parts(0, 1),
                 include_min=True,
+            ),
+        ),
+        (
+            "2.0.post1.*",
+            VersionRange(
+                min=Version.parse("2.0.post1.dev0"),
+                max=Version.parse("2.0.post2"),
+                include_min=True,
+                include_max=False,
             ),
         ),
     ],

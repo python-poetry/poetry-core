@@ -91,6 +91,18 @@ class VersionUnion(VersionConstraint):
         return self.excludes_single_version()
 
     def allows(self, version: Version) -> bool:
+        if self.excludes_single_version():
+            # when excluded version is local, special handling is required
+            # to ensure that a constraint (!=2.0+deadbeef) will allow the
+            # provided version (2.0)
+            from poetry.core.constraints.version.version import Version
+            from poetry.core.constraints.version.version_range import VersionRange
+
+            excluded = VersionRange().difference(self)
+
+            if isinstance(excluded, Version) and excluded.is_local():
+                return excluded != version
+
         return any(constraint.allows(version) for constraint in self._ranges)
 
     def allows_all(self, other: VersionConstraint) -> bool:
@@ -305,26 +317,41 @@ class VersionUnion(VersionConstraint):
         assert one.max is not None
         assert two.min is not None
 
-        max_precision = max(one.max.precision, two.min.precision)
+        _max = one.max
+        _min = two.min
+
+        if _max.is_devrelease() and _max.dev is not None and _max.dev.number == 0:
+            # handle <2.0.0.dev0 || >= 2.1.0
+            _max = _max.without_devrelease()
+
+            if _min.is_devrelease():
+                assert _min.dev is not None
+
+                if _min.dev.number != 0:
+                    # if both are dev releases, they should both have dev0
+                    return False
+                _min = _min.without_devrelease()
+
+        max_precision = max(_max.precision, _min.precision)
 
         if max_precision <= 3:
             # In cases where both versions have a precision less than 3,
             # we can make use of the next major/minor/patch versions.
-            return two.min in {
-                one.max.next_major(),
-                one.max.next_minor(),
-                one.max.next_patch(),
+            return _min in {
+                _max.next_major(),
+                _max.next_minor(),
+                _max.next_patch(),
             }
         else:
             # When there are non-semver parts in one of the versions, we need to
             # ensure we use zero padded version and in addition to next major/minor/
             # patch versions, also check each next release for the extra parts.
-            from_parts = one.max.__class__.from_parts
+            from_parts = _max.__class__.from_parts
 
             _extras: list[list[int]] = []
             _versions: list[Version] = []
 
-            for _version in (one.max, two.min):
+            for _version in (_max, _min):
                 _extra = list(_version.non_semver_parts or [])
 
                 while len(_extra) < (max_precision - 3):
