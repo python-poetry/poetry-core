@@ -191,6 +191,49 @@ def test_validate_fails() -> None:
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
 
+def test_validate_without_strict_fails_only_non_strict() -> None:
+    project_failing_strict_validation = TOMLFile(
+        fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
+    )
+    doc: dict[str, Any] = project_failing_strict_validation.read()
+    content = doc["tool"]["poetry"]
+
+    assert Factory.validate(content) == {
+        "errors": [
+            "'name' is a required property",
+            "'version' is a required property",
+            "'description' is a required property",
+        ],
+        "warnings": [],
+    }
+
+
+def test_validate_strict_fails_strict_and_non_strict() -> None:
+    project_failing_strict_validation = TOMLFile(
+        fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
+    )
+    doc: dict[str, Any] = project_failing_strict_validation.read()
+    content = doc["tool"]["poetry"]
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [
+            "'name' is a required property",
+            "'version' is a required property",
+            "'description' is a required property",
+            'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
+            " defined.",
+            "Declared README files must be of same type: found text/markdown,"
+            " text/x-rst",
+        ],
+        "warnings": [
+            "A wildcard Python dependency is ambiguous. Consider specifying a more"
+            " explicit one.",
+            'The "pathlib2" dependency specifies the "allows-prereleases" property,'
+            ' which is deprecated. Use "allow-prereleases" instead.',
+        ],
+    }
+
+
 def test_strict_validation_success_on_multiple_readme_files() -> None:
     with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
     doc: dict[str, Any] = with_readme_files.read()
