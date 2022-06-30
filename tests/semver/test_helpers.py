@@ -189,6 +189,12 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
                 True,
             ),
         ),
+        (
+            "~=3.5.3.6",
+            VersionRange(
+                Version.from_parts(3, 5, 3, 6), Version.from_parts(3, 5, 4, 0), True
+            ),
+        ),
     ],
 )
 def test_parse_constraint_tilde_pep440(input: str, constraint: VersionRange) -> None:
