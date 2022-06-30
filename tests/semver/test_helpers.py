@@ -67,6 +67,12 @@ def test_parse_constraint(input: str, constraint: Version | VersionRange) -> Non
             ),
         ),
         (
+            "20.*.*.*",
+            VersionRange(
+                Version.from_parts(20, 0, 0), Version.from_parts(21, 0, 0), True
+            ),
+        ),
+        (
             "2.0.*",
             VersionRange(
                 Version.from_parts(2, 0, 0), Version.from_parts(2, 1, 0), True
@@ -88,6 +94,24 @@ def test_parse_constraint(input: str, constraint: Version | VersionRange) -> Non
             "2.2.X",
             VersionRange(
                 Version.from_parts(2, 2, 0), Version.from_parts(2, 3, 0), True
+            ),
+        ),
+        (
+            "2.2.3.*",
+            VersionRange(
+                Version.from_parts(2, 2, 3), Version.from_parts(2, 2, 4), True
+            ),
+        ),
+        (
+            "2.2.3.X",
+            VersionRange(
+                Version.from_parts(2, 2, 3), Version.from_parts(2, 2, 4), True
+            ),
+        ),
+        (
+            "2.*.X.x",
+            VersionRange(
+                Version.from_parts(2, 0, 0), Version.from_parts(3, 0, 0), True
             ),
         ),
         ("0.*", VersionRange(max=Version.from_parts(1, 0, 0))),

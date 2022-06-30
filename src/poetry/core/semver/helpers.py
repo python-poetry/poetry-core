@@ -101,12 +101,16 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
         op = m.group("op")
         major = int(m.group(2))
         minor = m.group(3)
+        patch = m.group(4)
 
-        if minor is not None:
-            version = Version.from_parts(major, int(minor), 0)
+        if patch is not None:
+            version = Version.from_parts(major, int(minor), int(patch))
             result: VersionConstraint = VersionRange(
-                version, version.next_minor(), include_min=True
+                version, version.next_patch(), include_min=True
             )
+        elif minor is not None:
+            version = Version.from_parts(major, int(minor), 0)
+            result = VersionRange(version, version.next_minor(), include_min=True)
         else:
             if major == 0:
                 result = VersionRange(max=Version.from_parts(1, 0, 0))
