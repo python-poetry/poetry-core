@@ -160,18 +160,27 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 Version.from_parts(3, 5, 0), Version.from_parts(3, 6, 0), True
             ),
         ),
+    ],
+)
+def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
+    assert parse_constraint(input) == constraint
+
+
+@pytest.mark.parametrize(
+    "input,constraint",
+    [
         (
             "~=3.5",
             VersionRange(
                 Version.from_parts(3, 5, 0), Version.from_parts(4, 0, 0), True
             ),
-        ),  # PEP 440
+        ),
         (
             "~=3.5.3",
             VersionRange(
                 Version.from_parts(3, 5, 3), Version.from_parts(3, 6, 0), True
             ),
-        ),  # PEP 440
+        ),
         (
             "~=3.5.3rc1",
             VersionRange(
@@ -179,10 +188,10 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 Version.from_parts(3, 6, 0),
                 True,
             ),
-        ),  # PEP 440
+        ),
     ],
 )
-def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
+def test_parse_constraint_tilde_pep440(input: str, constraint: VersionRange) -> None:
     assert parse_constraint(input) == constraint
 
 
