@@ -574,7 +574,14 @@ class Dependency(PackageSpecification):
         if not isinstance(other, Dependency):
             return NotImplemented
 
-        return super().__eq__(other) and self._constraint == other.constraint
+        # "constraint" is implicitly given for direct origin dependencies and might not
+        # be set yet ("*"). Thus, it shouldn't be used to determine if two direct origin
+        # dependencies are equal.
+        # Calling is_direct_origin() for one dependency is sufficient because
+        # super().__eq__() returns False for different origins.
+        return super().__eq__(other) and (
+            self._constraint == other.constraint or self.is_direct_origin()
+        )
 
     def __hash__(self) -> int:
         # don't include _constraint in hash because it is mutable!

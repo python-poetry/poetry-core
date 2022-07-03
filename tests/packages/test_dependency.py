@@ -362,6 +362,34 @@ def test_create_from_pep_508_url_with_activated_extras() -> None:
 
 
 @pytest.mark.parametrize(
+    "dependency1, dependency2, expected",
+    [
+        (Dependency("a", "1.0"), Dependency("a", "1.0"), True),
+        (Dependency("a", "1.0"), Dependency("a", "1.0.1"), False),
+        (Dependency("a", "1.0"), Dependency("a1", "1.0"), False),
+        (Dependency("a", "1.0"), Dependency("a", "1.0", source_type="file"), False),
+        # constraint is implicitly given for direct origin dependencies,
+        # but might not be set
+        (
+            Dependency("a", "1.0", source_type="file"),
+            Dependency("a", "*", source_type="file"),
+            True,
+        ),
+        # constraint is not implicit for non direct origin dependencies
+        (Dependency("a", "1.0"), Dependency("a", "*"), False),
+        (
+            Dependency("a", "1.0", source_type="legacy"),
+            Dependency("a", "*", source_type="legacy"),
+            False,
+        ),
+    ],
+)
+def test_eq(dependency1: Dependency, dependency2: Dependency, expected: bool) -> None:
+    assert (dependency1 == dependency2) is expected
+    assert (dependency2 == dependency1) is expected
+
+
+@pytest.mark.parametrize(
     "attr_name, value",
     [
         ("constraint", "2.0"),
