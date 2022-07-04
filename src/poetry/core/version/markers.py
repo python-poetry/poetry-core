@@ -174,7 +174,6 @@ class EmptyMarker(BaseMarker):
 
 
 class SingleMarker(BaseMarker):
-
     _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     _VERSION_LIKE_MARKER_NAME = {
         "python_version",

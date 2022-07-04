@@ -8,7 +8,6 @@ from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 
 
 class Constraint(BaseConstraint):
-
     OP_EQ = operator.eq
     OP_NE = operator.ne
 

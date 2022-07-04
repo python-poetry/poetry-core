@@ -52,7 +52,6 @@ logger = logging.getLogger(__name__)
 
 
 class SdistBuilder(Builder):
-
     format = "sdist"
 
     def build(

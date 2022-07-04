@@ -34,7 +34,6 @@ AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+
 
 
 class Package(PackageSpecification):
-
     AVAILABLE_PYTHONS = {
         "2",
         "2.7",

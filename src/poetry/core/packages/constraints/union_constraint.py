@@ -128,7 +128,6 @@ class UnionConstraint(BaseConstraint):
         return UnionConstraint(*constraints)
 
     def __eq__(self, other: object) -> bool:
-
         if not isinstance(other, UnionConstraint):
             return False
 

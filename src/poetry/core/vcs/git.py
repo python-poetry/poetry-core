@@ -88,7 +88,6 @@ PATTERNS = [
 
 
 class GitError(RuntimeError):
-
     pass
 
 
