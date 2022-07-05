@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
     T = TypeVar("T", bound="Package")
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
+AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"():&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
