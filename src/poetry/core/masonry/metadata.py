@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 
 class Metadata:
-
     metadata_version = "2.1"
     # version 1.0
     name: str | None = None

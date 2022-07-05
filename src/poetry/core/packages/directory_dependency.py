@@ -22,7 +22,6 @@ class DirectoryDependency(Dependency):
         develop: bool = False,
         extras: Iterable[str] | None = None,
     ) -> None:
-
         self._path = path
         self._base = base or Path.cwd()
         self._full_path = path
