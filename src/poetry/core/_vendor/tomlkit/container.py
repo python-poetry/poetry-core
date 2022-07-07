@@ -46,6 +46,25 @@ class Container(_CustomDict):
     def body(self) -> List[Tuple[Optional[Key], Item]]:
         return self._body
 
+    def unwrap(self) -> str:
+        unwrapped = {}
+        for k, v in self.items():
+            if k is None:
+                continue
+
+            if isinstance(k, Key):
+                k = k.key
+
+            if isinstance(v, Item):
+                v = v.unwrap()
+
+            if k in unwrapped:
+                merge_dicts(unwrapped[k], v)
+            else:
+                unwrapped[k] = v
+
+        return unwrapped
+
     @property
     def value(self) -> Dict[Any, Any]:
         d = {}
@@ -173,7 +192,7 @@ class Container(_CustomDict):
             item.name = key.key
 
         prev = self._previous_item()
-        prev_ws = isinstance(prev, Whitespace) or ends_with_withespace(prev)
+        prev_ws = isinstance(prev, Whitespace) or ends_with_whitespace(prev)
         if isinstance(item, Table):
             if item.name != key.key:
                 item.invalidate_display_name()
@@ -291,7 +310,7 @@ class Container(_CustomDict):
                         previous_item = self._body[-1][1]
                         if not (
                             isinstance(previous_item, Whitespace)
-                            or ends_with_withespace(previous_item)
+                            or ends_with_whitespace(previous_item)
                             or is_table
                             or "\n" in previous_item.trivia.trail
                         ):
@@ -326,6 +345,25 @@ class Container(_CustomDict):
             dict.__setitem__(self, key.key, item.value)
 
         return self
+
+    def _remove_at(self, idx: int) -> None:
+        key = self._body[idx][0]
+        index = self._map.get(key)
+        if index is None:
+            raise NonExistentKey(key)
+        self._body[idx] = (None, Null())
+
+        if isinstance(index, tuple):
+            index = list(index)
+            index.remove(idx)
+            if len(index) == 1:
+                index = index.pop()
+            else:
+                index = tuple(index)
+            self._map[key] = index
+        else:
+            dict.__delitem__(self, key.key)
+            self._map.pop(key)
 
     def remove(self, key: Union[Key, str]) -> "Container":
         """Remove a key from the container."""
@@ -406,7 +444,7 @@ class Container(_CustomDict):
             previous_item = self._body[idx - 1][1]
             if not (
                 isinstance(previous_item, Whitespace)
-                or ends_with_withespace(previous_item)
+                or ends_with_whitespace(previous_item)
                 or isinstance(item, (AoT, Table))
                 or "\n" in previous_item.trivia.trail
             ):
@@ -700,7 +738,7 @@ class Container(_CustomDict):
             # - it is not the last item
             last, _ = self._previous_item_with_index()
             idx = last if idx < 0 else idx
-            has_ws = ends_with_withespace(value)
+            has_ws = ends_with_whitespace(value)
             next_ws = idx < last and isinstance(self._body[idx + 1][1], Whitespace)
             if idx < last and not (next_ws or has_ws):
                 value.append(None, Whitespace("\n"))
@@ -785,7 +823,7 @@ class OutOfOrderTableProxy(_CustomDict):
         self._tables_map = {}
 
         for i in indices:
-            key, item = self._container._body[i]
+            _, item = self._container._body[i]
 
             if isinstance(item, Table):
                 self._tables.append(item)
@@ -795,6 +833,9 @@ class OutOfOrderTableProxy(_CustomDict):
                     self._tables_map[k] = table_idx
                     if k is not None:
                         dict.__setitem__(self, k.key, v)
+
+    def unwrap(self) -> str:
+        return self._internal_container.unwrap()
 
     @property
     def value(self):
@@ -820,10 +861,20 @@ class OutOfOrderTableProxy(_CustomDict):
         if key is not None:
             dict.__setitem__(self, key, item)
 
+    def _remove_table(self, table: Table) -> None:
+        """Remove table from the parent container"""
+        self._tables.remove(table)
+        for idx, item in enumerate(self._container._body):
+            if item[1] is table:
+                self._container._remove_at(idx)
+                break
+
     def __delitem__(self, key: Union[Key, str]) -> None:
         if key in self._tables_map:
             table = self._tables[self._tables_map[key]]
             del table[key]
+            if not table and len(self._tables) > 1:
+                self._remove_table(table)
             del self._tables_map[key]
         else:
             raise NonExistentKey(key)
@@ -838,15 +889,12 @@ class OutOfOrderTableProxy(_CustomDict):
     def __len__(self) -> int:
         return dict.__len__(self)
 
-    def __getattr__(self, attribute):
-        return getattr(self._internal_container, attribute)
-
     def setdefault(self, key: Union[Key, str], default: Any) -> Any:
         super().setdefault(key, default=default)
         return self[key]
 
 
-def ends_with_withespace(it: Any) -> bool:
+def ends_with_whitespace(it: Any) -> bool:
     """Returns ``True`` if the given item ``it`` is a ``Table`` or ``AoT`` object
     ending with a ``Whitespace``.
     """
