@@ -122,7 +122,7 @@ class WheelBuilder(Builder):
         wheel_path = target_dir / self.wheel_filename
         if wheel_path.exists():
             wheel_path.unlink()
-        shutil.move(temp_path, str(wheel_path))
+        shutil.move(temp_path, str(wheel_path), copy_function=shutil.copy)
 
         logger.info(f"Built {self.wheel_filename}")
         return wheel_path
