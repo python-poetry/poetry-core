@@ -905,6 +905,8 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
             ' "pypy" or extra == "bar"',
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
+        ('extra == "foo"', ""),
+        ('extra == "foo" or extra == "bar"', ""),
     ],
 )
 def test_without_extras(marker: str, expected: str) -> None:
