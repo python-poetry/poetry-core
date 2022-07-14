@@ -280,6 +280,7 @@ class Factory:
                     groups=groups,
                     optional=optional,
                     develop=constraint.get("develop", False),
+                    resolve_order=constraint.get("resolve-order"),
                     extras=constraint.get("extras", []),
                 )
             elif "file" in constraint:
@@ -290,6 +291,7 @@ class Factory:
                     file_path,
                     groups=groups,
                     base=root_dir,
+                    resolve_order=constraint.get("resolve-order"),
                     extras=constraint.get("extras", []),
                 )
             elif "path" in constraint:
@@ -307,6 +309,7 @@ class Factory:
                         groups=groups,
                         optional=optional,
                         base=root_dir,
+                        resolve_order=constraint.get("resolve-order"),
                         extras=constraint.get("extras", []),
                     )
                 else:
@@ -317,6 +320,7 @@ class Factory:
                         optional=optional,
                         base=root_dir,
                         develop=constraint.get("develop", False),
+                        resolve_order=constraint.get("resolve-order"),
                         extras=constraint.get("extras", []),
                     )
             elif "url" in constraint:
@@ -325,6 +329,7 @@ class Factory:
                     constraint["url"],
                     groups=groups,
                     optional=optional,
+                    resolve_order=constraint.get("resolve-order"),
                     extras=constraint.get("extras", []),
                 )
             else:
@@ -336,6 +341,7 @@ class Factory:
                     optional=optional,
                     groups=groups,
                     allows_prereleases=allows_prereleases,
+                    resolve_order=constraint.get("resolve-order"),
                     extras=constraint.get("extras", []),
                 )
 

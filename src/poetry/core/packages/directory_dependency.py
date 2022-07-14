@@ -20,6 +20,7 @@ class DirectoryDependency(Dependency):
         optional: bool = False,
         base: Path | None = None,
         develop: bool = False,
+        resolve_order: int | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         self._path = path
@@ -53,6 +54,7 @@ class DirectoryDependency(Dependency):
             allows_prereleases=True,
             source_type="directory",
             source_url=self._full_path.as_posix(),
+            resolve_order=resolve_order,
             extras=extras,
         )
 

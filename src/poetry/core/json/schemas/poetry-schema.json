@@ -338,6 +338,10 @@
           "type": "boolean",
           "description": "Whether the dependency is optional or not."
         },
+        "resolve-order": {
+          "type": "integer",
+          "description": "Which order the solver should select the dependency."
+        },
         "extras": {
           "type": "array",
           "description": "The required extras for this dependency.",
@@ -403,6 +407,10 @@
           "type": "boolean",
           "description": "Whether the dependency is optional or not."
         },
+        "resolve-order": {
+          "type": "integer",
+          "description": "Which order the solver should select the dependency."
+        },
         "extras": {
           "type": "array",
           "description": "The required extras for this dependency.",
@@ -443,6 +451,10 @@
           "type": "boolean",
           "description": "Whether the dependency is optional or not."
         },
+        "resolve-order": {
+          "type": "integer",
+          "description": "Which order the solver should select the dependency."
+        },
         "extras": {
           "type": "array",
           "description": "The required extras for this dependency.",
@@ -478,6 +490,10 @@
         "optional": {
           "type": "boolean",
           "description": "Whether the dependency is optional or not."
+        },
+        "resolve-order": {
+          "type": "integer",
+          "description": "Which order the solver should select the dependency."
         },
         "extras": {
           "type": "array",
@@ -518,6 +534,10 @@
         "optional": {
           "type": "boolean",
           "description": "Whether the dependency is optional or not."
+        },
+        "resolve-order": {
+          "type": "integer",
+          "description": "Which order the solver should select the dependency."
         },
         "extras": {
           "type": "array",

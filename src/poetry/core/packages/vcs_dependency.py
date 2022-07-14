@@ -23,6 +23,7 @@ class VCSDependency(Dependency):
         groups: Iterable[str] | None = None,
         optional: bool = False,
         develop: bool = False,
+        resolve_order: int | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         self._vcs = vcs
@@ -45,6 +46,7 @@ class VCSDependency(Dependency):
             source_reference=branch or tag or rev,
             source_resolved_reference=resolved_rev,
             source_subdirectory=directory,
+            resolve_order=resolve_order,
             extras=extras,
         )
 

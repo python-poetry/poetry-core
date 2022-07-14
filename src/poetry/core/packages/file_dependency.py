@@ -18,6 +18,7 @@ class FileDependency(Dependency):
         groups: Iterable[str] | None = None,
         optional: bool = False,
         base: Path | None = None,
+        resolve_order: int | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         self._path = path
@@ -44,6 +45,7 @@ class FileDependency(Dependency):
             allows_prereleases=True,
             source_type="file",
             source_url=self._full_path.as_posix(),
+            resolve_order=resolve_order,
             extras=extras,
         )
 

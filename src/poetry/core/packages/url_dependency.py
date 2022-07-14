@@ -13,6 +13,7 @@ class URLDependency(Dependency):
         url: str,
         groups: Iterable[str] | None = None,
         optional: bool = False,
+        resolve_order: int | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         self._url = url
@@ -29,6 +30,7 @@ class URLDependency(Dependency):
             allows_prereleases=True,
             source_type="url",
             source_url=self._url,
+            resolve_order=resolve_order,
             extras=extras,
         )
 

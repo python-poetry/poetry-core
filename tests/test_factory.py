@@ -53,6 +53,7 @@ def test_create_poetry() -> None:
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
     assert pendulum.allows_prereleases()
+    assert not pendulum.resolve_order
     assert not pendulum.develop
 
     tomlkit = dependencies["tomlkit"]
@@ -63,12 +64,14 @@ def test_create_poetry() -> None:
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
     assert tomlkit.allows_prereleases()
+    assert not tomlkit.resolve_order
     assert not tomlkit.develop
 
     requests = dependencies["requests"]
     assert requests.pretty_constraint == "^2.18"
     assert not requests.is_vcs()
     assert not requests.allows_prereleases()
+    assert requests.resolve_order == 1
     assert requests.is_optional()
     assert requests.extras == frozenset({"security"})
 

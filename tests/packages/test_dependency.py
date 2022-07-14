@@ -299,6 +299,7 @@ def test_with_constraint() -> None:
         optional=True,
         groups=["dev"],
         allows_prereleases=True,
+        resolve_order=1,
         extras=["bar", "baz"],
     )
     dependency.marker = parse_marker(
@@ -317,6 +318,7 @@ def test_with_constraint() -> None:
     assert new.is_optional()
     assert new.groups == frozenset(["dev"])
     assert new.allows_prereleases()
+    assert new.resolve_order == 1
     assert set(new.extras) == {"bar", "baz"}
     assert new.marker == dependency.marker
     assert new.transitive_marker == dependency.transitive_marker

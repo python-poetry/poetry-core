@@ -41,6 +41,7 @@ class Dependency(PackageSpecification):
         optional: bool = False,
         groups: Iterable[str] | None = None,
         allows_prereleases: bool = False,
+        resolve_order: int | None = None,
         extras: Iterable[str] | None = None,
         source_type: str | None = None,
         source_url: str | None = None,
@@ -80,6 +81,7 @@ class Dependency(PackageSpecification):
             )
 
         self._allows_prereleases = allows_prereleases
+        self._resolve_order = resolve_order
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
@@ -223,6 +225,10 @@ class Dependency(PackageSpecification):
             return self._python_constraint
 
         return self._transitive_python_constraint
+
+    @property
+    def resolve_order(self) -> int | None:
+        return self._resolve_order
 
     @property
     def extras(self) -> frozenset[str]:
