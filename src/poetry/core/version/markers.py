@@ -362,7 +362,7 @@ class SingleMarker(BaseMarker):
         return self._name == other.name and self._constraint == other.constraint
 
     def __hash__(self) -> int:
-        return hash((self._name, self._constraint_string))
+        return hash((self._name, self._constraint))
 
     def __str__(self) -> str:
         return f'{self._name} {self._operator} "{self._value}"'

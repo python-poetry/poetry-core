@@ -83,6 +83,13 @@ def test_single_marker() -> None:
     )
 
 
+def test_single_marker_normalisation() -> None:
+    m1 = SingleMarker("python_version", ">=3.6")
+    m2 = SingleMarker("python_version", ">= 3.6")
+    assert m1 == m2
+    assert hash(m1) == hash(m2)
+
+
 def test_single_marker_intersect() -> None:
     m = parse_marker('sys_platform == "darwin"')
 
