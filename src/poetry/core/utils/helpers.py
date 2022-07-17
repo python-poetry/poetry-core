@@ -14,22 +14,17 @@ from typing import Any
 from typing import Iterator
 from typing import no_type_check
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.version.pep440 import PEP440Version
-
-
-_canonicalize_regex = re.compile(r"[-_.]+")
 
 
 def combine_unicode(string: str) -> str:
     return unicodedata.normalize("NFC", string)
 
 
-def canonicalize_name(name: str) -> str:
-    return _canonicalize_regex.sub("-", name).lower()
-
-
 def module_name(name: str) -> str:
-    return canonicalize_name(name).replace(".", "_").replace("-", "_")
+    return canonicalize_name(name).replace("-", "_")
 
 
 def normalize_version(version: str) -> str:
