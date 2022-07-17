@@ -7,7 +7,6 @@ import stat
 import tempfile
 import unicodedata
 
-from collections.abc import Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -98,14 +97,6 @@ def safe_rmtree(path: str | Path) -> None:
         return os.unlink(str(path))
 
     shutil.rmtree(path, onerror=_on_rm_error)
-
-
-def merge_dicts(d1: dict[Any, Any], d2: dict[Any, Any]) -> None:
-    for k in d2.keys():
-        if k in d1 and isinstance(d1[k], dict) and isinstance(d2[k], Mapping):
-            merge_dicts(d1[k], d2[k])
-        else:
-            d1[k] = d2[k]
 
 
 def readme_content_type(path: str | Path) -> str:
