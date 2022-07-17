@@ -10,7 +10,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 from typing import Iterator
-from typing import no_type_check
 
 from packaging.utils import canonicalize_name
 
@@ -36,7 +35,6 @@ def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
     safe_rmtree(name)
 
 
-@no_type_check
 def parse_requires(requires: str) -> list[str]:
     lines = requires.split("\n")
 
@@ -55,7 +53,7 @@ def parse_requires(requires: str) -> list[str]:
             # extras or conditional dependencies
             marker = line.lstrip("[").rstrip("]")
             if ":" not in marker:
-                extra, marker = marker, None
+                extra, marker = marker, ""
             else:
                 extra, marker = marker.split(":")
 
