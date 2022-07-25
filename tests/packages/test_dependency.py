@@ -31,13 +31,6 @@ def test_allows_prerelease(constraint: str, result: bool) -> None:
     assert Dependency("A", constraint).allows_prereleases() == result
 
 
-def test_accepts_prerelease() -> None:
-    dependency = Dependency("A", "^1.0", allows_prereleases=True)
-    package = Package("A", "1.4-beta.1")
-
-    assert dependency.accepts(package)
-
-
 def test_accepts_python_versions() -> None:
     dependency = Dependency("A", "^1.0")
     dependency.python_versions = "^3.6"
