@@ -278,7 +278,7 @@ def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false() -> None:
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true() -> (
+def test_create_poetry_fails_with_invalid_dev_dependencies_if_with_dev_is_true() -> (
     None
 ):
     with pytest.raises(ValueError) as err:

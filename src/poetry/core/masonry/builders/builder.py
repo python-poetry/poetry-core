@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
 
-
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
 
 METADATA_BASE = """\
@@ -280,7 +279,7 @@ class Builder:
         result = defaultdict(list)
 
         # Scripts -> Entry points
-        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+        for name, specification in self._poetry.package.scripts.items():
             if isinstance(specification, str):
                 # TODO: deprecate this in favour or reference
                 specification = {"reference": specification, "type": "console"}
@@ -306,9 +305,7 @@ class Builder:
             if reference:
                 result["console_scripts"].append(f"{name} = {reference}{extras}")
 
-        # Plugins -> entry points
-        plugins = self._poetry.local_config.get("plugins", {})
-        for groupname, group in plugins.items():
+        for groupname, group in self._poetry.package.entrypoints.items():
             for name, specification in sorted(group.items()):
                 result[groupname].append(f"{name} = {specification}")
 
@@ -320,7 +317,7 @@ class Builder:
     def convert_script_files(self) -> list[Path]:
         script_files: list[Path] = []
 
-        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+        for name, specification in self._poetry.package.scripts.items():
             if isinstance(specification, dict) and specification.get("type") == "file":
                 source = specification["reference"]
 

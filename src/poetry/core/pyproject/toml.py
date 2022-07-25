@@ -6,6 +6,9 @@ from typing import cast
 
 from tomlkit.container import Container
 
+from poetry.core.pyproject.formats.content_format import ContentFormat
+from poetry.core.pyproject.formats.legacy_content_format import LegacyContentFormat
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,11 +20,14 @@ if TYPE_CHECKING:
 
 
 class PyProjectTOML:
+    SUPPORTED_FORMATS: list[type[ContentFormat]] = [LegacyContentFormat]
+
     def __init__(self, path: str | Path) -> None:
         from poetry.core.toml import TOMLFile
 
         self._file = TOMLFile(path=path)
         self._data: TOMLDocument | None = None
+        self._content_format: ContentFormat | None = None
         self._build_system: BuildSystem | None = None
 
     @property
@@ -37,11 +43,25 @@ class PyProjectTOML:
                 self._data = TOMLDocument()
             else:
                 self._data = self._file.read()
+                self._content_format = self.guess_format(self._data)
 
         return self._data
 
     def is_build_system_defined(self) -> bool:
         return self._file.exists() and "build-system" in self.data
+
+    @property
+    def content_format(self) -> ContentFormat | None:
+        return self.data and self._content_format
+
+    @property
+    def poetry_config(self) -> Container:
+        if not self.is_poetry_project():
+            from poetry.core.pyproject.exceptions import PyProjectException
+
+            raise PyProjectException(f"{self._file} is not a Poetry pyproject file")
+
+        return cast(ContentFormat, self._content_format).poetry_config
 
     @property
     def build_system(self) -> BuildSystem:
@@ -63,30 +83,8 @@ class PyProjectTOML:
 
         return self._build_system
 
-    @property
-    def poetry_config(self) -> Container:
-        from tomlkit.exceptions import NonExistentKey
-
-        try:
-            return cast(Container, self.data["tool"]["poetry"])
-        except NonExistentKey as e:
-            from poetry.core.pyproject.exceptions import PyProjectException
-
-            raise PyProjectException(
-                f"[tool.poetry] section not found in {self._file}"
-            ) from e
-
     def is_poetry_project(self) -> bool:
-        from poetry.core.pyproject.exceptions import PyProjectException
-
-        if self.file.exists():
-            try:
-                _ = self.poetry_config
-                return True
-            except PyProjectException:
-                pass
-
-        return False
+        return self.data and self._content_format is not None
 
     def __getattr__(self, item: str) -> Any:
         return getattr(self.data, item)
@@ -109,3 +107,12 @@ class PyProjectTOML:
     def reload(self) -> None:
         self._data = None
         self._build_system = None
+        self._content_format = None
+
+    @classmethod
+    def guess_format(cls, data: dict[str, Any]) -> ContentFormat | None:
+        for fmt in cls.SUPPORTED_FORMATS:
+            if fmt.supports(data):
+                return fmt(data)
+
+        return None

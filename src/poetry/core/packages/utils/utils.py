@@ -14,7 +14,6 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
-from poetry.core.pyproject.toml import PyProjectTOML
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version import Version
 from poetry.core.semver.version_range import VersionRange
@@ -30,7 +29,6 @@ if TYPE_CHECKING:
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
     # this as `dict[str, ...]`
     ConvertedMarkers = Dict[str, List[List[Tuple[str, str]]]]
-
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
 XZ_EXTENSIONS = (".tar.xz", ".txz", ".tlz", ".tar.lz", ".tar.lzma")
@@ -126,6 +124,8 @@ def is_python_project(path: Path) -> bool:
     """Return true if the directory is a Python project"""
     if not path.is_dir():
         return False
+
+    from poetry.core.pyproject.toml import PyProjectTOML
 
     setup_py = path / "setup.py"
     setup_cfg = path / "setup.cfg"
