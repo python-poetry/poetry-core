@@ -56,6 +56,7 @@ def test_package_authors_invalid() -> None:
         == "Invalid author string. Must be in the format: John Smith <john@example.com>"
     )
 
+
 @pytest.mark.parametrize(
     ("name", "email"),
     [
@@ -73,7 +74,7 @@ def test_package_authors_invalid() -> None:
         ("MyCompanyName R&D", "rnd@MyCompanyName.MyTLD"),
         ("John-Paul: Doe", None),
         ("John-Paul: Doe", "jp@nomail.none"),
-        ("John Doe the 3rd", "3rd@jd.net")
+        ("John Doe the 3rd", "3rd@jd.net"),
     ],
 )
 def test_package_authors_valid(name: str, email: str | None) -> None:
@@ -106,6 +107,7 @@ def test_package_author_names_invalid(name: str) -> None:
     package.authors.insert(0, name)
     with pytest.raises(ValueError):
         package.author_name
+
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
 def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory) -> None:
