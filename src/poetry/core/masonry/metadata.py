@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 
 class Metadata:
-
     metadata_version = "2.1"
     # version 1.0
     name: str | None = None
@@ -46,7 +45,8 @@ class Metadata:
 
     @classmethod
     def from_package(cls, package: Package) -> Metadata:
-        from poetry.core.utils.helpers import canonicalize_name
+        from packaging.utils import canonicalize_name
+
         from poetry.core.utils.helpers import normalize_version
         from poetry.core.version.helpers import format_python_constraint
 

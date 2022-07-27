@@ -4,7 +4,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from poetry.core.utils.helpers import canonicalize_name
+from packaging.utils import canonicalize_name
 
 
 if TYPE_CHECKING:

@@ -174,7 +174,6 @@ class EmptyMarker(BaseMarker):
 
 
 class SingleMarker(BaseMarker):
-
     _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     _VERSION_LIKE_MARKER_NAME = {
         "python_version",
@@ -735,9 +734,11 @@ class MarkerUnion(BaseMarker):
                 continue
 
             marker = m.exclude(marker_name)
+            new_markers.append(marker)
 
-            if not marker.is_empty():
-                new_markers.append(marker)
+        if not new_markers:
+            # All markers were the excluded marker.
+            return AnyMarker()
 
         return self.of(*new_markers)
 

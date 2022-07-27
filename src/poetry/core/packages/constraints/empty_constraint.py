@@ -4,7 +4,6 @@ from poetry.core.packages.constraints.base_constraint import BaseConstraint
 
 
 class EmptyConstraint(BaseConstraint):
-
     pretty_string = None
 
     def matches(self, _: BaseConstraint) -> bool:

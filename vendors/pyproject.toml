@@ -24,7 +24,7 @@ python = "^3.7"
 jsonschema = "^4.5.1"
 lark = "^1.1.2"
 packaging = ">=20.9"
-tomlkit = ">=0.10.2,<1.0.0"
+tomlkit = ">=0.11.1,<1.0.0"
 
 # Needed by jsonschema and only at python < 3.8, but to make
 # sure that it is always delivered we add an unconditional

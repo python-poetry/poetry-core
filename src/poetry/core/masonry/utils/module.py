@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 
 class ModuleOrPackageNotFound(ValueError):
-
     pass
 
 
