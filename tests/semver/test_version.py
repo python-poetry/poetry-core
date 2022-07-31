@@ -164,14 +164,53 @@ def test_allows_all() -> None:
     assert v.allows_all(EmptyConstraint())
 
 
-def test_allows_any() -> None:
-    v = Version.parse("1.2.3")
-
-    assert v.allows_any(v)
-    assert not v.allows_any(Version.parse("0.0.3"))
-    assert v.allows_any(VersionRange(Version.parse("1.1.4"), Version.parse("1.2.4")))
-    assert v.allows_any(VersionRange())
-    assert not v.allows_any(EmptyConstraint())
+@pytest.mark.parametrize(
+    ("version1", "version2", "expected"),
+    [
+        (
+            Version.parse("1.2.3"),
+            Version.parse("1.2.3"),
+            True,
+        ),
+        (
+            Version.parse("1.2.3"),
+            Version.parse("1.2.3+cpu"),
+            True,
+        ),
+        (
+            Version.parse("1.2.3+cpu"),
+            Version.parse("1.2.3"),
+            False,
+        ),
+        (
+            Version.parse("1.2.3"),
+            Version.parse("0.0.3"),
+            False,
+        ),
+        (
+            Version.parse("1.2.3"),
+            VersionRange(Version.parse("1.1.4"), Version.parse("1.2.4")),
+            True,
+        ),
+        (
+            Version.parse("1.2.3"),
+            VersionRange(),
+            True,
+        ),
+        (
+            Version.parse("1.2.3"),
+            EmptyConstraint(),
+            False,
+        ),
+    ],
+)
+def test_allows_any(
+    version1: VersionConstraint,
+    version2: VersionConstraint,
+    expected: bool,
+) -> None:
+    actual = version1.allows_any(version2)
+    assert actual == expected
 
 
 @pytest.mark.parametrize(
