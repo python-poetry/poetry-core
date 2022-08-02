@@ -1,4 +1,4 @@
-from typing import Union
+from __future__ import annotations
 
 import pytest
 
@@ -22,6 +22,14 @@ from poetry.core.version.pep440 import ReleaseTag
         ),
         (
             "== 3.8.*",
+            VersionRange(
+                min=Version.from_parts(3, 8),
+                max=Version.from_parts(3, 9, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            "== 3.8.x",
             VersionRange(
                 min=Version.from_parts(3, 8),
                 max=Version.from_parts(3, 9, 0),
@@ -183,9 +191,41 @@ from poetry.core.version.pep440 import ReleaseTag
             ),
         ),
         (
+            "^1.0.0a1.dev0",
+            VersionRange(
+                min=Version.from_parts(
+                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+                ),
+                max=Version.from_parts(2, 0, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            "1.0.0a1.dev0",
+            VersionRange(
+                min=Version.from_parts(
+                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+                ),
+                max=Version.from_parts(
+                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+                ),
+                include_min=True,
+            ),
+        ),
+        (
             "~1.0.0a1",
             VersionRange(
                 min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
+                max=Version.from_parts(1, 1, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            "~1.0.0a1.dev0",
+            VersionRange(
+                min=Version.from_parts(
+                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+                ),
                 max=Version.from_parts(1, 1, 0),
                 include_min=True,
             ),
@@ -208,5 +248,9 @@ from poetry.core.version.pep440 import ReleaseTag
         ),
     ],
 )
-def test_parse_constraint(constraint: str, version: Union[VersionRange, VersionUnion]):
-    assert parse_constraint(constraint) == version
+@pytest.mark.parametrize(("with_whitespace_padding",), [(True,), (False,)])
+def test_parse_constraint(
+    constraint: str, version: VersionRange | VersionUnion, with_whitespace_padding: bool
+) -> None:
+    padding = " " * (4 if with_whitespace_padding else 0)
+    assert parse_constraint(f"{padding}{constraint}{padding}") == version

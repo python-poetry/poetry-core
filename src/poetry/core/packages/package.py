@@ -1,34 +1,39 @@
+from __future__ import annotations
+
 import copy
 import re
 
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from typing import Collection
+from typing import Iterable
+from typing import Iterator
+from typing import TypeVar
+from typing import cast
 
+from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
+from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.semver.version import Version
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
 
+    T = TypeVar("T", bound="Package")
+
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
-
     AVAILABLE_PYTHONS = {
         "2",
         "2.7",
@@ -45,15 +50,16 @@ class Package(PackageSpecification):
     def __init__(
         self,
         name: str,
-        version: Union[str, "Version"],
-        pretty_version: Optional[str] = None,
-        source_type: Optional[str] = None,
-        source_url: Optional[str] = None,
-        source_reference: Optional[str] = None,
-        source_resolved_reference: Optional[str] = None,
-        source_subdirectory: Optional[str] = None,
-        features: Optional[List[str]] = None,
+        version: str | Version,
+        pretty_version: str | None = None,
+        source_type: str | None = None,
+        source_url: str | None = None,
+        source_reference: str | None = None,
+        source_resolved_reference: str | None = None,
+        source_subdirectory: str | None = None,
+        features: Iterable[str] | None = None,
         develop: bool = False,
+        yanked: str | bool = False,
     ) -> None:
         """
         Creates a new in memory package.
@@ -80,38 +86,39 @@ class Package(PackageSpecification):
 
         self.description = ""
 
-        self._authors = []
-        self._maintainers = []
+        self._authors: list[str] = []
+        self._maintainers: list[str] = []
 
-        self.homepage = None
-        self.repository_url = None
-        self.documentation_url = None
-        self.keywords = []
-        self._license = None
-        self.readmes: Tuple[Path, ...] = ()
+        self.homepage: str | None = None
+        self.repository_url: str | None = None
+        self.documentation_url: str | None = None
+        self.keywords: list[str] = []
+        self._license: License | None = None
+        self.readmes: tuple[Path, ...] = ()
 
-        self.extras = {}
-        self.requires_extras = []
+        self.extras: dict[str, list[Dependency]] = {}
 
-        self._dependency_groups: Dict[str, "DependencyGroup"] = {}
+        self._dependency_groups: dict[str, DependencyGroup] = {}
 
         # For compatibility with previous version, we keep the category
         self.category = "main"
-        self.files = []
+        self.files: list[dict[str, str]] = []
         self.optional = False
 
-        self.classifiers = []
+        self.classifiers: list[str] = []
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._python_marker = AnyMarker()
+        self._python_marker: BaseMarker = AnyMarker()
 
         self.platform = None
-        self.marker = AnyMarker()
+        self.marker: BaseMarker = AnyMarker()
 
-        self.root_dir: Optional[Path] = None
+        self.root_dir: Path | None = None
 
         self.develop = develop
+
+        self._yanked = yanked
 
     @property
     def name(self) -> str:
@@ -122,7 +129,7 @@ class Package(PackageSpecification):
         return self._pretty_name
 
     @property
-    def version(self) -> "Version":
+    def version(self) -> Version:
         return self._version
 
     @property
@@ -148,66 +155,66 @@ class Package(PackageSpecification):
         if self.source_type not in ["hg", "git"]:
             return self._pretty_version
 
+        ref: str | None
         if self.source_resolved_reference and len(self.source_resolved_reference) == 40:
             ref = self.source_resolved_reference[0:7]
             return f"{self._pretty_version} {ref}"
 
         # if source reference is a sha1 hash -- truncate
-        if len(self.source_reference) == 40:
+        if self.source_reference and len(self.source_reference) == 40:
             return f"{self._pretty_version} {self.source_reference[0:7]}"
 
         ref = self._source_resolved_reference or self._source_reference
         return f"{self._pretty_version} {ref}"
 
     @property
-    def authors(self) -> List[str]:
+    def authors(self) -> list[str]:
         return self._authors
 
     @property
-    def author_name(self) -> str:
+    def author_name(self) -> str | None:
         return self._get_author()["name"]
 
     @property
-    def author_email(self) -> str:
+    def author_email(self) -> str | None:
         return self._get_author()["email"]
 
     @property
-    def maintainers(self) -> List[str]:
+    def maintainers(self) -> list[str]:
         return self._maintainers
 
     @property
-    def maintainer_name(self) -> str:
+    def maintainer_name(self) -> str | None:
         return self._get_maintainer()["name"]
 
     @property
-    def maintainer_email(self) -> str:
+    def maintainer_email(self) -> str | None:
         return self._get_maintainer()["email"]
 
     @property
-    def requires(self) -> List["DependencyTypes"]:
+    def requires(self) -> list[Dependency]:
         """
-        Returns the default dependencies
+        Returns the main dependencies
         """
-        if not self._dependency_groups or "default" not in self._dependency_groups:
+        if not self._dependency_groups or MAIN_GROUP not in self._dependency_groups:
             return []
 
-        return self._dependency_groups["default"].dependencies
+        return self._dependency_groups[MAIN_GROUP].dependencies
 
     @property
     def all_requires(
         self,
-    ) -> List[Union["DependencyTypes"]]:
+    ) -> list[Dependency]:
         """
-        Returns the default dependencies and group dependencies.
+        Returns the main dependencies and group dependencies.
         """
-        return self.requires + [
+        return [
             dependency
             for group in self._dependency_groups.values()
             for dependency in group.dependencies
-            if group.name != "default"
         ]
 
-    def _get_author(self) -> Dict[str, Optional[str]]:
+    def _get_author(self) -> dict[str, str | None]:
         if not self._authors:
             return {"name": None, "email": None}
 
@@ -224,7 +231,7 @@ class Package(PackageSpecification):
 
         return {"name": name, "email": email}
 
-    def _get_maintainer(self) -> Dict[str, Optional[str]]:
+    def _get_maintainer(self) -> dict[str, str | None]:
         if not self._maintainers:
             return {"name": None, "email": None}
 
@@ -248,25 +255,26 @@ class Package(PackageSpecification):
     @python_versions.setter
     def python_versions(self, value: str) -> None:
         self._python_versions = value
-        self._python_constraint = parse_constraint(value)
+        constraint = parse_constraint(value)
         self._python_marker = parse_marker(
-            create_nested_marker("python_version", self._python_constraint)
+            create_nested_marker("python_version", constraint)
         )
+        self._python_constraint = get_python_constraint_from_marker(self._python_marker)
 
     @property
-    def python_constraint(self) -> "VersionConstraint":
+    def python_constraint(self) -> VersionConstraint:
         return self._python_constraint
 
     @property
-    def python_marker(self) -> "BaseMarker":
+    def python_marker(self) -> BaseMarker:
         return self._python_marker
 
     @property
-    def license(self) -> Optional["License"]:
+    def license(self) -> License | None:
         return self._license
 
     @license.setter
-    def license(self, value: Optional[Union[str, "License"]]) -> None:
+    def license(self, value: str | License | None) -> None:
         from poetry.core.spdx.helpers import license_by_id
         from poetry.core.spdx.license import License
 
@@ -276,7 +284,7 @@ class Package(PackageSpecification):
             self._license = license_by_id(value)
 
     @property
-    def all_classifiers(self) -> List[str]:
+    def all_classifiers(self) -> list[str]:
         from poetry.core.semver.version import Version
 
         classifiers = copy.copy(self.classifiers)
@@ -328,7 +336,7 @@ class Package(PackageSpecification):
         return sorted_classifiers
 
     @property
-    def urls(self) -> Dict[str, str]:
+    def urls(self) -> dict[str, str]:
         urls = {}
 
         if self.homepage:
@@ -343,7 +351,7 @@ class Package(PackageSpecification):
         return urls
 
     @property
-    def readme(self) -> Path:
+    def readme(self) -> Path | None:
         import warnings
 
         warnings.warn(
@@ -364,25 +372,45 @@ class Package(PackageSpecification):
         )
         self.readmes = (path,)
 
+    @property
+    def yanked(self) -> bool:
+        return isinstance(self._yanked, str) or bool(self._yanked)
+
+    @property
+    def yanked_reason(self) -> str:
+        if isinstance(self._yanked, str):
+            return self._yanked
+        return ""
+
     def is_prerelease(self) -> bool:
         return self._version.is_unstable()
 
     def is_root(self) -> bool:
         return False
 
-    def add_dependency_group(self, group: "DependencyGroup") -> None:
+    def dependency_group_names(self, include_optional: bool = False) -> set[str]:
+        return {
+            name
+            for name, group in self._dependency_groups.items()
+            if not group.is_optional() or include_optional
+        }
+
+    def add_dependency_group(self, group: DependencyGroup) -> None:
         self._dependency_groups[group.name] = group
 
-    def dependency_group(self, name: str) -> "DependencyGroup":
-        if name not in self._dependency_groups:
+    def has_dependency_group(self, name: str) -> bool:
+        return name in self._dependency_groups
+
+    def dependency_group(self, name: str) -> DependencyGroup:
+        if not self.has_dependency_group(name):
             raise ValueError(f'The dependency group "{name}" does not exist.')
 
         return self._dependency_groups[name]
 
     def add_dependency(
         self,
-        dependency: "DependencyTypes",
-    ) -> "DependencyTypes":
+        dependency: Dependency,
+    ) -> Dependency:
         from poetry.core.packages.dependency_group import DependencyGroup
 
         for group_name in dependency.groups:
@@ -394,7 +422,7 @@ class Package(PackageSpecification):
 
         return dependency
 
-    def without_dependency_groups(self, groups: List[str]) -> "Package":
+    def without_dependency_groups(self: T, groups: Collection[str]) -> T:
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
@@ -406,7 +434,7 @@ class Package(PackageSpecification):
 
         return package
 
-    def without_optional_dependency_groups(self) -> "Package":
+    def without_optional_dependency_groups(self: T) -> T:
         """
         Returns a clone of the package without optional dependency groups.
         """
@@ -419,8 +447,8 @@ class Package(PackageSpecification):
         return package
 
     def with_dependency_groups(
-        self, groups: List[str], only: bool = False
-    ) -> "Package":
+        self: T, groups: Collection[str], only: bool = False
+    ) -> T:
         """
         Returns a clone of the package with the given dependency groups opted in.
 
@@ -432,18 +460,12 @@ class Package(PackageSpecification):
         package = self.clone()
 
         for group_name, group in self._dependency_groups.items():
-            if only:
-                if group_name not in groups:
-                    del package._dependency_groups[group_name]
-            else:
-                if group.is_optional() and group_name not in groups:
-                    del package._dependency_groups[group_name]
+            if (only or group.is_optional()) and group_name not in groups:
+                del package._dependency_groups[group_name]
 
         return package
 
-    def to_dependency(
-        self,
-    ) -> Union["DependencyTypes"]:
+    def to_dependency(self) -> Dependency:
         from pathlib import Path
 
         from poetry.core.packages.dependency import Dependency
@@ -452,10 +474,11 @@ class Package(PackageSpecification):
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.vcs_dependency import VCSDependency
 
+        dep: Dependency
         if self.source_type == "directory":
             dep = DirectoryDependency(
                 self._name,
-                Path(self._source_url),
+                Path(cast(str, self._source_url)),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
@@ -465,7 +488,7 @@ class Package(PackageSpecification):
         elif self.source_type == "file":
             dep = FileDependency(
                 self._name,
-                Path(self._source_url),
+                Path(cast(str, self._source_url)),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
@@ -474,7 +497,7 @@ class Package(PackageSpecification):
         elif self.source_type == "url":
             dep = URLDependency(
                 self._name,
-                self._source_url,
+                cast(str, self._source_url),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,
@@ -483,7 +506,7 @@ class Package(PackageSpecification):
             dep = VCSDependency(
                 self._name,
                 self.source_type,
-                self.source_url,
+                cast(str, self.source_url),
                 rev=self.source_reference,
                 resolved_rev=self.source_resolved_reference,
                 directory=self.source_subdirectory,
@@ -501,13 +524,13 @@ class Package(PackageSpecification):
         if not self.python_constraint.is_any():
             dep.python_versions = self.python_versions
 
-        if self._source_type not in ["directory", "file", "url", "git"]:
+        if not self.is_direct_origin():
             return dep
 
         return dep.with_constraint(self._version)
 
     @contextmanager
-    def with_python_versions(self, python_versions: str) -> None:
+    def with_python_versions(self, python_versions: str) -> Iterator[None]:
         original_python_versions = self.python_versions
 
         self.python_versions = python_versions
@@ -516,29 +539,31 @@ class Package(PackageSpecification):
 
         self.python_versions = original_python_versions
 
-    def with_features(self, features: List[str]) -> "Package":
-        package = self.clone()
+    def satisfies(
+        self, dependency: Dependency, ignore_source_type: bool = False
+    ) -> bool:
+        """
+        Helper method to check if this package satisfies a given dependency.
 
-        package._features = frozenset(features)
+        This is determined by assessing if this instance provides the package and
+        features specified by the given dependency. Further, version and source
+        types are checked.
+        """
+        if not self.provides(dependency) or not dependency.constraint.allows(
+            self.version
+        ):
+            return False
 
-        return package
+        return ignore_source_type or self.is_same_source_as(dependency)
 
-    def without_features(self) -> "Package":
-        return self.with_features([])
-
-    def clone(self) -> "Package":
-        clone = self.__class__(self.pretty_name, self.version)
-        clone.__dict__ = copy.deepcopy(self.__dict__)
-        return clone
-
-    def __hash__(self) -> int:
-        return super().__hash__() ^ hash(self._version)
-
-    def __eq__(self, other: "Package") -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):
             return NotImplemented
 
-        return self.is_same_package_as(other) and self._version == other.version
+        return super().__eq__(other) and self._version == other.version
+
+    def __hash__(self) -> int:
+        return super().__hash__() ^ hash(self._version)
 
     def __str__(self) -> str:
         return f"{self.complete_name} ({self.full_pretty_version})"
@@ -560,6 +585,8 @@ class Package(PackageSpecification):
                 args.append(
                     f"source_resolved_reference={repr(self._source_resolved_reference)}"
                 )
+            if self._source_subdirectory:
+                args.append(f"source_subdirectory={repr(self._source_subdirectory)}")
 
-        args = ", ".join(args)
-        return f"Package({args})"
+        args_str = ", ".join(args)
+        return f"Package({args_str})"

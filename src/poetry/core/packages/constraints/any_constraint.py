@@ -1,27 +1,29 @@
+from __future__ import annotations
+
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
 
 
 class AnyConstraint(BaseConstraint):
-    def allows(self, other: "BaseConstraint") -> bool:
+    def allows(self, other: BaseConstraint) -> bool:
         return True
 
-    def allows_all(self, other: "BaseConstraint") -> bool:
+    def allows_all(self, other: BaseConstraint) -> bool:
         return True
 
-    def allows_any(self, other: "BaseConstraint") -> bool:
+    def allows_any(self, other: BaseConstraint) -> bool:
         return True
 
-    def difference(self, other: "BaseConstraint") -> "BaseConstraint":
+    def difference(self, other: BaseConstraint) -> BaseConstraint:
         if other.is_any():
             return EmptyConstraint()
 
         raise ValueError("Unimplemented constraint difference")
 
-    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
+    def intersect(self, other: BaseConstraint) -> BaseConstraint:
         return other
 
-    def union(self, other: "BaseConstraint") -> "AnyConstraint":
+    def union(self, other: BaseConstraint) -> AnyConstraint:
         return AnyConstraint()
 
     def is_any(self) -> bool:

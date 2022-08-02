@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from pathlib import Path
@@ -5,8 +7,9 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Optional
+from typing import Mapping
 from typing import Union
+from typing import cast
 from warnings import warn
 
 from poetry.core.utils.helpers import combine_unicode
@@ -14,11 +17,17 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
-    from poetry.core.version.markers import BaseMarker
+
+    DependencyConstraint = Union[str, Dict[str, Any]]
+    DependencyConfig = Mapping[
+        str, Union[List[DependencyConstraint], DependencyConstraint]
+    ]
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +38,8 @@ class Factory:
     """
 
     def create_poetry(
-        self, cwd: Optional[Path] = None, with_groups: bool = True
-    ) -> "Poetry":
+        self, cwd: Path | None = None, with_groups: bool = True
+    ) -> Poetry:
         from poetry.core.poetry import Poetry
         from poetry.core.pyproject.toml import PyProjectTOML
 
@@ -47,8 +56,8 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        name = local_config["name"]
-        version = local_config["version"]
+        name = cast(str, local_config["name"])
+        version = cast(str, local_config["version"])
         package = self.get_package(name, version)
         package = self.configure_package(
             package, local_config, poetry_file.parent, with_groups=with_groups
@@ -57,20 +66,59 @@ class Factory:
         return Poetry(poetry_file, local_config, package)
 
     @classmethod
-    def get_package(cls, name: str, version: str) -> "ProjectPackage":
+    def get_package(cls, name: str, version: str) -> ProjectPackage:
         from poetry.core.packages.project_package import ProjectPackage
 
         return ProjectPackage(name, version, version)
 
     @classmethod
+    def _add_package_group_dependencies(
+        cls,
+        package: ProjectPackage,
+        group: str | DependencyGroup,
+        dependencies: DependencyConfig,
+    ) -> None:
+        from poetry.core.packages.dependency_group import MAIN_GROUP
+
+        if isinstance(group, str):
+            if package.has_dependency_group(group):
+                group = package.dependency_group(group)
+            else:
+                from poetry.core.packages.dependency_group import DependencyGroup
+
+                group = DependencyGroup(group)
+
+        for name, constraints in dependencies.items():
+            _constraints = (
+                constraints if isinstance(constraints, list) else [constraints]
+            )
+            for _constraint in _constraints:
+                if name.lower() == "python":
+                    if group.name == MAIN_GROUP and isinstance(_constraint, str):
+                        package.python_versions = _constraint
+                    continue
+
+                group.add_dependency(
+                    cls.create_dependency(
+                        name,
+                        _constraint,
+                        groups=[group.name],
+                        root_dir=package.root_dir,
+                    )
+                )
+
+        package.add_dependency_group(group)
+
+    @classmethod
     def configure_package(
         cls,
-        package: "ProjectPackage",
-        config: Dict[str, Any],
+        package: ProjectPackage,
+        config: dict[str, Any],
         root: Path,
         with_groups: bool = True,
-    ) -> "ProjectPackage":
+    ) -> ProjectPackage:
         from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.dependency_group import MAIN_GROUP
         from poetry.core.packages.dependency_group import DependencyGroup
         from poetry.core.spdx.helpers import license_by_id
 
@@ -87,7 +135,7 @@ class Factory:
         package.repository_url = config.get("repository")
         package.documentation_url = config.get("documentation")
         try:
-            license_: Optional["License"] = license_by_id(config.get("license", ""))
+            license_: License | None = license_by_id(config.get("license", ""))
         except ValueError:
             license_ = None
 
@@ -105,81 +153,25 @@ class Factory:
             package.platform = config["platform"]
 
         if "dependencies" in config:
-            group = DependencyGroup("default")
-            for name, constraint in config["dependencies"].items():
-                if name.lower() == "python":
-                    package.python_versions = constraint
-                    continue
-
-                if isinstance(constraint, list):
-                    for _constraint in constraint:
-                        group.add_dependency(
-                            cls.create_dependency(
-                                name, _constraint, root_dir=package.root_dir
-                            )
-                        )
-
-                    continue
-
-                group.add_dependency(
-                    cls.create_dependency(name, constraint, root_dir=package.root_dir)
-                )
-
-            package.add_dependency_group(group)
+            cls._add_package_group_dependencies(
+                package=package, group=MAIN_GROUP, dependencies=config["dependencies"]
+            )
 
         if with_groups and "group" in config:
             for group_name, group_config in config["group"].items():
                 group = DependencyGroup(
                     group_name, optional=group_config.get("optional", False)
                 )
-                for name, constraint in group_config["dependencies"].items():
-                    if isinstance(constraint, list):
-                        for _constraint in constraint:
-                            group.add_dependency(
-                                cls.create_dependency(
-                                    name,
-                                    _constraint,
-                                    groups=[group_name],
-                                    root_dir=package.root_dir,
-                                )
-                            )
-
-                        continue
-
-                    group.add_dependency(
-                        cls.create_dependency(
-                            name,
-                            constraint,
-                            groups=[group_name],
-                            root_dir=package.root_dir,
-                        )
-                    )
-
-                package.add_dependency_group(group)
-
-        if with_groups and "dev-dependencies" in config:
-            group = DependencyGroup("dev")
-            for name, constraint in config["dev-dependencies"].items():
-                if isinstance(constraint, list):
-                    for _constraint in constraint:
-                        group.add_dependency(
-                            cls.create_dependency(
-                                name,
-                                _constraint,
-                                groups=["dev"],
-                                root_dir=package.root_dir,
-                            )
-                        )
-
-                    continue
-
-                group.add_dependency(
-                    cls.create_dependency(
-                        name, constraint, groups=["dev"], root_dir=package.root_dir
-                    )
+                cls._add_package_group_dependencies(
+                    package=package,
+                    group=group,
+                    dependencies=group_config["dependencies"],
                 )
 
-            package.add_dependency_group(group)
+        if with_groups and "dev-dependencies" in config:
+            cls._add_package_group_dependencies(
+                package=package, group="dev", dependencies=config["dev-dependencies"]
+            )
 
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
@@ -232,14 +224,15 @@ class Factory:
     def create_dependency(
         cls,
         name: str,
-        constraint: Union[str, Dict[str, Any]],
-        groups: Optional[List[str]] = None,
-        root_dir: Optional[Path] = None,
-    ) -> "DependencyTypes":
+        constraint: DependencyConstraint,
+        groups: list[str] | None = None,
+        root_dir: Path | None = None,
+    ) -> Dependency:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
         )
         from poetry.core.packages.dependency import Dependency
+        from poetry.core.packages.dependency_group import MAIN_GROUP
         from poetry.core.packages.directory_dependency import DirectoryDependency
         from poetry.core.packages.file_dependency import FileDependency
         from poetry.core.packages.url_dependency import URLDependency
@@ -250,7 +243,7 @@ class Factory:
         from poetry.core.version.markers import parse_marker
 
         if groups is None:
-            groups = ["default"]
+            groups = [MAIN_GROUP]
 
         if constraint is None:
             constraint = "*"
@@ -346,27 +339,25 @@ class Factory:
                     extras=constraint.get("extras", []),
                 )
 
-            if not markers:
-                marker: "BaseMarker" = AnyMarker()
-                if python_versions:
-                    marker = marker.intersect(
-                        parse_marker(
-                            create_nested_marker(
-                                "python_version", parse_constraint(python_versions)
-                            )
-                        )
-                    )
+            marker = parse_marker(markers) if markers else AnyMarker()
 
-                if platform:
-                    marker = marker.intersect(
-                        parse_marker(
-                            create_nested_marker(
-                                "sys_platform", parse_generic_constraint(platform)
-                            )
+            if python_versions:
+                marker = marker.intersect(
+                    parse_marker(
+                        create_nested_marker(
+                            "python_version", parse_constraint(python_versions)
                         )
                     )
-            else:
-                marker = parse_marker(markers)
+                )
+
+            if platform:
+                marker = marker.intersect(
+                    parse_marker(
+                        create_nested_marker(
+                            "sys_platform", parse_generic_constraint(platform)
+                        )
+                    )
+                )
 
             if not marker.is_any():
                 dependency.marker = marker
@@ -379,14 +370,14 @@ class Factory:
 
     @classmethod
     def validate(
-        cls, config: Dict[str, Any], strict: bool = False
-    ) -> Dict[str, List[str]]:
+        cls, config: dict[str, Any], strict: bool = False
+    ) -> dict[str, list[str]]:
         """
         Checks the validity of a configuration
         """
         from poetry.core.json import validate_object
 
-        result: Dict[str, List[str]] = {"errors": [], "warnings": []}
+        result: dict[str, list[str]] = {"errors": [], "warnings": []}
         # Schema validation errors
         validation_errors = validate_object(config, "poetry-schema")
 
@@ -416,13 +407,15 @@ class Factory:
             # Checking for scripts with extras
             if "scripts" in config:
                 scripts = config["scripts"]
+                config_extras = config.get("extras", {})
+
                 for name, script in scripts.items():
                     if not isinstance(script, dict):
                         continue
 
-                    extras = script["extras"]
+                    extras = script.get("extras", [])
                     for extra in extras:
-                        if extra not in config["extras"]:
+                        if extra not in config_extras:
                             result["errors"].append(
                                 f'Script "{name}" requires extra "{extra}" which is not'
                                 " defined."
@@ -440,7 +433,7 @@ class Factory:
         return result
 
     @classmethod
-    def locate(cls, cwd: Optional[Path] = None) -> Path:
+    def locate(cls, cwd: Path | None = None) -> Path:
         cwd = Path(cwd or Path.cwd())
         candidates = [cwd]
         candidates.extend(cwd.parents)

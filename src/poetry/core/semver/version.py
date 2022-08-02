@@ -1,21 +1,20 @@
+from __future__ import annotations
+
 import dataclasses
 
 from typing import TYPE_CHECKING
-from typing import Optional
-from typing import Tuple
-from typing import Union
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.semver.version_union import VersionUnion
 from poetry.core.version.pep440 import Release
-from poetry.core.version.pep440 import ReleaseTag
 from poetry.core.version.pep440.version import PEP440Version
 
 
 if TYPE_CHECKING:
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.pep440 import LocalSegmentType
+    from poetry.core.version.pep440 import ReleaseTag
 
 
 @dataclasses.dataclass(frozen=True)
@@ -29,13 +28,13 @@ class Version(PEP440Version, VersionRangeConstraint):
         return self.release.precision
 
     @property
-    def stable(self) -> "Version":
+    def stable(self) -> Version:
         if self.is_stable():
             return self
 
         return self.next_patch()
 
-    def next_breaking(self) -> "Version":
+    def next_breaking(self) -> Version:
         if self.major == 0:
             if self.minor is not None and self.minor != 0:
                 return self.next_minor()
@@ -49,19 +48,16 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return self.stable.next_major()
 
-    def first_pre_release(self) -> "Version":
-        return self.__class__(release=self.release, pre=ReleaseTag("alpha"))
-
     @property
-    def min(self) -> "Version":
+    def min(self) -> Version:
         return self
 
     @property
-    def max(self) -> "Version":
+    def max(self) -> Version:
         return self
 
     @property
-    def full_max(self) -> "Version":
+    def full_max(self) -> Version:
         return self
 
     @property
@@ -81,7 +77,7 @@ class Version(PEP440Version, VersionRangeConstraint):
     def is_simple(self) -> bool:
         return True
 
-    def allows(self, version: "Version") -> bool:
+    def allows(self, version: Version | None) -> bool:
         if version is None:
             return False
 
@@ -90,34 +86,30 @@ class Version(PEP440Version, VersionRangeConstraint):
         # allow weak equality to allow `3.0.0+local.1` for `3.0.0`
         if not _this.is_local() and _other.is_local():
             _other = _other.without_local()
-        elif _this.is_local() and not _other.is_local():
-            _this = _this.without_local()
-
-        # allow weak equality to allow `3.0.0-1` for `3.0.0`
-        if not _this.is_postrelease() and _other.is_postrelease():
-            _other = _other.without_postrelease()
-        elif _this.without_postrelease() and not _other.without_postrelease():
-            _this = _this.without_postrelease()
 
         return _this == _other
 
-    def allows_all(self, other: "VersionConstraint") -> bool:
+    def allows_all(self, other: VersionConstraint) -> bool:
         return other.is_empty() or (
             self.allows(other) if isinstance(other, self.__class__) else other == self
         )
 
-    def allows_any(self, other: "VersionConstraint") -> bool:
+    def allows_any(self, other: VersionConstraint) -> bool:
+        if isinstance(other, Version):
+            return self.allows(other)
+
         return other.allows(self)
 
-    def intersect(
-        self, other: "VersionConstraint"
-    ) -> Union["Version", EmptyConstraint]:
+    def intersect(self, other: VersionConstraint) -> Version | EmptyConstraint:
         if other.allows(self):
             return self
 
+        if isinstance(other, Version) and self.allows(other):
+            return other
+
         return EmptyConstraint()
 
-    def union(self, other: "VersionConstraint") -> "VersionConstraint":
+    def union(self, other: VersionConstraint) -> VersionConstraint:
         from poetry.core.semver.version_range import VersionRange
 
         if other.allows(self):
@@ -142,13 +134,14 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return VersionUnion.of(self, other)
 
-    def difference(
-        self, other: "VersionConstraint"
-    ) -> Union["Version", EmptyConstraint]:
+    def difference(self, other: VersionConstraint) -> Version | EmptyConstraint:
         if other.allows(self):
             return EmptyConstraint()
 
         return self
+
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return [self]
 
     def __str__(self) -> str:
         return self.text
@@ -171,16 +164,16 @@ class Version(PEP440Version, VersionRangeConstraint):
     def from_parts(
         cls,
         major: int,
-        minor: Optional[int] = None,
-        patch: Optional[int] = None,
-        extra: Optional[Union[int, Tuple[int, ...]]] = None,
-        pre: Optional[ReleaseTag] = None,
-        post: Optional[ReleaseTag] = None,
-        dev: Optional[ReleaseTag] = None,
-        local: "LocalSegmentType" = None,
+        minor: int | None = None,
+        patch: int | None = None,
+        extra: int | tuple[int, ...] | None = None,
+        pre: ReleaseTag | None = None,
+        post: ReleaseTag | None = None,
+        dev: ReleaseTag | None = None,
+        local: LocalSegmentType = None,
         *,
         epoch: int = 0,
-    ) -> "Version":
+    ) -> Version:
         return cls(
             release=Release(major=major, minor=minor, patch=patch, extra=extra),
             pre=pre,

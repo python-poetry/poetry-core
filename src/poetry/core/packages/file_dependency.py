@@ -1,18 +1,13 @@
+from __future__ import annotations
+
 import hashlib
 import io
 
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
-
-
-if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class FileDependency(Dependency):
@@ -20,10 +15,10 @@ class FileDependency(Dependency):
         self,
         name: str,
         path: Path,
-        groups: Optional[List[str]] = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
-        base: Optional[Path] = None,
-        extras: Optional[List[str]] = None,
+        base: Path | None = None,
+        extras: Iterable[str] | None = None,
     ) -> None:
         self._path = path
         self._base = base or Path.cwd()
@@ -75,31 +70,6 @@ class FileDependency(Dependency):
 
         return h.hexdigest()
 
-    def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "FileDependency":
-        new = FileDependency(
-            self.pretty_name,
-            path=self.path,
-            base=self.base,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            extras=list(self._extras),
-        )
-
-        new._constraint = constraint
-        new._pretty_constraint = str(constraint)
-
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
-
     @property
     def base_pep_508_name(self) -> str:
         requirement = self.pretty_name
@@ -112,12 +82,3 @@ class FileDependency(Dependency):
         requirement += f" @ {path}"
 
         return requirement
-
-    def __str__(self) -> str:
-        if self.is_root:
-            return self._pretty_name
-
-        return f"{self._pretty_name} ({self._pretty_constraint} {self._path})"
-
-    def __hash__(self) -> int:
-        return hash((self._name, self._full_path))

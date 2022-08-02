@@ -1,26 +1,25 @@
+from __future__ import annotations
+
 import json
 import os
 
 from typing import Any
-from typing import Dict
-from typing import List
 
 
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "schemas")
 
 
 class ValidationError(ValueError):
-
     pass
 
 
-def validate_object(obj: Dict[str, Any], schema_name: str) -> List[str]:
-    schema = os.path.join(SCHEMA_DIR, f"{schema_name}.json")
+def validate_object(obj: dict[str, Any], schema_name: str) -> list[str]:
+    schema_file = os.path.join(SCHEMA_DIR, f"{schema_name}.json")
 
-    if not os.path.exists(schema):
+    if not os.path.exists(schema_file):
         raise ValueError(f"Schema {schema_name} does not exist.")
 
-    with open(schema, encoding="utf-8") as f:
+    with open(schema_file, encoding="utf-8") as f:
         schema = json.loads(f.read())
 
     from jsonschema import Draft7Validator

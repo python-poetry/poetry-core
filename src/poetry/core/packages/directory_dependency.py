@@ -1,15 +1,14 @@
+from __future__ import annotations
+
+import functools
+
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
-from typing import Union
-
-
-if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.utils.utils import is_python_project
 from poetry.core.packages.utils.utils import path_to_url
+from poetry.core.pyproject.toml import PyProjectTOML
 
 
 class DirectoryDependency(Dependency):
@@ -17,14 +16,12 @@ class DirectoryDependency(Dependency):
         self,
         name: str,
         path: Path,
-        groups: Optional[List[str]] = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
-        base: Optional[Path] = None,
+        base: Path | None = None,
         develop: bool = False,
-        extras: Optional[List[str]] = None,
+        extras: Iterable[str] | None = None,
     ) -> None:
-        from poetry.core.pyproject.toml import PyProjectTOML
-
         self._path = path
         self._base = base or Path.cwd()
         self._full_path = path
@@ -36,7 +33,6 @@ class DirectoryDependency(Dependency):
                 raise ValueError(f"Directory {self._path} does not exist")
 
         self._develop = develop
-        self._supports_poetry = False
 
         if not self._full_path.exists():
             raise ValueError(f"Directory {self._path} does not exist")
@@ -44,13 +40,7 @@ class DirectoryDependency(Dependency):
         if self._full_path.is_file():
             raise ValueError(f"{self._path} is a file, expected a directory")
 
-        # Checking content to determine actions
-        setup = self._full_path / "setup.py"
-        self._supports_poetry = PyProjectTOML(
-            self._full_path / "pyproject.toml"
-        ).is_poetry_project()
-
-        if not setup.exists() and not self._supports_poetry:
+        if not is_python_project(self._full_path):
             raise ValueError(
                 f"Directory {self._full_path} does not seem to be a Python package"
             )
@@ -65,6 +55,9 @@ class DirectoryDependency(Dependency):
             source_url=self._full_path.as_posix(),
             extras=extras,
         )
+
+        # cache this function to avoid multiple IO reads and parsing
+        self.supports_poetry = functools.lru_cache(maxsize=1)(self._supports_poetry)
 
     @property
     def path(self) -> Path:
@@ -82,37 +75,11 @@ class DirectoryDependency(Dependency):
     def develop(self) -> bool:
         return self._develop
 
-    def supports_poetry(self) -> bool:
-        return self._supports_poetry
+    def _supports_poetry(self) -> bool:
+        return PyProjectTOML(self._full_path / "pyproject.toml").is_poetry_project()
 
     def is_directory(self) -> bool:
         return True
-
-    def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "DirectoryDependency":
-        new = DirectoryDependency(
-            self.pretty_name,
-            path=self.path,
-            base=self.base,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            develop=self._develop,
-            extras=list(self._extras),
-        )
-
-        new._constraint = constraint
-        new._pretty_constraint = str(constraint)
-
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
 
     @property
     def base_pep_508_name(self) -> str:
@@ -126,13 +93,3 @@ class DirectoryDependency(Dependency):
         requirement += f" @ {path}"
 
         return requirement
-
-    def __str__(self) -> str:
-        if self.is_root:
-            return self._pretty_name
-
-        path = self._path.as_posix()
-        return f"{self._pretty_name} ({self._pretty_constraint} {path})"
-
-    def __hash__(self) -> int:
-        return hash((self._name, self._full_path.as_posix()))

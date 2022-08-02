@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import sys
 
 from email.parser import Parser
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
 
 import pytest
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
-def test_builder_find_excluded_files(mocker: "MockerFixture"):
+def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
@@ -31,7 +31,7 @@ def test_builder_find_excluded_files(mocker: "MockerFixture"):
     sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
 )
-def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
+def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> None:
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
@@ -56,7 +56,9 @@ def test_builder_find_case_sensitive_excluded_files(mocker: "MockerFixture"):
     sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
 )
-def test_builder_find_invalid_case_sensitive_excluded_files(mocker: "MockerFixture"):
+def test_builder_find_invalid_case_sensitive_excluded_files(
+    mocker: MockerFixture,
+) -> None:
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
@@ -69,7 +71,7 @@ def test_builder_find_invalid_case_sensitive_excluded_files(mocker: "MockerFixtu
     assert {"my_package/Bar/foo/bar/Foo.py"} == builder.find_excluded_files()
 
 
-def test_get_metadata_content():
+def test_get_metadata_content() -> None:
     builder = Builder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
     )
@@ -122,7 +124,7 @@ def test_get_metadata_content():
     ]
 
 
-def test_metadata_homepage_default():
+def test_metadata_homepage_default() -> None:
     builder = Builder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "simple_version")
     )
@@ -132,7 +134,7 @@ def test_metadata_homepage_default():
     assert metadata["Home-page"] is None
 
 
-def test_metadata_with_vcs_dependencies():
+def test_metadata_with_vcs_dependencies() -> None:
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "with_vcs_dependency"
@@ -146,7 +148,7 @@ def test_metadata_with_vcs_dependencies():
     assert requires_dist == "cleo @ git+https://github.com/sdispater/cleo.git@master"
 
 
-def test_metadata_with_url_dependencies():
+def test_metadata_with_url_dependencies() -> None:
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "with_url_dependency"
@@ -164,7 +166,7 @@ def test_metadata_with_url_dependencies():
     )
 
 
-def test_missing_script_files_throws_error():
+def test_missing_script_files_throws_error() -> None:
     builder = Builder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "script_reference_file_missing"
@@ -177,7 +179,7 @@ def test_missing_script_files_throws_error():
     assert "is not found." in err.value.args[0]
 
 
-def test_invalid_script_files_definition():
+def test_invalid_script_files_definition() -> None:
     with pytest.raises(RuntimeError) as err:
         Builder(
             Factory().create_poetry(
@@ -197,7 +199,7 @@ def test_invalid_script_files_definition():
         "script_callable_legacy_table",
     ],
 )
-def test_entrypoint_scripts_legacy_warns(fixture: str):
+def test_entrypoint_scripts_legacy_warns(fixture: str) -> None:
     with pytest.warns(DeprecationWarning):
         Builder(
             Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
@@ -236,7 +238,9 @@ def test_entrypoint_scripts_legacy_warns(fixture: str):
     ],
 )
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_builder_convert_entry_points(fixture: str, result: Dict[str, List[str]]):
+def test_builder_convert_entry_points(
+    fixture: str, result: dict[str, list[str]]
+) -> None:
     entry_points = Builder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
     ).convert_entry_points()
@@ -264,13 +268,13 @@ def test_builder_convert_entry_points(fixture: str, result: Dict[str, List[str]]
         ),
     ],
 )
-def test_builder_convert_script_files(fixture: str, result: List[Path]):
+def test_builder_convert_script_files(fixture: str, result: list[Path]) -> None:
     project_root = Path(__file__).parent / "fixtures" / fixture
     script_files = Builder(Factory().create_poetry(project_root)).convert_script_files()
     assert [p.relative_to(project_root) for p in script_files] == result
 
 
-def test_metadata_with_readme_files():
+def test_metadata_with_readme_files() -> None:
     test_path = Path(__file__).parent.parent.parent / "fixtures" / "with_readme_files"
     builder = Builder(Factory().create_poetry(test_path))
 
@@ -281,3 +285,15 @@ def test_metadata_with_readme_files():
     description = "\n".join([readme1.read_text(), readme2.read_text(), ""])
 
     assert metadata.get_payload() == description
+
+
+def test_metadata_with_wildcard_dependency_constraint() -> None:
+    test_path = (
+        Path(__file__).parent / "fixtures" / "with_wildcard_dependency_constraint"
+    )
+    builder = Builder(Factory().create_poetry(test_path))
+
+    metadata = Parser().parsestr(builder.get_metadata_content())
+
+    requires = metadata.get_all("Requires-Dist")
+    assert requires == ["google-api-python-client (>=1.8,!=2.0.*)"]

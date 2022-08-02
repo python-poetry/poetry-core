@@ -1,9 +1,8 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 
 if TYPE_CHECKING:
@@ -11,7 +10,6 @@ if TYPE_CHECKING:
 
 
 class ModuleOrPackageNotFound(ValueError):
-
     pass
 
 
@@ -20,8 +18,8 @@ class Module:
         self,
         name: str,
         directory: str = ".",
-        packages: Optional[List[Dict[str, Any]]] = None,
-        includes: Optional[List[Dict[str, Any]]] = None,
+        packages: list[dict[str, Any]] | None = None,
+        includes: list[dict[str, Any]] | None = None,
     ) -> None:
         from poetry.core.masonry.utils.include import Include
         from poetry.core.masonry.utils.package_include import PackageInclude
@@ -31,7 +29,7 @@ class Module:
         self._in_src = False
         self._is_package = False
         self._path = Path(directory)
-        self._includes: List[Include] = []
+        self._includes: list[Include] = []
         packages = packages or []
         includes = includes or []
 
@@ -107,7 +105,7 @@ class Module:
             return self._path
 
     @property
-    def includes(self) -> List["Include"]:
+    def includes(self) -> list[Include]:
         return self._includes
 
     def is_package(self) -> bool:

@@ -1,9 +1,8 @@
-attrs==20.3.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
-jsonschema==3.2.0
-lark-parser==0.9.0
-packaging==20.9; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
-pyparsing==2.4.7; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
-pyrsistent==0.16.1; python_version >= "2.7"
-six==1.15.0; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.3.0" and python_version >= "2.7"
-tomlkit==0.7.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.5.0")
-typing-extensions==3.7.4.3; python_version >= "3.6" and python_version < "3.8"
+attrs==21.4.0; python_version >= "3.7" and python_full_version < "3.0.0" or python_full_version >= "3.5.0" and python_version >= "3.7"
+jsonschema==4.6.2; python_version >= "3.7"
+lark==1.1.2
+packaging==21.3; python_version >= "3.6"
+pyparsing==3.0.9; python_full_version >= "3.6.8" and python_version >= "3.6"
+pyrsistent==0.18.1; python_version >= "3.7"
+tomlkit==0.11.1; python_version >= "3.6" and python_version < "4.0"
+typing-extensions==4.3.0; python_version >= "3.7"

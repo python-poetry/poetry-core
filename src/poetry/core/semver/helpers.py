@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from typing import TYPE_CHECKING
@@ -7,7 +9,7 @@ if TYPE_CHECKING:
     from poetry.core.semver.version_constraint import VersionConstraint
 
 
-def parse_constraint(constraints: str) -> "VersionConstraint":
+def parse_constraint(constraints: str) -> VersionConstraint:
     if constraints == "*":
         from poetry.core.semver.version_range import VersionRange
 
@@ -16,6 +18,9 @@ def parse_constraint(constraints: str) -> "VersionConstraint":
     or_constraints = re.split(r"\s*\|\|?\s*", constraints.strip())
     or_groups = []
     for constraints in or_constraints:
+        # allow trailing commas for robustness (even though it may not be
+        # standard-compliant it seems to occur in some packages)
+        constraints = constraints.rstrip(",").rstrip()
         and_constraints = re.split(
             "(?<!^)(?<![~=>< ,]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
         )
@@ -44,7 +49,7 @@ def parse_constraint(constraints: str) -> "VersionConstraint":
         return VersionUnion.of(*or_groups)
 
 
-def parse_single_constraint(constraint: str) -> "VersionConstraint":
+def parse_single_constraint(constraint: str) -> VersionConstraint:
     from poetry.core.semver.patterns import BASIC_CONSTRAINT
     from poetry.core.semver.patterns import CARET_CONSTRAINT
     from poetry.core.semver.patterns import TILDE_CONSTRAINT
@@ -61,9 +66,9 @@ def parse_single_constraint(constraint: str) -> "VersionConstraint":
     # Tilde range
     m = TILDE_CONSTRAINT.match(constraint)
     if m:
-        version = Version.parse(m.group(1))
+        version = Version.parse(m.group("version"))
         high = version.stable.next_minor()
-        if len(m.group(1).split(".")) == 1:
+        if version.release.precision == 1:
             high = version.stable.next_major()
 
         return VersionRange(version, high, include_min=True)
@@ -71,16 +76,8 @@ def parse_single_constraint(constraint: str) -> "VersionConstraint":
     # PEP 440 Tilde range (~=)
     m = TILDE_PEP440_CONSTRAINT.match(constraint)
     if m:
-        precision = 1
-        if m.group(3):
-            precision += 1
-
-            if m.group(4):
-                precision += 1
-
-        version = Version.parse(m.group(1))
-
-        if precision == 2:
+        version = Version.parse(m.group("version"))
+        if version.release.precision == 2:
             high = version.stable.next_major()
         else:
             high = version.stable.next_minor()
@@ -90,20 +87,20 @@ def parse_single_constraint(constraint: str) -> "VersionConstraint":
     # Caret range
     m = CARET_CONSTRAINT.match(constraint)
     if m:
-        version = Version.parse(m.group(1))
+        version = Version.parse(m.group("version"))
 
         return VersionRange(version, version.next_breaking(), include_min=True)
 
     # X Range
     m = X_CONSTRAINT.match(constraint)
     if m:
-        op = m.group(1)
+        op = m.group("op")
         major = int(m.group(2))
         minor = m.group(3)
 
         if minor is not None:
             version = Version.from_parts(major, int(minor), 0)
-            result: "VersionConstraint" = VersionRange(
+            result: VersionConstraint = VersionRange(
                 version, version.next_minor(), include_min=True
             )
         else:
@@ -122,15 +119,8 @@ def parse_single_constraint(constraint: str) -> "VersionConstraint":
     # Basic comparator
     m = BASIC_CONSTRAINT.match(constraint)
     if m:
-        op = m.group(1)
-        version_string = m.group(2)
-
-        # Technically invalid constraints like `>= 3.*` will appear
-        # here as `3.`.
-        # Pip currently supports these and to avoid breaking existing
-        # users workflows we need to support them as well. To do so,
-        # we just remove the inconsequential part.
-        version_string = version_string.rstrip(".")
+        op = m.group("op")
+        version_string = m.group("version")
 
         if version_string == "dev":
             version_string = "0.0-dev"

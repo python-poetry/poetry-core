@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.1.0-alpha.7"
+version = "1.1.0b3"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -29,6 +29,9 @@ exclude = [
     "**/*.pyi",
 ]
 
+[tool.poetry.build]
+generate-setup-file = false
+
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
@@ -41,12 +44,15 @@ importlib-metadata = {version = ">=1.7.0", python = "<3.8"}
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.15.0"
 pyrsistent = "^0.18.0"
-pytest = "^6.2"
-pytest-cov = "^2.8"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
 pytest-mock = "^3.5"
 tox = "^3.0"
-vendoring = {version = "^0.3", python = "^3.8"}
-pep517 = "^0.11.0"
+vendoring = {version = "^1.0", python = "^3.8"}
+build = "^0.7.0"
+mypy = ">=0.960"
+types-jsonschema = ">=4.4.4"
+types-setuptools = ">=57.4.14"
 
 [tool.black]
 line-length = 88
@@ -72,82 +78,39 @@ known_third_party = ["poetry.core._vendor"]
 strict = true
 explicit_package_bases = true
 namespace_packages = true
+show_error_codes = true
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+]
 mypy_path = "src"
 files = "src, tests"
 exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 
 [[tool.mypy.overrides]]
 module = [
-  'jsonschema.*',
-  'setuptools.*',
+  'lark.*',
   'tomlkit.*',
+  'virtualenv.*',
 ]
 ignore_missing_imports = true
-
-# The following whitelist is used to allow for incremental adoption
-# of Mypy. Modules should be removed from this whitelist as and when
-# their respective type errors have been addressed. No new modules
-# should be added to this whitelist.
-# see https://github.com/python-poetry/poetry-core/pull/199.
-
-[[tool.mypy.overrides]]
-module = [
-  # src modules
-  'poetry.core.masonry.builders.builder',
-  'poetry.core.masonry.builders.sdist',
-  'poetry.core.masonry.builders.wheel',
-  'poetry.core.packages.utils.utils',
-  'poetry.core.packages.dependency',
-  'poetry.core.packages.package',
-  'poetry.core.packages.project_package',
-  'poetry.core.semver.version_range',
-  'poetry.core.semver.version_union',
-  'poetry.core.toml.exceptions',
-  'poetry.core.toml.file',
-  'poetry.core.version.markers',
-  'poetry.core.version.pep440.parser',
-  'poetry.core.version.pep440.segments',
-  'poetry.core.version.pep440.version',
-  # test modules
-  'tests.conftest',
-  'tests.integration.test_pep517',
-  'tests.json.*',
-  'tests.masonry.*',
-  'tests.packages.*',
-  'tests.pyproject.*',
-  'tests.semver.*',
-  'tests.spdx.*',
-  'tests.test_factory',
-  'tests.testutils.*',
-  'tests.utils.*',
-  'tests.vcs.*',
-  'tests.version.*',
-]
-ignore_errors = true
 
 [tool.vendoring]
 destination = "src/poetry/core/_vendor/"
 requirements = "src/poetry/core/_vendor/vendor.txt"
 namespace = ""
 
-protected-files = ["__init__.py", "README.md", "vendor.txt"]
+protected-files = ["vendor.txt"]
 patches-dir = "vendors/patches"
 
 [tool.vendoring.transformations]
-substitute = []
 drop = [
     "bin/",
     "*.so",
     "typing.*",
     "*/tests/"
 ]
-
-[tool.vendoring.typing-stubs]
-six = ["six.__init__", "six.moves.__init__", "six.moves.configparser"]
-appdirs = []
-
-[tool.vendoring.license.directories]
-
 
 [tool.vendoring.license.fallback-urls]
 pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"

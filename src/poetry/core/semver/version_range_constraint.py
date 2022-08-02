@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
@@ -11,17 +13,17 @@ if TYPE_CHECKING:
 class VersionRangeConstraint(VersionConstraint):
     @property
     @abstractmethod
-    def min(self) -> "Version":
+    def min(self) -> Version | None:
         raise NotImplementedError()
 
     @property
     @abstractmethod
-    def max(self) -> "Version":
+    def max(self) -> Version | None:
         raise NotImplementedError()
 
     @property
     @abstractmethod
-    def full_max(self) -> "Version":
+    def full_max(self) -> Version | None:
         raise NotImplementedError()
 
     @property
@@ -34,7 +36,7 @@ class VersionRangeConstraint(VersionConstraint):
     def include_max(self) -> bool:
         raise NotImplementedError()
 
-    def allows_lower(self, other: "VersionRangeConstraint") -> bool:
+    def allows_lower(self, other: VersionRangeConstraint) -> bool:
         if self.min is None:
             return other.min is not None
 
@@ -49,7 +51,7 @@ class VersionRangeConstraint(VersionConstraint):
 
         return self.include_min and not other.include_min
 
-    def allows_higher(self, other: "VersionRangeConstraint") -> bool:
+    def allows_higher(self, other: VersionRangeConstraint) -> bool:
         if self.full_max is None:
             return other.max is not None
 
@@ -64,7 +66,7 @@ class VersionRangeConstraint(VersionConstraint):
 
         return self.include_max and not other.include_max
 
-    def is_strictly_lower(self, other: "VersionRangeConstraint") -> bool:
+    def is_strictly_lower(self, other: VersionRangeConstraint) -> bool:
         if self.full_max is None or other.min is None:
             return False
 
@@ -76,10 +78,10 @@ class VersionRangeConstraint(VersionConstraint):
 
         return not self.include_max or not other.include_min
 
-    def is_strictly_higher(self, other: "VersionRangeConstraint") -> bool:
+    def is_strictly_higher(self, other: VersionRangeConstraint) -> bool:
         return other.is_strictly_lower(self)
 
-    def is_adjacent_to(self, other: "VersionRangeConstraint") -> bool:
+    def is_adjacent_to(self, other: VersionRangeConstraint) -> bool:
         if self.max != other.min:
             return False
 

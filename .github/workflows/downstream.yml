@@ -3,48 +3,48 @@ name: Poetry Downstream Tests
 on:
   pull_request: {}
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   Tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: "${{ matrix.os }}-latest"
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         os: [Ubuntu]
         python-version: [3.9]
         experimental: [false]
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: poetry-core
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: python-poetry/poetry
           path: poetry
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Get full python version
         id: full-python-version
-        shell: bash
         run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
 
       - name: Install poetry
-        shell: bash
         run: pip install poetry
 
       - name: Configure poetry
-        shell: bash
         run: poetry config virtualenvs.in-project true
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache
         with:
           path: ./poetry/.venv
@@ -52,24 +52,22 @@ jobs:
 
       - name: Ensure cache is healthy
         if: steps.cache.outputs.cache-hit == 'true'
-        shell: bash
         working-directory: ./poetry
         run: timeout 10s poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
 
       - name: Update poetry-core version
-        shell: bash
         working-directory: ./poetry
         run: |
-          poetry add ../poetry-core
+          # workaround 1.1.13 bug not respecting direct origin dep changes
+          poetry run pip uninstall -y poetry-core
+          poetry add --lock ../poetry-core
           git diff
 
       - name: Install poetry (downstream)
-        shell: bash
         working-directory: ./poetry
         run: poetry install
 
       # TODO: mark run as success even when this fails and add comment to PR instead
       - name: Run poetry test suite
-        shell: bash
         working-directory: ./poetry
         run: poetry run pytest

@@ -1,4 +1,5 @@
-from typing import Tuple
+from __future__ import annotations
+
 from typing import cast
 
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
@@ -12,16 +13,16 @@ class UnionConstraint(BaseConstraint):
         self._constraints = constraints
 
     @property
-    def constraints(self) -> Tuple[BaseConstraint, ...]:
+    def constraints(self) -> tuple[BaseConstraint, ...]:
         return self._constraints
 
     def allows(
         self,
-        other: "BaseConstraint",
+        other: BaseConstraint,
     ) -> bool:
         return any(constraint.allows(other) for constraint in self._constraints)
 
-    def allows_any(self, other: "BaseConstraint") -> bool:
+    def allows_any(self, other: BaseConstraint) -> bool:
         if other.is_empty():
             return False
 
@@ -39,7 +40,7 @@ class UnionConstraint(BaseConstraint):
             for their_constraint in constraints
         )
 
-    def allows_all(self, other: "BaseConstraint") -> bool:
+    def allows_all(self, other: BaseConstraint) -> bool:
         if other.is_any():
             return False
 
@@ -64,7 +65,7 @@ class UnionConstraint(BaseConstraint):
 
         return their_constraint is None
 
-    def intersect(self, other: "BaseConstraint") -> "BaseConstraint":
+    def intersect(self, other: BaseConstraint) -> BaseConstraint:
         if other.is_any():
             return self
 
@@ -116,7 +117,7 @@ class UnionConstraint(BaseConstraint):
 
         return UnionConstraint(*new_constraints)
 
-    def union(self, other: BaseConstraint) -> "UnionConstraint":
+    def union(self, other: BaseConstraint) -> UnionConstraint:
         if not isinstance(other, Constraint):
             raise ValueError("Unimplemented constraint union")
 
@@ -127,7 +128,6 @@ class UnionConstraint(BaseConstraint):
         return UnionConstraint(*constraints)
 
     def __eq__(self, other: object) -> bool:
-
         if not isinstance(other, UnionConstraint):
             return False
 

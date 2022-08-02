@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import shutil
 import subprocess
 import tarfile
@@ -7,10 +9,7 @@ import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
-from typing import Dict
 from typing import Generator
-from typing import List
-from typing import Optional
 
 from poetry.core.toml import TOMLFile
 
@@ -25,7 +24,7 @@ __toml_build_backend_patch__ = {
 
 @contextmanager
 def temporary_project_directory(
-    path: Path, toml_patch: Optional[Dict[str, Any]] = None
+    path: Path, toml_patch: dict[str, Any] | None = None
 ) -> Generator[str, None, None]:
     """
     Context manager that takes a project source directory, copies content to a temporary
@@ -51,7 +50,7 @@ def temporary_project_directory(
         yield str(dst)
 
 
-def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
+def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess[str]:
     """
     Helper method to run a subprocess. Asserts for success.
     """
@@ -61,7 +60,7 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess:
 
 
 def validate_wheel_contents(
-    name: str, version: str, path: str, files: Optional[List[str]] = None
+    name: str, version: str, path: str, files: list[str] | None = None
 ) -> None:
     dist_info = f"{name}-{version}.dist-info"
     files = files or []
@@ -74,7 +73,7 @@ def validate_wheel_contents(
 
 
 def validate_sdist_contents(
-    name: str, version: str, path: str, files: List[str]
+    name: str, version: str, path: str, files: list[str]
 ) -> None:
     with tarfile.open(path) as tar:
         namelist = tar.getnames()

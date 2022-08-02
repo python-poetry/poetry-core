@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
 
-from poetry.core.utils.helpers import canonicalize_name
+from packaging.utils import canonicalize_name
 
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 # TODO: Convert to dataclass once python 2.7, 3.5 is dropped
 class BuildSystem:
     def __init__(
-        self, build_backend: Optional[str] = None, requires: Optional[List[str]] = None
+        self, build_backend: str | None = None, requires: list[str] | None = None
     ) -> None:
         self.build_backend = (
             build_backend
@@ -22,10 +22,10 @@ class BuildSystem:
             else "setuptools.build_meta:__legacy__"
         )
         self.requires = requires if requires is not None else ["setuptools", "wheel"]
-        self._dependencies: Optional[List["Dependency"]] = None
+        self._dependencies: list[Dependency] | None = None
 
     @property
-    def dependencies(self) -> List["Dependency"]:
+    def dependencies(self) -> list[Dependency]:
         if self._dependencies is None:
             # avoid circular dependency when loading DirectoryDependency
             from poetry.core.packages.dependency import Dependency

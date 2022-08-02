@@ -1,6 +1,6 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from typing import List
-from typing import Tuple
 
 from poetry.core.utils.helpers import readme_content_type
 
@@ -10,43 +10,43 @@ if TYPE_CHECKING:
 
 
 class Metadata:
-
     metadata_version = "2.1"
     # version 1.0
-    name = None
-    version = None
-    platforms = ()
-    supported_platforms = ()
-    summary = None
-    description = None
-    keywords = None
-    home_page = None
-    download_url = None
-    author = None
-    author_email = None
-    license = None
+    name: str | None = None
+    version: str
+    platforms: tuple[str, ...] = ()
+    supported_platforms: tuple[str, ...] = ()
+    summary: str | None = None
+    description: str | None = None
+    keywords: str | None = None
+    home_page: str | None = None
+    download_url: str | None = None
+    author: str | None = None
+    author_email: str | None = None
+    license: str | None = None
     # version 1.1
-    classifiers: Tuple[str, ...] = ()
-    requires = ()
-    provides = ()
-    obsoletes = ()
+    classifiers: tuple[str, ...] = ()
+    requires: tuple[str, ...] = ()
+    provides: tuple[str, ...] = ()
+    obsoletes: tuple[str, ...] = ()
     # version 1.2
-    maintainer = None
-    maintainer_email = None
-    requires_python = None
-    requires_external = ()
-    requires_dist: List[str] = []
-    provides_dist = ()
-    obsoletes_dist = ()
-    project_urls: Tuple[str, ...] = ()
+    maintainer: str | None = None
+    maintainer_email: str | None = None
+    requires_python: str | None = None
+    requires_external: tuple[str, ...] = ()
+    requires_dist: list[str] = []
+    provides_dist: tuple[str, ...] = ()
+    obsoletes_dist: tuple[str, ...] = ()
+    project_urls: tuple[str, ...] = ()
 
     # Version 2.1
-    description_content_type = None
-    provides_extra: List[str] = []
+    description_content_type: str | None = None
+    provides_extra: list[str] = []
 
     @classmethod
-    def from_package(cls, package: "Package") -> "Metadata":
-        from poetry.core.utils.helpers import canonicalize_name
+    def from_package(cls, package: Package) -> Metadata:
+        from packaging.utils import canonicalize_name
+
         from poetry.core.utils.helpers import normalize_version
         from poetry.core.version.helpers import format_python_constraint
 

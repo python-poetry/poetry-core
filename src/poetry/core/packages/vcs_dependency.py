@@ -1,13 +1,8 @@
-from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
-from typing import Union
+from __future__ import annotations
+
+from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
-
-
-if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
 
 
 class VCSDependency(Dependency):
@@ -20,16 +15,16 @@ class VCSDependency(Dependency):
         name: str,
         vcs: str,
         source: str,
-        branch: Optional[str] = None,
-        tag: Optional[str] = None,
-        rev: Optional[str] = None,
-        resolved_rev: Optional[str] = None,
-        directory: Optional[str] = None,
-        groups: Optional[List[str]] = None,
+        branch: str | None = None,
+        tag: str | None = None,
+        rev: str | None = None,
+        resolved_rev: str | None = None,
+        directory: str | None = None,
+        groups: Iterable[str] | None = None,
         optional: bool = False,
         develop: bool = False,
-        extras: Optional[List[str]] = None,
-    ):
+        extras: Iterable[str] | None = None,
+    ) -> None:
         self._vcs = vcs
         self._source = source
 
@@ -62,19 +57,19 @@ class VCSDependency(Dependency):
         return self._source
 
     @property
-    def branch(self) -> Optional[str]:
+    def branch(self) -> str | None:
         return self._branch
 
     @property
-    def tag(self) -> Optional[str]:
+    def tag(self) -> str | None:
         return self._tag
 
     @property
-    def rev(self) -> Optional[str]:
+    def rev(self) -> str | None:
         return self._rev
 
     @property
-    def directory(self) -> Optional[str]:
+    def directory(self) -> str | None:
         return self._directory
 
     @property
@@ -131,48 +126,3 @@ class VCSDependency(Dependency):
 
     def accepts_prereleases(self) -> bool:
         return True
-
-    def with_constraint(
-        self, constraint: Union[str, "VersionConstraint"]
-    ) -> "VCSDependency":
-        new = VCSDependency(
-            self.pretty_name,
-            self._vcs,
-            self._source,
-            branch=self._branch,
-            tag=self._tag,
-            rev=self._rev,
-            resolved_rev=self._source_resolved_reference,
-            directory=self.directory,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            develop=self._develop,
-            extras=list(self._extras),
-        )
-
-        new._constraint = constraint
-        new._pretty_constraint = str(constraint)
-
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
-
-    def __str__(self) -> str:
-        reference = self._vcs
-        if self._branch:
-            reference += f" branch {self._branch}"
-        elif self._tag:
-            reference += f" tag {self._tag}"
-        elif self._rev:
-            reference += f" rev {self._rev}"
-
-        return f"{self._pretty_name} ({self._constraint} {reference})"
-
-    def __hash__(self) -> int:
-        return hash((self._name, self._vcs, self._branch, self._tag, self._rev))

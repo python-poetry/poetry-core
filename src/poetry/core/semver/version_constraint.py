@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 
 
 class VersionConstraint:
@@ -20,25 +23,29 @@ class VersionConstraint:
         raise NotImplementedError()
 
     @abstractmethod
-    def allows(self, version: "Version") -> bool:
+    def allows(self, version: Version) -> bool:
         raise NotImplementedError()
 
     @abstractmethod
-    def allows_all(self, other: "VersionConstraint") -> bool:
+    def allows_all(self, other: VersionConstraint) -> bool:
         raise NotImplementedError()
 
     @abstractmethod
-    def allows_any(self, other: "VersionConstraint") -> bool:
+    def allows_any(self, other: VersionConstraint) -> bool:
         raise NotImplementedError()
 
     @abstractmethod
-    def intersect(self, other: "VersionConstraint") -> "VersionConstraint":
+    def intersect(self, other: VersionConstraint) -> VersionConstraint:
         raise NotImplementedError()
 
     @abstractmethod
-    def union(self, other: "VersionConstraint") -> "VersionConstraint":
+    def union(self, other: VersionConstraint) -> VersionConstraint:
         raise NotImplementedError()
 
     @abstractmethod
-    def difference(self, other: "VersionConstraint") -> "VersionConstraint":
+    def difference(self, other: VersionConstraint) -> VersionConstraint:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def flatten(self) -> list[VersionRangeConstraint]:
         raise NotImplementedError()

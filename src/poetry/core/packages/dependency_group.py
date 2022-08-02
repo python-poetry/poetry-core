@@ -1,33 +1,37 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
-from typing import List
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.types import DependencyTypes
+    from poetry.core.packages.dependency import Dependency
+
+
+MAIN_GROUP = "main"
 
 
 class DependencyGroup:
     def __init__(self, name: str, optional: bool = False) -> None:
         self._name: str = name
         self._optional: bool = optional
-        self._dependencies: List["DependencyTypes"] = []
+        self._dependencies: list[Dependency] = []
 
     @property
     def name(self) -> str:
         return self._name
 
     @property
-    def dependencies(self) -> List["DependencyTypes"]:
+    def dependencies(self) -> list[Dependency]:
         return self._dependencies
 
     def is_optional(self) -> bool:
         return self._optional
 
-    def add_dependency(self, dependency: "DependencyTypes") -> None:
+    def add_dependency(self, dependency: Dependency) -> None:
         self._dependencies.append(dependency)
 
     def remove_dependency(self, name: str) -> None:
-        from poetry.core.utils.helpers import canonicalize_name
+        from packaging.utils import canonicalize_name
 
         name = canonicalize_name(name)
 

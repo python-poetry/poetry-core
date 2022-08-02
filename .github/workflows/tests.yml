@@ -3,63 +3,52 @@ name: Tests
 on:
   pull_request: {}
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   tests:
     name: ${{ matrix.os }} / ${{ matrix.python-version }}
     runs-on: "${{ matrix.os }}-latest"
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         os: [Ubuntu, MacOS, Windows]
-        python-version: [3.7, 3.8, 3.9, "3.10"]
-        experimental: [false]
-        bootstrap-args: [""]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11-dev"]
         include:
           - os: Ubuntu
-            python-version: pypy3
-            experimental: false
-          - os: Ubuntu
-            python-version: "3.10"
-            experimental: true
-            bootstrap-args: "--git https://github.com/python-poetry/poetry.git"
+            python-version: pypy-3.8
       fail-fast: false
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Get full Python version
         id: full-python-version
-        shell: bash
         run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
 
       - name: Bootstrap poetry
-        shell: bash
         run: |
-          curl -sL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py \
-            | python - -y ${{ matrix.bootstrap-args }}
+          curl -sSL https://install.python-poetry.org | python - -y
 
       - name: Update PATH
         if: ${{ matrix.os != 'Windows' }}
-        shell: bash
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Update Path for Windows
         if: ${{ matrix.os == 'Windows' }}
-        shell: bash
         run: echo "$APPDATA\Python\Scripts" >> $GITHUB_PATH
 
       - name: Configure poetry
-        shell: bash
         run: poetry config virtualenvs.in-project true
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache
         with:
           path: .venv
@@ -67,13 +56,13 @@ jobs:
 
       - name: Ensure cache is healthy
         if: steps.cache.outputs.cache-hit == 'true'
-        shell: bash
         run: timeout 10s poetry run pip --version || rm -rf .venv
 
       - name: Install dependencies
-        shell: bash
         run: poetry install
 
       - name: Run pytest
-        shell: bash
         run: poetry run python -m pytest -p no:sugar -q tests/
+
+      - name: Run mypy
+        run: poetry run mypy

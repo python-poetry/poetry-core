@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 from typing import Any
-from typing import Type
 
 from poetry.core.toml import TOMLFile
 
 
 class TomlFile(TOMLFile):
     @classmethod
-    def __new__(cls: Type[TOMLFile], *args: Any, **kwargs: Any) -> TOMLFile:
+    def __new__(cls: type[TOMLFile], *args: Any, **kwargs: Any) -> TOMLFile:
         import warnings
 
         this_import = f"{cls.__module__}.{cls.__name__}"

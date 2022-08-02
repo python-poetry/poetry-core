@@ -1,13 +1,15 @@
-from pathlib import Path
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Optional
-from typing import Union
+from typing import cast
+
+from tomlkit.container import Container
 
 
 if TYPE_CHECKING:
-    from tomlkit.container import Container
-    from tomlkit.items import Item
+    from pathlib import Path
+
     from tomlkit.toml_document import TOMLDocument
 
     from poetry.core.pyproject.tables import BuildSystem
@@ -15,19 +17,19 @@ if TYPE_CHECKING:
 
 
 class PyProjectTOML:
-    def __init__(self, path: Union[str, Path]) -> None:
+    def __init__(self, path: str | Path) -> None:
         from poetry.core.toml import TOMLFile
 
         self._file = TOMLFile(path=path)
-        self._data: Optional["TOMLDocument"] = None
-        self._build_system: Optional["BuildSystem"] = None
+        self._data: TOMLDocument | None = None
+        self._build_system: BuildSystem | None = None
 
     @property
-    def file(self) -> "TOMLFile":
+    def file(self) -> TOMLFile:
         return self._file
 
     @property
-    def data(self) -> "TOMLDocument":
+    def data(self) -> TOMLDocument:
         from tomlkit.toml_document import TOMLDocument
 
         if self._data is None:
@@ -38,8 +40,11 @@ class PyProjectTOML:
 
         return self._data
 
+    def is_build_system_defined(self) -> bool:
+        return self._file.exists() and "build-system" in self.data
+
     @property
-    def build_system(self) -> "BuildSystem":
+    def build_system(self) -> BuildSystem:
         from poetry.core.pyproject.tables import BuildSystem
 
         if self._build_system is None:
@@ -59,11 +64,11 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Union["Item", "Container"]:
+    def poetry_config(self) -> Container:
         from tomlkit.exceptions import NonExistentKey
 
         try:
-            return self.data["tool"]["poetry"]
+            return cast(Container, self.data["tool"]["poetry"])
         except NonExistentKey as e:
             from poetry.core.pyproject.exceptions import PyProjectException
 
@@ -95,8 +100,9 @@ class PyProjectTOML:
             if "build-system" not in data:
                 data["build-system"] = Container()
 
-            data["build-system"]["requires"] = self._build_system.requires
-            data["build-system"]["build-backend"] = self._build_system.build_backend
+            build_system = cast(Container, data["build-system"])
+            build_system["requires"] = self._build_system.requires
+            build_system["build-backend"] = self._build_system.build_backend
 
         self.file.write(data=data)
 

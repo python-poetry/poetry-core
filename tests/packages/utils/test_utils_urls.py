@@ -1,10 +1,11 @@
 # These test scenarios are ported over from pypa/pip
 # https://raw.githubusercontent.com/pypa/pip/b447f438df08303f4f07f2598f190e73876443ba/tests/unit/test_urls.py
 
+from __future__ import annotations
+
 import sys
 
 from pathlib import Path
-from typing import Optional
 
 import pytest
 
@@ -13,14 +14,14 @@ from poetry.core.packages.utils.utils import url_to_path
 
 
 @pytest.mark.skipif("sys.platform == 'win32'")
-def test_path_to_url_unix():
+def test_path_to_url_unix() -> None:
     assert path_to_url("/tmp/file") == "file:///tmp/file"
     path = Path(".") / "file"
     assert path_to_url("file") == "file://" + path.absolute().as_posix()
 
 
 @pytest.mark.skipif("sys.platform != 'win32'")
-def test_path_to_url_win():
+def test_path_to_url_win() -> None:
     assert path_to_url("c:/tmp/file") == "file:///c:/tmp/file"
     assert path_to_url("c:\\tmp\\file") == "file:///c:/tmp/file"
     assert path_to_url(r"\\unc\as\path") == "file://unc/as/path"
@@ -41,7 +42,7 @@ def test_path_to_url_win():
         ("file:///c:/tmp/file", r"C:\tmp\file", "/c:/tmp/file"),
     ],
 )
-def test_url_to_path(url: str, win_expected: str, non_win_expected: Optional[str]):
+def test_url_to_path(url: str, win_expected: str, non_win_expected: str | None) -> None:
     if sys.platform == "win32":
         expected_path = win_expected
     else:
@@ -55,7 +56,7 @@ def test_url_to_path(url: str, win_expected: str, non_win_expected: Optional[str
 
 
 @pytest.mark.skipif("sys.platform != 'win32'")
-def test_url_to_path_path_to_url_symmetry_win():
+def test_url_to_path_path_to_url_symmetry_win() -> None:
     path = r"C:\tmp\file"
     assert url_to_path(path_to_url(path)) == Path(path)
 
