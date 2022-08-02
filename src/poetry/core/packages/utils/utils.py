@@ -320,7 +320,7 @@ def normalize_python_version_markers(  # NOSONAR
                 version = "~" + version
                 op = ""
 
-            elif op == "!=" and "*" not in version:
+            elif op == "!=" and "*" not in version and version.count(".") < 2:
                 version += ".*"
 
             elif op in ("<=", ">"):

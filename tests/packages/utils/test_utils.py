@@ -129,6 +129,11 @@ def test_convert_markers(
         ('python_version >= "3.9" or sys_platform == "linux"', "*"),
         # relevant python_version
         ('python_version >= "3.9" and sys_platform == "linux"', ">=3.9"),
+        # exclude specific version
+        (
+            'python_version >= "3.5" and python_full_version != "3.7.6"',
+            ">=3.5,<3.7.6 || >3.7.6",
+        ),
     ],
 )
 def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None:
