@@ -395,21 +395,21 @@ class Dependency(PackageSpecification):
         if not isinstance(other, Dependency):
             return NotImplemented
 
-        return (
-            self.is_same_package_as(other)
-            and self._constraint == other.constraint
-            and self._extras == other.extras
-        )
+        is_direct_origin = self.is_vcs() or self.is_directory() or self.is_file() or self.is_url()
+
+        # "constraint" is implicitly given for direct origin dependencies and might not
+        # be set yet ("*"). Thus, it shouldn't be used to determine if two direct origin
+        # dependencies are equal.
+        # Checkoing is_direct_origin for one dependency is sufficient because
+        # super().__eq__() returns False for different origins.
+        return super().__eq__(other) and (is_direct_origin or self._constraint == other.constraint)
 
     def __ne__(self, other):  # type: (Any) -> bool
         return not self == other
 
     def __hash__(self):  # type: () -> int
-        return (
-            super(Dependency, self).__hash__()
-            ^ hash(self._constraint)
-            ^ hash(self._extras)
-        )
+        # don't include _constraint in hash because it is mutable!
+        return super().__hash__()
 
     def __str__(self):  # type: () -> str
         if self.is_root:

@@ -1,3 +1,4 @@
+from typing import Any
 from typing import FrozenSet
 from typing import List
 from typing import Optional
@@ -101,18 +102,24 @@ class PackageSpecification(object):
 
         return True
 
-    def __hash__(self):  # type: () -> int
-        if not self._source_type:
-            return hash(self._name)
+    def __eq__(self, other): # type: (Any) -> bool
+        if not isinstance(other, PackageSpecification):
+            return NotImplemented
+        return self.is_same_package_as(other)
 
-        return (
-            hash(self._name)
-            ^ hash(self._source_type)
-            ^ hash(self._source_url)
-            ^ hash(self._source_reference)
-            ^ hash(self._source_resolved_reference)
-            ^ hash(self._features)
-        )
+    def __hash__(self):  # type: () -> int
+        result = hash(self.complete_name)  # complete_name includes features
+
+        if self._source_type:
+            # Don't include _source_reference and _source_resolved_reference in hash
+            # because two specs can be equal even if these attributes are not equal.
+            # (They must still meet certain conditions. See is_same_source_as().)
+            result ^= (
+                hash(self._source_type)
+                ^ hash(self._source_url)
+            )
+
+        return result
 
     def __str__(self):  # type: () -> str
         raise NotImplementedError()

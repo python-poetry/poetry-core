@@ -133,6 +133,3 @@ class DirectoryDependency(Dependency):
         return "{} ({} {})".format(
             self._pretty_name, self._pretty_constraint, self._path.as_posix()
         )
-
-    def __hash__(self):  # type: () -> int
-        return hash((self._name, self._full_path.as_posix()))

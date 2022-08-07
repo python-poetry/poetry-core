@@ -410,14 +410,14 @@ class Package(PackageSpecification):
         clone.__dict__ = copy.deepcopy(self.__dict__)
         return clone
 
-    def __hash__(self):  # type: () -> int
-        return super(Package, self).__hash__() ^ hash(self._version)
-
     def __eq__(self, other):  # type: (Package) -> bool
         if not isinstance(other, Package):
             return NotImplemented
 
-        return self.is_same_package_as(other) and self._version == other.version
+        return super().__eq__(other) and self._version == other.version
+
+    def __hash__(self) -> int:
+        return super().__hash__() ^ hash(self._version)
 
     def __str__(self):  # type: () -> str
         return "{} ({})".format(self.complete_name, self.full_pretty_version)
