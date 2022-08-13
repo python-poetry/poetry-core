@@ -329,8 +329,11 @@ class SdistBuilder(Builder):
         additional_files.add(Path("pyproject.toml"))
 
         # add readme if it is specified
-        for readme in self._poetry.package.readmes:
-            additional_files.add(readme)
+        if self._poetry.package.readmes:
+            for readme in self._poetry.package.readmes:
+                additional_files.add(readme)
+        elif self._poetry.package.readme:
+            additional_files.add(self._poetry.package.readme)
 
         for additional_file in additional_files:
             file = BuildIncludeFile(
