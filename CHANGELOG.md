@@ -1,5 +1,20 @@
 # Change Log
 
+## [1.1.0rc1] - 2022-08-17
+
+### Changed
+
+- Replaced Poetry's helper method `canonicalize_name()` by `packaging.utils.canonicalize_name()` ([#418](https://github.com/python-poetry/poetry-core/pull/418)).
+- Removed unused code ([#419](https://github.com/python-poetry/poetry-core/pull/419)).
+
+### Fixed
+
+- Fixed an issue with markers, that results in incorrectly resolved extra dependencies ([#415](https://github.com/python-poetry/poetry-core/pull/415)).
+- Fixed an issue where equal markers had not the same hash ([#417](https://github.com/python-poetry/poetry-core/pull/417)).
+- Fixed `allows_any()` for local versions ([#433](https://github.com/python-poetry/poetry-core/pull/433)).
+- Fixed special cases of `next_major()`, `next_minor()`, etc. and deprecated ambiguous usage ([#434](https://github.com/python-poetry/poetry-core/pull/434)).
+- Fixed an issue with Python constraints from markers ([#436](https://github.com/python-poetry/poetry-core/pull/436)).
+
 
 ## [1.1.0b3] - 2022-07-09
 
@@ -327,7 +342,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0b3...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0rc1...main
+[1.1.0rc1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc1
 [1.1.0b3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b3
 [1.1.0b2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b2
 [1.1.0b1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b1
