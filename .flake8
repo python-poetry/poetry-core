@@ -2,9 +2,12 @@
 min_python_version = 3.7.0
 max-line-length = 88
 ban-relative-imports = True
+# flake8-use-fstring: https://github.com/MichaelKim0407/flake8-use-fstring#--percent-greedy-and---format-greedy
+format-greedy = 1
+inline-quotes = double
 enable-extensions = TC, TC1
 type-checking-exempt-modules = typing, typing-extensions
-format-greedy = 1
+eradicate-whitelist-extend = ^-.*;
 extend-ignore =
     # E203: Whitespace before ':' (pycqa/pycodestyle#373)
     E203,
@@ -19,15 +22,7 @@ extend-ignore =
 per-file-ignores =
     tests/test_*:ANN201
     tests/**/test_*:ANN201
-exclude =
-    .git
-    __pycache__
-    build
-    dist
-    .venv
-    .tox
-    .pytest_cache
-    .github
+extend-exclude =
     src/poetry/core/_vendor/*
     tests/fixtures/*
     tests/**/fixtures/*

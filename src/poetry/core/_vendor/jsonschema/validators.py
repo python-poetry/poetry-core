@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Sequence
 from functools import lru_cache
+from operator import methodcaller
 from urllib.parse import unquote, urldefrag, urljoin, urlsplit
 from urllib.request import urlopen
 from warnings import warn
@@ -65,7 +66,7 @@ def validates(version):
     Register the decorated validator for a ``version`` of the specification.
 
     Registered validators and their meta schemas will be considered when
-    parsing ``$schema`` properties' URIs.
+    parsing :kw:`$schema` keywords' URIs.
 
     Arguments:
 
@@ -112,7 +113,7 @@ def create(
     type_checker=_types.draft202012_type_checker,
     format_checker=_format.draft202012_format_checker,
     id_of=_id_of,
-    applicable_validators=lambda schema: schema.items(),
+    applicable_validators=methodcaller("items"),
 ):
     """
     Create a new validator class.
@@ -146,15 +147,14 @@ def create(
 
         type_checker (jsonschema.TypeChecker):
 
-            a type checker, used when applying the :validator:`type` validator.
+            a type checker, used when applying the :kw:`type` keyword.
 
             If unprovided, a `jsonschema.TypeChecker` will be created
             with a set of default types typical of JSON Schema drafts.
 
         format_checker (jsonschema.FormatChecker):
 
-            a format checker, used when applying the :validator:`format`
-            validator.
+            a format checker, used when applying the :kw:`format` keyword.
 
             If unprovided, a `jsonschema.FormatChecker` will be created
             with a set of default formats typical of JSON Schema drafts.
@@ -165,9 +165,9 @@ def create(
 
         applicable_validators (collections.abc.Callable):
 
-            A function that given a schema, returns the list of applicable
-            validators (names and callables) which will be called to
-            validate the instance.
+            A function that given a schema, returns the list of
+            applicable validators (validation keywords and callables)
+            which will be used to validate the instance.
 
     Returns:
 
@@ -188,7 +188,6 @@ def create(
         schema = attr.ib(repr=reprlib.repr)
         resolver = attr.ib(default=None, repr=False)
         format_checker = attr.ib(default=None)
-        evolve = attr.evolve
 
         def __attrs_post_init__(self):
             if self.resolver is None:
@@ -201,6 +200,22 @@ def create(
         def check_schema(cls, schema):
             for error in cls(cls.META_SCHEMA).iter_errors(schema):
                 raise exceptions.SchemaError.create_from(error)
+
+        def evolve(self, **changes):
+            schema = changes.setdefault("schema", self.schema)
+            NewValidator = validator_for(schema, default=Validator)
+
+            # Essentially reproduces attr.evolve, but may involve instantiating
+            # a different class than this one.
+            for field in attr.fields(Validator):
+                if not field.init:
+                    continue
+                attr_name = field.name  # To deal with private attributes.
+                init_name = attr_name if attr_name[0] != "_" else attr_name[1:]
+                if init_name not in changes:
+                    changes[init_name] = getattr(self, attr_name)
+
+            return NewValidator(**changes)
 
         def iter_errors(self, instance, _schema=None):
             if _schema is not None:
@@ -246,6 +261,7 @@ def create(
                             validator_value=v,
                             instance=instance,
                             schema=_schema,
+                            type_checker=self.TYPE_CHECKER,
                         )
                         if k not in {"if", "$ref"}:
                             error.schema_path.appendleft(k)
@@ -328,7 +344,7 @@ def extend(
                 If you wish to instead extend the behavior of a parent's
                 validator callable, delegate and call it directly in
                 the new validator function by retrieving it using
-                ``OldValidator.VALIDATORS["validator_name"]``.
+                ``OldValidator.VALIDATORS["validation_keyword_name"]``.
 
         version (str):
 
@@ -336,15 +352,14 @@ def extend(
 
         type_checker (jsonschema.TypeChecker):
 
-            a type checker, used when applying the :validator:`type` validator.
+            a type checker, used when applying the :kw:`type` keyword.
 
             If unprovided, the type checker of the extended
             `jsonschema.protocols.Validator` will be carried along.
 
         format_checker (jsonschema.FormatChecker):
 
-            a format checker, used when applying the :validator:`format`
-            validator.
+            a format checker, used when applying the :kw:`format` keyword.
 
             If unprovided, the format checker of the extended
             `jsonschema.protocols.Validator` will be carried along.
@@ -842,16 +857,19 @@ class RefResolver(object):
 
     def resolve_from_url(self, url):
         """
-        Resolve the given remote URL.
+        Resolve the given URL.
         """
         url, fragment = urldefrag(url)
-        try:
-            document = self.store[url]
-        except KeyError:
+        if url:
             try:
-                document = self.resolve_remote(url)
-            except Exception as exc:
-                raise exceptions.RefResolutionError(exc)
+                document = self.store[url]
+            except KeyError:
+                try:
+                    document = self.resolve_remote(url)
+                except Exception as exc:
+                    raise exceptions.RefResolutionError(exc)
+        else:
+            document = self.referrer
 
         return self.resolve_fragment(document, fragment)
 
@@ -1027,11 +1045,11 @@ def validate(instance, schema, cls=None, *args, **kwargs):
 
     If the ``cls`` argument is not provided, two things will happen
     in accordance with the specification. First, if the schema has a
-    :validator:`$schema` property containing a known meta-schema [#]_
-    then the proper validator will be used. The specification recommends
-    that all schemas contain :validator:`$schema` properties for this
-    reason. If no :validator:`$schema` property is found, the default
-    validator class is the latest released draft.
+    :kw:`$schema` keyword containing a known meta-schema [#]_ then the
+    proper validator will be used. The specification recommends that
+    all schemas contain :kw:`$schema` properties for this reason. If no
+    :kw:`$schema` property is found, the default validator class is the
+    latest released draft.
 
     Any other provided positional and keyword arguments will be passed
     on when instantiating the ``cls``.
@@ -1062,8 +1080,8 @@ def validator_for(schema, default=_LATEST_VERSION):
     """
     Retrieve the validator class appropriate for validating the given schema.
 
-    Uses the :validator:`$schema` property that should be present in the
-    given schema to look up the appropriate validator class.
+    Uses the :kw:`$schema` keyword that should be present in the given
+    schema to look up the appropriate validator class.
 
     Arguments:
 

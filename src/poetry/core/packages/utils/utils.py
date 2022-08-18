@@ -40,7 +40,7 @@ ARCHIVE_EXTENSIONS = ZIP_EXTENSIONS + BZ2_EXTENSIONS + TAR_EXTENSIONS + XZ_EXTEN
 SUPPORTED_EXTENSIONS: tuple[str, ...] = ZIP_EXTENSIONS + TAR_EXTENSIONS
 
 try:
-    import bz2  # noqa: F401, TC002
+    import bz2  # noqa: F401
 
     SUPPORTED_EXTENSIONS += BZ2_EXTENSIONS
 except ImportError:
@@ -48,7 +48,7 @@ except ImportError:
 
 try:
     # Only for Python 3.3+
-    import lzma  # noqa: F401, TC002
+    import lzma  # noqa: F401
 
     SUPPORTED_EXTENSIONS += XZ_EXTENSIONS
 except ImportError:
@@ -320,7 +320,7 @@ def normalize_python_version_markers(  # NOSONAR
                 version = "~" + version
                 op = ""
 
-            elif op == "!=" and "*" not in version:
+            elif op == "!=" and "*" not in version and version.count(".") < 2:
                 version += ".*"
 
             elif op in ("<=", ">"):

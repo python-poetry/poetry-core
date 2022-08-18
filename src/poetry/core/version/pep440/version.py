@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import warnings
 
 from typing import TYPE_CHECKING
 from typing import Any
@@ -201,31 +202,48 @@ class PEP440Version:
     def is_stable(self) -> bool:
         return not self.is_unstable()
 
+    def _is_increment_required(self) -> bool:
+        return self.is_stable() or (not self.is_prerelease() and self.is_postrelease())
+
     def next_major(self: T) -> T:
         release = self.release
-        if self.is_stable() or Release(self.release.major, 0, 0) < self.release:
-            release = self.release.next_major()
+        if self._is_increment_required() or Release(release.major, 0, 0) < release:
+            release = release.next_major()
         return self.__class__(epoch=self.epoch, release=release)
 
     def next_minor(self: T) -> T:
         release = self.release
         if (
-            self.is_stable()
-            or Release(self.release.major, self.release.minor, 0) < self.release
+            self._is_increment_required()
+            or Release(release.major, release.minor, 0) < release
         ):
-            release = self.release.next_minor()
+            release = release.next_minor()
         return self.__class__(epoch=self.epoch, release=release)
 
     def next_patch(self: T) -> T:
-        return self.__class__(
-            epoch=self.epoch,
-            release=self.release.next_patch() if self.is_stable() else self.release,
-        )
+        release = self.release
+        if (
+            self._is_increment_required()
+            or Release(release.major, release.minor, release.patch) < release
+        ):
+            release = release.next_patch()
+        return self.__class__(epoch=self.epoch, release=release)
 
     def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
+        if self.is_stable():
+            warnings.warn(
+                "Calling next_prerelease() on a stable release is deprecated for its"
+                " ambiguity. Use next_major(), next_minor(), etc. together with"
+                " first_prerelease()",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if self.is_prerelease():
             assert self.pre is not None
-            pre = self.pre.next_phase() if next_phase else self.pre.next()
+            if not self.is_devrelease() or self.is_postrelease():
+                pre = self.pre.next_phase() if next_phase else self.pre.next()
+            else:
+                pre = self.pre
         else:
             pre = ReleaseTag(RELEASE_PHASE_ID_ALPHA)
         return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
@@ -233,14 +251,13 @@ class PEP440Version:
     def next_postrelease(self: T) -> T:
         if self.is_postrelease():
             assert self.post is not None
-            post = self.post.next()
+            post = self.post.next() if self.dev is None else self.post
         else:
             post = ReleaseTag(RELEASE_PHASE_ID_POST)
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
             pre=self.pre,
-            dev=self.dev,
             post=post,
         )
 
@@ -249,6 +266,13 @@ class PEP440Version:
             assert self.dev is not None
             dev = self.dev.next()
         else:
+            warnings.warn(
+                "Calling next_devrelease() on a non dev release is deprecated for its"
+                " ambiguity. Use next_major(), next_minor(), etc. together with"
+                " first_devrelease()",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dev = ReleaseTag(RELEASE_PHASE_ID_DEV)
         return self.__class__(
             epoch=self.epoch,
@@ -263,6 +287,15 @@ class PEP440Version:
             epoch=self.epoch,
             release=self.release,
             pre=ReleaseTag(RELEASE_PHASE_ID_ALPHA),
+        )
+
+    def first_devrelease(self: T) -> T:
+        return self.__class__(
+            epoch=self.epoch,
+            release=self.release,
+            pre=self.pre,
+            post=self.post,
+            dev=ReleaseTag(RELEASE_PHASE_ID_DEV),
         )
 
     def replace(self: T, **kwargs: Any) -> T:
