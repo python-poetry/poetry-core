@@ -8,6 +8,8 @@ from typing import TypeVar
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     T = TypeVar("T", bound="PackageSpecification")
 
 
@@ -38,7 +40,7 @@ class PackageSpecification:
         self._features = frozenset(features)
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
