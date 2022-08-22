@@ -8,8 +8,8 @@ from typing import cast
 import pytest
 
 from poetry.core.factory import Factory
-from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.packages.vcs_dependency import VCSDependency
+from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
 
