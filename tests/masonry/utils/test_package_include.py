@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
@@ -9,7 +11,7 @@ fixtures_dir = Path(__file__).parent / "fixtures"
 with_includes = fixtures_dir / "with_includes"
 
 
-def test_package_include_with_multiple_dirs():
+def test_package_include_with_multiple_dirs() -> None:
     pkg_include = PackageInclude(base=fixtures_dir, include="with_includes")
     assert pkg_include.elements == [
         with_includes / "__init__.py",
@@ -24,12 +26,12 @@ def test_package_include_with_multiple_dirs():
     ]
 
 
-def test_package_include_with_simple_dir():
+def test_package_include_with_simple_dir() -> None:
     pkg_include = PackageInclude(base=with_includes, include="bar")
     assert pkg_include.elements == [with_includes / "bar/baz.py"]
 
 
-def test_package_include_with_nested_dir():
+def test_package_include_with_nested_dir() -> None:
     pkg_include = PackageInclude(base=with_includes, include="extra_package/**/*.py")
     assert pkg_include.elements == [
         with_includes / "extra_package/some_dir/foo.py",
@@ -37,14 +39,14 @@ def test_package_include_with_nested_dir():
     ]
 
 
-def test_package_include_with_no_python_files_in_dir():
+def test_package_include_with_no_python_files_in_dir() -> None:
     with pytest.raises(ValueError) as e:
         PackageInclude(base=with_includes, include="not_a_python_pkg")
 
     assert str(e.value) == "not_a_python_pkg is not a package."
 
 
-def test_package_include_with_non_existent_directory():
+def test_package_include_with_non_existent_directory() -> None:
     with pytest.raises(ValueError) as e:
         PackageInclude(base=with_includes, include="not_a_dir")
 
@@ -53,7 +55,7 @@ def test_package_include_with_non_existent_directory():
     assert str(e.value) == err_str
 
 
-def test_pep_561_stub_only_package_good_name_suffix():
+def test_pep_561_stub_only_package_good_name_suffix() -> None:
     pkg_include = PackageInclude(
         base=fixtures_dir / "pep_561_stub_only", include="good-stubs"
     )
@@ -63,7 +65,20 @@ def test_pep_561_stub_only_package_good_name_suffix():
     ]
 
 
-def test_pep_561_stub_only_package_bad_name_suffix():
+def test_pep_561_stub_only_partial_namespace_package_good_name_suffix() -> None:
+    pkg_include = PackageInclude(
+        base=fixtures_dir / "pep_561_stub_only_partial_namespace", include="good-stubs"
+    )
+    assert pkg_include.elements == [
+        fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/module.pyi",
+        fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/",
+        fixtures_dir
+        / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/__init__.pyi",
+        fixtures_dir / "pep_561_stub_only_partial_namespace/good-stubs/subpkg/py.typed",
+    ]
+
+
+def test_pep_561_stub_only_package_bad_name_suffix() -> None:
     with pytest.raises(ValueError) as e:
         PackageInclude(base=fixtures_dir / "pep_561_stub_only", include="bad")
 

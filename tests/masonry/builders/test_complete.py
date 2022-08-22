@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import os
 import platform
@@ -10,6 +12,8 @@ import zipfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
+from typing import Iterator
 
 import pytest
 
@@ -25,7 +29,7 @@ fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup() -> None:
+def setup() -> Iterator[None]:
     clear_samples_dist()
 
     yield
@@ -45,7 +49,7 @@ def clear_samples_dist() -> None:
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension():
+def test_wheel_c_extension() -> None:
     module_path = fixtures_dir / "extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -78,7 +82,7 @@ def test_wheel_c_extension():
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -100,7 +104,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_with_no_setup():
+def test_wheel_c_extension_with_no_setup() -> None:
     module_path = fixtures_dir / "extended_with_no_setup"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -133,7 +137,7 @@ def test_wheel_c_extension_with_no_setup():
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -155,7 +159,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_src_layout():
+def test_wheel_c_extension_src_layout() -> None:
     module_path = fixtures_dir / "src_extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -188,7 +192,7 @@ def test_wheel_c_extension_src_layout():
             re.match(
                 f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
 $""",
@@ -204,7 +208,7 @@ $""",
         zip.close()
 
 
-def test_complete():
+def test_complete() -> None:
     module_path = fixtures_dir / "complete"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -243,7 +247,7 @@ my-script=my_package:main
             wheel_data
             == f"""\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """
@@ -313,7 +317,7 @@ My Package
         zip.close()
 
 
-def test_complete_no_vcs():
+def test_complete_no_vcs() -> None:
     # Copy the complete fixtures dir to a temporary directory
     module_path = fixtures_dir / "complete"
     temporary_dir = Path(tempfile.mkdtemp()) / "complete"
@@ -367,7 +371,7 @@ my-script=my_package:main
             wheel_data
             == f"""\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """
@@ -416,7 +420,7 @@ My Package
         zip.close()
 
 
-def test_module_src():
+def test_module_src() -> None:
     module_path = fixtures_dir / "source_file"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -440,7 +444,7 @@ def test_module_src():
         zip.close()
 
 
-def test_package_src():
+def test_package_src() -> None:
     module_path = fixtures_dir / "source_package"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -465,7 +469,7 @@ def test_package_src():
         zip.close()
 
 
-def test_split_source():
+def test_split_source() -> None:
     module_path = fixtures_dir / "split_source"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -491,7 +495,7 @@ def test_split_source():
         zip.close()
 
 
-def test_package_with_include(mocker: "MockerFixture"):
+def test_package_with_include(mocker: MockerFixture) -> None:
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
@@ -539,11 +543,13 @@ def test_package_with_include(mocker: "MockerFixture"):
         assert "with-include-1.2.3/for_wheel_only/__init__.py" not in names
         assert "with-include-1.2.3/src/src_package/__init__.py" in names
 
-        setup = tar.extractfile("with-include-1.2.3/setup.py").read()
+        file = tar.extractfile("with-include-1.2.3/setup.py")
+        assert file
+        setup = file.read()
         setup_ast = ast.parse(setup)
 
         setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-        ns = {}
+        ns: dict[str, Any] = {}
         exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
         assert ns["package_dir"] == {"": "src"}
         assert ns["packages"] == [
@@ -576,7 +582,7 @@ def test_package_with_include(mocker: "MockerFixture"):
         assert "src_package/__init__.py" in names
 
 
-def test_respect_format_for_explicit_included_files():
+def test_respect_format_for_explicit_included_files() -> None:
     module_path = fixtures_dir / "exclude-whl-include-sdist"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")

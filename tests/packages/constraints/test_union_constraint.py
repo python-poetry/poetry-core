@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from poetry.core.packages.constraints.constraint import Constraint
 from poetry.core.packages.constraints.union_constraint import UnionConstraint
 
 
-def test_allows():
+def test_allows() -> None:
     c = UnionConstraint(Constraint("win32"), Constraint("linux"))
 
     assert c.allows(Constraint("win32"))
@@ -10,7 +12,7 @@ def test_allows():
     assert not c.allows(Constraint("darwin"))
 
 
-def test_allows_any():
+def test_allows_any() -> None:
     c = UnionConstraint(Constraint("win32"), Constraint("linux"))
 
     assert c.allows_any(c)
@@ -20,7 +22,7 @@ def test_allows_any():
     assert not c.allows_any(Constraint("darwin"))
 
 
-def test_allows_all():
+def test_allows_all() -> None:
     c = UnionConstraint(Constraint("win32"), Constraint("linux"))
 
     assert c.allows_all(c)

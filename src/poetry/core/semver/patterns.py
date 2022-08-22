@@ -1,20 +1,28 @@
+from __future__ import annotations
+
 import re
 
+from packaging.version import VERSION_PATTERN
 
-MODIFIERS = (
-    "[._-]?"
-    r"((?!post)(?:beta|b|c|pre|RC|alpha|a|patch|pl|p|dev)(?:(?:[.-]?\d+)*)?)?"
-    r"([+-]?([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?"
+
+COMPLETE_VERSION = re.compile(VERSION_PATTERN, re.VERBOSE | re.IGNORECASE)
+
+CARET_CONSTRAINT = re.compile(
+    rf"^\^(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE
+)
+TILDE_CONSTRAINT = re.compile(
+    rf"^~(?!=)\s*(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE
+)
+TILDE_PEP440_CONSTRAINT = re.compile(
+    rf"^~=\s*(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE
+)
+X_CONSTRAINT = re.compile(
+    r"^(?P<op>!=|==)?\s*v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.[xX*])+$"
 )
 
-_COMPLETE_VERSION = (
-    rf"v?(?:\d+!)?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?{MODIFIERS}(?:\+[^\s]+)?"
+# note that we also allow technically incorrect version patterns with astrix (eg: 3.5.*)
+# as this is supported by pip and appears in metadata within python packages
+BASIC_CONSTRAINT = re.compile(
+    rf"^(?P<op><>|!=|>=?|<=?|==?)?\s*(?P<version>{VERSION_PATTERN}|dev)(\.\*)?$",
+    re.VERBOSE | re.IGNORECASE,
 )
-
-COMPLETE_VERSION = re.compile("(?i)" + _COMPLETE_VERSION)
-
-CARET_CONSTRAINT = re.compile(rf"(?i)^\^({_COMPLETE_VERSION})$")
-TILDE_CONSTRAINT = re.compile(rf"(?i)^~(?!=)\s*({_COMPLETE_VERSION})$")
-TILDE_PEP440_CONSTRAINT = re.compile(rf"(?i)^~=\s*({_COMPLETE_VERSION})$")
-X_CONSTRAINT = re.compile(r"^(!=|==)?\s*v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.[xX*])+$")
-BASIC_CONSTRAINT = re.compile(rf"(?i)^(<>|!=|>=?|<=?|==?)?\s*({_COMPLETE_VERSION}|dev)")

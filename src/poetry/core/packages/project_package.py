@@ -1,16 +1,15 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import Union
 
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.types import DependencyTypes
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.packages.dependency import Dependency
+    from poetry.core.semver.version import Version
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -20,28 +19,28 @@ class ProjectPackage(Package):
     def __init__(
         self,
         name: str,
-        version: Union[str, "VersionConstraint"],
-        pretty_version: Optional[str] = None,
+        version: str | Version,
+        pretty_version: str | None = None,
     ) -> None:
         super().__init__(name, version, pretty_version)
 
-        self.build_config = {}
-        self.packages = []
-        self.include = []
-        self.exclude = []
-        self.custom_urls = {}
+        self.build_config: dict[str, Any] = {}
+        self.packages: list[dict[str, Any]] = []
+        self.include: list[dict[str, Any]] = []
+        self.exclude: list[dict[str, Any]] = []
+        self.custom_urls: dict[str, str] = {}
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
 
     @property
-    def build_script(self) -> Optional[str]:
+    def build_script(self) -> str | None:
         return self.build_config.get("script")
 
     def is_root(self) -> bool:
         return True
 
-    def to_dependency(self) -> Union["DependencyTypes"]:
+    def to_dependency(self) -> Dependency:
         dependency = super().to_dependency()
 
         dependency.is_root = True
@@ -49,16 +48,14 @@ class ProjectPackage(Package):
         return dependency
 
     @property
-    def python_versions(self) -> Union[str, "VersionConstraint"]:
+    def python_versions(self) -> str:
         return self._python_versions
 
     @python_versions.setter
-    def python_versions(self, value: Union[str, "VersionConstraint"]) -> None:
-        from poetry.core.semver.version_range import VersionRange
-
+    def python_versions(self, value: str) -> None:
         self._python_versions = value
 
-        if value == "*" or value == VersionRange():
+        if value == "*":
             value = "~2.7 || >=3.4"
 
         self._python_constraint = parse_constraint(value)
@@ -67,7 +64,7 @@ class ProjectPackage(Package):
         )
 
     @property
-    def urls(self) -> Dict[str, Any]:
+    def urls(self) -> dict[str, str]:
         urls = super().urls
 
         urls.update(self.custom_urls)

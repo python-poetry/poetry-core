@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import sys
+import tempfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,7 +12,7 @@ import pytest
 import virtualenv
 
 from poetry.core.factory import Factory
-from tests.testutils import tempfile
+from poetry.core.utils._compat import WINDOWS
 
 
 if TYPE_CHECKING:
@@ -17,7 +20,7 @@ if TYPE_CHECKING:
     from _pytest.config.argparsing import Parser
 
 
-def pytest_addoption(parser: "Parser") -> None:
+def pytest_addoption(parser: Parser) -> None:
     parser.addoption(
         "--integration",
         action="store_true",
@@ -27,7 +30,7 @@ def pytest_addoption(parser: "Parser") -> None:
     )
 
 
-def pytest_configure(config: "Config") -> None:
+def pytest_configure(config: Config) -> None:
     config.addinivalue_line("markers", "integration: mark integration tests")
 
     if not config.option.integration:
@@ -99,7 +102,7 @@ def venv(temporary_directory: Path) -> Path:
 
 @pytest.fixture
 def python(venv: Path) -> str:
-    return (venv / "bin" / "python").as_posix()
+    return venv.joinpath("Scripts/Python.exe" if WINDOWS else "bin/python").as_posix()
 
 
 @pytest.fixture()

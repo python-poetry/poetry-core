@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 
 from typing import Optional
@@ -5,45 +7,42 @@ from typing import Tuple
 from typing import Union
 
 
-RELEASE_PHASE_ALPHA = "alpha"
-RELEASE_PHASE_BETA = "beta"
-RELEASE_PHASE_RC = "rc"
-RELEASE_PHASE_PREVIEW = "preview"
-RELEASE_PHASE_POST = "post"
-RELEASE_PHASE_REV = "rev"
-RELEASE_PHASE_DEV = "dev"
-RELEASE_PHASES = {
-    RELEASE_PHASE_ALPHA: "a",
-    RELEASE_PHASE_BETA: "b",
-    RELEASE_PHASE_RC: "c",
-    RELEASE_PHASE_PREVIEW: "pre",
-    RELEASE_PHASE_POST: "-",  # shorthand of 1.2.3-post1 is 1.2.3-1
-    RELEASE_PHASE_REV: "r",
-    RELEASE_PHASE_DEV: "dev",
+# Release phase IDs according to PEP440
+RELEASE_PHASE_ID_ALPHA = "a"
+RELEASE_PHASE_ID_BETA = "b"
+RELEASE_PHASE_ID_RC = "rc"
+RELEASE_PHASE_ID_POST = "post"
+RELEASE_PHASE_ID_DEV = "dev"
+
+RELEASE_PHASE_SPELLINGS = {
+    RELEASE_PHASE_ID_ALPHA: {RELEASE_PHASE_ID_ALPHA, "alpha"},
+    RELEASE_PHASE_ID_BETA: {RELEASE_PHASE_ID_BETA, "beta"},
+    RELEASE_PHASE_ID_RC: {RELEASE_PHASE_ID_RC, "c", "pre", "preview"},
+    RELEASE_PHASE_ID_POST: {RELEASE_PHASE_ID_POST, "r", "rev", "-"},
+    RELEASE_PHASE_ID_DEV: {RELEASE_PHASE_ID_DEV},
 }
-RELEASE_PHASES_SHORT = {v: k for k, v in RELEASE_PHASES.items() if k != "post"}
+RELEASE_PHASE_NORMALIZATIONS = {
+    s: id_ for id_, spellings in RELEASE_PHASE_SPELLINGS.items() for s in spellings
+}
 
 
 @dataclasses.dataclass(frozen=True, eq=True, order=True)
 class Release:
     major: int = dataclasses.field(default=0, compare=False)
-    minor: Optional[int] = dataclasses.field(default=None, compare=False)
-    patch: Optional[int] = dataclasses.field(default=None, compare=False)
+    minor: int | None = dataclasses.field(default=None, compare=False)
+    patch: int | None = dataclasses.field(default=None, compare=False)
     # some projects use non-semver versioning schemes, eg: 1.2.3.4
-    extra: Optional[Union[int, Tuple[int, ...]]] = dataclasses.field(
-        default=None, compare=False
-    )
-    precision: int = dataclasses.field(default=None, init=False, compare=False)
-    text: str = dataclasses.field(default=None, init=False, compare=False)
-    _compare_key: Tuple[int, ...] = dataclasses.field(
-        default=None, init=False, compare=True
-    )
+    extra: int | tuple[int, ...] | None = dataclasses.field(default=None, compare=False)
+    precision: int = dataclasses.field(init=False, compare=False)
+    text: str = dataclasses.field(init=False, compare=False)
+    _compare_key: tuple[int, ...] = dataclasses.field(init=False, compare=True)
 
     def __post_init__(self) -> None:
         if self.extra is None:
             object.__setattr__(self, "extra", ())
         elif not isinstance(self.extra, tuple):
             object.__setattr__(self, "extra", (self.extra,))
+        assert isinstance(self.extra, tuple)
 
         parts = [
             str(part)
@@ -59,7 +58,7 @@ class Release:
         )
 
     @classmethod
-    def from_parts(cls, *parts: int) -> "Release":
+    def from_parts(cls, *parts: int) -> Release:
         if not parts:
             return cls()
 
@@ -73,7 +72,8 @@ class Release:
     def to_string(self) -> str:
         return self.text
 
-    def next_major(self) -> "Release":
+    def next_major(self) -> Release:
+        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major + 1,
@@ -82,7 +82,8 @@ class Release:
             extra=tuple(0 for _ in self.extra),
         )
 
-    def next_minor(self) -> "Release":
+    def next_minor(self) -> Release:
+        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major,
@@ -91,7 +92,8 @@ class Release:
             extra=tuple(0 for _ in self.extra),
         )
 
-    def next_patch(self) -> "Release":
+    def next_patch(self) -> Release:
+        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major,
@@ -107,37 +109,38 @@ class ReleaseTag:
     number: int = dataclasses.field(default=0)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "phase", self.expand(self.phase))
-
-    @classmethod
-    def shorten(cls, phase: str) -> str:
-        return RELEASE_PHASES.get(phase, phase)
-
-    @classmethod
-    def expand(cls, phase: str) -> str:
-        return RELEASE_PHASES_SHORT.get(phase, phase)
+        object.__setattr__(
+            self, "phase", RELEASE_PHASE_NORMALIZATIONS.get(self.phase, self.phase)
+        )
 
     def to_string(self, short: bool = False) -> str:
         if short:
-            return f"{self.shorten(self.phase)}{self.number}"
-        return f"{self.phase}.{self.number}"
+            import warnings
 
-    def next(self) -> "ReleaseTag":
+            warnings.warn(
+                "Parameter 'short' has no effect and will be removed. "
+                "(Release tags are always normalized according to PEP 440 now.)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        return f"{self.phase}{self.number}"
+
+    def next(self) -> ReleaseTag:
         return dataclasses.replace(self, phase=self.phase, number=self.number + 1)
 
-    def next_phase(self) -> Optional["ReleaseTag"]:
+    def next_phase(self) -> ReleaseTag | None:
         if self.phase in [
-            RELEASE_PHASE_POST,
-            RELEASE_PHASE_RC,
-            RELEASE_PHASE_REV,
-            RELEASE_PHASE_DEV,
+            RELEASE_PHASE_ID_POST,
+            RELEASE_PHASE_ID_RC,
+            RELEASE_PHASE_ID_DEV,
         ]:
             return None
 
-        if self.phase == RELEASE_PHASE_ALPHA:
-            _phase = RELEASE_PHASE_BETA
-        elif self.phase == RELEASE_PHASE_BETA:
-            _phase = RELEASE_PHASE_RC
+        if self.phase == RELEASE_PHASE_ID_ALPHA:
+            _phase = RELEASE_PHASE_ID_BETA
+        elif self.phase == RELEASE_PHASE_ID_BETA:
+            _phase = RELEASE_PHASE_ID_RC
         else:
             return None
 

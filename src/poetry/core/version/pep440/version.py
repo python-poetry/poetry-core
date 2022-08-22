@@ -1,41 +1,64 @@
+from __future__ import annotations
+
 import dataclasses
-import math
+import functools
+import warnings
 
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Optional
-from typing import Tuple
-from typing import Type
 from typing import TypeVar
-from typing import Union
 
-from poetry.core.version.pep440.segments import RELEASE_PHASE_ALPHA
-from poetry.core.version.pep440.segments import RELEASE_PHASE_DEV
-from poetry.core.version.pep440.segments import RELEASE_PHASE_POST
-from poetry.core.version.pep440.segments import LocalSegmentType
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_ALPHA
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_DEV
+from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_POST
 from poetry.core.version.pep440.segments import Release
 from poetry.core.version.pep440.segments import ReleaseTag
+
+
+if TYPE_CHECKING:
+    from poetry.core.version.pep440.segments import LocalSegmentType
+
+
+@functools.total_ordering
+class AlwaysSmaller:
+    def __lt__(self, other: object) -> bool:
+        return True
+
+
+@functools.total_ordering
+class AlwaysGreater:
+    def __gt__(self, other: object) -> bool:
+        return True
+
+
+class Infinity(AlwaysGreater, int):
+    pass
+
+
+class NegativeInfinity(AlwaysSmaller, int):
+    pass
 
 
 T = TypeVar("T", bound="PEP440Version")
 
 # we use the phase "z" to ensure we always sort this after other phases
-_INF_TAG = ReleaseTag("z", math.inf)
+_INF_TAG = ReleaseTag("z", Infinity())
 # we use the phase "" to ensure we always sort this before other phases
-_NEG_INF_TAG = ReleaseTag("", -math.inf)
+_NEG_INF_TAG = ReleaseTag("", NegativeInfinity())
 
 
 @dataclasses.dataclass(frozen=True, eq=True, order=True)
 class PEP440Version:
     epoch: int = dataclasses.field(default=0, compare=False)
     release: Release = dataclasses.field(default_factory=Release, compare=False)
-    pre: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
-    post: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
-    dev: Optional[ReleaseTag] = dataclasses.field(default=None, compare=False)
+    pre: ReleaseTag | None = dataclasses.field(default=None, compare=False)
+    post: ReleaseTag | None = dataclasses.field(default=None, compare=False)
+    dev: ReleaseTag | None = dataclasses.field(default=None, compare=False)
     local: LocalSegmentType = dataclasses.field(default=None, compare=False)
-    text: str = dataclasses.field(default=None, compare=False)
-    _compare_key: Tuple[
-        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Union[int, str], ...]
-    ] = dataclasses.field(default=None, init=False, compare=True)
+    text: str = dataclasses.field(default="", compare=False)
+    _compare_key: tuple[
+        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, tuple[int | str, ...]
+    ] = dataclasses.field(init=False, compare=True)
 
     def __post_init__(self) -> None:
         if self.local is not None and not isinstance(self.local, tuple):
@@ -53,8 +76,13 @@ class PEP440Version:
 
     def _make_compare_key(
         self,
-    ) -> Tuple[
-        int, Release, ReleaseTag, ReleaseTag, ReleaseTag, Tuple[Tuple[float, str], ...]
+    ) -> tuple[
+        int,
+        Release,
+        ReleaseTag,
+        ReleaseTag,
+        ReleaseTag,
+        tuple[tuple[int, int | str], ...],
     ]:
         """
         This code is based on the implementation of packaging.version._cmpkey(..)
@@ -78,9 +106,10 @@ class PEP440Version:
         # Versions without a development segment should sort after those with one.
         _dev = _INF_TAG if self.dev is None else self.dev
 
+        _local: tuple[tuple[int, int | str], ...]
         if self.local is None:
             # Versions without a local segment should sort before those with one.
-            _local = ((-math.inf, ""),)
+            _local = ((NegativeInfinity(), ""),)
         else:
             # Versions with a local segment need that segment parsed to implement
             # the sorting rules in PEP440.
@@ -89,9 +118,10 @@ class PEP440Version:
             # - Numeric segments sort numerically
             # - Shorter versions sort before longer versions when the prefixes
             #   match exactly
+            assert isinstance(self.local, tuple)
             _local = tuple(
                 # We typecast strings that are integers so that they can be compared
-                (int(i), "") if str(i).isnumeric() else (-math.inf, i)
+                (int(i), "") if str(i).isnumeric() else (NegativeInfinity(), i)
                 for i in self.local
             )
         return self.epoch, self.release, _pre, _post, _dev, _local
@@ -101,43 +131,52 @@ class PEP440Version:
         return self.release.major
 
     @property
-    def minor(self) -> Optional[int]:
+    def minor(self) -> int | None:
         return self.release.minor
 
     @property
-    def patch(self) -> Optional[int]:
+    def patch(self) -> int | None:
         return self.release.patch
 
     @property
-    def non_semver_parts(self) -> Optional[Tuple[int]]:
+    def non_semver_parts(self) -> tuple[int, ...]:
+        assert isinstance(self.release.extra, tuple)
         return self.release.extra
 
     def to_string(self, short: bool = False) -> str:
-        dash = "-" if not short else ""
+        if short:
+            import warnings
 
-        version_string = dash.join(
-            filter(
-                bool,
-                [
-                    self.release.to_string(),
-                    self.pre.to_string(short) if self.pre else self.pre,
-                    self.post.to_string(short) if self.post else self.post,
-                    self.dev.to_string(short) if self.dev else self.dev,
-                ],
+            warnings.warn(
+                "Parameter 'short' has no effect and will be removed. "
+                "(Versions are always normalized according to PEP 440 now.)",
+                DeprecationWarning,
+                stacklevel=2,
             )
-        )
+
+        version_string = self.release.to_string()
 
         if self.epoch:
             # if epoch is non-zero we should include it
             version_string = f"{self.epoch}!{version_string}"
 
+        if self.pre:
+            version_string += self.pre.to_string()
+
+        if self.post:
+            version_string = f"{version_string}.{self.post.to_string()}"
+
+        if self.dev:
+            version_string = f"{version_string}.{self.dev.to_string()}"
+
         if self.local:
+            assert isinstance(self.local, tuple)
             version_string += "+" + ".".join(map(str, self.local))
 
-        return version_string
+        return version_string.lower()
 
     @classmethod
-    def parse(cls: Type[T], value: str) -> T:
+    def parse(cls: type[T], value: str) -> T:
         from poetry.core.version.pep440.parser import parse_pep440
 
         return parse_pep440(value, cls)
@@ -163,52 +202,78 @@ class PEP440Version:
     def is_stable(self) -> bool:
         return not self.is_unstable()
 
+    def _is_increment_required(self) -> bool:
+        return self.is_stable() or (not self.is_prerelease() and self.is_postrelease())
+
     def next_major(self: T) -> T:
         release = self.release
-        if self.is_stable() or Release(self.release.major, 0, 0) < self.release:
-            release = self.release.next_major()
+        if self._is_increment_required() or Release(release.major, 0, 0) < release:
+            release = release.next_major()
         return self.__class__(epoch=self.epoch, release=release)
 
     def next_minor(self: T) -> T:
         release = self.release
         if (
-            self.is_stable()
-            or Release(self.release.major, self.release.minor, 0) < self.release
+            self._is_increment_required()
+            or Release(release.major, release.minor, 0) < release
         ):
-            release = self.release.next_minor()
+            release = release.next_minor()
         return self.__class__(epoch=self.epoch, release=release)
 
     def next_patch(self: T) -> T:
-        return self.__class__(
-            epoch=self.epoch,
-            release=self.release.next_patch() if self.is_stable() else self.release,
-        )
+        release = self.release
+        if (
+            self._is_increment_required()
+            or Release(release.major, release.minor, release.patch) < release
+        ):
+            release = release.next_patch()
+        return self.__class__(epoch=self.epoch, release=release)
 
-    def next_prerelease(self: T, next_phase: bool = False) -> "PEP440Version":
+    def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
+        if self.is_stable():
+            warnings.warn(
+                "Calling next_prerelease() on a stable release is deprecated for its"
+                " ambiguity. Use next_major(), next_minor(), etc. together with"
+                " first_prerelease()",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if self.is_prerelease():
-            pre = self.pre.next_phase() if next_phase else self.pre.next()
+            assert self.pre is not None
+            if not self.is_devrelease() or self.is_postrelease():
+                pre = self.pre.next_phase() if next_phase else self.pre.next()
+            else:
+                pre = self.pre
         else:
-            pre = ReleaseTag(RELEASE_PHASE_ALPHA)
+            pre = ReleaseTag(RELEASE_PHASE_ID_ALPHA)
         return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
 
     def next_postrelease(self: T) -> T:
-        if self.is_prerelease():
-            post = self.post.next()
+        if self.is_postrelease():
+            assert self.post is not None
+            post = self.post.next() if self.dev is None else self.post
         else:
-            post = ReleaseTag(RELEASE_PHASE_POST)
+            post = ReleaseTag(RELEASE_PHASE_ID_POST)
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
             pre=self.pre,
-            dev=self.dev,
             post=post,
         )
 
     def next_devrelease(self: T) -> T:
         if self.is_devrelease():
+            assert self.dev is not None
             dev = self.dev.next()
         else:
-            dev = ReleaseTag(RELEASE_PHASE_DEV)
+            warnings.warn(
+                "Calling next_devrelease() on a non dev release is deprecated for its"
+                " ambiguity. Use next_major(), next_minor(), etc. together with"
+                " first_devrelease()",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            dev = ReleaseTag(RELEASE_PHASE_ID_DEV)
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
@@ -219,10 +284,21 @@ class PEP440Version:
 
     def first_prerelease(self: T) -> T:
         return self.__class__(
-            epoch=self.epoch, release=self.release, pre=ReleaseTag(RELEASE_PHASE_ALPHA)
+            epoch=self.epoch,
+            release=self.release,
+            pre=ReleaseTag(RELEASE_PHASE_ID_ALPHA),
         )
 
-    def replace(self: T, **kwargs: Any) -> "PEP440Version":
+    def first_devrelease(self: T) -> T:
+        return self.__class__(
+            epoch=self.epoch,
+            release=self.release,
+            pre=self.pre,
+            post=self.post,
+            dev=ReleaseTag(RELEASE_PHASE_ID_DEV),
+        )
+
+    def replace(self: T, **kwargs: Any) -> T:
         return self.__class__(
             **{
                 **{

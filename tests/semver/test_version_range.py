@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
@@ -84,7 +86,7 @@ def v300b1() -> Version:
         ),
     ],
 )
-def test_allows_post_releases_with_max(base: Version, other: Version):
+def test_allows_post_releases_with_max(base: Version, other: Version) -> None:
     range = VersionRange(max=base, include_max=True)
     assert range.allows(other)
 
@@ -98,12 +100,12 @@ def test_allows_post_releases_with_max(base: Version, other: Version):
         ),
     ],
 )
-def test_allows_post_releases_with_min(base: Version, other: Version):
+def test_allows_post_releases_with_min(base: Version, other: Version) -> None:
     range = VersionRange(min=base, include_min=True)
     assert range.allows(other)
 
 
-def test_allows_post_releases_with_post_and_local_min():
+def test_allows_post_releases_with_post_and_local_min() -> None:
     one = Version.parse("3.0.0+local.1")
     two = Version.parse("3.0.0-1")
     three = Version.parse("3.0.0-1+local.1")
@@ -126,7 +128,7 @@ def test_allows_post_releases_with_post_and_local_min():
     assert VersionRange(min=four, include_min=True).allows(three)
 
 
-def test_allows_post_releases_with_post_and_local_max():
+def test_allows_post_releases_with_post_and_local_max() -> None:
     one = Version.parse("3.0.0+local.1")
     two = Version.parse("3.0.0-1")
     three = Version.parse("3.0.0-1+local.1")
@@ -168,7 +170,7 @@ def test_allows_post_releases_with_post_and_local_max():
 )
 def test_allows_post_releases_explicit_with_max(
     base: Version, one: Version, two: Version
-):
+) -> None:
     range = VersionRange(max=one, include_max=True)
     assert range.allows(base)
     assert not range.allows(two)
@@ -197,7 +199,7 @@ def test_allows_post_releases_explicit_with_max(
 )
 def test_allows_post_releases_explicit_with_min(
     base: Version, one: Version, two: Version
-):
+) -> None:
     range = VersionRange(min=one, include_min=True)
     assert not range.allows(base)
     assert range.allows(two)
@@ -209,7 +211,7 @@ def test_allows_post_releases_explicit_with_min(
 
 def test_allows_all(
     v123: Version, v124: Version, v140: Version, v250: Version, v300: Version
-):
+) -> None:
     assert VersionRange(v123, v250).allows_all(EmptyConstraint())
 
     range = VersionRange(v123, v250, include_max=True)
@@ -221,7 +223,7 @@ def test_allows_all(
 
 def test_allows_all_with_no_min(
     v080: Version, v140: Version, v250: Version, v300: Version
-):
+) -> None:
     range = VersionRange(max=v250)
     assert range.allows_all(VersionRange(v080, v140))
     assert not range.allows_all(VersionRange(v080, v300))
@@ -233,7 +235,7 @@ def test_allows_all_with_no_min(
 
 def test_allows_all_with_no_max(
     v003: Version, v010: Version, v080: Version, v140: Version
-):
+) -> None:
     range = VersionRange(min=v010)
     assert range.allows_all(VersionRange(v080, v140))
     assert not range.allows_all(VersionRange(v003, v140))
@@ -243,7 +245,9 @@ def test_allows_all_with_no_max(
     assert not range.allows_all(VersionRange())
 
 
-def test_allows_all_bordering_range_not_more_inclusive(v010: Version, v250: Version):
+def test_allows_all_bordering_range_not_more_inclusive(
+    v010: Version, v250: Version
+) -> None:
     # Allows bordering range that is not more inclusive
     exclusive = VersionRange(v010, v250)
     inclusive = VersionRange(v010, v250, True, True)
@@ -261,7 +265,7 @@ def test_allows_all_contained_unions(
     v140: Version,
     v200: Version,
     v234: Version,
-):
+) -> None:
     # Allows unions that are completely contained
     range = VersionRange(v114, v200)
     assert range.allows_all(VersionRange(v123, v124).union(v140))
@@ -282,7 +286,7 @@ def test_allows_any(
     v234: Version,
     v250: Version,
     v300: Version,
-):
+) -> None:
     # disallows an empty constraint
     assert not VersionRange(v123, v250).allows_any(EmptyConstraint())
 
@@ -352,7 +356,7 @@ def test_intersect(
     v200: Version,
     v250: Version,
     v300: Version,
-):
+) -> None:
     # two overlapping ranges
     assert VersionRange(v123, v250).intersect(VersionRange(v200, v300)) == VersionRange(
         v200, v250
@@ -398,7 +402,7 @@ def test_union(
     v234: Version,
     v250: Version,
     v300: Version,
-):
+) -> None:
     # with a version returns the range if it contains the version
     range = VersionRange(v114, v124)
     assert range.union(v123) == range
@@ -442,7 +446,7 @@ def test_union(
     assert result == VersionRange(v003, v200)
 
 
-def test_include_max_prerelease(v200: Version, v300: Version, v300b1: Version):
+def test_include_max_prerelease(v200: Version, v300: Version, v300b1: Version) -> None:
     result = VersionRange(v200, v300)
 
     assert not result.allows(v300b1)

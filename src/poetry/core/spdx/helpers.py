@@ -1,8 +1,8 @@
+from __future__ import annotations
+
 import functools
 import json
 import os
-
-from typing import Dict
 
 from poetry.core.spdx.license import License
 
@@ -18,8 +18,7 @@ def license_by_id(identifier: str) -> License:
 
 
 @functools.lru_cache()
-def _load_licenses() -> Dict[str, License]:
-
+def _load_licenses() -> dict[str, License]:
     licenses = {}
     licenses_file = os.path.join(os.path.dirname(__file__), "data", "licenses.json")
 

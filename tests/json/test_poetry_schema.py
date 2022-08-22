@@ -1,4 +1,6 @@
-from typing import Dict
+from __future__ import annotations
+
+from typing import Any
 
 import pytest
 
@@ -6,22 +8,24 @@ from poetry.core.json import validate_object
 
 
 @pytest.fixture
-def base_object() -> Dict:
+def base_object() -> dict[str, Any]:
     return {
         "name": "myapp",
         "version": "1.0.0",
         "description": "Some description.",
+        "authors": ["Your Name <you@example.com>"],
         "dependencies": {"python": "^3.6"},
         "dev-dependencies": {},
     }
 
 
 @pytest.fixture
-def multi_url_object() -> Dict:
+def multi_url_object() -> dict[str, Any]:
     return {
         "name": "myapp",
         "version": "1.0.0",
         "description": "Some description.",
+        "authors": ["Your Name <you@example.com>"],
         "dependencies": {
             "python": [
                 {
@@ -35,18 +39,18 @@ def multi_url_object() -> Dict:
     }
 
 
-def test_path_dependencies(base_object: Dict):
+def test_path_dependencies(base_object: dict[str, Any]) -> None:
     base_object["dependencies"].update({"foo": {"path": "../foo"}})
     base_object["dev-dependencies"].update({"foo": {"path": "../foo"}})
 
     assert len(validate_object(base_object, "poetry-schema")) == 0
 
 
-def test_multi_url_dependencies(multi_url_object: Dict):
+def test_multi_url_dependencies(multi_url_object: dict[str, Any]) -> None:
     assert len(validate_object(multi_url_object, "poetry-schema")) == 0
 
 
-def test_multiline_description(base_object: Dict):
+def test_multiline_description(base_object: dict[str, Any]) -> None:
     bad_description = "Some multi-\nline string"
     base_object["description"] = bad_description
 

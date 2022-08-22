@@ -1,9 +1,8 @@
+from __future__ import annotations
+
 import re
 
-from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any
 
 import pytest
 
@@ -12,18 +11,14 @@ from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 
 
-if TYPE_CHECKING:
-    from poetry.core.version.markers import BaseMarker
-
-
 def assert_requirement(
     req: Requirement,
     name: str,
-    url: Optional[str] = None,
-    extras: Optional[List[str]] = None,
+    url: str | None = None,
+    extras: list[str] | None = None,
     constraint: str = "*",
-    marker: Optional["BaseMarker"] = None,
-):
+    marker: str | None = None,
+) -> None:
     if extras is None:
         extras = []
 
@@ -48,6 +43,7 @@ def assert_requirement(
         ("name<3.*", {"name": "name", "constraint": "<3.0"}),
         ("name>3.5.*", {"name": "name", "constraint": ">3.5"}),
         ("name==1.0.post1", {"name": "name", "constraint": "==1.0.post1"}),
+        ("name==1.2.0b1.dev0", {"name": "name", "constraint": "==1.2.0b1.dev0"}),
         (
             "name>=1.2.3;python_version=='2.6'",
             {
@@ -111,7 +107,7 @@ def assert_requirement(
         ),
     ],
 )
-def test_requirement(string: str, expected: Dict[str, str]):
+def test_requirement(string: str, expected: dict[str, Any]) -> None:
     req = Requirement(string)
 
     assert_requirement(req, **expected)
@@ -126,7 +122,7 @@ def test_requirement(string: str, expected: Dict[str, str]):
         ("name @ file:/.", "invalid URL"),
     ],
 )
-def test_invalid_requirement(string: str, exception: str):
+def test_invalid_requirement(string: str, exception: str) -> None:
     with pytest.raises(
         InvalidRequirement,
         match=re.escape(f"The requirement is invalid: {exception}"),

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from poetry.core.semver.helpers import parse_constraint
@@ -24,7 +26,7 @@ PYTHON_VERSION = [
 ]
 
 
-def format_python_constraint(constraint: "VersionConstraint") -> str:
+def format_python_constraint(constraint: VersionConstraint) -> str:
     """
     This helper will help in transforming
     disjunctive constraint into proper constraint.

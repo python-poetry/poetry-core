@@ -1,17 +1,18 @@
+from __future__ import annotations
+
 import os
 import subprocess
 
 from pathlib import Path
-from typing import Optional
 
 from poetry.core.vcs.git import Git
 
 
-def get_vcs(directory: Path) -> Optional[Git]:
+def get_vcs(directory: Path) -> Git | None:
     working_dir = Path.cwd()
     os.chdir(str(directory.resolve()))
 
-    vcs: Optional[Git]
+    vcs: Git | None
 
     try:
         from poetry.core.vcs.git import executable

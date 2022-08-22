@@ -1,10 +1,10 @@
+from __future__ import annotations
+
 import subprocess
 
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import List
-from typing import Union
 
 import pytest
 
@@ -86,6 +86,12 @@ if TYPE_CHECKING:
             "git+file://C:\\Users\\hello\\testing.git#zkat/windows-files",
             GitUrl("file://C:\\Users\\hello\\testing.git", "zkat/windows-files", None),
         ),
+        # hidden directories on Windows ues $ in their path
+        # python-poetry/poetry#5493
+        (
+            "git+file://C:\\Users\\hello$\\testing.git#zkat/windows-files",
+            GitUrl("file://C:\\Users\\hello$\\testing.git", "zkat/windows-files", None),
+        ),
         (
             "git+https://git.example.com/sdispater/project/my_repo.git",
             GitUrl("https://git.example.com/sdispater/project/my_repo.git", None, None),
@@ -102,9 +108,49 @@ if TYPE_CHECKING:
                 "project",
             ),
         ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@commit#subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git#commit&subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git#commit#subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@commit&subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@subdirectory#subdirectory=subdirectory",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "subdirectory",
+                "subdirectory",
+            ),
+        ),
     ],
 )
-def test_normalize_url(url: str, normalized: GitUrl):
+def test_normalize_url(url: str, normalized: GitUrl) -> None:
     assert normalized == Git.normalize_url(url)
 
 
@@ -346,7 +392,7 @@ def test_normalize_url(url: str, normalized: GitUrl):
         ),
     ],
 )
-def test_parse_url(url: str, parsed: ParsedUrl):
+def test_parse_url(url: str, parsed: ParsedUrl) -> None:
     result = ParsedUrl.parse(url)
     assert parsed.name == result.name
     assert parsed.pathname == result.pathname
@@ -358,24 +404,24 @@ def test_parse_url(url: str, parsed: ParsedUrl):
     assert parsed.user == result.user
 
 
-def test_parse_url_should_fail():
+def test_parse_url_should_fail() -> None:
     url = "https://" + "@" * 64 + "!"
 
     with pytest.raises(ValueError):
         ParsedUrl.parse(url)
 
 
-def test_git_clone_raises_error_on_invalid_repository():
+def test_git_clone_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().clone("-u./payload", Path("foo"))
 
 
-def test_git_checkout_raises_error_on_invalid_repository():
+def test_git_checkout_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().checkout("-u./payload")
 
 
-def test_git_rev_parse_raises_error_on_invalid_repository():
+def test_git_rev_parse_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().rev_parse("-u./payload")
 
@@ -387,10 +433,10 @@ def test_git_rev_parse_raises_error_on_invalid_repository():
         " reasons"
     ),
 )
-def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
+def test_ensure_absolute_path_to_git(mocker: MockerFixture) -> None:
     _reset_executable()
 
-    def checkout_output(cmd: List[str], *args: Any, **kwargs: Any) -> Union[str, bytes]:
+    def checkout_output(cmd: list[str], *args: Any, **kwargs: Any) -> str | bytes:
         if Path(cmd[0]).name == "where.exe":
             return "\n".join(
                 [
@@ -418,7 +464,7 @@ def test_ensure_absolute_path_to_git(mocker: "MockerFixture"):
         " reasons"
     ),
 )
-def test_ensure_existing_git_executable_is_found(mocker: "MockerFixture"):
+def test_ensure_existing_git_executable_is_found(mocker: MockerFixture) -> None:
     mock = mocker.patch.object(subprocess, "check_output", return_value=b"")
 
     Git().run("config")

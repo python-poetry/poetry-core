@@ -1,5 +1,4 @@
-from typing import Optional
-from typing import Tuple
+from __future__ import annotations
 
 import pytest
 
@@ -7,8 +6,7 @@ from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.pep440 import PEP440Version
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440 import ReleaseTag
-from poetry.core.version.pep440.segments import RELEASE_PHASES
-from poetry.core.version.pep440.segments import RELEASE_PHASES_SHORT
+from poetry.core.version.pep440.segments import RELEASE_PHASE_NORMALIZATIONS
 
 
 @pytest.mark.parametrize(
@@ -21,7 +19,9 @@ from poetry.core.version.pep440.segments import RELEASE_PHASES_SHORT
         ((1, 2, 3, 4, 5, 6), Release(1, 2, 3, (4, 5, 6))),
     ],
 )
-def test_pep440_release_segment_from_parts(parts: Tuple[int, ...], result: Release):
+def test_pep440_release_segment_from_parts(
+    parts: tuple[int, ...], result: Release
+) -> None:
     assert Release.from_parts(*parts) == result
 
 
@@ -41,12 +41,11 @@ def test_pep440_release_segment_from_parts(parts: Tuple[int, ...], result: Relea
     ],
 )
 def test_pep440_release_tag_normalisation(
-    parts: Tuple[str, Optional[int]], result: ReleaseTag
-):
+    parts: tuple[str] | tuple[str, int], result: ReleaseTag
+) -> None:
     tag = ReleaseTag(*parts)
     assert tag == result
     assert tag.to_string() == result.to_string()
-    assert tag.to_string(short=True) == result.to_string(short=True)
 
 
 @pytest.mark.parametrize(
@@ -60,16 +59,16 @@ def test_pep440_release_tag_normalisation(
         (("dev",), None),
     ],
 )
-def test_pep440_release_tag_next_phase(parts: Tuple[str], result: Optional[ReleaseTag]):
+def test_pep440_release_tag_next_phase(
+    parts: tuple[str], result: ReleaseTag | None
+) -> None:
     assert ReleaseTag(*parts).next_phase() == result
 
 
-@pytest.mark.parametrize(
-    "phase", list({*RELEASE_PHASES.keys(), *RELEASE_PHASES_SHORT.keys()})
-)
-def test_pep440_release_tag_next(phase: str):
+@pytest.mark.parametrize("phase", list({*RELEASE_PHASE_NORMALIZATIONS.keys()}))
+def test_pep440_release_tag_next(phase: str) -> None:
     tag = ReleaseTag(phase=phase).next()
-    assert tag.phase == ReleaseTag.expand(phase)
+    assert tag.phase == RELEASE_PHASE_NORMALIZATIONS[phase]
     assert tag.number == 1
 
 
@@ -165,13 +164,13 @@ def test_pep440_release_tag_next(phase: str):
         ),
     ],
 )
-def test_pep440_parse_text(text: str, result: PEP440Version):
+def test_pep440_parse_text(text: str, result: PEP440Version) -> None:
     assert PEP440Version.parse(text) == result
 
 
 @pytest.mark.parametrize(
     "text", ["1.2.3.dev1-1", "example-1", "1.2.3-random1", "1.2.3-1-1"]
 )
-def test_pep440_parse_text_invalid_versions(text: str):
+def test_pep440_parse_text_invalid_versions(text: str) -> None:
     with pytest.raises(InvalidVersion):
-        assert PEP440Version.parse(text)
+        PEP440Version.parse(text)
