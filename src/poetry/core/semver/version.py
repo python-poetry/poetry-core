@@ -95,6 +95,9 @@ class Version(PEP440Version, VersionRangeConstraint):
         )
 
     def allows_any(self, other: VersionConstraint) -> bool:
+        if isinstance(other, Version):
+            return self.allows(other)
+
         return other.allows(self)
 
     def intersect(self, other: VersionConstraint) -> Version | EmptyConstraint:

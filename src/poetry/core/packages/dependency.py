@@ -23,6 +23,8 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.constraints import BaseConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
@@ -95,7 +97,7 @@ class Dependency(PackageSpecification):
         self.source_name: str | None = None
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
