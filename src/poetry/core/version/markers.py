@@ -174,7 +174,6 @@ class EmptyMarker(BaseMarker):
 
 
 class SingleMarker(BaseMarker):
-
     _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     _VERSION_LIKE_MARKER_NAME = {
         "python_version",
@@ -193,12 +192,12 @@ class SingleMarker(BaseMarker):
         self._constraint: BaseConstraint | VersionConstraint
         self._parser: Callable[[str], BaseConstraint | VersionConstraint]
         self._name = ALIASES.get(name, name)
-        self._constraint_string = str(constraint)
+        constraint_string = str(constraint)
 
         # Extract operator and value
-        m = self._CONSTRAINT_RE.match(self._constraint_string)
+        m = self._CONSTRAINT_RE.match(constraint_string)
         if m is None:
-            raise ValueError(f"Invalid marker '{self._constraint_string}'")
+            raise ValueError(f"Invalid marker '{constraint_string}'")
 
         self._operator = m.group(1)
         if self._operator is None:
@@ -228,11 +227,10 @@ class SingleMarker(BaseMarker):
 
                 self._constraint = self._parser(glue.join(versions))
             else:
-                self._constraint = self._parser(self._constraint_string)
+                self._constraint = self._parser(constraint_string)
         else:
             # if we have a in/not in operator we split the constraint
             # into a union/multi-constraint of single constraint
-            constraint_string = self._constraint_string
             if self._operator in {"in", "not in"}:
                 op, glue = ("==", " || ") if self._operator == "in" else ("!=", ", ")
                 values = re.split("[ ,]+", self._value)
@@ -243,13 +241,6 @@ class SingleMarker(BaseMarker):
     @property
     def name(self) -> str:
         return self._name
-
-    @property
-    def constraint_string(self) -> str:
-        if self._operator in {"in", "not in"}:
-            return f"{self._operator} {self._value}"
-
-        return self._constraint_string
 
     @property
     def constraint(self) -> BaseConstraint | VersionConstraint:
@@ -363,7 +354,7 @@ class SingleMarker(BaseMarker):
         return self._name == other.name and self._constraint == other.constraint
 
     def __hash__(self) -> int:
-        return hash((self._name, self._constraint_string))
+        return hash((self._name, self._constraint))
 
     def __str__(self) -> str:
         return f'{self._name} {self._operator} "{self._value}"'
@@ -735,9 +726,11 @@ class MarkerUnion(BaseMarker):
                 continue
 
             marker = m.exclude(marker_name)
+            new_markers.append(marker)
 
-            if not marker.is_empty():
-                new_markers.append(marker)
+        if not new_markers:
+            # All markers were the excluded marker.
+            return AnyMarker()
 
         return self.of(*new_markers)
 

@@ -4,8 +4,6 @@ from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from poetry.core.utils.helpers import canonicalize_name
-
 
 if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
@@ -44,13 +42,9 @@ class BuildSystem:
                     # https://docs.python.org/3/library/pathlib.html#methods
                     with suppress(OSError):
                         if path.is_file():
-                            dependency = FileDependency(
-                                name=canonicalize_name(path.name), path=path
-                            )
+                            dependency = FileDependency(name=path.name, path=path)
                         elif path.is_dir():
-                            dependency = DirectoryDependency(
-                                name=canonicalize_name(path.name), path=path
-                            )
+                            dependency = DirectoryDependency(name=path.name, path=path)
 
                 if dependency is None:
                     # skip since we could not determine requirement

@@ -13,7 +13,6 @@ from io import BytesIO
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-from tarfile import TarInfo
 from typing import TYPE_CHECKING
 from typing import Iterator
 
@@ -22,6 +21,8 @@ from poetry.core.masonry.builders.builder import BuildIncludeFile
 
 
 if TYPE_CHECKING:
+    from tarfile import TarInfo
+
     from poetry.core.masonry.utils.package_include import PackageInclude
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.project_package import ProjectPackage
@@ -52,7 +53,6 @@ logger = logging.getLogger(__name__)
 
 
 class SdistBuilder(Builder):
-
     format = "sdist"
 
     def build(

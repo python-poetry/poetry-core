@@ -8,6 +8,8 @@ from typing import TypeVar
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     T = TypeVar("T", bound="PackageSpecification")
 
 
@@ -22,7 +24,7 @@ class PackageSpecification:
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
     ) -> None:
-        from poetry.core.utils.helpers import canonicalize_name
+        from packaging.utils import canonicalize_name
 
         self._pretty_name = name
         self._name = canonicalize_name(name)
@@ -38,7 +40,7 @@ class PackageSpecification:
         self._features = frozenset(features)
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
@@ -47,7 +49,7 @@ class PackageSpecification:
 
     @property
     def complete_name(self) -> str:
-        name = self._name
+        name: str = self._name
 
         if self._features:
             features = ",".join(sorted(self._features))

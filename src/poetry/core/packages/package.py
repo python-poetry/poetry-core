@@ -21,6 +21,8 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.semver.version import Version
@@ -34,7 +36,6 @@ AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+
 
 
 class Package(PackageSpecification):
-
     AVAILABLE_PYTHONS = {
         "2",
         "2.7",
@@ -122,7 +123,7 @@ class Package(PackageSpecification):
         self._yanked = yanked
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
