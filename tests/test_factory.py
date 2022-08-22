@@ -208,6 +208,7 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
             "'name' is a required property",
             "'version' is a required property",
             "'description' is a required property",
+            "'authors' is a required property",
         ],
         "warnings": [],
     }
@@ -225,6 +226,7 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             "'name' is a required property",
             "'version' is a required property",
             "'description' is a required property",
+            "'authors' is a required property",
             'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
             " defined.",
             "Declared README files must be of same type: found text/markdown,"
