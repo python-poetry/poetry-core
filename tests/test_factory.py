@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import cast
 
@@ -10,6 +11,10 @@ from poetry.core.factory import Factory
 from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -37,7 +42,7 @@ def test_create_poetry() -> None:
     assert package.python_versions == "~2.7 || ^3.6"
     assert str(package.python_constraint) == ">=2.7,<2.8 || >=3.6,<4.0"
 
-    dependencies = {}
+    dependencies: dict[str, Dependency] = {}
     for dep in package.requires:
         dependencies[dep.name] = dep
 
@@ -203,6 +208,7 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
             "'name' is a required property",
             "'version' is a required property",
             "'description' is a required property",
+            "'authors' is a required property",
         ],
         "warnings": [],
     }
@@ -220,6 +226,7 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             "'name' is a required property",
             "'version' is a required property",
             "'description' is a required property",
+            "'authors' is a required property",
             'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
             " defined.",
             "Declared README files must be of same type: found text/markdown,"

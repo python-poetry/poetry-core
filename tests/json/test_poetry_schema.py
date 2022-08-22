@@ -13,6 +13,7 @@ def base_object() -> dict[str, Any]:
         "name": "myapp",
         "version": "1.0.0",
         "description": "Some description.",
+        "authors": ["Your Name <you@example.com>"],
         "dependencies": {"python": "^3.6"},
         "dev-dependencies": {},
     }
@@ -24,6 +25,7 @@ def multi_url_object() -> dict[str, Any]:
         "name": "myapp",
         "version": "1.0.0",
         "description": "Some description.",
+        "authors": ["Your Name <you@example.com>"],
         "dependencies": {
             "python": [
                 {

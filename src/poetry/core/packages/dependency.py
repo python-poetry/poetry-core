@@ -23,10 +23,11 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.constraints import BaseConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
-    from poetry.core.packages.package import Package
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
@@ -96,7 +97,7 @@ class Dependency(PackageSpecification):
         self.source_name: str | None = None
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
@@ -286,16 +287,6 @@ class Dependency(PackageSpecification):
 
     def is_url(self) -> bool:
         return False
-
-    def accepts(self, package: Package) -> bool:
-        """
-        Determines if the given package matches this dependency.
-        """
-        return (
-            self._name == package.name
-            and self._constraint.allows(package.version)
-            and (not package.is_prerelease() or self.allows_prereleases())
-        )
 
     def to_pep_508(self, with_extras: bool = True) -> str:
         from poetry.core.packages.utils.utils import convert_markers
