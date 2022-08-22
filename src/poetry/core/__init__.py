@@ -5,7 +5,9 @@ import sys
 from pathlib import Path
 
 
-__version__ = "1.1.0a7"
+# this cannot presently be replaced with importlib.metadata.version as when building
+# itself, poetry-core is not available as an installed distribution.
+__version__ = "1.1.0rc1"
 
 __vendor_site__ = (Path(__file__).parent / "_vendor").as_posix()
 

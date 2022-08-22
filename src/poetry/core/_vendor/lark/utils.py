@@ -1,54 +1,21 @@
-import sys
+import unicodedata
 import os
 from functools import reduce
-from ast import literal_eval
 from collections import deque
 
-class fzset(frozenset):
-    def __repr__(self):
-        return '{%s}' % ', '.join(map(repr, self))
-
-
-def classify_bool(seq, pred):
-    true_elems = []
-    false_elems = []
-
-    for elem in seq:
-        if pred(elem):
-            true_elems.append(elem)
-        else:
-            false_elems.append(elem)
-
-    return true_elems, false_elems
-
-
-
-def bfs(initial, expand):
-    open_q = deque(list(initial))
-    visited = set(open_q)
-    while open_q:
-        node = open_q.popleft()
-        yield node
-        for next_node in expand(node):
-            if next_node not in visited:
-                visited.add(next_node)
-                open_q.append(next_node)
-
-
-
-
-def _serialize(value, memo):
-    if isinstance(value, Serialize):
-        return value.serialize(memo)
-    elif isinstance(value, list):
-        return [_serialize(elem, memo) for elem in value]
-    elif isinstance(value, frozenset):
-        return list(value)  # TODO reversible?
-    elif isinstance(value, dict):
-        return {key:_serialize(elem, memo) for key, elem in value.items()}
-    return value
-
 ###{standalone
+import sys, re
+import logging
+logger: logging.Logger = logging.getLogger("lark")
+logger.addHandler(logging.StreamHandler())
+# Set to highest level, since we have some warnings amongst the code
+# By default, we should not output any log messages
+logger.setLevel(logging.CRITICAL)
+
+
+NO_VALUE = object()
+
+
 def classify(seq, key=None, value=None):
     d = {}
     for item in seq:
@@ -63,7 +30,7 @@ def classify(seq, key=None, value=None):
 
 def _deserialize(data, namespace, memo):
     if isinstance(data, dict):
-        if '__type__' in data: # Object
+        if '__type__' in data:  # Object
             class_ = namespace[data['__type__']]
             return class_.deserialize(data, memo)
         elif '@' in data:
@@ -74,7 +41,15 @@ def _deserialize(data, namespace, memo):
     return data
 
 
-class Serialize(object):
+class Serialize:
+    """Safe-ish serialization interface that doesn't rely on Pickle
+
+    Attributes:
+        __serialize_fields__ (List[str]): Fields (aka attributes) to serialize.
+        __serialize_namespace__ (list): List of classes that deserialization is allowed to instantiate.
+                                        Should include all field types that aren't builtin types.
+    """
+
     def memo_serialize(self, types_to_memoize):
         memo = SerializeMemoizer(types_to_memoize)
         return self.serialize(memo), memo.serialize()
@@ -86,14 +61,13 @@ class Serialize(object):
         fields = getattr(self, '__serialize_fields__')
         res = {f: _serialize(getattr(self, f), memo) for f in fields}
         res['__type__'] = type(self).__name__
-        postprocess = getattr(self, '_serialize', None)
-        if postprocess:
-            postprocess(res, memo)
+        if hasattr(self, '_serialize'):
+            self._serialize(res, memo)
         return res
 
     @classmethod
     def deserialize(cls, data, memo):
-        namespace = getattr(cls, '__serialize_namespace__', {})
+        namespace = getattr(cls, '__serialize_namespace__', [])
         namespace = {c.__name__:c for c in namespace}
 
         fields = getattr(cls, '__serialize_fields__')
@@ -107,13 +81,16 @@ class Serialize(object):
                 setattr(inst, f, _deserialize(data[f], namespace, memo))
             except KeyError as e:
                 raise KeyError("Cannot find key for class", cls, e)
-        postprocess = getattr(inst, '_deserialize', None)
-        if postprocess:
-            postprocess()
+
+        if hasattr(inst, '_deserialize'):
+            inst._deserialize()
+
         return inst
 
 
 class SerializeMemoizer(Serialize):
+    "A version of serialize that memoizes objects to reduce space"
+
     __serialize_fields__ = 'memoized',
 
     def __init__(self, types_to_memoize):
@@ -131,51 +108,15 @@ class SerializeMemoizer(Serialize):
         return _deserialize(data, namespace, memo)
 
 
-
 try:
-    STRING_TYPE = basestring
-except NameError:   # Python 3
-    STRING_TYPE = str
-
-
-import types
-from functools import wraps, partial
-from contextlib import contextmanager
-
-Str = type(u'')
-try:
-    classtype = types.ClassType # Python2
-except AttributeError:
-    classtype = type    # Python3
-
-def smart_decorator(f, create_decorator):
-    if isinstance(f, types.FunctionType):
-        return wraps(f)(create_decorator(f, True))
-
-    elif isinstance(f, (classtype, type, types.BuiltinFunctionType)):
-        return wraps(f)(create_decorator(f, False))
-
-    elif isinstance(f, types.MethodType):
-        return wraps(f)(create_decorator(f.__func__, True))
-
-    elif isinstance(f, partial):
-        # wraps does not work for partials in 2.7: https://bugs.python.org/issue3445
-        return wraps(f.func)(create_decorator(lambda *args, **kw: f(*args[1:], **kw), True))
-
-    else:
-        return create_decorator(f.__func__.__call__, True)
-
-try:
-    import regex
+    import regex  # type: ignore
 except ImportError:
     regex = None
-
-import sys, re
-Py36 = (sys.version_info[:2] >= (3, 6))
 
 import sre_parse
 import sre_constants
 categ_pattern = re.compile(r'\\p{[A-Za-z_]+}')
+
 def get_regexp_width(expr):
     if regex:
         # Since `sre_parse` cannot deal with Unicode categories of the form `\p{Mn}`, we replace these with
@@ -189,9 +130,42 @@ def get_regexp_width(expr):
     try:
         return [int(x) for x in sre_parse.parse(regexp_final).getwidth()]
     except sre_constants.error:
-        raise ValueError(expr)
+        if not regex:
+            raise ValueError(expr)
+        else:
+            # sre_parse does not support the new features in regex. To not completely fail in that case,
+            # we manually test for the most important info (whether the empty string is matched)
+            c = regex.compile(regexp_final)
+            if c.match('') is None:
+                # MAXREPEAT is a none pickable subclass of int, therefore needs to be converted to enable caching
+                return 1, int(sre_constants.MAXREPEAT)
+            else:
+                return 0, int(sre_constants.MAXREPEAT)
 
 ###}
+
+
+_ID_START =    'Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Mn', 'Mc', 'Pc'
+_ID_CONTINUE = _ID_START + ('Nd', 'Nl',)
+
+def _test_unicode_category(s, categories):
+    if len(s) != 1:
+        return all(_test_unicode_category(char, categories) for char in s)
+    return s == '_' or unicodedata.category(s) in categories
+
+def is_id_continue(s):
+    """
+    Checks if all characters in `s` are alphanumeric characters (Unicode standard, so diacritics, indian vowels, non-latin
+    numbers, etc. all pass). Synonymous with a Python `ID_CONTINUE` identifier. See PEP 3131 for details.
+    """
+    return _test_unicode_category(s, _ID_CONTINUE)
+
+def is_id_start(s):
+    """
+    Checks if all characters in `s` are alphabetic characters (Unicode standard, so diacritics, indian vowels, non-latin
+    numbers, etc. all pass). Synonymous with a Python `ID_START` identifier. See PEP 3131 for details.
+    """
+    return _test_unicode_category(s, _ID_START)
 
 
 def dedup_list(l):
@@ -199,42 +173,7 @@ def dedup_list(l):
        preserving the original order of the list. Assumes that
        the list entries are hashable."""
     dedup = set()
-    return [ x for x in l if not (x in dedup or dedup.add(x))]
-
-
-
-
-try:
-    from contextlib import suppress     # Python 3
-except ImportError:
-    @contextmanager
-    def suppress(*excs):
-        '''Catch and dismiss the provided exception
-
-        >>> x = 'hello'
-        >>> with suppress(IndexError):
-        ...     x = x[10]
-        >>> x
-        'hello'
-        '''
-        try:
-            yield
-        except excs:
-            pass
-
-
-
-
-try:
-    compare = cmp
-except NameError:
-    def compare(a, b):
-        if a == b:
-            return 0
-        elif a > b:
-            return 1
-        return -1
-
+    return [x for x in l if not (x in dedup or dedup.add(x))]
 
 
 class Enumerator(Serialize):
@@ -254,31 +193,6 @@ class Enumerator(Serialize):
         assert len(r) == len(self.enums)
         return r
 
-
-def eval_escaping(s):
-    w = ''
-    i = iter(s)
-    for n in i:
-        w += n
-        if n == '\\':
-            try:
-                n2 = next(i)
-            except StopIteration:
-                raise ValueError("Literal ended unexpectedly (bad escaping): `%r`" % s)
-            if n2 == '\\':
-                w += '\\\\'
-            elif n2 not in 'uxnftr':
-                w += '\\'
-            w += n2
-    w = w.replace('\\"', '"').replace("'", "\\'")
-
-    to_eval = "u'''%s'''" % w
-    try:
-        s = literal_eval(to_eval)
-    except SyntaxError as e:
-        raise ValueError(s, e)
-
-    return s
 
 
 def combine_alternatives(lists):
@@ -302,7 +216,107 @@ def combine_alternatives(lists):
     return reduce(lambda a,b: [i+[j] for i in a for j in b], lists[1:], init)
 
 
+try:
+    import atomicwrites
+except ImportError:
+    atomicwrites = None  # type: ignore[assigment]
 
 class FS:
-    open = open
-    exists = os.path.exists
+    exists = staticmethod(os.path.exists)
+
+    @staticmethod
+    def open(name, mode="r", **kwargs):
+        if atomicwrites and "w" in mode:
+            return atomicwrites.atomic_write(name, mode=mode, overwrite=True, **kwargs)
+        else:
+            return open(name, mode, **kwargs)
+
+
+
+def isascii(s):
+    """ str.isascii only exists in python3.7+ """
+    try:
+        return s.isascii()
+    except AttributeError:
+        try:
+            s.encode('ascii')
+            return True
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            return False
+
+
+class fzset(frozenset):
+    def __repr__(self):
+        return '{%s}' % ', '.join(map(repr, self))
+
+
+def classify_bool(seq, pred):
+    true_elems = []
+    false_elems = []
+
+    for elem in seq:
+        if pred(elem):
+            true_elems.append(elem)
+        else:
+            false_elems.append(elem)
+
+    return true_elems, false_elems
+
+
+def bfs(initial, expand):
+    open_q = deque(list(initial))
+    visited = set(open_q)
+    while open_q:
+        node = open_q.popleft()
+        yield node
+        for next_node in expand(node):
+            if next_node not in visited:
+                visited.add(next_node)
+                open_q.append(next_node)
+
+def bfs_all_unique(initial, expand):
+    "bfs, but doesn't keep track of visited (aka seen), because there can be no repetitions"
+    open_q = deque(list(initial))
+    while open_q:
+        node = open_q.popleft()
+        yield node
+        open_q += expand(node)
+
+
+def _serialize(value, memo):
+    if isinstance(value, Serialize):
+        return value.serialize(memo)
+    elif isinstance(value, list):
+        return [_serialize(elem, memo) for elem in value]
+    elif isinstance(value, frozenset):
+        return list(value)  # TODO reversible?
+    elif isinstance(value, dict):
+        return {key:_serialize(elem, memo) for key, elem in value.items()}
+    # assert value is None or isinstance(value, (int, float, str, tuple)), value
+    return value
+
+
+
+
+def small_factors(n, max_factor):
+    """
+    Splits n up into smaller factors and summands <= max_factor.
+    Returns a list of [(a, b), ...]
+    so that the following code returns n:
+
+    n = 1
+    for a, b in values:
+        n = n * a + b
+
+    Currently, we also keep a + b <= max_factor, but that might change
+    """
+    assert n >= 0
+    assert max_factor > 2
+    if n <= max_factor:
+        return [(n, 0)]
+
+    for a in range(max_factor, 1, -1):
+        r, b = divmod(n, a)
+        if a + b <= max_factor:
+            return small_factors(r, max_factor) + [(a, b)]
+    assert False, "Failed to factorize %s" % n

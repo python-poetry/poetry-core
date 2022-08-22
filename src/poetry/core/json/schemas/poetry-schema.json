@@ -2,11 +2,12 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "name": "Package",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "name",
     "version",
-    "description"
+    "description",
+    "authors"
   ],
   "properties": {
     "name": {
@@ -187,16 +188,6 @@
     },
     "build": {
       "$ref": "#/definitions/build-section"
-    },
-    "source": {
-      "type": "array",
-      "description": "A set of additional repositories where packages can be found.",
-      "additionalProperties": {
-        "$ref": "#/definitions/repository"
-      },
-      "items": {
-        "$ref": "#/definitions/repository"
-      }
     },
     "scripts": {
       "type": "object",
@@ -624,33 +615,6 @@
           "items": {
             "type": "string"
           }
-        }
-      }
-    },
-    "repository": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The name of the repository"
-        },
-        "url": {
-          "type": "string",
-          "description": "The url of the repository",
-          "format": "uri"
-        },
-        "default": {
-          "type": "boolean",
-          "description": "Make this repository the default (disable PyPI)"
-        },
-        "secondary": {
-          "type": "boolean",
-          "description": "Declare this repository as secondary, i.e. it will only be looked up last for packages."
-        },
-        "links": {
-          "type": "boolean",
-          "description": "Declare this as a link source. Links at uri/path can point to sdist or bdist archives."
         }
       }
     },

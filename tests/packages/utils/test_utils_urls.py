@@ -14,14 +14,14 @@ from poetry.core.packages.utils.utils import url_to_path
 
 
 @pytest.mark.skipif("sys.platform == 'win32'")
-def test_path_to_url_unix():
+def test_path_to_url_unix() -> None:
     assert path_to_url("/tmp/file") == "file:///tmp/file"
     path = Path(".") / "file"
     assert path_to_url("file") == "file://" + path.absolute().as_posix()
 
 
 @pytest.mark.skipif("sys.platform != 'win32'")
-def test_path_to_url_win():
+def test_path_to_url_win() -> None:
     assert path_to_url("c:/tmp/file") == "file:///c:/tmp/file"
     assert path_to_url("c:\\tmp\\file") == "file:///c:/tmp/file"
     assert path_to_url(r"\\unc\as\path") == "file://unc/as/path"
@@ -42,7 +42,7 @@ def test_path_to_url_win():
         ("file:///c:/tmp/file", r"C:\tmp\file", "/c:/tmp/file"),
     ],
 )
-def test_url_to_path(url: str, win_expected: str, non_win_expected: str | None):
+def test_url_to_path(url: str, win_expected: str, non_win_expected: str | None) -> None:
     if sys.platform == "win32":
         expected_path = win_expected
     else:
@@ -56,7 +56,7 @@ def test_url_to_path(url: str, win_expected: str, non_win_expected: str | None):
 
 
 @pytest.mark.skipif("sys.platform != 'win32'")
-def test_url_to_path_path_to_url_symmetry_win():
+def test_url_to_path_path_to_url_symmetry_win() -> None:
     path = r"C:\tmp\file"
     assert url_to_path(path_to_url(path)) == Path(path)
 

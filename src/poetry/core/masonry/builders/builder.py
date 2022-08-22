@@ -33,14 +33,14 @@ class Builder:
         self,
         poetry: Poetry,
         ignore_packages_formats: bool = False,
-        executable: Path | str | None = None,
+        executable: Path | None = None,
     ) -> None:
         from poetry.core.masonry.metadata import Metadata
         from poetry.core.masonry.utils.module import Module
 
         self._poetry = poetry
         self._package = poetry.package
-        self._path = poetry.file.parent
+        self._path: Path = poetry.file.parent
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
 
@@ -93,7 +93,11 @@ class Builder:
     def executable(self) -> Path:
         return self._executable
 
-    def build(self) -> None:
+    @property
+    def default_target_dir(self) -> Path:
+        return self._path / "dist"
+
+    def build(self, target_dir: Path | None) -> Path:
         raise NotImplementedError()
 
     def find_excluded_files(self, fmt: str | None = None) -> set[str]:
@@ -201,10 +205,6 @@ class Builder:
                     continue
 
                 if file.suffix == ".pyc":
-                    continue
-
-                if file in to_add:
-                    # Skip duplicates
                     continue
 
                 logger.debug(f"Adding: {str(file)}")
@@ -349,6 +349,8 @@ class Builder:
     @classmethod
     def convert_author(cls, author: str) -> dict[str, str]:
         m = AUTHOR_REGEX.match(author)
+        if m is None:
+            raise RuntimeError(f"{author} does not match regex")
 
         name = m.group("name")
         email = m.group("email")
@@ -362,7 +364,7 @@ class BuildIncludeFile:
         path: Path | str,
         project_root: Path | str,
         source_root: Path | str | None = None,
-    ):
+    ) -> None:
         """
         :param project_root: the full path of the project's root
         :param path: a full path to the file to be included
@@ -378,14 +380,11 @@ class BuildIncludeFile:
 
         self.path = self.path.resolve()
 
-    def __eq__(self, other: BuildIncludeFile | Path) -> bool:
-        if hasattr(other, "path"):
-            return self.path == other.path
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BuildIncludeFile):
+            return False
 
-        return self.path == other
-
-    def __ne__(self, other: BuildIncludeFile | Path) -> bool:
-        return not self.__eq__(other)
+        return self.path == other.path
 
     def __hash__(self) -> int:
         return hash(self.path)

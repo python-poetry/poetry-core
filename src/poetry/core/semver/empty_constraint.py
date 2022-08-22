@@ -7,6 +7,7 @@ from poetry.core.semver.version_constraint import VersionConstraint
 
 if TYPE_CHECKING:
     from poetry.core.semver.version import Version
+    from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 
 
 class EmptyConstraint(VersionConstraint):
@@ -37,5 +38,14 @@ class EmptyConstraint(VersionConstraint):
     def difference(self, other: VersionConstraint) -> EmptyConstraint:
         return self
 
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return []
+
     def __str__(self) -> str:
         return "<empty>"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, VersionConstraint):
+            return False
+
+        return other.is_empty()

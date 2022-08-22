@@ -1,7 +1,7 @@
 from setuptools import setup
 
 
-kwargs = dict(
+setup(
     name="my-package",
     license="MIT",
     version="0.1.2",
@@ -12,6 +12,3 @@ kwargs = dict(
     packages=["my_package"],
     install_requires=["pendulum>=1.4.4", "cachy[msgpack]>=0.2.0"],
 )
-
-
-setup(**kwargs)

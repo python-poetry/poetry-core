@@ -14,7 +14,7 @@ PROTOCOL = r"\w+"
 USER = r"[a-zA-Z0-9_.-]+"
 RESOURCE = r"[a-zA-Z0-9_.-]+"
 PORT = r"\d+"
-PATH = r"[\w~.\-/\\]+"
+PATH = r"[\w~.\-/\\\$]+"
 NAME = r"[\w~.\-]+"
 REV = r"[^@#]+?"
 SUBDIR = r"[\w\-/\\]+"
@@ -88,7 +88,6 @@ PATTERNS = [
 
 
 class GitError(RuntimeError):
-
     pass
 
 
@@ -103,7 +102,7 @@ class ParsedUrl:
         name: str | None,
         rev: str | None,
         subdirectory: str | None = None,
-    ):
+    ) -> None:
         self.protocol = protocol
         self.resource = resource
         self.pathname = pathname
@@ -226,7 +225,7 @@ class Git:
 
         formatted = re.sub(r"^git\+", "", url)
         if parsed.rev:
-            formatted = re.sub(rf"[#@]{parsed.rev}$", "", formatted)
+            formatted = re.sub(rf"[#@]{parsed.rev}(?=[#&]?)(?!\=)", "", formatted)
 
         if parsed.subdirectory:
             formatted = re.sub(

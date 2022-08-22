@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
 
 
-def test_allows():
+def test_allows() -> None:
     c = Constraint("win32")
 
     assert c.allows(Constraint("win32"))
@@ -27,7 +27,7 @@ def test_allows():
     assert c.allows(Constraint("linux"))
 
 
-def test_allows_any():
+def test_allows_any() -> None:
     c = Constraint("win32")
 
     assert c.allows_any(Constraint("win32"))
@@ -43,7 +43,7 @@ def test_allows_any():
     assert c.allows_any(Constraint("linux", "!="))
 
 
-def test_allows_all():
+def test_allows_all() -> None:
     c = Constraint("win32")
 
     assert c.allows_all(Constraint("win32"))
@@ -106,7 +106,7 @@ def test_intersect(
     constraint1: BaseConstraint,
     constraint2: BaseConstraint,
     expected: BaseConstraint,
-):
+) -> None:
     intersection = constraint1.intersect(constraint2)
     assert intersection == expected
 
@@ -157,12 +157,12 @@ def test_union(
     constraint1: BaseConstraint,
     constraint2: BaseConstraint,
     expected: BaseConstraint,
-):
+) -> None:
     union = constraint1.union(constraint2)
     assert union == expected
 
 
-def test_difference():
+def test_difference() -> None:
     c = Constraint("win32")
 
     assert c.difference(Constraint("win32")).is_empty()

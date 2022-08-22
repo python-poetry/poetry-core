@@ -40,7 +40,7 @@ class Requirement:
                 f" {e.column}\n\n{e.get_context(requirement_string)}"
             )
 
-        self.name = next(parsed.scan_values(lambda t: t.type == "NAME")).value
+        self.name: str = next(parsed.scan_values(lambda t: t.type == "NAME")).value
         url = next(parsed.scan_values(lambda t: t.type == "URI"), None)
 
         if url:

@@ -9,6 +9,7 @@ from typing import Dict
 from typing import List
 from typing import Mapping
 from typing import Union
+from typing import cast
 from warnings import warn
 
 from poetry.core.utils.helpers import combine_unicode
@@ -16,9 +17,9 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
-    from poetry.core.packages.types import DependencyTypes
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
 
@@ -55,8 +56,8 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        name = local_config["name"]
-        version = local_config["version"]
+        name = cast(str, local_config["name"])
+        version = cast(str, local_config["version"])
         package = self.get_package(name, version)
         package = self.configure_package(
             package, local_config, poetry_file.parent, with_groups=with_groups
@@ -226,7 +227,7 @@ class Factory:
         constraint: DependencyConstraint,
         groups: list[str] | None = None,
         root_dir: Path | None = None,
-    ) -> DependencyTypes:
+    ) -> Dependency:
         from poetry.core.packages.constraints import (
             parse_constraint as parse_generic_constraint,
         )
@@ -406,13 +407,15 @@ class Factory:
             # Checking for scripts with extras
             if "scripts" in config:
                 scripts = config["scripts"]
+                config_extras = config.get("extras", {})
+
                 for name, script in scripts.items():
                     if not isinstance(script, dict):
                         continue
 
-                    extras = script["extras"]
+                    extras = script.get("extras", [])
                     for extra in extras:
-                        if extra not in config["extras"]:
+                        if extra not in config_extras:
                             result["errors"].append(
                                 f'Script "{name}" requires extra "{extra}" which is not'
                                 " defined."

@@ -13,15 +13,16 @@ from io import BytesIO
 from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
-from tarfile import TarInfo
 from typing import TYPE_CHECKING
-from typing import ContextManager
+from typing import Iterator
 
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
 
 
 if TYPE_CHECKING:
+    from tarfile import TarInfo
+
     from poetry.core.masonry.utils.package_include import PackageInclude
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.project_package import ProjectPackage
@@ -52,13 +53,14 @@ logger = logging.getLogger(__name__)
 
 
 class SdistBuilder(Builder):
-
     format = "sdist"
 
-    def build(self, target_dir: Path | None = None) -> Path:
+    def build(
+        self,
+        target_dir: Path | None = None,
+    ) -> Path:
         logger.info("Building <info>sdist</info>")
-        if target_dir is None:
-            target_dir = self._path / "dist"
+        target_dir = target_dir or self.default_target_dir
 
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
@@ -113,11 +115,13 @@ class SdistBuilder(Builder):
         from poetry.core.masonry.utils.package_include import PackageInclude
 
         before, extra, after = [], [], []
-        package_dir = {}
+        package_dir: dict[str, str] = {}
 
         # If we have a build script, use it
         if self._package.build_script:
-            import_name = self._package.build_script.split(".")[0]
+            import_name = ".".join(
+                Path(self._package.build_script).with_suffix("").parts
+            )
             after += [f"from {import_name} import *", "build(setup_kwargs)"]
 
         modules = []
@@ -213,7 +217,7 @@ class SdistBuilder(Builder):
         ).encode()
 
     @contextmanager
-    def setup_py(self) -> ContextManager[Path]:
+    def setup_py(self) -> Iterator[Path]:
         setup = self._path / "setup.py"
         has_setup = setup.exists()
 
@@ -231,7 +235,9 @@ class SdistBuilder(Builder):
     def build_pkg_info(self) -> bytes:
         return self.get_metadata_content().encode()
 
-    def find_packages(self, include: PackageInclude) -> tuple[str, list[str], dict]:
+    def find_packages(
+        self, include: PackageInclude
+    ) -> tuple[str | None, list[str], dict[str, list[str]]]:
         """
         Discover subpackages and data.
 
@@ -244,7 +250,7 @@ class SdistBuilder(Builder):
         base = str(include.elements[0].parent)
 
         pkg_name = include.package
-        pkg_data = defaultdict(list)
+        pkg_data: dict[str, list[str]] = defaultdict(list)
         # Undocumented distutils feature:
         # the empty string matches all package names
         pkg_data[""].append("*")
@@ -320,15 +326,15 @@ class SdistBuilder(Builder):
         additional_files.update(self.convert_script_files())
 
         # Include project files
-        additional_files.add("pyproject.toml")
+        additional_files.add(Path("pyproject.toml"))
 
         # add readme if it is specified
         if "readme" in self._poetry.local_config:
             additional_files.add(self._poetry.local_config["readme"])
 
-        for file in additional_files:
+        for additional_file in additional_files:
             file = BuildIncludeFile(
-                path=file, project_root=self._path, source_root=self._path
+                path=additional_file, project_root=self._path, source_root=self._path
             )
             if file.path.exists():
                 logger.debug(f"Adding: {file.relative_to_source_root()}")

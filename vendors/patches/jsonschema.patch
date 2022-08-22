@@ -1,42 +1,36 @@
-diff --git a/src/poetry/core/_vendor/jsonschema/__init__.py b/src/poetry/core/_vendor/jsonschema/__init__.py
-index 7dd3598..c604eed 100644
---- a/src/poetry/core/_vendor/jsonschema/__init__.py
-+++ b/src/poetry/core/_vendor/jsonschema/__init__.py
-@@ -27,8 +27,5 @@ from jsonschema.validators import (
-     RefResolver,
-     validate,
- )
--try:
--    from importlib import metadata
--except ImportError: # for Python<3.8
--    import importlib_metadata as metadata
--__version__ = metadata.version("jsonschema")
-+
-+__version__ = "3.2.0"
-diff --git a/src/poetry/core/_vendor/jsonschema/_utils.py b/src/poetry/core/_vendor/jsonschema/_utils.py
-index 8fb8593..368474a 100644
---- a/src/poetry/core/_vendor/jsonschema/_utils.py
-+++ b/src/poetry/core/_vendor/jsonschema/_utils.py
-@@ -1,6 +1,6 @@
+diff --git b/src/poetry/core/_vendor/jsonschema/_utils.py a/src/poetry/core/_vendor/jsonschema/_utils.py
+index a2ad5a9..d4f5697 100644
+--- b/src/poetry/core/_vendor/jsonschema/_utils.py
++++ a/src/poetry/core/_vendor/jsonschema/_utils.py
+@@ -2,15 +2,8 @@ from collections.abc import Mapping, MutableMapping, Sequence
+ from urllib.parse import urlsplit
  import itertools
  import json
--import pkgutil
 +import os
  import re
-
- from jsonschema.compat import MutableMapping, str_types, urlsplit
-@@ -50,9 +50,12 @@ def load_schema(name):
+-import sys
+-
+-# The files() API was added in Python 3.9.
+-if sys.version_info >= (3, 9):  # pragma: no cover
+-    from importlib import resources
+-else:  # pragma: no cover
+-    import importlib_resources as resources  # type: ignore
+-
+ 
+ class URIDict(MutableMapping):
+     """
+@@ -56,9 +49,12 @@ def load_schema(name):
      """
      Load a schema from ./schemas/``name``.json and return it.
      """
 +    with open(
-+        os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name))
++        os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name)),
++        encoding="utf-8"
 +    ) as f:
 +        data = f.read()
-
--    data = pkgutil.get_data("jsonschema", "schemas/{0}.json".format(name))
--    return json.loads(data.decode("utf-8"))
-+    return json.loads(data)
-
-
- def indent(string, times=1):
+ 
+-    path = resources.files(__package__).joinpath(f"schemas/{name}.json")
+-    data = path.read_text(encoding="utf-8")
+     return json.loads(data)
+ 
+ 

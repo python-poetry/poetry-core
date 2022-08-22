@@ -8,7 +8,6 @@ from urllib.request import urlopen
 
 
 class Updater:
-
     BASE_URL = "https://raw.githubusercontent.com/spdx/license-list-data/master/json/"
 
     def __init__(self, base_url: str = BASE_URL) -> None:

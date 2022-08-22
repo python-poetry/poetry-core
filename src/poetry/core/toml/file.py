@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from tomlkit.toml_document import TOMLDocument
 
 
-class TOMLFile(BaseTOMLFile):
+class TOMLFile(BaseTOMLFile):  # type: ignore[misc]
     def __init__(self, path: str | Path) -> None:
         if isinstance(path, str):
             path = Path(path)
