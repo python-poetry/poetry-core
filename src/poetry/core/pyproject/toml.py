@@ -40,6 +40,9 @@ class PyProjectTOML:
 
         return self._data
 
+    def is_build_system_defined(self) -> bool:
+        return self._file.exists() and "build-system" in self.data
+
     @property
     def build_system(self) -> BuildSystem:
         from poetry.core.pyproject.tables import BuildSystem

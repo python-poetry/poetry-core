@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import functools
 import posixpath
 import re
 import sys
@@ -14,13 +14,15 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
+from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.core.semver.helpers import parse_constraint
+from poetry.core.semver.version import Version
 from poetry.core.semver.version_range import VersionRange
 from poetry.core.version.markers import dnf
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
-    from poetry.core.semver.version import Version
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.semver.version_union import VersionUnion
     from poetry.core.version.markers import BaseMarker
@@ -38,7 +40,7 @@ ARCHIVE_EXTENSIONS = ZIP_EXTENSIONS + BZ2_EXTENSIONS + TAR_EXTENSIONS + XZ_EXTEN
 SUPPORTED_EXTENSIONS: tuple[str, ...] = ZIP_EXTENSIONS + TAR_EXTENSIONS
 
 try:
-    import bz2  # noqa: F401, TC002
+    import bz2  # noqa: F401
 
     SUPPORTED_EXTENSIONS += BZ2_EXTENSIONS
 except ImportError:
@@ -46,7 +48,7 @@ except ImportError:
 
 try:
     # Only for Python 3.3+
-    import lzma  # noqa: F401, TC002
+    import lzma  # noqa: F401
 
     SUPPORTED_EXTENSIONS += XZ_EXTENSIONS
 except ImportError:
@@ -119,14 +121,22 @@ def strip_extras(path: str) -> tuple[str, str | None]:
     return path_no_extras, extras
 
 
-def is_installable_dir(path: str) -> bool:
-    """Return True if `path` is a directory containing a setup.py file."""
-    if not os.path.isdir(path):
+@functools.lru_cache(maxsize=None)
+def is_python_project(path: Path) -> bool:
+    """Return true if the directory is a Python project"""
+    if not path.is_dir():
         return False
-    setup_py = os.path.join(path, "setup.py")
-    if os.path.isfile(setup_py):
-        return True
-    return False
+
+    setup_py = path / "setup.py"
+    setup_cfg = path / "setup.cfg"
+    setuptools_project = setup_py.exists() or setup_cfg.exists()
+
+    pyproject = PyProjectTOML(path / "pyproject.toml")
+
+    supports_pep517 = setuptools_project or pyproject.is_build_system_defined()
+    supports_poetry = pyproject.is_poetry_project()
+
+    return supports_pep517 or supports_poetry
 
 
 def is_archive_file(name: str) -> bool:
@@ -197,7 +207,6 @@ def create_nested_marker(
     from poetry.core.packages.constraints.constraint import Constraint
     from poetry.core.packages.constraints.multi_constraint import MultiConstraint
     from poetry.core.packages.constraints.union_constraint import UnionConstraint
-    from poetry.core.semver.version import Version
     from poetry.core.semver.version_union import VersionUnion
 
     if constraint.is_any():
@@ -277,8 +286,6 @@ def get_python_constraint_from_marker(
     marker: BaseMarker,
 ) -> VersionConstraint:
     from poetry.core.semver.empty_constraint import EmptyConstraint
-    from poetry.core.semver.helpers import parse_constraint
-    from poetry.core.semver.version import Version
     from poetry.core.semver.version_range import VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
@@ -295,34 +302,58 @@ def get_python_constraint_from_marker(
         # which means that python_version is arbitrary for this group
         return VersionRange()
 
+    python_version_markers = markers["python_version"]
+    normalized = normalize_python_version_markers(python_version_markers)
+    constraint = parse_constraint(normalized)
+    return constraint
+
+
+def normalize_python_version_markers(  # NOSONAR
+    disjunction: list[list[tuple[str, str]]],
+) -> str:
     ors = []
-    for or_ in markers["python_version"]:
+    for or_ in disjunction:
         ands = []
         for op, version in or_:
             # Expand python version
-            if op == "==":
-                if "*" not in version:
-                    version = "~" + version
-                    op = ""
-            elif op == "!=":
-                if "*" not in version:
-                    version += ".*"
+            if op == "==" and "*" not in version:
+                version = "~" + version
+                op = ""
+
+            elif op == "!=" and "*" not in version and version.count(".") < 2:
+                version += ".*"
+
             elif op in ("<=", ">"):
+                # Make adjustments on encountering versions with less than full
+                # precision.
+                #
+                # Per PEP-508:
+                # python_version <-> '.'.join(platform.python_version_tuple()[:2])
+                #
+                # So for two digits of precision we make the following adjustments:
+                # - `python_version > "x.y"` requires version >= x.(y+1).anything
+                # - `python_version <= "x.y"` requires version < x.(y+1).anything
+                #
+                # Treatment when we see a single digit of precision is less clear: is
+                # that even a legitimate marker?
+                #
+                # Experiment suggests that pip behaviour is essentially to make a
+                # lexicographical comparison, for example `python_version > "3"` is
+                # satisfied by version 3.anything, whereas `python_version <= "3"` is
+                # satisfied only by version 2.anything.
+                #
+                # We achieve the above by fiddling with the operator and version in the
+                # marker.
                 parsed_version = Version.parse(version)
-                if parsed_version.precision == 1:
+                if parsed_version.precision < 3:
                     if op == "<=":
                         op = "<"
-                        version = parsed_version.next_major().text
                     elif op == ">":
                         op = ">="
-                        version = parsed_version.next_major().text
-                elif parsed_version.precision == 2:
-                    if op == "<=":
-                        op = "<"
-                        version = parsed_version.next_minor().text
-                    elif op == ">":
-                        op = ">="
-                        version = parsed_version.next_minor().text
+
+                if parsed_version.precision == 2:
+                    version = parsed_version.next_minor().text
+
             elif op in ("in", "not in"):
                 versions = []
                 for v in re.split("[ ,]+", version):
@@ -335,8 +366,8 @@ def get_python_constraint_from_marker(
 
                     versions.append(op_ + ".".join(split))
 
-                glue = " || " if op == "in" else ", "
                 if versions:
+                    glue = " || " if op == "in" else ", "
                     ands.append(glue.join(versions))
 
                 continue
@@ -345,4 +376,4 @@ def get_python_constraint_from_marker(
 
         ors.append(" ".join(ands))
 
-    return parse_constraint(" || ".join(ors))
+    return " || ".join(ors)

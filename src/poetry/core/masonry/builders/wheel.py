@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 wheel_file_template = """\
 Wheel-Version: 1.0
-Generator: poetry {version}
+Generator: poetry-core {version}
 Root-Is-Purelib: {pure_lib}
 Tag: {tag}
 """

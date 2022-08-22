@@ -33,14 +33,14 @@ def test_file_dependency_dir() -> None:
 def test_default_hash() -> None:
     path = DIST_PATH / TEST_FILE
     dep = FileDependency("demo", path)
-    SHA_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
-    assert dep.hash() == SHA_256
+    sha_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
+    assert dep.hash() == sha_256
 
 
 try:
-    from hashlib import algorithms_guaranteed as ALGORITHMS_GUARANTEED
+    from hashlib import algorithms_guaranteed
 except ImportError:
-    ALGORITHMS_GUARANTEED = set("md5,sha1,sha224,sha256,sha384,sha512".split(","))
+    algorithms_guaranteed = {"md5", "sha1", "sha224", "sha256", "sha384", "sha512"}
 
 
 @pytest.mark.parametrize(
@@ -84,7 +84,7 @@ except ImportError:
                 "ba3d2a964b0680b6dc9565a03952e29c294c785d5a2307d3e2d785d73b75ed7e",
             ),
         ]
-        if hash_name in ALGORITHMS_GUARANTEED
+        if hash_name in algorithms_guaranteed
     ],
 )
 def test_guaranteed_hash(hash_name: str, expected: str) -> None:
@@ -188,3 +188,35 @@ def test_file_dependency_pep_508_extras(mocker: MockerFixture) -> None:
         requirement,
         f'demo[bar,foo] @ {rel_path.as_posix()} ; sys_platform == "linux"',
     )
+
+
+@pytest.mark.parametrize(
+    "name,path,extras,constraint,expected",
+    [
+        (
+            "demo",
+            DIST_PATH / TEST_FILE,
+            None,
+            None,
+            f"demo (*) @ {(DIST_PATH / TEST_FILE).as_uri()}",
+        ),
+        (
+            "demo",
+            DIST_PATH / TEST_FILE,
+            ["foo"],
+            "1.2",
+            f"demo[foo] (1.2) @ {(DIST_PATH / TEST_FILE).as_uri()}",
+        ),
+    ],
+)
+def test_file_dependency_string_representation(
+    name: str,
+    path: Path,
+    extras: list[str] | None,
+    constraint: str | None,
+    expected: str,
+) -> None:
+    dependency = FileDependency(name=name, path=path, extras=extras)
+    if constraint:
+        dependency.constraint = constraint  # type: ignore[assignment]
+    assert str(dependency) == expected

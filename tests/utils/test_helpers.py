@@ -7,7 +7,6 @@ from stat import S_IREAD
 
 import pytest
 
-from poetry.core.utils.helpers import canonicalize_name
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import normalize_version
 from poetry.core.utils.helpers import parse_requires
@@ -142,11 +141,6 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
         ' ; extra == "dev"',
     ]
     assert result == expected
-
-
-@pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c", "a.b-c"])
-def test_utils_helpers_canonical_names(raw: str) -> None:
-    assert canonicalize_name(raw) == "a-b-c"
 
 
 def test_utils_helpers_combine_unicode() -> None:

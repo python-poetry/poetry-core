@@ -12,6 +12,7 @@ import pytest
 import virtualenv
 
 from poetry.core.factory import Factory
+from poetry.core.utils._compat import WINDOWS
 
 
 if TYPE_CHECKING:
@@ -101,7 +102,7 @@ def venv(temporary_directory: Path) -> Path:
 
 @pytest.fixture
 def python(venv: Path) -> str:
-    return (venv / "bin" / "python").as_posix()
+    return venv.joinpath("Scripts/Python.exe" if WINDOWS else "bin/python").as_posix()
 
 
 @pytest.fixture()

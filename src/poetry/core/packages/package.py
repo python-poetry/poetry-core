@@ -15,11 +15,14 @@ from typing import cast
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
+from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.semver.version import Version
@@ -27,13 +30,12 @@ if TYPE_CHECKING:
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
+    T = TypeVar("T", bound="Package")
 
-T = TypeVar("T", bound="Package")
+AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
-
     AVAILABLE_PYTHONS = {
         "2",
         "2.7",
@@ -59,6 +61,7 @@ class Package(PackageSpecification):
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
         develop: bool = False,
+        yanked: str | bool = False,
     ) -> None:
         """
         Creates a new in memory package.
@@ -96,7 +99,6 @@ class Package(PackageSpecification):
         self.readmes: tuple[Path, ...] = ()
 
         self.extras: dict[str, list[Dependency]] = {}
-        self.requires_extras: list[str] = []
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 
@@ -118,8 +120,10 @@ class Package(PackageSpecification):
 
         self.develop = develop
 
+        self._yanked = yanked
+
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
@@ -253,10 +257,11 @@ class Package(PackageSpecification):
     @python_versions.setter
     def python_versions(self, value: str) -> None:
         self._python_versions = value
-        self._python_constraint = parse_constraint(value)
+        constraint = parse_constraint(value)
         self._python_marker = parse_marker(
-            create_nested_marker("python_version", self._python_constraint)
+            create_nested_marker("python_version", constraint)
         )
+        self._python_constraint = get_python_constraint_from_marker(self._python_marker)
 
     @property
     def python_constraint(self) -> VersionConstraint:
@@ -369,6 +374,16 @@ class Package(PackageSpecification):
         )
         self.readmes = (path,)
 
+    @property
+    def yanked(self) -> bool:
+        return isinstance(self._yanked, str) or bool(self._yanked)
+
+    @property
+    def yanked_reason(self) -> str:
+        if isinstance(self._yanked, str):
+            return self._yanked
+        return ""
+
     def is_prerelease(self) -> bool:
         return self._version.is_unstable()
 
@@ -409,7 +424,7 @@ class Package(PackageSpecification):
 
         return dependency
 
-    def without_dependency_groups(self, groups: Collection[str]) -> Package:
+    def without_dependency_groups(self: T, groups: Collection[str]) -> T:
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
@@ -421,7 +436,7 @@ class Package(PackageSpecification):
 
         return package
 
-    def without_optional_dependency_groups(self) -> Package:
+    def without_optional_dependency_groups(self: T) -> T:
         """
         Returns a clone of the package without optional dependency groups.
         """
@@ -511,7 +526,7 @@ class Package(PackageSpecification):
         if not self.python_constraint.is_any():
             dep.python_versions = self.python_versions
 
-        if self._source_type not in ["directory", "file", "url", "git"]:
+        if not self.is_direct_origin():
             return dep
 
         return dep.with_constraint(self._version)
@@ -526,29 +541,31 @@ class Package(PackageSpecification):
 
         self.python_versions = original_python_versions
 
-    def with_features(self, features: Iterable[str]) -> Package:
-        package = self.clone()
+    def satisfies(
+        self, dependency: Dependency, ignore_source_type: bool = False
+    ) -> bool:
+        """
+        Helper method to check if this package satisfies a given dependency.
 
-        package._features = frozenset(features)
+        This is determined by assessing if this instance provides the package and
+        features specified by the given dependency. Further, version and source
+        types are checked.
+        """
+        if not self.provides(dependency) or not dependency.constraint.allows(
+            self.version
+        ):
+            return False
 
-        return package
-
-    def without_features(self) -> Package:
-        return self.with_features([])
-
-    def clone(self: T) -> T:
-        clone = self.__class__(self.pretty_name, self.version)
-        clone.__dict__ = copy.deepcopy(self.__dict__)
-        return clone
-
-    def __hash__(self) -> int:
-        return super().__hash__() ^ hash(self._version)
+        return ignore_source_type or self.is_same_source_as(dependency)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):
             return NotImplemented
 
-        return self.is_same_package_as(other) and self._version == other.version
+        return super().__eq__(other) and self._version == other.version
+
+    def __hash__(self) -> int:
+        return super().__hash__() ^ hash(self._version)
 
     def __str__(self) -> str:
         return f"{self.complete_name} ({self.full_pretty_version})"

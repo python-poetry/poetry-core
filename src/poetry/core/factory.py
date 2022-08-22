@@ -407,13 +407,15 @@ class Factory:
             # Checking for scripts with extras
             if "scripts" in config:
                 scripts = config["scripts"]
+                config_extras = config.get("extras", {})
+
                 for name, script in scripts.items():
                     if not isinstance(script, dict):
                         continue
 
-                    extras = script["extras"]
+                    extras = script.get("extras", [])
                     for extra in extras:
-                        if extra not in config["extras"]:
+                        if extra not in config_extras:
                             result["errors"].append(
                                 f'Script "{name}" requires extra "{extra}" which is not'
                                 " defined."

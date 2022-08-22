@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from poetry.core.packages.utils.utils import convert_markers
 from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+from poetry.core.packages.utils.utils import is_python_project
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
@@ -88,8 +91,8 @@ def test_convert_markers(
         ('python_version != "3.6.* "', "!=3.6.*"),
         # <, <=, >, >= precision 1
         ('python_version < "3"', "<3"),
-        ('python_version <= "3"', "<4"),
-        ('python_version > "3"', ">=4"),
+        ('python_version <= "3"', "<3"),
+        ('python_version > "3"', ">=3"),
         ('python_version >= "3"', ">=3"),
         # <, <=, >, >= precision 2
         ('python_version < "3.6"', "<3.6"),
@@ -126,9 +129,30 @@ def test_convert_markers(
         ('python_version >= "3.9" or sys_platform == "linux"', "*"),
         # relevant python_version
         ('python_version >= "3.9" and sys_platform == "linux"', ">=3.9"),
+        # exclude specific version
+        (
+            'python_version >= "3.5" and python_full_version != "3.7.6"',
+            ">=3.5,<3.7.6 || >3.7.6",
+        ),
     ],
 )
 def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None:
     marker_parsed = parse_marker(marker)
     constraint_parsed = parse_constraint(constraint)
     assert get_python_constraint_from_marker(marker_parsed) == constraint_parsed
+
+
+@pytest.mark.parametrize(
+    ("fixture", "result"),
+    [
+        ("simple_project", True),
+        ("project_with_setup_cfg_only", True),
+        ("project_with_setup", True),
+        ("project_with_pep517_non_poetry", True),
+        ("project_without_pep517", False),
+        ("does_not_exist", False),
+    ],
+)
+def test_package_utils_is_python_project(fixture: str, result: bool) -> None:
+    path = Path(__file__).parent.parent.parent / "fixtures" / fixture
+    assert is_python_project(path) == result

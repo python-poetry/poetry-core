@@ -46,7 +46,6 @@ def test_pep440_release_tag_normalisation(
     tag = ReleaseTag(*parts)
     assert tag == result
     assert tag.to_string() == result.to_string()
-    assert tag.to_string(short=True) == result.to_string(short=True)
 
 
 @pytest.mark.parametrize(
@@ -174,4 +173,4 @@ def test_pep440_parse_text(text: str, result: PEP440Version) -> None:
 )
 def test_pep440_parse_text_invalid_versions(text: str) -> None:
     with pytest.raises(InvalidVersion):
-        assert PEP440Version.parse(text)
+        PEP440Version.parse(text)

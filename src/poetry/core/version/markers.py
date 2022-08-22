@@ -47,7 +47,7 @@ ALIASES = {
     "python_implementation": "platform_python_implementation",
 }
 
-PYTHON_VERSION_MARKERS = ["python_version", "python_full_version"]
+PYTHON_VERSION_MARKERS = {"python_version", "python_full_version"}
 
 # Parser: PEP 508 Environment Markers
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
@@ -174,7 +174,6 @@ class EmptyMarker(BaseMarker):
 
 
 class SingleMarker(BaseMarker):
-
     _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     _VERSION_LIKE_MARKER_NAME = {
         "python_version",
@@ -193,12 +192,12 @@ class SingleMarker(BaseMarker):
         self._constraint: BaseConstraint | VersionConstraint
         self._parser: Callable[[str], BaseConstraint | VersionConstraint]
         self._name = ALIASES.get(name, name)
-        self._constraint_string = str(constraint)
+        constraint_string = str(constraint)
 
         # Extract operator and value
-        m = self._CONSTRAINT_RE.match(self._constraint_string)
+        m = self._CONSTRAINT_RE.match(constraint_string)
         if m is None:
-            raise ValueError(f"Invalid marker '{self._constraint_string}'")
+            raise ValueError(f"Invalid marker '{constraint_string}'")
 
         self._operator = m.group(1)
         if self._operator is None:
@@ -228,11 +227,10 @@ class SingleMarker(BaseMarker):
 
                 self._constraint = self._parser(glue.join(versions))
             else:
-                self._constraint = self._parser(self._constraint_string)
+                self._constraint = self._parser(constraint_string)
         else:
             # if we have a in/not in operator we split the constraint
             # into a union/multi-constraint of single constraint
-            constraint_string = self._constraint_string
             if self._operator in {"in", "not in"}:
                 op, glue = ("==", " || ") if self._operator == "in" else ("!=", ", ")
                 values = re.split("[ ,]+", self._value)
@@ -243,13 +241,6 @@ class SingleMarker(BaseMarker):
     @property
     def name(self) -> str:
         return self._name
-
-    @property
-    def constraint_string(self) -> str:
-        if self._operator in {"in", "not in"}:
-            return f"{self._operator} {self._value}"
-
-        return self._constraint_string
 
     @property
     def constraint(self) -> BaseConstraint | VersionConstraint:
@@ -342,7 +333,7 @@ class SingleMarker(BaseMarker):
                 )
 
             min_ = self._constraint.min
-            min_operator = ">=" if self._constraint.include_min else "<"
+            min_operator = ">=" if self._constraint.include_min else ">"
             max_ = self._constraint.max
             max_operator = "<=" if self._constraint.include_max else "<"
 
@@ -363,7 +354,7 @@ class SingleMarker(BaseMarker):
         return self._name == other.name and self._constraint == other.constraint
 
     def __hash__(self) -> int:
-        return hash((self._name, self._constraint_string))
+        return hash((self._name, self._constraint))
 
     def __str__(self) -> str:
         return f'{self._name} {self._operator} "{self._value}"'
@@ -416,23 +407,13 @@ class MultiMarker(BaseMarker):
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
-                            or (
-                                mark.name in PYTHON_VERSION_MARKERS
-                                and marker.name in PYTHON_VERSION_MARKERS
-                            )
+                            or {mark.name, marker.name} == PYTHON_VERSION_MARKERS
                         ):
-                            # Markers with the same name have the same constraint type,
-                            # but mypy can't see that.
-                            constraint_intersection = mark.constraint.intersect(
-                                marker.constraint  # type: ignore[arg-type]
-                            )
-                            if constraint_intersection == mark.constraint:
+                            new_marker = _merge_single_markers(mark, marker, cls)
+                            if new_marker is not None:
+                                new_markers[i] = new_marker
                                 intersected = True
-                            elif constraint_intersection == marker.constraint:
-                                new_markers[i] = marker
-                                intersected = True
-                            elif constraint_intersection.is_empty():
-                                return EmptyMarker()
+
                         elif isinstance(mark, MarkerUnion):
                             intersection = mark.intersect(marker)
                             if isinstance(intersection, SingleMarker):
@@ -473,6 +454,9 @@ class MultiMarker(BaseMarker):
         if other.is_empty():
             return other
 
+        if isinstance(other, MarkerUnion):
+            return other.intersect(self)
+
         new_markers = self._markers + [other]
 
         return MultiMarker.of(*new_markers)
@@ -508,22 +492,49 @@ class MultiMarker(BaseMarker):
             ):
                 return other
 
+            if not any(isinstance(m, MarkerUnion) for m in new_markers):
+                return self.of(*new_markers)
+
         elif isinstance(other, MultiMarker):
-            markers = set(self._markers)
-            other_markers = set(other.markers)
-            common_markers = markers & other_markers
-            unique_markers = markers - common_markers
+            common_markers = [
+                marker for marker in self.markers if marker in other.markers
+            ]
+
+            unique_markers = [
+                marker for marker in self.markers if marker not in common_markers
+            ]
             if not unique_markers:
                 return self
-            other_unique_markers = other_markers - common_markers
+
+            other_unique_markers = [
+                marker for marker in other.markers if marker not in common_markers
+            ]
             if not other_unique_markers:
                 return other
+
             if common_markers:
                 unique_union = self.of(*unique_markers).union(
                     self.of(*other_unique_markers)
                 )
                 if not isinstance(unique_union, MarkerUnion):
                     return self.of(*common_markers).intersect(unique_union)
+
+            else:
+                # Usually this operation just complicates things, but the special case
+                # where it doesn't allows the collapse of adjacent ranges eg
+                #
+                # 'python_version >= "3.6" and python_version < "3.6.2"' union
+                # 'python_version >= "3.6.2" and python_version < "3.7"' ->
+                #
+                # 'python_version >= "3.6" and python_version < "3.7"'.
+                unions = [
+                    m1.union(m2) for m2 in other_unique_markers for m1 in unique_markers
+                ]
+                conjunction = self.of(*unions)
+                if not isinstance(conjunction, MultiMarker) or not any(
+                    isinstance(m, MarkerUnion) for m in conjunction.markers
+                ):
+                    return conjunction
 
         return None
 
@@ -618,32 +629,11 @@ class MarkerUnion(BaseMarker):
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
-                            or (
-                                mark.name in PYTHON_VERSION_MARKERS
-                                and marker.name in PYTHON_VERSION_MARKERS
-                            )
+                            or {mark.name, marker.name} == PYTHON_VERSION_MARKERS
                         ):
-                            # Markers with the same name have the same constraint type,
-                            # but mypy can't see that.
-                            constraint_union = mark.constraint.union(
-                                marker.constraint  # type: ignore[arg-type]
-                            )
-                            if constraint_union == mark.constraint:
-                                included = True
-                                break
-                            elif constraint_union == marker.constraint:
-                                new_markers[i] = marker
-                                included = True
-                                break
-                            elif constraint_union.is_any():
-                                return AnyMarker()
-                            elif (
-                                isinstance(constraint_union, VersionConstraint)
-                                and constraint_union.is_simple()
-                            ):
-                                new_markers[i] = SingleMarker(
-                                    mark.name, constraint_union
-                                )
+                            new_marker = _merge_single_markers(mark, marker, cls)
+                            if new_marker is not None:
+                                new_markers[i] = new_marker
                                 included = True
                                 break
 
@@ -736,9 +726,11 @@ class MarkerUnion(BaseMarker):
                 continue
 
             marker = m.exclude(marker_name)
+            new_markers.append(marker)
 
-            if not marker.is_empty():
-                new_markers.append(marker)
+        if not new_markers:
+            # All markers were the excluded marker.
+            return AnyMarker()
 
         return self.of(*new_markers)
 
@@ -861,3 +853,74 @@ def dnf(marker: BaseMarker) -> BaseMarker:
     if isinstance(marker, MarkerUnion):
         return MarkerUnion.of(*[dnf(m) for m in marker.markers])
     return marker
+
+
+def _merge_single_markers(
+    marker1: SingleMarker,
+    marker2: SingleMarker,
+    merge_class: type[MultiMarker | MarkerUnion],
+) -> BaseMarker | None:
+    if {marker1.name, marker2.name} == PYTHON_VERSION_MARKERS:
+        return _merge_python_version_single_markers(marker1, marker2, merge_class)
+
+    if merge_class == MultiMarker:
+        merge_method = marker1.constraint.intersect
+    else:
+        merge_method = marker1.constraint.union
+    # Markers with the same name have the same constraint type,
+    # but mypy can't see that.
+    result_constraint = merge_method(marker2.constraint)  # type: ignore[arg-type]
+
+    result_marker: BaseMarker | None = None
+    if result_constraint.is_empty():
+        result_marker = EmptyMarker()
+    elif result_constraint.is_any():
+        result_marker = AnyMarker()
+    elif result_constraint == marker1.constraint:
+        result_marker = marker1
+    elif result_constraint == marker2.constraint:
+        result_marker = marker2
+    elif (
+        isinstance(result_constraint, VersionConstraint)
+        and result_constraint.is_simple()
+    ):
+        result_marker = SingleMarker(marker1.name, result_constraint)
+    return result_marker
+
+
+def _merge_python_version_single_markers(
+    marker1: SingleMarker,
+    marker2: SingleMarker,
+    merge_class: type[MultiMarker | MarkerUnion],
+) -> BaseMarker | None:
+    from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+
+    if marker1.name == "python_version":
+        version_marker = marker1
+        full_version_marker = marker2
+    else:
+        version_marker = marker2
+        full_version_marker = marker1
+
+    normalized_constraint = get_python_constraint_from_marker(version_marker)
+    normalized_marker = SingleMarker("python_full_version", normalized_constraint)
+    merged_marker = _merge_single_markers(
+        normalized_marker, full_version_marker, merge_class
+    )
+    if merged_marker == normalized_marker:
+        # prefer original marker to avoid unnecessary changes
+        return version_marker
+    if merged_marker and isinstance(merged_marker, SingleMarker):
+        # We have to fix markers like 'python_full_version == "3.6"'
+        # to receive 'python_full_version == "3.6.0"'.
+        # It seems a bit hacky to convert to string and back to marker,
+        # but it's probably much simpler than to consider the different constraint
+        # classes (mostly VersonRangeConstraint, but VersionUnion for "!=") and
+        # since this conversion is only required for python_full_version markers
+        # it may be sufficient to handle it here.
+        marker_string = str(merged_marker)
+        precision = marker_string.count(".") + 1
+        if precision < 3:
+            marker_string = marker_string[:-1] + ".0" * (3 - precision) + '"'
+            merged_marker = parse_marker(marker_string)
+    return merged_marker

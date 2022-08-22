@@ -4,8 +4,6 @@ import posixpath
 import re
 import urllib.parse as urlparse
 
-from typing import Any
-
 from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.packages.utils.utils import splitext
 
@@ -14,17 +12,15 @@ class Link:
     def __init__(
         self,
         url: str,
-        comes_from: Any | None = None,
         requires_python: str | None = None,
         metadata: str | bool | None = None,
+        yanked: str | bool = False,
     ) -> None:
         """
         Object representing a parsed link from https://pypi.python.org/simple/*
 
         url:
             url of the resource pointed to (href of the link)
-        comes_from:
-            instance of HTMLPage where the link was found, or string.
         requires_python:
             String containing the `Requires-Python` metadata field, specified
             in PEP 345. This may be specified by a data-requires-python
@@ -34,6 +30,11 @@ class Link:
             of the Core Metadata file. This may be specified by a
             data-dist-info-metadata attribute in the HTML link tag, as described
             in PEP 658.
+        yanked:
+            False, if the data-yanked attribute is not present.
+            A string, if the data-yanked attribute has a string value.
+            True, if the data-yanked attribute is present but has no value.
+            According to PEP 592.
         """
 
         # url can be a UNC windows share
@@ -41,7 +42,6 @@ class Link:
             url = path_to_url(url)
 
         self.url = url
-        self.comes_from = comes_from
         self.requires_python = requires_python if requires_python else None
 
         if isinstance(metadata, str):
@@ -50,46 +50,45 @@ class Link:
             )
 
         self._metadata = metadata
+        self._yanked = yanked
 
     def __str__(self) -> str:
         if self.requires_python:
             rp = f" (requires-python:{self.requires_python})"
         else:
             rp = ""
-        if self.comes_from:
-            return f"{self.url} (from {self.comes_from}){rp}"
-        else:
-            return str(self.url)
+
+        return f"{self.url}{rp}"
 
     def __repr__(self) -> str:
         return f"<Link {self!s}>"
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url == other.url
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url != other.url
 
-    def __lt__(self, other: Any) -> bool:
+    def __lt__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url < other.url
 
-    def __le__(self, other: Any) -> bool:
+    def __le__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url <= other.url
 
-    def __gt__(self, other: Any) -> bool:
+    def __gt__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url > other.url
 
-    def __ge__(self, other: Any) -> bool:
+    def __ge__(self, other: object) -> bool:
         if not isinstance(other, Link):
             return NotImplemented
         return self.url >= other.url
@@ -221,3 +220,13 @@ class Link:
             return False
 
         return True
+
+    @property
+    def yanked(self) -> bool:
+        return isinstance(self._yanked, str) or bool(self._yanked)
+
+    @property
+    def yanked_reason(self) -> str:
+        if isinstance(self._yanked, str):
+            return self._yanked
+        return ""

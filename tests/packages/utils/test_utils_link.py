@@ -118,3 +118,28 @@ def test_package_link_pep653_non_hash_metadata_value(
 
     assert not link.metadata_hash
     assert not link.metadata_hash_name
+
+
+def test_package_link_pep592_default_not_yanked() -> None:
+    link = make_url(ext="whl")
+
+    assert not link.yanked
+    assert link.yanked_reason == ""
+
+
+@pytest.mark.parametrize(
+    ("yanked", "expected_yanked", "expected_yanked_reason"),
+    [
+        (True, True, ""),
+        (False, False, ""),
+        ("the reason", True, "the reason"),
+        ("", True, ""),
+    ],
+)
+def test_package_link_pep592_yanked(
+    yanked: str | bool, expected_yanked: bool, expected_yanked_reason: str
+) -> None:
+    link = Link("https://example.org", yanked=yanked)
+
+    assert link.yanked == expected_yanked
+    assert link.yanked_reason == expected_yanked_reason

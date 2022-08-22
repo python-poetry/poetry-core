@@ -6,47 +6,49 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.package import Package
 
 
 class Metadata:
-
     metadata_version = "2.1"
     # version 1.0
-    name = None
+    name: NormalizedName | None = None
     version: str
-    platforms = ()
-    supported_platforms = ()
-    summary = None
-    description = None
-    keywords = None
-    home_page = None
-    download_url = None
-    author = None
-    author_email = None
-    license = None
+    platforms: tuple[str, ...] = ()
+    supported_platforms: tuple[str, ...] = ()
+    summary: str | None = None
+    description: str | None = None
+    keywords: str | None = None
+    home_page: str | None = None
+    download_url: str | None = None
+    author: str | None = None
+    author_email: str | None = None
+    license: str | None = None
     # version 1.1
     classifiers: tuple[str, ...] = ()
-    requires = ()
-    provides = ()
-    obsoletes = ()
+    requires: tuple[str, ...] = ()
+    provides: tuple[str, ...] = ()
+    obsoletes: tuple[str, ...] = ()
     # version 1.2
-    maintainer = None
-    maintainer_email = None
-    requires_python = None
-    requires_external = ()
+    maintainer: str | None = None
+    maintainer_email: str | None = None
+    requires_python: str | None = None
+    requires_external: tuple[str, ...] = ()
     requires_dist: list[str] = []
-    provides_dist = ()
-    obsoletes_dist = ()
+    provides_dist: tuple[str, ...] = ()
+    obsoletes_dist: tuple[str, ...] = ()
     project_urls: tuple[str, ...] = ()
 
     # Version 2.1
-    description_content_type = None
+    description_content_type: str | None = None
     provides_extra: list[str] = []
 
     @classmethod
     def from_package(cls, package: Package) -> Metadata:
-        from poetry.core.utils.helpers import canonicalize_name
+        from packaging.utils import canonicalize_name
+
         from poetry.core.utils.helpers import normalize_version
         from poetry.core.version.helpers import format_python_constraint
 

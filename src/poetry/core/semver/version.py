@@ -86,14 +86,6 @@ class Version(PEP440Version, VersionRangeConstraint):
         # allow weak equality to allow `3.0.0+local.1` for `3.0.0`
         if not _this.is_local() and _other.is_local():
             _other = _other.without_local()
-        elif _this.is_local() and not _other.is_local():
-            _this = _this.without_local()
-
-        # allow weak equality to allow `3.0.0-1` for `3.0.0`
-        if not _this.is_postrelease() and _other.is_postrelease():
-            _other = _other.without_postrelease()
-        elif _this.without_postrelease() and not _other.without_postrelease():
-            _this = _this.without_postrelease()
 
         return _this == _other
 
@@ -103,11 +95,17 @@ class Version(PEP440Version, VersionRangeConstraint):
         )
 
     def allows_any(self, other: VersionConstraint) -> bool:
+        if isinstance(other, Version):
+            return self.allows(other)
+
         return other.allows(self)
 
     def intersect(self, other: VersionConstraint) -> Version | EmptyConstraint:
         if other.allows(self):
             return self
+
+        if isinstance(other, Version) and self.allows(other):
+            return other
 
         return EmptyConstraint()
 
@@ -141,6 +139,9 @@ class Version(PEP440Version, VersionRangeConstraint):
             return EmptyConstraint()
 
         return self
+
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return [self]
 
     def __str__(self) -> str:
         return self.text

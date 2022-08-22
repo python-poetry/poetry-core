@@ -3,15 +3,7 @@ from __future__ import annotations
 import pytest
 
 from poetry.core.packages.dependency import Dependency
-from poetry.core.packages.package import Package
 from poetry.core.version.markers import parse_marker
-
-
-def test_accepts() -> None:
-    dependency = Dependency("A", "^1.0")
-    package = Package("A", "1.4")
-
-    assert dependency.accepts(package)
 
 
 @pytest.mark.parametrize(
@@ -29,52 +21,6 @@ def test_accepts() -> None:
 )
 def test_allows_prerelease(constraint: str, result: bool) -> None:
     assert Dependency("A", constraint).allows_prereleases() == result
-
-
-def test_accepts_prerelease() -> None:
-    dependency = Dependency("A", "^1.0", allows_prereleases=True)
-    package = Package("A", "1.4-beta.1")
-
-    assert dependency.accepts(package)
-
-
-def test_accepts_python_versions() -> None:
-    dependency = Dependency("A", "^1.0")
-    dependency.python_versions = "^3.6"
-    package = Package("A", "1.4")
-    package.python_versions = "~3.6"
-
-    assert dependency.accepts(package)
-
-
-def test_accepts_fails_with_different_names() -> None:
-    dependency = Dependency("A", "^1.0")
-    package = Package("B", "1.4")
-
-    assert not dependency.accepts(package)
-
-
-def test_accepts_fails_with_version_mismatch() -> None:
-    dependency = Dependency("A", "~1.0")
-    package = Package("B", "1.4")
-
-    assert not dependency.accepts(package)
-
-
-def test_accepts_fails_with_prerelease_mismatch() -> None:
-    dependency = Dependency("A", "^1.0")
-    package = Package("B", "1.4-beta.1")
-
-    assert not dependency.accepts(package)
-
-
-def test_accepts_fails_with_python_versions_mismatch() -> None:
-    dependency = Dependency("A", "^1.0")
-    dependency.python_versions = "^3.6"
-    package = Package("B", "1.4")
-    package.python_versions = "~3.5"
-
-    assert not dependency.accepts(package)
 
 
 def test_to_pep_508() -> None:
@@ -288,7 +234,7 @@ def test_dependency_string_representation(
 def test_set_constraint_sets_pretty_constraint() -> None:
     dependency = Dependency("A", "^1.0")
     assert dependency.pretty_constraint == "^1.0"
-    dependency.set_constraint("^2.0")
+    dependency.constraint = "^2.0"  # type: ignore[assignment]
     assert dependency.pretty_constraint == "^2.0"
 
 
@@ -359,3 +305,51 @@ def test_marker_properly_unsets_python_constraint() -> None:
 def test_create_from_pep_508_url_with_activated_extras() -> None:
     dependency = Dependency.create_from_pep_508("name [fred,bar] @ http://foo.com")
     assert dependency.extras == {"fred", "bar"}
+
+
+@pytest.mark.parametrize(
+    "dependency1, dependency2, expected",
+    [
+        (Dependency("a", "1.0"), Dependency("a", "1.0"), True),
+        (Dependency("a", "1.0"), Dependency("a", "1.0.1"), False),
+        (Dependency("a", "1.0"), Dependency("a1", "1.0"), False),
+        (Dependency("a", "1.0"), Dependency("a", "1.0", source_type="file"), False),
+        # constraint is implicitly given for direct origin dependencies,
+        # but might not be set
+        (
+            Dependency("a", "1.0", source_type="file"),
+            Dependency("a", "*", source_type="file"),
+            True,
+        ),
+        # constraint is not implicit for non direct origin dependencies
+        (Dependency("a", "1.0"), Dependency("a", "*"), False),
+        (
+            Dependency("a", "1.0", source_type="legacy"),
+            Dependency("a", "*", source_type="legacy"),
+            False,
+        ),
+    ],
+)
+def test_eq(dependency1: Dependency, dependency2: Dependency, expected: bool) -> None:
+    assert (dependency1 == dependency2) is expected
+    assert (dependency2 == dependency1) is expected
+
+
+@pytest.mark.parametrize(
+    "attr_name, value",
+    [
+        ("constraint", "2.0"),
+        ("python_versions", "<3.8"),
+        ("transitive_python_versions", "<3.8"),
+        ("marker", "sys_platform == 'linux'"),
+        ("transitive_marker", "sys_platform == 'linux'"),
+    ],
+)
+def test_mutable_attributes_not_in_hash(attr_name: str, value: str) -> None:
+    dependency = Dependency("foo", "^1.2.3")
+    ref_hash = hash(dependency)
+
+    ref_value = getattr(dependency, attr_name)
+    setattr(dependency, attr_name, value)
+    assert value != ref_value
+    assert hash(dependency) == ref_hash

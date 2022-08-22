@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from poetry.core.packages.constraints.base_constraint import BaseConstraint
 from poetry.core.packages.constraints.constraint import Constraint
 
@@ -77,7 +75,7 @@ class MultiConstraint(BaseConstraint):
 
         return MultiConstraint(*constraints)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, MultiConstraint):
             return False
 

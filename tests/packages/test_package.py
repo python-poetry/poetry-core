@@ -8,6 +8,7 @@ from typing import cast
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.directory_dependency import DirectoryDependency
 from poetry.core.packages.file_dependency import FileDependency
@@ -172,7 +173,9 @@ def test_package_equality_source_reference() -> None:
     assert a2 != a4
 
 
-def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> None:
+def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> (
+    None
+):
     a1 = Package(
         "a",
         "0.1.0",
@@ -470,3 +473,70 @@ def test_set_readme_property() -> None:
     assert package.readmes == (Path("README.md"),)
     with pytest.deprecated_call():
         assert package.readme == Path("README.md")
+
+
+@pytest.mark.parametrize(
+    ("package", "dependency", "ignore_source_type", "result"),
+    [
+        (Package("foo", "0.1.0"), Dependency("foo", ">=0.1.0"), False, True),
+        (Package("foo", "0.1.0"), Dependency("foo", "<0.1.0"), False, False),
+        (
+            Package("foo", "0.1.0"),
+            Dependency("foo", ">=0.1.0", source_type="git"),
+            False,
+            False,
+        ),
+        (
+            Package("foo", "0.1.0"),
+            Dependency("foo", ">=0.1.0", source_type="git"),
+            True,
+            True,
+        ),
+        (
+            Package("foo", "0.1.0"),
+            Dependency("foo", "<0.1.0", source_type="git"),
+            True,
+            False,
+        ),
+    ],
+)
+def test_package_satisfies(
+    package: Package, dependency: Dependency, ignore_source_type: bool, result: bool
+) -> None:
+    assert package.satisfies(dependency, ignore_source_type) == result
+
+
+def test_package_pep592_default_not_yanked() -> None:
+    package = Package("foo", "1.0")
+
+    assert not package.yanked
+    assert package.yanked_reason == ""
+
+
+@pytest.mark.parametrize(
+    ("yanked", "expected_yanked", "expected_yanked_reason"),
+    [
+        (True, True, ""),
+        (False, False, ""),
+        ("the reason", True, "the reason"),
+        ("", True, ""),
+    ],
+)
+def test_package_pep592_yanked(
+    yanked: str | bool, expected_yanked: bool, expected_yanked_reason: str
+) -> None:
+    package = Package("foo", "1.0", yanked=yanked)
+
+    assert package.yanked == expected_yanked
+    assert package.yanked_reason == expected_yanked_reason
+
+
+def test_python_versions_are_normalized() -> None:
+    package = Package("foo", "1.2.3")
+    package.python_versions = ">3.6,<=3.10"
+
+    assert (
+        str(package.python_marker)
+        == 'python_version > "3.6" and python_version <= "3.10"'
+    )
+    assert str(package.python_constraint) == ">=3.7,<3.11"

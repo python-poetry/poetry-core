@@ -267,7 +267,9 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     )
 
 
-def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix() -> None:
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix() -> (
+    None
+):
     name = 'pathlib2 ; python_version == "3.4.*" or python_version < "3"'
     dep = Dependency.create_from_pep_508(name)
 
@@ -276,7 +278,9 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.python_versions == "==3.4.* || <3"
 
 
-def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde() -> None:
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde() -> (
+    None
+):
     name = 'pathlib2 ; python_version ~= "3.4" or python_version < "3"'
     dep = Dependency.create_from_pep_508(name)
 
@@ -285,7 +289,9 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.python_versions == "~=3.4 || <3"
 
 
-def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers() -> None:
+def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers() -> (
+    None
+):
     name = (
         'pytest-mypy; python_implementation != "PyPy" and python_version <= "3.10" and'
         ' python_version > "3"'
@@ -294,10 +300,10 @@ def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correc
 
     assert dep.name == "pytest-mypy"
     assert str(dep.constraint) == "*"
-    assert dep.python_versions == "<=3.10 >3"
+    assert dep.python_versions == "<3.11 >=3"
     assert dep.python_constraint.allows(Version.parse("3.6"))
-    assert dep.python_constraint.allows(Version.parse("3.10"))
-    assert not dep.python_constraint.allows(Version.parse("3"))
+    assert dep.python_constraint.allows(Version.parse("3.10.4"))
+    assert dep.python_constraint.allows(Version.parse("3"))
     assert dep.python_constraint.allows(Version.parse("3.0.1"))
     assert (
         str(dep.marker)

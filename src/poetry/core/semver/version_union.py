@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing import Any
 
 from poetry.core.semver.empty_constraint import EmptyConstraint
 from poetry.core.semver.version_constraint import VersionConstraint
@@ -91,7 +90,7 @@ class VersionUnion(VersionConstraint):
 
     def allows_all(self, other: VersionConstraint) -> bool:
         our_ranges = iter(self._ranges)
-        their_ranges = iter(self._ranges_for(other))
+        their_ranges = iter(other.flatten())
 
         our_current_range = next(our_ranges, None)
         their_current_range = next(their_ranges, None)
@@ -106,7 +105,7 @@ class VersionUnion(VersionConstraint):
 
     def allows_any(self, other: VersionConstraint) -> bool:
         our_ranges = iter(self._ranges)
-        their_ranges = iter(self._ranges_for(other))
+        their_ranges = iter(other.flatten())
 
         our_current_range = next(our_ranges, None)
         their_current_range = next(their_ranges, None)
@@ -124,7 +123,7 @@ class VersionUnion(VersionConstraint):
 
     def intersect(self, other: VersionConstraint) -> VersionConstraint:
         our_ranges = iter(self._ranges)
-        their_ranges = iter(self._ranges_for(other))
+        their_ranges = iter(other.flatten())
         new_ranges = []
 
         our_current_range = next(our_ranges, None)
@@ -148,7 +147,7 @@ class VersionUnion(VersionConstraint):
 
     def difference(self, other: VersionConstraint) -> VersionConstraint:
         our_ranges = iter(self._ranges)
-        their_ranges = iter(self._ranges_for(other))
+        their_ranges = iter(other.flatten())
         new_ranges: list[VersionConstraint] = []
 
         state = {
@@ -230,19 +229,8 @@ class VersionUnion(VersionConstraint):
 
         return VersionUnion.of(*new_ranges)
 
-    def _ranges_for(
-        self, constraint: VersionConstraint
-    ) -> list[VersionRangeConstraint]:
-        if constraint.is_empty():
-            return []
-
-        if isinstance(constraint, VersionUnion):
-            return constraint.ranges
-
-        if isinstance(constraint, VersionRangeConstraint):
-            return [constraint]
-
-        raise ValueError(f"Unknown VersionConstraint type {constraint}")
+    def flatten(self) -> list[VersionRangeConstraint]:
+        return self.ranges
 
     def _exclude_single_wildcard_range_string(self) -> str:
         """
@@ -406,7 +394,7 @@ class VersionUnion(VersionConstraint):
 
         return isinstance(VersionRange().difference(self), Version)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionUnion):
             return False
 

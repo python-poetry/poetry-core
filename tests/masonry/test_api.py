@@ -141,7 +141,7 @@ my-script=my_package:main
 """
     wheel_data = f"""\
 Wheel-Version: 1.0
-Generator: poetry {__version__}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import os
 import re
+import warnings
 
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import Iterable
+from typing import TypeVar
 
 from poetry.core.packages.constraints import (
     parse_constraint as parse_generic_constraint,
@@ -15,18 +16,22 @@ from poetry.core.packages.constraints import (
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker
+from poetry.core.packages.utils.utils import normalize_python_version_markers
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.constraints import BaseConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
-    from poetry.core.packages.package import Package
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
+
+    T = TypeVar("T", bound="Dependency")
 
 
 class Dependency(PackageSpecification):
@@ -58,7 +63,7 @@ class Dependency(PackageSpecification):
 
         self._constraint: VersionConstraint
         self._pretty_constraint: str
-        self.set_constraint(constraint=constraint)
+        self.constraint = constraint  # type: ignore[assignment]
 
         self._optional = optional
 
@@ -82,7 +87,6 @@ class Dependency(PackageSpecification):
         self._transitive_python_versions: str | None = None
         self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
-        self._extras = frozenset(extras or [])
 
         self._in_extras: list[str] = []
 
@@ -90,17 +94,18 @@ class Dependency(PackageSpecification):
 
         self.is_root = False
         self._marker: BaseMarker = AnyMarker()
-        self.source_name = None
+        self.source_name: str | None = None
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
 
     @property
     def constraint(self) -> VersionConstraint:
         return self._constraint
 
-    def set_constraint(self, constraint: str | VersionConstraint) -> None:
+    @constraint.setter
+    def constraint(self, constraint: str | VersionConstraint) -> None:
         from poetry.core.semver.version_constraint import VersionConstraint
 
         try:
@@ -111,6 +116,15 @@ class Dependency(PackageSpecification):
         except ValueError:
             self._constraint = parse_constraint("*")
         self._pretty_constraint = str(constraint)
+
+    def set_constraint(self, constraint: str | VersionConstraint) -> None:
+        warnings.warn(
+            "Calling method 'set_constraint' is deprecated and will be removed. "
+            "It has been replaced by the property 'constraint' for consistency.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.constraint = constraint  # type: ignore[assignment]
 
     @property
     def pretty_constraint(self) -> str:
@@ -182,39 +196,10 @@ class Dependency(PackageSpecification):
         # Recalculate python versions.
         self._python_versions = "*"
         if not contains_group_without_marker(markers, "python_version"):
-            ors = []
-            for or_ in markers["python_version"]:
-                ands = []
-                for op, version in or_:
-                    # Expand python version
-                    if op == "==" and "*" not in version:
-                        version = "~" + version
-                        op = ""
-                    elif op == "!=":
-                        version += ".*"
-                    elif op in ("in", "not in"):
-                        versions = []
-                        for v in re.split("[ ,]+", version):
-                            split = v.split(".")
-                            if len(split) in [1, 2]:
-                                split.append("*")
-                                op_ = "" if op == "in" else "!="
-                            else:
-                                op_ = "==" if op == "in" else "!="
-
-                            versions.append(op_ + ".".join(split))
-
-                        glue = " || " if op == "in" else ", "
-                        if versions:
-                            ands.append(glue.join(versions))
-
-                        continue
-
-                    ands.append(f"{op}{version}")
-
-                ors.append(" ".join(ands))
-
-            self._python_versions = " || ".join(ors)
+            python_version_markers = markers["python_version"]
+            self._python_versions = normalize_python_version_markers(
+                python_version_markers
+            )
 
         self._python_constraint = parse_constraint(self._python_versions)
 
@@ -242,7 +227,8 @@ class Dependency(PackageSpecification):
 
     @property
     def extras(self) -> frozenset[str]:
-        return self._extras
+        # extras activated in a dependency is the same as features
+        return self._features
 
     @property
     def in_extras(self) -> list[str]:
@@ -301,16 +287,6 @@ class Dependency(PackageSpecification):
 
     def is_url(self) -> bool:
         return False
-
-    def accepts(self, package: Package) -> bool:
-        """
-        Determines if the given package matches this dependency.
-        """
-        return (
-            self._name == package.name
-            and self._constraint.allows(package.version)
-            and (not package.is_prerelease() or self.allows_prereleases())
-        )
 
     def to_pep_508(self, with_extras: bool = True) -> str:
         from poetry.core.packages.utils.utils import convert_markers
@@ -455,29 +431,10 @@ class Dependency(PackageSpecification):
 
         self._activated = False
 
-    def with_constraint(self, constraint: str | VersionConstraint) -> Dependency:
-        new = Dependency(
-            self.pretty_name,
-            constraint,
-            optional=self.is_optional(),
-            groups=list(self._groups),
-            allows_prereleases=self.allows_prereleases(),
-            extras=self._extras,
-            source_type=self._source_type,
-            source_url=self._source_url,
-            source_reference=self._source_reference,
-        )
-
-        new.is_root = self.is_root
-        new.python_versions = self.python_versions
-        new.transitive_python_versions = self.transitive_python_versions
-        new.marker = self.marker
-        new.transitive_marker = self.transitive_marker
-
-        for in_extra in self.in_extras:
-            new.in_extras.append(in_extra)
-
-        return new
+    def with_constraint(self: T, constraint: str | VersionConstraint) -> T:
+        dependency = self.clone()
+        dependency.constraint = constraint  # type: ignore[assignment]
+        return dependency
 
     @classmethod
     def create_from_pep_508(
@@ -491,7 +448,7 @@ class Dependency(PackageSpecification):
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.link import Link
         from poetry.core.packages.utils.utils import is_archive_file
-        from poetry.core.packages.utils.utils import is_installable_dir
+        from poetry.core.packages.utils.utils import is_python_project
         from poetry.core.packages.utils.utils import is_url
         from poetry.core.packages.utils.utils import path_to_url
         from poetry.core.packages.utils.utils import strip_extras
@@ -522,10 +479,9 @@ class Dependency(PackageSpecification):
             path_str = os.path.normpath(os.path.abspath(name))
             p, extras = strip_extras(path_str)
             if os.path.isdir(p) and (os.path.sep in name or name.startswith(".")):
-
-                if not is_installable_dir(p):
+                if not is_python_project(Path(name)):
                     raise ValueError(
-                        f"Directory {name!r} is not installable. File 'setup.py' "
+                        f"Directory {name!r} is not installable. File 'setup.[py|cfg]' "
                         "not found."
                     )
                 link = Link(path_to_url(p))
@@ -605,25 +561,30 @@ class Dependency(PackageSpecification):
 
         return dep
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Dependency):
             return NotImplemented
 
-        return (
-            self.is_same_package_as(other)
-            and self._constraint == other.constraint
-            and self._extras == other.extras
+        # "constraint" is implicitly given for direct origin dependencies and might not
+        # be set yet ("*"). Thus, it shouldn't be used to determine if two direct origin
+        # dependencies are equal.
+        # Calling is_direct_origin() for one dependency is sufficient because
+        # super().__eq__() returns False for different origins.
+        return super().__eq__(other) and (
+            self._constraint == other.constraint or self.is_direct_origin()
         )
 
-    def __ne__(self, other: Any) -> bool:
-        return not self.__eq__(other)
-
     def __hash__(self) -> int:
-        return super().__hash__() ^ hash(self._constraint) ^ hash(self._extras)
+        # don't include _constraint in hash because it is mutable!
+        return super().__hash__()
 
     def __str__(self) -> str:
         if self.is_root:
             return self._pretty_name
+        if self.is_direct_origin():
+            # adding version since this information is especially useful in debug output
+            parts = [p.strip() for p in self.base_pep_508_name.split("@", 1)]
+            return f"{parts[0]} ({self._pretty_constraint}) @ {parts[1]}"
         return self.base_pep_508_name
 
     def __repr__(self) -> str:
