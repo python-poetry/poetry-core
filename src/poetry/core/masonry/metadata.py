@@ -6,13 +6,15 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.package import Package
 
 
 class Metadata:
     metadata_version = "2.1"
     # version 1.0
-    name: str | None = None
+    name: NormalizedName | None = None
     version: str
     platforms: tuple[str, ...] = ()
     supported_platforms: tuple[str, ...] = ()
