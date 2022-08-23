@@ -292,7 +292,7 @@ class Git:
 
         self._check_parameter(rev)
 
-        args += ["checkout", rev]
+        args += ["checkout", "--recurse-submodules", rev]
 
         return self.run(*args)
 
