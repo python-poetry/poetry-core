@@ -4,7 +4,6 @@ import copy
 import re
 import warnings
 
-from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import TypeVar
@@ -21,7 +20,6 @@ from poetry.core.version.markers import parse_marker
 if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Iterable
-    from collections.abc import Iterator
     from pathlib import Path
 
     from packaging.utils import NormalizedName
@@ -577,16 +575,6 @@ class Package(PackageSpecification):
             return dep
 
         return dep.with_constraint(self._version)
-
-    @contextmanager
-    def with_python_versions(self, python_versions: str) -> Iterator[None]:
-        original_python_versions = self.python_versions
-
-        self.python_versions = python_versions
-
-        yield
-
-        self.python_versions = original_python_versions
 
     def satisfies(
         self, dependency: Dependency, ignore_source_type: bool = False
