@@ -316,7 +316,7 @@ def normalize_python_version_markers(  # NOSONAR
         ands = []
         for op, version in or_:
             # Expand python version
-            if op == "==" and "*" not in version:
+            if op == "==" and "*" not in version and version.count(".") < 2:
                 version = "~" + version
                 op = ""
 
