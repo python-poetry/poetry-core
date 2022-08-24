@@ -64,12 +64,27 @@ class ProjectPackage(Package):
         )
 
     @property
+    def version(self) -> Version:
+        # override version to make it settable
+        return super().version
+
+    @version.setter
+    def version(self, value: str | Version) -> None:
+        self._set_version(value)
+
+    @property
     def urls(self) -> dict[str, str]:
         urls = super().urls
 
         urls.update(self.custom_urls)
 
         return urls
+
+    def __hash__(self) -> int:
+        # The parent Package class's __hash__ incorporates the version because
+        # a Package's version is immutable. But a ProjectPackage's version is
+        # mutable. So call Package's parent hash function.
+        return super(Package, self).__hash__()
 
     def build_should_generate_setup(self) -> bool:
         return self.build_config.get("generate-setup-file", True)
