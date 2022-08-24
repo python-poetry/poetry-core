@@ -42,7 +42,7 @@ class VCSDependency(Dependency):
             allows_prereleases=True,
             source_type=self._vcs.lower(),
             source_url=self._source,
-            source_reference=branch or tag or rev,
+            source_reference=branch or tag or rev or "HEAD",
             source_resolved_reference=resolved_rev,
             source_subdirectory=directory,
             extras=extras,
