@@ -552,9 +552,6 @@ def test_cannot_update_package_version() -> None:
 
 def test_project_package_version_update_string() -> None:
     package = ProjectPackage("foo", "1.2.3")
-    # TODO: I could use some help deciding what to do about mypy here. The
-    # setter accepts both str and Version, even though the property is always a
-    # Version.
     package.version = "1.2.4"  # type: ignore[assignment]
     assert package.version.text == "1.2.4"
 
@@ -563,3 +560,17 @@ def test_project_package_version_update_version() -> None:
     package = ProjectPackage("foo", "1.2.3")
     package.version = Version.parse("1.2.4")
     assert package.version.text == "1.2.4"
+
+
+def test_project_package_hash_not_changed_when_version_is_changed() -> None:
+    package = ProjectPackage("foo", "1.2.3")
+    package_hash = hash(package)
+    package_clone = package.clone()
+    assert package == package_clone
+    assert hash(package) == hash(package_clone)
+
+    package.version = Version.parse("1.2.4")
+
+    assert hash(package) == package_hash, "Hash must not change!"
+    assert hash(package_clone) == package_hash
+    assert package != package_clone
