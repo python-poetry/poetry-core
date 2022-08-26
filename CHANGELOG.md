@@ -2,6 +2,9 @@
 
 ## [1.1.0rc2] - 2022-08-26
 
+### Changed
+- Enabled setting `version` of `ProjectPackage` to support dynamically setting the project's package version (e.g. from a plugin) ([#447](https://github.com/python-poetry/poetry-core/pull/447)).
+
 ### Fixed
 
 - Fixed an issue where `authors` property was not detected ([#437](https://github.com/python-poetry/poetry-core/pull/437)).
