@@ -66,7 +66,6 @@ class Package(PackageSpecification):
         """
         Creates a new in memory package.
         """
-        from poetry.core.semver.version import Version
         from poetry.core.version.markers import AnyMarker
 
         super().__init__(
@@ -79,12 +78,7 @@ class Package(PackageSpecification):
             features=features,
         )
 
-        if not isinstance(version, Version):
-            self._version = Version.parse(version)
-            self._pretty_version = pretty_version or version
-        else:
-            self._version = version
-            self._pretty_version = pretty_version or self._version.text
+        self._set_version(version, pretty_version)
 
         self.description = ""
 
@@ -215,6 +209,18 @@ class Package(PackageSpecification):
             for group in self._dependency_groups.values()
             for dependency in group.dependencies
         ]
+
+    def _set_version(
+        self, version: str | Version, pretty_version: str | None = None
+    ) -> None:
+        from poetry.core.semver.version import Version
+
+        if not isinstance(version, Version):
+            self._version = Version.parse(version)
+            self._pretty_version = pretty_version or version
+        else:
+            self._version = version
+            self._pretty_version = pretty_version or self._version.text
 
     def _get_author(self) -> dict[str, str | None]:
         if not self._authors:

@@ -13,8 +13,10 @@ from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.directory_dependency import DirectoryDependency
 from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.package import Package
+from poetry.core.packages.project_package import ProjectPackage
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
+from poetry.core.semver.version import Version
 
 
 @pytest.fixture()
@@ -540,3 +542,35 @@ def test_python_versions_are_normalized() -> None:
         == 'python_version > "3.6" and python_version <= "3.10"'
     )
     assert str(package.python_constraint) == ">=3.7,<3.11"
+
+
+def test_cannot_update_package_version() -> None:
+    package = Package("foo", "1.2.3")
+    with pytest.raises(AttributeError):
+        package.version = "1.2.4"  # type: ignore[misc,assignment]
+
+
+def test_project_package_version_update_string() -> None:
+    package = ProjectPackage("foo", "1.2.3")
+    package.version = "1.2.4"  # type: ignore[assignment]
+    assert package.version.text == "1.2.4"
+
+
+def test_project_package_version_update_version() -> None:
+    package = ProjectPackage("foo", "1.2.3")
+    package.version = Version.parse("1.2.4")
+    assert package.version.text == "1.2.4"
+
+
+def test_project_package_hash_not_changed_when_version_is_changed() -> None:
+    package = ProjectPackage("foo", "1.2.3")
+    package_hash = hash(package)
+    package_clone = package.clone()
+    assert package == package_clone
+    assert hash(package) == hash(package_clone)
+
+    package.version = Version.parse("1.2.4")
+
+    assert hash(package) == package_hash, "Hash must not change!"
+    assert hash(package_clone) == package_hash
+    assert package != package_clone
