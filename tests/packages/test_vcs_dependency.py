@@ -1,16 +1,51 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 
-def test_to_pep_508() -> None:
+@pytest.mark.parametrize(
+    "kwargs, expected",
+    [
+        ({}, "poetry @ git+https://github.com/python-poetry/poetry.git"),
+        (
+            {"extras": ["foo"]},
+            "poetry[foo] @ git+https://github.com/python-poetry/poetry.git",
+        ),
+        (
+            {"extras": ["foo", "bar"]},
+            "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git",
+        ),
+        (
+            {"branch": "main"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git@main",
+        ),
+        (
+            {"tag": "1.0"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git@1.0",
+        ),
+        (
+            {"rev": "12345"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git@12345",
+        ),
+        (
+            {"directory": "sub"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git#subdirectory=sub",
+        ),
+        (
+            {"branch": "main", "directory": "sub"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git"
+            "@main#subdirectory=sub",
+        ),
+    ],
+)
+def test_to_pep_508(kwargs: dict[str, Any], expected: str) -> None:
     dependency = VCSDependency(
-        "poetry", "git", "https://github.com/python-poetry/poetry.git"
+        "poetry", "git", "https://github.com/python-poetry/poetry.git", **kwargs
     )
-
-    expected = "poetry @ git+https://github.com/python-poetry/poetry.git"
 
     assert dependency.to_pep_508() == expected
 
@@ -19,19 +54,6 @@ def test_to_pep_508_ssh() -> None:
     dependency = VCSDependency("poetry", "git", "git@github.com:sdispater/poetry.git")
 
     expected = "poetry @ git+ssh://git@github.com/sdispater/poetry.git"
-
-    assert dependency.to_pep_508() == expected
-
-
-def test_to_pep_508_with_extras() -> None:
-    dependency = VCSDependency(
-        "poetry",
-        "git",
-        "https://github.com/python-poetry/poetry.git",
-        extras=["foo", "bar"],
-    )
-
-    expected = "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git"
 
     assert dependency.to_pep_508() == expected
 
