@@ -1,5 +1,24 @@
 # Change Log
 
+## [1.1.0rc3] - 2022-08-26
+
+### Fixed
+
+- Fixed an issue where a malformed URL was passed to pip when installing from a git subdirectory ([#451](https://github.com/python-poetry/poetry-core/pull/451)).
+
+## [1.1.0rc2] - 2022-08-26
+
+### Changed
+- Enabled setting `version` of `ProjectPackage` to support dynamically setting the project's package version (e.g. from a plugin) ([#447](https://github.com/python-poetry/poetry-core/pull/447)).
+
+### Fixed
+
+- Fixed an issue where `authors` property was not detected ([#437](https://github.com/python-poetry/poetry-core/pull/437)).
+- Fixed an issue where submodules of git dependencies was not checked out ([#439](https://github.com/python-poetry/poetry-core/pull/439)).
+- Fixed an issue with Python constraints from markers ([#448](https://github.com/python-poetry/poetry-core/pull/448)).
+- Fixed an issue where the latest version of git dependency was selected instead of the locked one ([#449](https://github.com/python-poetry/poetry-core/pull/449)).
+
+
 ## [1.1.0rc1] - 2022-08-17
 
 ### Changed
@@ -342,7 +361,9 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0rc1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0rc3...main
+[1.1.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc3
+[1.1.0rc2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc2
 [1.1.0rc1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc1
 [1.1.0b3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b3
 [1.1.0b2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0b2
