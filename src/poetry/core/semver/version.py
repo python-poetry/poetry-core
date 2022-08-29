@@ -166,7 +166,7 @@ class Version(PEP440Version, VersionRangeConstraint):
         major: int,
         minor: int | None = None,
         patch: int | None = None,
-        extra: int | tuple[int, ...] | None = None,
+        extra: int | tuple[int, ...] = (),
         pre: ReleaseTag | None = None,
         post: ReleaseTag | None = None,
         dev: ReleaseTag | None = None,
@@ -174,6 +174,8 @@ class Version(PEP440Version, VersionRangeConstraint):
         *,
         epoch: int = 0,
     ) -> Version:
+        if isinstance(extra, int):
+            extra = (extra,)
         return cls(
             release=Release(major=major, minor=minor, patch=patch, extra=extra),
             pre=pre,
