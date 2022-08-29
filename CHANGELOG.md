@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.1.0] - 2022-08-31
+
+- No functional changes.
+
 ## [1.1.0rc3] - 2022-08-26
 
 ### Fixed
@@ -361,7 +365,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0rc3...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0...main
+[1.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0
 [1.1.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc3
 [1.1.0rc2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc2
 [1.1.0rc1]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc1
