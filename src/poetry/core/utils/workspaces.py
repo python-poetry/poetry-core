@@ -6,6 +6,10 @@ from pathlib import Path
 workspace_file = "workspace.toml"
 
 
+def is_drive_root(cwd: Path) -> bool:
+    return cwd == Path(cwd.root) or cwd == cwd.parent
+
+
 def is_repo_root(cwd: Path) -> bool:
     fullpath = cwd / ".git"
 
@@ -13,7 +17,7 @@ def is_repo_root(cwd: Path) -> bool:
 
 
 def find_upwards(cwd: Path, name: str) -> Path | None:
-    if cwd == Path(cwd.root):
+    if is_drive_root(cwd):
         return None
 
     fullpath = cwd / name
