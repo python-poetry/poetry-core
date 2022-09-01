@@ -7,14 +7,11 @@ on:
 
 jobs:
   Tests:
-    name: ${{ matrix.os }} / ${{ matrix.python-version }}
-    runs-on: "${{ matrix.os }}-latest"
-    continue-on-error: ${{ matrix.experimental }}
+    name: ${{ matrix.ref }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [Ubuntu]
-        python-version: [3.9]
-        experimental: [false]
+        ref: ["master", "1.2"]
     defaults:
       run:
         shell: bash
@@ -25,49 +22,45 @@ jobs:
 
       - uses: actions/checkout@v3
         with:
-          repository: python-poetry/poetry
           path: poetry
+          repository: python-poetry/poetry
+          ref: ${{ matrix.ref }}
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.10"
 
       - name: Get full python version
         id: full-python-version
         run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
 
-      - name: Install poetry
-        run: pip install poetry
-
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
+      - name: Set up Poetry
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
 
       - name: Set up cache
         uses: actions/cache@v3
         id: cache
         with:
           path: ./poetry/.venv
-          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Ensure cache is healthy
         if: steps.cache.outputs.cache-hit == 'true'
         working-directory: ./poetry
         run: timeout 10s poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
 
-      - name: Update poetry-core version
+      - name: Switch downstream to development poetry-core
         working-directory: ./poetry
-        run: |
-          # workaround 1.1.13 bug not respecting direct origin dep changes
-          poetry run pip uninstall -y poetry-core
-          poetry add --lock ../poetry-core
-          git diff
+        run: poetry add --lock ../poetry-core
 
-      - name: Install poetry (downstream)
+      - name: Install downstream dependencies
         working-directory: ./poetry
         run: poetry install
 
       # TODO: mark run as success even when this fails and add comment to PR instead
-      - name: Run poetry test suite
+      - name: Run downstream test suite
         working-directory: ./poetry
         run: poetry run pytest
