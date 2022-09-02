@@ -506,6 +506,7 @@ class Package(PackageSpecification):
             dep = URLDependency(
                 self._name,
                 cast(str, self._source_url),
+                directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,

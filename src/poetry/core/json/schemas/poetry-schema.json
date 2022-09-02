@@ -504,6 +504,10 @@
           "type": "string",
           "description": "The url to the file."
         },
+        "subdirectory": {
+          "type": "string",
+          "description": "The relative path to the directory where the package is located."
+        },
         "python": {
           "type": "string",
           "description": "The python versions for which the dependency should be installed."

@@ -237,6 +237,21 @@ def test_dependency_from_pep_508_with_url() -> None:
     assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
 
 
+def test_dependency_from_pep_508_with_url_and_subdirectory() -> None:
+    name = (
+        "django-utils @"
+        " https://example.com/django-utils-1.0.0.tar.gz#subdirectory=django"
+    )
+
+    dep = Dependency.create_from_pep_508(name)
+
+    assert dep.name == "django-utils"
+    assert dep.is_url()
+    dep = cast(URLDependency, dep)
+    assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
+    assert dep.directory == "django"
+
+
 def test_dependency_from_pep_508_with_wheel_url() -> None:
     name = (
         "example_wheel @ https://example.com/example_wheel-14.0.2-py2.py3-none-any.whl"

@@ -323,6 +323,7 @@ class Factory:
                 dependency = URLDependency(
                     name,
                     constraint["url"],
+                    directory=constraint.get("subdirectory", None),
                     groups=groups,
                     optional=optional,
                     extras=constraint.get("extras", []),
