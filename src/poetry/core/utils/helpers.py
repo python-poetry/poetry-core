@@ -4,6 +4,7 @@ import os
 import shutil
 import stat
 import tempfile
+import time
 import unicodedata
 
 from contextlib import contextmanager
@@ -32,7 +33,7 @@ def normalize_version(version: str) -> str:
 def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
     name = tempfile.mkdtemp(*args, **kwargs)
     yield name
-    safe_rmtree(name)
+    robust_rmtree(name)
 
 
 def parse_requires(requires: str) -> list[str]:
@@ -89,6 +90,27 @@ def safe_rmtree(path: str | Path) -> None:
         return os.unlink(str(path))
 
     shutil.rmtree(path, onerror=_on_rm_error)
+
+
+def robust_rmtree(path: str, max_timeout: float = 1) -> None:
+    """
+    Robustly tries to delete paths.
+    Retries several times if an OSError occurs.
+    If the final attempt fails, the Exception is propagated
+    to the caller.
+    """
+    timeout = 0.001
+    while timeout < max_timeout:
+        try:
+            shutil.rmtree(path)
+            return  # Only hits this on success
+        except OSError:
+            # Increase the timeout and try again
+            time.sleep(timeout)
+            timeout *= 2
+
+    # Final attempt, pass any Exceptions up to caller.
+    safe_rmtree(path)
 
 
 def readme_content_type(path: str | Path) -> str:

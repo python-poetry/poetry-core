@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 
 from pathlib import Path
 from stat import S_IREAD
@@ -11,6 +12,7 @@ from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import normalize_version
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
+from poetry.core.utils.helpers import robust_rmtree
 from poetry.core.utils.helpers import temporary_directory
 
 
@@ -178,3 +180,28 @@ def test_utils_helpers_readme_content_type(
     readme: str | Path, content_type: str
 ) -> None:
     assert readme_content_type(readme) == content_type
+
+
+def test_robust_rmtree(mocker):
+    mocked_rmtree = mocker.patch("shutil.rmtree")
+
+    # this should work after an initial exception
+    name = tempfile.mkdtemp()
+    mocked_rmtree.side_effect = [
+        OSError(
+            "Couldn't delete file yet, waiting for references to clear", "mocked path"
+        ),
+        None,
+    ]
+    robust_rmtree(name)
+
+    # this should give up after retrying multiple times
+    name = tempfile.mkdtemp()
+    mocked_rmtree.side_effect = OSError(
+        "Couldn't delete file yet, this error won't go away after first attempt"
+    )
+    with pytest.raises(OSError):
+        robust_rmtree(name, max_timeout=0.04)
+
+    # clear the side effect (breaks the tear-down otherwise)
+    mocked_rmtree.side_effect = None
