@@ -5,6 +5,7 @@ import tempfile
 
 from pathlib import Path
 from stat import S_IREAD
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -14,6 +15,10 @@ from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import robust_rmtree
 from poetry.core.utils.helpers import temporary_directory
+
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(
@@ -182,7 +187,7 @@ def test_utils_helpers_readme_content_type(
     assert readme_content_type(readme) == content_type
 
 
-def test_robust_rmtree(mocker):
+def test_robust_rmtree(mocker: MockerFixture):
     mocked_rmtree = mocker.patch("shutil.rmtree")
 
     # this should work after an initial exception
