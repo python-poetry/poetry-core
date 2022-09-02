@@ -187,7 +187,7 @@ def test_utils_helpers_readme_content_type(
     assert readme_content_type(readme) == content_type
 
 
-def test_robust_rmtree(mocker: MockerFixture):
+def test_robust_rmtree(mocker: MockerFixture) -> None:
     mocked_rmtree = mocker.patch("shutil.rmtree")
 
     # this should work after an initial exception
