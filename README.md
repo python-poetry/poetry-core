@@ -23,7 +23,7 @@ build-backend = "poetry.core.masonry.api"
 ```
 
 Once this is present, a PEP 517 frontend like `pip` can build and install your project from source without the need
-for Poetry or any of it's dependencies.
+for Poetry or any of its dependencies.
 
 ```shell
 # install to current environment
@@ -34,12 +34,12 @@ pip wheel /path/to/poetry/managed/project
 ```
 
 ## Why is this required?
-Prior to the release of version `1.1.0`, Poetry was a build as a project management tool that included a PEP 517
-build backend. This was inefficient and time consuming in majority cases a PEP 517 build was required. For example,
+Prior to the release of version `1.1.0`, Poetry was a project management tool that included a PEP 517
+build backend. This was inefficient and time consuming when a PEP 517 build was required. For example,
 both `pip` and `tox` (with isolated builds) would install Poetry and all dependencies it required. Most of these
 dependencies are not required when the objective is to simply build either a source or binary distribution of your
 project.
 
 In order to improve the above situation, `poetry-core` was created. Shared functionality pertaining to PEP 517 build
-backends, including reading lock file, `pyproject.toml` and building wheel/sdist, were implemented in this package.  This
+backends, including reading lock file, `pyproject.toml` and building wheel/sdist, were implemented in this package. This
 makes PEP 517 builds extremely fast for Poetry managed packages.
