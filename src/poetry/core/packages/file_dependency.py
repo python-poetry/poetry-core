@@ -78,7 +78,9 @@ class FileDependency(Dependency):
             extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
-        path = path_to_url(self.path) if self.path.is_absolute() else self.path
+        path = (
+            path_to_url(self.path) if self.path.is_absolute() else self.path.as_posix()
+        )
         requirement += f" @ {path}"
 
         return requirement

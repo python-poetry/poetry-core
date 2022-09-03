@@ -114,25 +114,25 @@ def _test_file_dependency_pep_508(
     dep = cast(FileDependency, dep)
     assert dep.name == name
     assert dep.path == path
-    assert dep.to_pep_508() == pep_508_output or pep_508_input
+    assert dep.to_pep_508() == (pep_508_output or pep_508_input)
 
 
 def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
+    expected = f"demo @ {path.as_uri()}"
+
     requirement = f"demo @ file://{path.as_posix()}"
-    _test_file_dependency_pep_508(mocker, "demo", path, requirement)
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
     requirement = f"demo @ {path}"
-    _test_file_dependency_pep_508(mocker, "demo", path, requirement)
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
 def test_file_dependency_pep_508_local_file_localhost(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
     requirement = f"demo @ file://localhost{path.as_posix()}"
-    requirement_expected = f"demo @ file://{path.as_posix()}"
-    _test_file_dependency_pep_508(
-        mocker, "demo", path, requirement, requirement_expected
-    )
+    expected = f"demo @ {path.as_uri()}"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
 def test_file_dependency_pep_508_local_file_relative_path(
@@ -145,14 +145,15 @@ def test_file_dependency_pep_508_local_file_relative_path(
         _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
     requirement = f"demo @ {path}"
-    _test_file_dependency_pep_508(mocker, "demo", path, requirement)
+    expected = f"demo @ {path.as_posix()}"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
 def test_absolute_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     abs_path = DIST_PATH / wheel
-    requirement = f'demo @ file://{abs_path.as_posix()} ; sys_platform == "linux"'
+    requirement = f'demo @ {abs_path.as_uri()} ; sys_platform == "linux"'
     _test_file_dependency_pep_508(
         mocker,
         "demo",
