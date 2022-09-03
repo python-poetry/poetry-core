@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "project-with-markers-and-extras"
+version = "1.2.3"
+description = "This is a description"
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+packages = [
+    {include = "project"}
+]
+
+[tool.poetry.dependencies]
+python = "*"
+orjson = [
+    { url = "https://example/location/orjson-3.8.0-cp310-cp310-manylinux_2_28_x86_64.whl", platform = "linux", optional = true },
+    { url = "https://example/location/orjson-3.8.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", platform = "darwin", optional = true }
+]
+
+[tool.poetry.extras]
+all = ["orjson"]

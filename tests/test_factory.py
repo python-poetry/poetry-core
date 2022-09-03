@@ -8,9 +8,11 @@ from typing import cast
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
+from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
@@ -321,6 +323,26 @@ def test_create_poetry_with_groups_and_explicit_main() -> None:
     assert {dependency.name for dependency in dependencies} == {
         "aiohttp",
     }
+
+
+def test_create_poetry_with_markers_and_extras() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_markers_and_extras")
+
+    package = poetry.package
+    dependencies = package.requires
+    extras = package.extras
+
+    assert len(dependencies) == 2
+    assert {dependency.name for dependency in dependencies} == {"orjson"}
+    assert set(extras["all"]) == set(dependencies)
+    for dependency in dependencies:
+        assert dependency.in_extras == ["all"]
+        assert isinstance(dependency, URLDependency)
+        assert isinstance(dependency.marker, SingleMarker)
+        assert dependency.marker.name == "sys_platform"
+        assert dependency.marker.value == (
+            "darwin" if "macosx" in dependency.url else "linux"
+        )
 
 
 @pytest.mark.parametrize(
