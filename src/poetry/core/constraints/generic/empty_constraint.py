@@ -6,9 +6,6 @@ from poetry.core.constraints.generic.base_constraint import BaseConstraint
 class EmptyConstraint(BaseConstraint):
     pretty_string = None
 
-    def matches(self, _: BaseConstraint) -> bool:
-        return True
-
     def is_empty(self) -> bool:
         return True
 
