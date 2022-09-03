@@ -59,6 +59,58 @@ def test_package_authors_invalid() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("name", "email"),
+    [
+        ("Sébastien Eustace", "sebastien@eustace.io"),
+        ("John Doe", None),
+        ("'Jane Doe'", None),
+        ('"Jane Doe"', None),
+        ("MyCompany", None),
+        ("Some Company’s", None),
+        ("MyCompany's R&D", "rnd@MyCompanyName.MyTLD"),
+        ("Doe, John", None),
+        ("(Doe, John)", None),
+        ("John Doe", "john@john.doe"),
+        ("Doe, John", "dj@john.doe"),
+        ("MyCompanyName R&D", "rnd@MyCompanyName.MyTLD"),
+        ("John-Paul: Doe", None),
+        ("John-Paul: Doe", "jp@nomail.none"),
+        ("John Doe the 3rd", "3rd@jd.net"),
+    ],
+)
+def test_package_authors_valid(name: str, email: str | None) -> None:
+    package = Package("foo", "0.1.0")
+
+    if email is None:
+        author = name
+    else:
+        author = f"{name} <{email}>"
+    package.authors.insert(0, author)
+    assert package.author_name == name
+    assert package.author_email == email
+
+
+@pytest.mark.parametrize(
+    ("name",),
+    [
+        ("<john@john.doe>",),
+        ("john@john.doe",),
+        ("<John Doe",),
+        ("John? Doe",),
+        ("Jane+Doe",),
+        ("~John Doe",),
+        ("John~Doe",),
+    ],
+)
+def test_package_author_names_invalid(name: str) -> None:
+    package = Package("foo", "0.1.0")
+
+    package.authors.insert(0, name)
+    with pytest.raises(ValueError):
+        package.author_name
+
+
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
 def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory) -> None:
     package = Package("foo", "0.1.0")
