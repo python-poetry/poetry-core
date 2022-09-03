@@ -24,7 +24,6 @@ from poetry.core.version.markers import dnf
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
     from poetry.core.semver.version_constraint import VersionConstraint
-    from poetry.core.semver.version_union import VersionUnion
     from poetry.core.version.markers import BaseMarker
 
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
@@ -202,7 +201,7 @@ def contains_group_without_marker(markers: ConvertedMarkers, marker_name: str) -
 
 def create_nested_marker(
     name: str,
-    constraint: BaseConstraint | VersionUnion | Version | VersionConstraint,
+    constraint: BaseConstraint | VersionConstraint,
 ) -> str:
     from poetry.core.packages.constraints.constraint import Constraint
     from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -247,11 +246,11 @@ def create_nested_marker(
         # `python_version` is a special case: to keep the constructed marker equivalent
         # to the constraint we need to be careful with the precision.
         #
-        # PEP 440 tells us that that when we come to make the comparison the release
+        # PEP 440 tells us that when we come to make the comparison the release
         # segment will be zero padded: eg "<= 3.10" is equivalent to "<= 3.10.0".
         #
-        # But "python_version <= 3.10" is _not_ equivalent to "python_version <= 3.10.0" -
-        # see normalize_python_version_markers.
+        # But "python_version <= 3.10" is _not_ equivalent to "python_version <= 3.10.0"
+        # - see normalize_python_version_markers.
         #
         # A similar issue arises for a constraint like "> 3.6".
         if constraint.min is not None:
