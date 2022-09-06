@@ -81,6 +81,13 @@ class MultiConstraint(BaseConstraint):
 
         return set(self._constraints) == set(other._constraints)
 
+    def __hash__(self) -> int:
+        h = hash("multi")
+        for constraint in self._constraints:
+            h ^= hash(constraint)
+
+        return h
+
     def __str__(self) -> str:
         constraints = []
         for constraint in self._constraints:
