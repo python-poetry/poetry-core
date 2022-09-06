@@ -29,5 +29,8 @@ class BaseConstraint:
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {str(self)}>"
 
+    def __hash__(self) -> int:
+        raise NotImplementedError()
+
     def __eq__(self, other: object) -> bool:
         raise NotImplementedError()
