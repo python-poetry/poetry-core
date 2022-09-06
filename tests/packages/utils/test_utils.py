@@ -17,9 +17,11 @@ from poetry.core.version.markers import parse_marker
     "marker, expected",
     [
         (
-            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
-            ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
-            ' sys_platform == "darwin" and python_version < "3.3"',
+            (
+                'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+                ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
+                ' sys_platform == "darwin" and python_version < "3.3"'
+            ),
             {
                 "python_version": [
                     [("<", "3.6")],
@@ -34,9 +36,11 @@ from poetry.core.version.markers import parse_marker
             },
         ),
         (
-            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
-            ' "win32" and python_version < "3.6" and python_version >= "3.3" or'
-            ' sys_platform == "win32" and python_version < "3.3"',
+            (
+                'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+                ' "win32" and python_version < "3.6" and python_version >= "3.3" or'
+                ' sys_platform == "win32" and python_version < "3.3"'
+            ),
             {"python_version": [[("<", "3.6")]], "sys_platform": [[("==", "win32")]]},
         ),
         (
@@ -44,13 +48,17 @@ from poetry.core.version.markers import parse_marker
             {"python_version": [[("==", "2.7")], [("==", "2.6")]]},
         ),
         (
-            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
-            ' python_full_version < "3.6.0"',
+            (
+                '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+                ' python_full_version < "3.6.0"'
+            ),
             {"python_version": [[("<", "2.7")], [(">=", "3.0.0"), ("<", "3.6.0")]]},
         ),
         (
-            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
-            ' extra == "foo"',
+            (
+                '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+                ' extra == "foo"'
+            ),
             {
                 "extra": [[("==", "foo")]],
                 "python_version": [[("<", "2.7")], [(">=", "3.0.0")]],
@@ -135,8 +143,10 @@ def test_create_nested_marker_base_constraint(constraint: str, expected: str) ->
         ("<3.7 || >=3.8", '(python_version < "3.7") or (python_version >= "3.8")'),
         (
             ">=3.7,<3.8 || >=3.9,<=3.10",
-            '(python_version >= "3.7" and python_version < "3.8")'
-            ' or (python_version >= "3.9" and python_full_version <= "3.10.0")',
+            (
+                '(python_version >= "3.7" and python_version < "3.8")'
+                ' or (python_version >= "3.9" and python_full_version <= "3.10.0")'
+            ),
         ),
     ],
 )
@@ -186,13 +196,17 @@ def test_create_nested_marker_version_constraint(
         ('python_version < "3.6" or python_version >= "3.9"', "<3.6 || >=3.9"),
         # and or
         (
-            'python_version >= "3.7" and python_version < "3.8" or python_version >='
-            ' "3.9" and python_version < "3.10"',
+            (
+                'python_version >= "3.7" and python_version < "3.8" or python_version'
+                ' >= "3.9" and python_version < "3.10"'
+            ),
             ">=3.7,<3.8 || >=3.9,<3.10",
         ),
         (
-            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
-            ' python_full_version < "3.6.0"',
+            (
+                '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+                ' python_full_version < "3.6.0"'
+            ),
             "<2.7 || >=3.0,<3.6",
         ),
         # no python_version
