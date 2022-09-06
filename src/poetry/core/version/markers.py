@@ -588,7 +588,7 @@ class MultiMarker(BaseMarker):
     def __hash__(self) -> int:
         h = hash("multi")
         for m in self._markers:
-            h |= hash(m)
+            h ^= hash(m)
 
         return h
 
@@ -763,7 +763,7 @@ class MarkerUnion(BaseMarker):
     def __hash__(self) -> int:
         h = hash("union")
         for m in self._markers:
-            h |= hash(m)
+            h ^= hash(m)
 
         return h
 
