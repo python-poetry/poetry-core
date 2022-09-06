@@ -79,9 +79,7 @@ class MultiConstraint(BaseConstraint):
         if not isinstance(other, MultiConstraint):
             return False
 
-        return sorted(
-            self._constraints, key=lambda c: (c.operator, c.version)
-        ) == sorted(other.constraints, key=lambda c: (c.operator, c.version))
+        return set(self._constraints) == set(other._constraints)
 
     def __str__(self) -> str:
         constraints = []
