@@ -8,9 +8,11 @@ from typing import cast
 import pytest
 
 from poetry.core.factory import Factory
+from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
+from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
@@ -227,16 +229,24 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             "'version' is a required property",
             "'description' is a required property",
             "'authors' is a required property",
-            'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
-            " defined.",
-            "Declared README files must be of same type: found text/markdown,"
-            " text/x-rst",
+            (
+                'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
+                " defined."
+            ),
+            (
+                "Declared README files must be of same type: found text/markdown,"
+                " text/x-rst"
+            ),
         ],
         "warnings": [
-            "A wildcard Python dependency is ambiguous. Consider specifying a more"
-            " explicit one.",
-            'The "pathlib2" dependency specifies the "allows-prereleases" property,'
-            ' which is deprecated. Use "allow-prereleases" instead.',
+            (
+                "A wildcard Python dependency is ambiguous. Consider specifying a more"
+                " explicit one."
+            ),
+            (
+                'The "pathlib2" dependency specifies the "allows-prereleases" property,'
+                ' which is deprecated. Use "allow-prereleases" instead.'
+            ),
         ],
     }
 
@@ -323,6 +333,26 @@ def test_create_poetry_with_groups_and_explicit_main() -> None:
     }
 
 
+def test_create_poetry_with_markers_and_extras() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_markers_and_extras")
+
+    package = poetry.package
+    dependencies = package.requires
+    extras = package.extras
+
+    assert len(dependencies) == 2
+    assert {dependency.name for dependency in dependencies} == {"orjson"}
+    assert set(extras["all"]) == set(dependencies)
+    for dependency in dependencies:
+        assert dependency.in_extras == ["all"]
+        assert isinstance(dependency, URLDependency)
+        assert isinstance(dependency.marker, SingleMarker)
+        assert dependency.marker.name == "sys_platform"
+        assert dependency.marker.value == (
+            "darwin" if "macosx" in dependency.url else "linux"
+        )
+
+
 @pytest.mark.parametrize(
     "constraint, exp_python, exp_marker",
     [
@@ -351,8 +381,10 @@ def test_create_poetry_with_groups_and_explicit_main() -> None:
                 "markers": 'platform_machine == "x86_64"',
             },
             "~3.7",
-            'platform_machine == "x86_64" and python_version == "3.7" and sys_platform'
-            ' == "linux"',
+            (
+                'platform_machine == "x86_64" and python_version == "3.7" and'
+                ' sys_platform == "linux"'
+            ),
         ),
         (
             {"python": ">=3.7", "markers": 'python_version < "4.0"'},

@@ -455,13 +455,17 @@ def test_multi_marker_union_multi_is_single_marker() -> None:
     [
         (
             'python_version >= "3" and sys_platform == "win32"',
-            'python_version >= "3" and sys_platform != "win32" and sys_platform !='
-            ' "linux"',
+            (
+                'python_version >= "3" and sys_platform != "win32" and sys_platform !='
+                ' "linux"'
+            ),
             'python_version >= "3" and sys_platform != "linux"',
         ),
         (
-            'python_version >= "3.8" and python_version < "4.0" and sys_platform =='
-            ' "win32"',
+            (
+                'python_version >= "3.8" and python_version < "4.0" and sys_platform =='
+                ' "win32"'
+            ),
             'python_version >= "3.8" and python_version < "4.0"',
             'python_version >= "3.8" and python_version < "4.0"',
         ),
@@ -828,26 +832,34 @@ def test_multi_marker_removes_duplicates() -> None:
             False,
         ),
         (
-            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64"
-            " AMD64 win32 WIN32'",
+            (
+                "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+                " amd64 AMD64 win32 WIN32'"
+            ),
             {"platform_machine": "foo"},
             False,
         ),
         (
-            "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64"
-            " AMD64 win32 WIN32'",
+            (
+                "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+                " amd64 AMD64 win32 WIN32'"
+            ),
             {"platform_machine": "x86_64"},
             True,
         ),
         (
-            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
-            " amd64 AMD64 win32 WIN32'",
+            (
+                "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+                " amd64 AMD64 win32 WIN32'"
+            ),
             {"platform_machine": "foo"},
             True,
         ),
         (
-            "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
-            " amd64 AMD64 win32 WIN32'",
+            (
+                "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+                " amd64 AMD64 win32 WIN32'"
+            ),
             {"platform_machine": "x86_64"},
             False,
         ),
@@ -886,18 +898,24 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
             'python_version >= "3.6"',
         ),
         (
-            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
-            ' implementation_name == "pypy"',
+            (
+                'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+                ' implementation_name == "pypy"'
+            ),
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" and extra == "foo" or implementation_name =='
-            ' "pypy" and extra == "bar"',
+            (
+                'python_version >= "3.6" and extra == "foo" or implementation_name =='
+                ' "pypy" and extra == "bar"'
+            ),
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name =='
-            ' "pypy" or extra == "bar"',
+            (
+                'python_version >= "3.6" or extra == "foo" and implementation_name =='
+                ' "pypy" or extra == "bar"'
+            ),
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         ('extra == "foo"', ""),
@@ -926,20 +944,26 @@ def test_without_extras(marker: str, expected: str) -> None:
             'extra == "foo" or extra == "bar"',
         ),
         (
-            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
-            ' implementation_name == "pypy"',
+            (
+                'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+                ' implementation_name == "pypy"'
+            ),
             "python_version",
             'extra == "foo" or extra == "bar" or implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" and extra == "foo" or implementation_name =='
-            ' "pypy" and extra == "bar"',
+            (
+                'python_version >= "3.6" and extra == "foo" or implementation_name =='
+                ' "pypy" and extra == "bar"'
+            ),
             "implementation_name",
             'python_version >= "3.6" and extra == "foo" or extra == "bar"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name =='
-            ' "pypy" or extra == "bar"',
+            (
+                'python_version >= "3.6" or extra == "foo" and implementation_name =='
+                ' "pypy" or extra == "bar"'
+            ),
             "implementation_name",
             'python_version >= "3.6" or extra == "foo" or extra == "bar"',
         ),
@@ -975,26 +999,34 @@ def test_exclude(marker: str, excluded: str, expected: str) -> None:
             'extra == "foo" or extra == "bar"',
         ),
         (
-            'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
-            ' implementation_name == "pypy"',
+            (
+                'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+                ' implementation_name == "pypy"'
+            ),
             ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" and extra == "foo" or implementation_name =='
-            ' "pypy" and extra == "bar"',
+            (
+                'python_version >= "3.6" and extra == "foo" or implementation_name =='
+                ' "pypy" and extra == "bar"'
+            ),
             ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name =='
-            ' "pypy" or extra == "bar"',
+            (
+                'python_version >= "3.6" or extra == "foo" and implementation_name =='
+                ' "pypy" or extra == "bar"'
+            ),
             ["implementation_name"],
             'implementation_name == "pypy"',
         ),
         (
-            'python_version >= "3.6" or extra == "foo" and implementation_name =='
-            ' "pypy" or extra == "bar"',
+            (
+                'python_version >= "3.6" or extra == "foo" and implementation_name =='
+                ' "pypy" or extra == "bar"'
+            ),
             ["implementation_name", "python_version"],
             'python_version >= "3.6" or implementation_name == "pypy"',
         ),
@@ -1060,8 +1092,10 @@ def test_invert(marker: str, inverse: str) -> None:
     "marker, expected",
     [
         (
-            'python_version >= "3.6" or python_version < "3.7" or python_version <'
-            ' "3.6"',
+            (
+                'python_version >= "3.6" or python_version < "3.7" or python_version <'
+                ' "3.6"'
+            ),
             'python_version >= "3.6" or python_version < "3.7"',
         ),
     ],

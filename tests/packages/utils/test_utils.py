@@ -4,10 +4,12 @@ from pathlib import Path
 
 import pytest
 
+from poetry.core.packages.constraints import parse_constraint
 from poetry.core.packages.utils.utils import convert_markers
+from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 from poetry.core.packages.utils.utils import is_python_project
-from poetry.core.semver.helpers import parse_constraint
+from poetry.core.semver.helpers import parse_constraint as parse_version_constraint
 from poetry.core.version.markers import parse_marker
 
 
@@ -15,9 +17,11 @@ from poetry.core.version.markers import parse_marker
     "marker, expected",
     [
         (
-            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
-            ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
-            ' sys_platform == "darwin" and python_version < "3.3"',
+            (
+                'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+                ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
+                ' sys_platform == "darwin" and python_version < "3.3"'
+            ),
             {
                 "python_version": [
                     [("<", "3.6")],
@@ -32,9 +36,11 @@ from poetry.core.version.markers import parse_marker
             },
         ),
         (
-            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
-            ' "win32" and python_version < "3.6" and python_version >= "3.3" or'
-            ' sys_platform == "win32" and python_version < "3.3"',
+            (
+                'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+                ' "win32" and python_version < "3.6" and python_version >= "3.3" or'
+                ' sys_platform == "win32" and python_version < "3.3"'
+            ),
             {"python_version": [[("<", "3.6")]], "sys_platform": [[("==", "win32")]]},
         ),
         (
@@ -42,13 +48,17 @@ from poetry.core.version.markers import parse_marker
             {"python_version": [[("==", "2.7")], [("==", "2.6")]]},
         ),
         (
-            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
-            ' python_full_version < "3.6.0"',
+            (
+                '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+                ' python_full_version < "3.6.0"'
+            ),
             {"python_version": [[("<", "2.7")], [(">=", "3.0.0"), ("<", "3.6.0")]]},
         ),
         (
-            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
-            ' extra == "foo"',
+            (
+                '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+                ' extra == "foo"'
+            ),
             {
                 "extra": [[("==", "foo")]],
                 "python_version": [[("<", "2.7")], [(">=", "3.0.0")]],
@@ -76,6 +86,78 @@ def test_convert_markers(
     parsed_marker = parse_marker(marker)
     converted = convert_markers(parsed_marker)
     assert converted == expected
+
+
+@pytest.mark.parametrize(
+    ["constraint", "expected"],
+    [
+        ("*", ""),
+        ("==linux", 'sys_platform == "linux"'),
+        ("!=win32", 'sys_platform != "win32"'),
+        ("!=linux, !=win32", 'sys_platform != "linux" and sys_platform != "win32"'),
+        ("==linux || ==win32", 'sys_platform == "linux" or sys_platform == "win32"'),
+    ],
+)
+def test_create_nested_marker_base_constraint(constraint: str, expected: str) -> None:
+    assert (
+        create_nested_marker("sys_platform", parse_constraint(constraint)) == expected
+    )
+
+
+@pytest.mark.parametrize(
+    ["constraint", "expected"],
+    [
+        ("*", ""),
+        # simple version
+        ("3", 'python_version == "3"'),
+        ("3.9", 'python_version == "3.9"'),
+        ("3.9.0", 'python_full_version == "3.9.0"'),
+        ("3.9.1", 'python_full_version == "3.9.1"'),
+        # min
+        (">=3", 'python_version >= "3"'),
+        (">=3.9", 'python_version >= "3.9"'),
+        (">=3.9.0", 'python_full_version >= "3.9.0"'),
+        (">=3.9.1", 'python_full_version >= "3.9.1"'),
+        (">3", 'python_full_version > "3.0.0"'),
+        (">3.9", 'python_full_version > "3.9.0"'),
+        (">3.9.0", 'python_full_version > "3.9.0"'),
+        (">3.9.1", 'python_full_version > "3.9.1"'),
+        # max
+        ("<3", 'python_version < "3"'),
+        ("<3.9", 'python_version < "3.9"'),
+        ("<3.9.0", 'python_full_version < "3.9.0"'),
+        ("<3.9.1", 'python_full_version < "3.9.1"'),
+        ("<=3", 'python_full_version <= "3.0.0"'),
+        ("<=3.9", 'python_full_version <= "3.9.0"'),
+        ("<=3.9.0", 'python_full_version <= "3.9.0"'),
+        ("<=3.9.1", 'python_full_version <= "3.9.1"'),
+        # min and max
+        (">=3.7, <3.9", 'python_version >= "3.7" and python_version < "3.9"'),
+        (">=3.7, <=3.9", 'python_version >= "3.7" and python_full_version <= "3.9.0"'),
+        (">3.7, <3.9", 'python_full_version > "3.7.0" and python_version < "3.9"'),
+        (
+            ">3.7, <=3.9",
+            'python_full_version > "3.7.0" and python_full_version <= "3.9.0"',
+        ),
+        # union
+        ("<3.7 || >=3.8", '(python_version < "3.7") or (python_version >= "3.8")'),
+        (
+            ">=3.7,<3.8 || >=3.9,<=3.10",
+            (
+                '(python_version >= "3.7" and python_version < "3.8")'
+                ' or (python_version >= "3.9" and python_full_version <= "3.10.0")'
+            ),
+        ),
+    ],
+)
+def test_create_nested_marker_version_constraint(
+    constraint: str,
+    expected: str,
+) -> None:
+    assert (
+        create_nested_marker("python_version", parse_version_constraint(constraint))
+        == expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -114,13 +196,17 @@ def test_convert_markers(
         ('python_version < "3.6" or python_version >= "3.9"', "<3.6 || >=3.9"),
         # and or
         (
-            'python_version >= "3.7" and python_version < "3.8" or python_version >='
-            ' "3.9" and python_version < "3.10"',
+            (
+                'python_version >= "3.7" and python_version < "3.8" or python_version'
+                ' >= "3.9" and python_version < "3.10"'
+            ),
             ">=3.7,<3.8 || >=3.9,<3.10",
         ),
         (
-            '(python_version < "2.7" or python_full_version >= "3.0.0") and'
-            ' python_full_version < "3.6.0"',
+            (
+                '(python_version < "2.7" or python_full_version >= "3.0.0") and'
+                ' python_full_version < "3.6.0"'
+            ),
             "<2.7 || >=3.0,<3.6",
         ),
         # no python_version
@@ -143,7 +229,7 @@ def test_convert_markers(
 )
 def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None:
     marker_parsed = parse_marker(marker)
-    constraint_parsed = parse_constraint(constraint)
+    constraint_parsed = parse_version_constraint(constraint)
     assert get_python_constraint_from_marker(marker_parsed) == constraint_parsed
 
 
@@ -158,6 +244,6 @@ def test_get_python_constraint_from_marker(marker: str, constraint: str) -> None
         ("does_not_exist", False),
     ],
 )
-def test_package_utils_is_python_project(fixture: str, result: bool) -> None:
+def test_is_python_project(fixture: str, result: bool) -> None:
     path = Path(__file__).parent.parent.parent / "fixtures" / fixture
     assert is_python_project(path) == result

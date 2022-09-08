@@ -37,3 +37,6 @@ class AnyConstraint(BaseConstraint):
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, BaseConstraint) and other.is_any()
+
+    def __hash__(self) -> int:
+        return hash("any")

@@ -11,11 +11,14 @@ class URLDependency(Dependency):
         self,
         name: str,
         url: str,
+        *,
+        directory: str | None = None,
         groups: Iterable[str] | None = None,
         optional: bool = False,
         extras: Iterable[str] | None = None,
     ) -> None:
         self._url = url
+        self._directory = directory
 
         parsed = urlparse(url)
         if not parsed.scheme or not parsed.netloc:
@@ -29,12 +32,17 @@ class URLDependency(Dependency):
             allows_prereleases=True,
             source_type="url",
             source_url=self._url,
+            source_subdirectory=directory,
             extras=extras,
         )
 
     @property
     def url(self) -> str:
         return self._url
+
+    @property
+    def directory(self) -> str | None:
+        return self._directory
 
     @property
     def base_pep_508_name(self) -> str:
@@ -45,6 +53,9 @@ class URLDependency(Dependency):
             requirement += f"[{extras}]"
 
         requirement += f" @ {self._url}"
+
+        if self.directory:
+            requirement += f"#subdirectory={self.directory}"
 
         return requirement
 

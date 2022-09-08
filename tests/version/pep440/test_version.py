@@ -251,11 +251,11 @@ def test_next_devrelease() -> None:
     assert v.next_devrelease().text == "9!1.2.3a1.post2.dev4"
 
 
-def test_next_firstprerelease() -> None:
+def test_first_prerelease() -> None:
     v = PEP440Version.parse("9!1.2.3a1.post2.dev3")
     assert v.first_prerelease().text == "9!1.2.3a0"
 
 
-def test_next_firstdevrelease() -> None:
+def test_first_devrelease() -> None:
     v = PEP440Version.parse("9!1.2.3a1.post2.dev3")
     assert v.first_devrelease().text == "9!1.2.3a1.post2.dev0"

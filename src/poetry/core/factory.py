@@ -186,8 +186,6 @@ class Factory:
                         dep.in_extras.append(extra_name)
                         package.extras[extra_name].append(dep)
 
-                        break
-
         if "build" in config:
             build = config["build"]
             if not isinstance(build, dict):
@@ -344,6 +342,7 @@ class Factory:
                 dependency = URLDependency(
                     name,
                     constraint["url"],
+                    directory=constraint.get("subdirectory", None),
                     groups=groups,
                     optional=optional,
                     extras=constraint.get("extras", []),

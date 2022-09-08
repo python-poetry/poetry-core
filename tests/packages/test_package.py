@@ -59,6 +59,58 @@ def test_package_authors_invalid() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    ("name", "email"),
+    [
+        ("Sébastien Eustace", "sebastien@eustace.io"),
+        ("John Doe", None),
+        ("'Jane Doe'", None),
+        ('"Jane Doe"', None),
+        ("MyCompany", None),
+        ("Some Company’s", None),
+        ("MyCompany's R&D", "rnd@MyCompanyName.MyTLD"),
+        ("Doe, John", None),
+        ("(Doe, John)", None),
+        ("John Doe", "john@john.doe"),
+        ("Doe, John", "dj@john.doe"),
+        ("MyCompanyName R&D", "rnd@MyCompanyName.MyTLD"),
+        ("John-Paul: Doe", None),
+        ("John-Paul: Doe", "jp@nomail.none"),
+        ("John Doe the 3rd", "3rd@jd.net"),
+    ],
+)
+def test_package_authors_valid(name: str, email: str | None) -> None:
+    package = Package("foo", "0.1.0")
+
+    if email is None:
+        author = name
+    else:
+        author = f"{name} <{email}>"
+    package.authors.insert(0, author)
+    assert package.author_name == name
+    assert package.author_email == email
+
+
+@pytest.mark.parametrize(
+    ("name",),
+    [
+        ("<john@john.doe>",),
+        ("john@john.doe",),
+        ("<John Doe",),
+        ("John? Doe",),
+        ("Jane+Doe",),
+        ("~John Doe",),
+        ("John~Doe",),
+    ],
+)
+def test_package_author_names_invalid(name: str) -> None:
+    package = Package("foo", "0.1.0")
+
+    package.authors.insert(0, name)
+    with pytest.raises(ValueError):
+        package.author_name
+
+
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
 def test_package_add_dependency_vcs_groups(groups: list[str], f: Factory) -> None:
     package = Package("foo", "0.1.0")
@@ -333,6 +385,7 @@ def test_to_dependency_for_url() -> None:
         "1.2.3",
         source_type="url",
         source_url="https://example.com/path.tar.gz",
+        source_subdirectory="qux",
         features=["baz", "bar"],
     )
     dep = package.to_dependency()
@@ -345,6 +398,7 @@ def test_to_dependency_for_url() -> None:
     assert dep.url == "https://example.com/path.tar.gz"
     assert dep.source_type == "url"
     assert dep.source_url == "https://example.com/path.tar.gz"
+    assert dep.source_subdirectory == "qux"
 
 
 def test_to_dependency_for_vcs() -> None:
@@ -533,15 +587,15 @@ def test_package_pep592_yanked(
     assert package.yanked_reason == expected_yanked_reason
 
 
-def test_python_versions_are_normalized() -> None:
+def test_python_versions_are_made_precise() -> None:
     package = Package("foo", "1.2.3")
     package.python_versions = ">3.6,<=3.10"
 
     assert (
         str(package.python_marker)
-        == 'python_version > "3.6" and python_version <= "3.10"'
+        == 'python_full_version > "3.6.0" and python_full_version <= "3.10.0"'
     )
-    assert str(package.python_constraint) == ">=3.7,<3.11"
+    assert str(package.python_constraint) == ">3.6,<=3.10"
 
 
 def test_cannot_update_package_version() -> None:

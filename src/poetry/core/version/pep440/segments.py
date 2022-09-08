@@ -32,18 +32,17 @@ class Release:
     minor: int | None = dataclasses.field(default=None, compare=False)
     patch: int | None = dataclasses.field(default=None, compare=False)
     # some projects use non-semver versioning schemes, eg: 1.2.3.4
-    extra: int | tuple[int, ...] | None = dataclasses.field(default=None, compare=False)
+    extra: tuple[int, ...] = dataclasses.field(default=(), compare=False)
     precision: int = dataclasses.field(init=False, compare=False)
     text: str = dataclasses.field(init=False, compare=False)
     _compare_key: tuple[int, ...] = dataclasses.field(init=False, compare=True)
 
     def __post_init__(self) -> None:
-        if self.extra is None:
-            object.__setattr__(self, "extra", ())
-        elif not isinstance(self.extra, tuple):
-            object.__setattr__(self, "extra", (self.extra,))
-        assert isinstance(self.extra, tuple)
-
+        if self.extra:
+            if self.minor is None:
+                object.__setattr__(self, "minor", 0)
+            if self.patch is None:
+                object.__setattr__(self, "patch", 0)
         parts = [
             str(part)
             for part in [self.major, self.minor, self.patch, *self.extra]
@@ -66,14 +65,13 @@ class Release:
             major=parts[0],
             minor=parts[1] if len(parts) > 1 else None,
             patch=parts[2] if len(parts) > 2 else None,
-            extra=parts[3:] if len(parts) > 3 else (),
+            extra=parts[3:],
         )
 
     def to_string(self) -> str:
         return self.text
 
     def next_major(self) -> Release:
-        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major + 1,
@@ -83,7 +81,6 @@ class Release:
         )
 
     def next_minor(self) -> Release:
-        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major,
@@ -93,7 +90,6 @@ class Release:
         )
 
     def next_patch(self) -> Release:
-        assert isinstance(self.extra, tuple)
         return dataclasses.replace(
             self,
             major=self.major,

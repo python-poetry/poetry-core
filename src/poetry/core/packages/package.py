@@ -15,7 +15,6 @@ from typing import cast
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
-from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
 
     T = TypeVar("T", bound="Package")
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()&]+)(?: <(?P<email>.+?)>)?$")
+AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"():&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
@@ -263,11 +262,10 @@ class Package(PackageSpecification):
     @python_versions.setter
     def python_versions(self, value: str) -> None:
         self._python_versions = value
-        constraint = parse_constraint(value)
+        self._python_constraint = parse_constraint(value)
         self._python_marker = parse_marker(
-            create_nested_marker("python_version", constraint)
+            create_nested_marker("python_version", self._python_constraint)
         )
-        self._python_constraint = get_python_constraint_from_marker(self._python_marker)
 
     @property
     def python_constraint(self) -> VersionConstraint:
@@ -506,6 +504,7 @@ class Package(PackageSpecification):
             dep = URLDependency(
                 self._name,
                 cast(str, self._source_url),
+                directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,

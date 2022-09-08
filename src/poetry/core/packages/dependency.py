@@ -16,6 +16,7 @@ from poetry.core.packages.constraints import (
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker
+from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.packages.utils.utils import normalize_python_version_markers
 from poetry.core.semver.helpers import parse_constraint
 from poetry.core.semver.version_range_constraint import VersionRangeConstraint
@@ -25,7 +26,6 @@ from poetry.core.version.markers import parse_marker
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
 
-    from poetry.core.packages.constraints import BaseConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
     from poetry.core.semver.version_constraint import VersionConstraint
@@ -106,15 +106,11 @@ class Dependency(PackageSpecification):
 
     @constraint.setter
     def constraint(self, constraint: str | VersionConstraint) -> None:
-        from poetry.core.semver.version_constraint import VersionConstraint
+        if isinstance(constraint, str):
+            self._constraint = parse_constraint(constraint)
+        else:
+            self._constraint = constraint
 
-        try:
-            if not isinstance(constraint, VersionConstraint):
-                self._constraint = parse_constraint(constraint)
-            else:
-                self._constraint = constraint
-        except ValueError:
-            self._constraint = parse_constraint("*")
         self._pretty_constraint = str(constraint)
 
     def set_constraint(self, constraint: str | VersionConstraint) -> None:
@@ -149,9 +145,7 @@ class Dependency(PackageSpecification):
         if not self._python_constraint.is_any():
             self._marker = self._marker.intersect(
                 parse_marker(
-                    self._create_nested_marker(
-                        "python_version", self._python_constraint
-                    )
+                    create_nested_marker("python_version", self._python_constraint)
                 )
             )
 
@@ -312,13 +306,13 @@ class Dependency(PackageSpecification):
                 python_constraint = self.python_constraint
 
                 markers.append(
-                    self._create_nested_marker("python_version", python_constraint)
+                    create_nested_marker("python_version", python_constraint)
                 )
 
         in_extras = " || ".join(self._in_extras)
         if in_extras and with_extras and not has_extras:
             markers.append(
-                self._create_nested_marker("extra", parse_generic_constraint(in_extras))
+                create_nested_marker("extra", parse_generic_constraint(in_extras))
             )
 
         if markers:
@@ -332,89 +326,6 @@ class Dependency(PackageSpecification):
                 requirement += f"; {markers[0]}"
 
         return requirement
-
-    def _create_nested_marker(
-        self, name: str, constraint: BaseConstraint | VersionConstraint
-    ) -> str:
-        from poetry.core.packages.constraints.constraint import Constraint
-        from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-        from poetry.core.packages.constraints.union_constraint import UnionConstraint
-        from poetry.core.semver.version import Version
-        from poetry.core.semver.version_union import VersionUnion
-
-        if isinstance(constraint, (MultiConstraint, UnionConstraint)):
-            multi_parts = []
-            for c in constraint.constraints:
-                multi = isinstance(c, (MultiConstraint, UnionConstraint))
-                multi_parts.append((multi, self._create_nested_marker(name, c)))
-
-            glue = " and "
-            if isinstance(constraint, UnionConstraint):
-                parts = [f"({part[1]})" if part[0] else part[1] for part in multi_parts]
-                glue = " or "
-            else:
-                parts = [part[1] for part in multi_parts]
-
-            marker = glue.join(parts)
-        elif isinstance(constraint, Constraint):
-            marker = f'{name} {constraint.operator} "{constraint.version}"'
-        elif isinstance(constraint, VersionUnion):
-            parts = [self._create_nested_marker(name, c) for c in constraint.ranges]
-            glue = " or "
-            parts = [f"({part})" for part in parts]
-
-            marker = glue.join(parts)
-        elif isinstance(constraint, Version):
-            if constraint.precision >= 3 and name == "python_version":
-                name = "python_full_version"
-
-            marker = f'{name} == "{constraint.text}"'
-        else:
-            assert isinstance(constraint, VersionRangeConstraint)
-            if constraint.min is not None:
-                min_name = name
-                if constraint.min.precision >= 3 and name == "python_version":
-                    min_name = "python_full_version"
-
-                    if constraint.max is None:
-                        name = min_name
-
-                op = ">="
-                if not constraint.include_min:
-                    op = ">"
-
-                version = constraint.min.text
-                if constraint.max is not None:
-                    max_name = name
-                    if constraint.max.precision >= 3 and name == "python_version":
-                        max_name = "python_full_version"
-
-                    text = f'{min_name} {op} "{version}"'
-
-                    op = "<="
-                    if not constraint.include_max:
-                        op = "<"
-
-                    version = constraint.max.text
-
-                    text += f' and {max_name} {op} "{version}"'
-
-                    return text
-            elif constraint.max is not None:
-                if constraint.max.precision >= 3 and name == "python_version":
-                    name = "python_full_version"
-
-                op = "<="
-                if not constraint.include_max:
-                    op = "<"
-
-                version = constraint.max.text
-            else:
-                return ""
-
-            marker = f'{name} {op} "{version}"'
-
-        return marker
 
     def activate(self) -> None:
         """
@@ -526,7 +437,12 @@ class Dependency(PackageSpecification):
                     name, "git", link.url_without_fragment, extras=req.extras
                 )
             elif link.scheme in ["http", "https"]:
-                dep = URLDependency(name, link.url, extras=req.extras)
+                dep = URLDependency(
+                    name,
+                    link.url_without_fragment,
+                    directory=link.subdirectory_fragment,
+                    extras=req.extras,
+                )
             elif is_file_uri:
                 # handle RFC 8089 references
                 path = url_to_path(req.url)

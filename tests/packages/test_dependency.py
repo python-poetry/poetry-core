@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from poetry.core.packages.dependency import Dependency
+from poetry.core.semver.exceptions import ParseConstraintError
 from poetry.core.version.markers import parse_marker
 
 
@@ -236,6 +237,12 @@ def test_set_constraint_sets_pretty_constraint() -> None:
     assert dependency.pretty_constraint == "^1.0"
     dependency.constraint = "^2.0"  # type: ignore[assignment]
     assert dependency.pretty_constraint == "^2.0"
+
+
+def test_set_bogus_constraint_raises_exception() -> None:
+    dependency = Dependency("A", "^1.0")
+    with pytest.raises(ParseConstraintError):
+        dependency.constraint = "^=4.5"  # type: ignore[assignment]
 
 
 def test_with_constraint() -> None:

@@ -24,7 +24,6 @@ from poetry.core.version.markers import dnf
 if TYPE_CHECKING:
     from poetry.core.packages.constraints import BaseConstraint
     from poetry.core.semver.version_constraint import VersionConstraint
-    from poetry.core.semver.version_union import VersionUnion
     from poetry.core.version.markers import BaseMarker
 
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
@@ -202,7 +201,7 @@ def contains_group_without_marker(markers: ConvertedMarkers, marker_name: str) -
 
 def create_nested_marker(
     name: str,
-    constraint: BaseConstraint | VersionUnion | Version | VersionConstraint,
+    constraint: BaseConstraint | VersionConstraint,
 ) -> str:
     from poetry.core.packages.constraints.constraint import Constraint
     from poetry.core.packages.constraints.multi_constraint import MultiConstraint
@@ -240,44 +239,57 @@ def create_nested_marker(
         marker = f'{name} == "{constraint.text}"'
     else:
         assert isinstance(constraint, VersionRange)
+        min_name = max_name = name
+
+        parts = []
+
+        # `python_version` is a special case: to keep the constructed marker equivalent
+        # to the constraint we need to be careful with the precision.
+        #
+        # PEP 440 tells us that when we come to make the comparison the release
+        # segment will be zero padded: eg "<= 3.10" is equivalent to "<= 3.10.0".
+        #
+        # But "python_version <= 3.10" is _not_ equivalent to "python_version <= 3.10.0"
+        # - see normalize_python_version_markers.
+        #
+        # A similar issue arises for a constraint like "> 3.6".
         if constraint.min is not None:
-            op = ">="
-            if not constraint.include_min:
-                op = ">"
-
+            op = ">=" if constraint.include_min else ">"
             version = constraint.min
-            if constraint.max is not None:
-                min_name = max_name = name
-                if min_name == "python_version" and constraint.min.precision >= 3:
-                    min_name = "python_full_version"
+            if min_name == "python_version" and version.precision >= 3:
+                min_name = "python_full_version"
 
-                if max_name == "python_version" and constraint.max.precision >= 3:
-                    max_name = "python_full_version"
+            if (
+                min_name == "python_version"
+                and not constraint.include_min
+                and version.precision < 3
+            ):
+                padding = ".0" * (3 - version.precision)
+                part = f'python_full_version > "{version}{padding}"'
+            else:
+                part = f'{min_name} {op} "{version}"'
 
-                text = f'{min_name} {op} "{version}"'
+            parts.append(part)
 
-                op = "<="
-                if not constraint.include_max:
-                    op = "<"
-
-                version = constraint.max
-
-                text += f' and {max_name} {op} "{version}"'
-
-                return text
-        elif constraint.max is not None:
-            op = "<="
-            if not constraint.include_max:
-                op = "<"
-
+        if constraint.max is not None:
+            op = "<=" if constraint.include_max else "<"
             version = constraint.max
-        else:
-            return ""
+            if max_name == "python_version" and version.precision >= 3:
+                max_name = "python_full_version"
 
-        if name == "python_version" and version.precision >= 3:
-            name = "python_full_version"
+            if (
+                max_name == "python_version"
+                and constraint.include_max
+                and version.precision < 3
+            ):
+                padding = ".0" * (3 - version.precision)
+                part = f'python_full_version <= "{version}{padding}"'
+            else:
+                part = f'{max_name} {op} "{version}"'
 
-        marker = f'{name} {op} "{version}"'
+            parts.append(part)
+
+        marker = " and ".join(parts)
 
     return marker
 
