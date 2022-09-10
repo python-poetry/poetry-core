@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Any
 
-from tomlkit.items import Table
 from tomlkit.api import table
+from tomlkit.items import Table
 
 
 if TYPE_CHECKING:
