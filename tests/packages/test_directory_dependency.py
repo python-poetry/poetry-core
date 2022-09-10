@@ -119,6 +119,18 @@ def test_directory_dependency_pep_508_local_relative() -> None:
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
+def test_directory_dependency_pep_508_with_subdirectory() -> None:
+    path = (
+        Path(__file__).parent.parent
+        / "fixtures"
+        / "project_with_multi_constraints_dependency"
+    )
+    expected = f"demo @ {path.as_uri()}"
+
+    requirement = f"demo @ file://{path.parent.as_posix()}#subdirectory={path.name}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
+
+
 def test_directory_dependency_pep_508_extras() -> None:
     path = (
         Path(__file__).parent.parent

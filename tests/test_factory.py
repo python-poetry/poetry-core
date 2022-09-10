@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from _pytest.logging import LogCaptureFixture
 
     from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.directory_dependency import DirectoryDependency
+    from poetry.core.packages.file_dependency import FileDependency
     from poetry.core.packages.vcs_dependency import VCSDependency
 
 
@@ -149,6 +151,54 @@ def test_create_poetry() -> None:
         "Topic :: Software Development :: Build Tools",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
+
+
+def test_create_poetry_with_dependencies_with_subdirectory() -> None:
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_dependencies_with_subdirectory"
+    )
+    package = poetry.package
+    dependencies = {str(dep.name): dep for dep in package.requires}
+
+    # git dependency
+    pendulum = dependencies["pendulum"]
+    assert pendulum.is_vcs()
+    assert pendulum.pretty_constraint == "branch 2.0"
+    pendulum = cast("VCSDependency", pendulum)
+    assert pendulum.source == "https://github.com/sdispater/pendulum.git"
+    assert pendulum.directory == "sub"
+
+    # file dependency
+    demo = dependencies["demo"]
+    assert demo.is_file()
+    assert demo.pretty_constraint == "*"
+    demo = cast("FileDependency", demo)
+    assert demo.path == Path("../distributions/demo-0.1.0-in-subdir.zip")
+    assert demo.directory == "sub"
+    demo_dependencies = [dep for dep in package.requires if dep.name == "demo"]
+    assert len(demo_dependencies) == 2
+    assert demo_dependencies[0] == demo_dependencies[1]
+    assert {str(dep.marker) for dep in demo_dependencies} == {
+        'sys_platform == "win32"',
+        'sys_platform == "linux"',
+    }
+
+    # directory dependency
+    simple_project = dependencies["simple-project"]
+    assert simple_project.is_directory()
+    assert simple_project.pretty_constraint == "*"
+    simple_project = cast("DirectoryDependency", simple_project)
+    assert simple_project.path == Path("../simple_project")
+    with pytest.raises(AttributeError):
+        _ = simple_project.directory  # type: ignore[attr-defined]
+
+    # url dependency
+    foo = dependencies["foo"]
+    assert foo.is_url()
+    assert foo.pretty_constraint == "*"
+    foo = cast("URLDependency", foo)
+    assert foo.url == "https://example.com/foo.zip"
+    assert foo.directory == "sub"
 
 
 def test_create_poetry_with_packages_and_includes() -> None:

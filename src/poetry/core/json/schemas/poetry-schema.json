@@ -429,6 +429,10 @@
           "type": "string",
           "description": "The path to the file."
         },
+        "subdirectory": {
+          "type": "string",
+          "description": "The relative path to the directory where the package is located."
+        },
         "python": {
           "type": "string",
           "description": "The python versions for which the dependency should be installed."
@@ -464,6 +468,10 @@
         "path": {
           "type": "string",
           "description": "The path to the dependency."
+        },
+        "subdirectory": {
+          "type": "string",
+          "description": "The relative path to the directory where the package is located."
         },
         "python": {
           "type": "string",

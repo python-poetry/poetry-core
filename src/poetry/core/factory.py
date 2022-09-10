@@ -290,6 +290,7 @@ class Factory:
                 dependency = FileDependency(
                     name,
                     file_path,
+                    directory=constraint.get("subdirectory", None),
                     groups=groups,
                     base=root_dir,
                     extras=constraint.get("extras", []),
@@ -306,12 +307,16 @@ class Factory:
                     dependency = FileDependency(
                         name,
                         path,
+                        directory=constraint.get("subdirectory", None),
                         groups=groups,
                         optional=optional,
                         base=root_dir,
                         extras=constraint.get("extras", []),
                     )
                 else:
+                    subdirectory = constraint.get("subdirectory", None)
+                    if subdirectory:
+                        path = path / subdirectory
                     dependency = DirectoryDependency(
                         name,
                         path,
