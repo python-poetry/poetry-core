@@ -206,9 +206,15 @@ class Builder:
                     workspace=self._workspace,
                 )
 
-                if self.is_excluded(
-                    include_file.relative_to_project_root()
-                ) and isinstance(include, PackageInclude):
+                include_file_path = (
+                    include_file.relative_to_workspace()
+                    if self._workspace
+                    else include_file.relative_to_project_root()
+                )
+
+                if self.is_excluded(include_file_path) and isinstance(
+                    include, PackageInclude
+                ):
                     continue
 
                 if file.suffix == ".pyc":
