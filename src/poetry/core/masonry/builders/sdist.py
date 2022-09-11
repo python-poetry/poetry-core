@@ -204,7 +204,7 @@ class SdistBuilder(Builder):
         return SETUP.format(
             before="\n".join(before),
             name=str(self._meta.name),
-            version=str(self._meta.version),
+            version=self._meta.version,
             description=str(self._meta.summary),
             long_description=str(self._meta.description),
             author=str(self._meta.author),

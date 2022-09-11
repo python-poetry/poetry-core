@@ -8,80 +8,9 @@ from stat import S_IREAD
 import pytest
 
 from poetry.core.utils.helpers import combine_unicode
-from poetry.core.utils.helpers import normalize_version
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
-
-
-@pytest.mark.parametrize(
-    "version,normalized_version",
-    [
-        (  # already normalized version
-            "1!2.3.4.5.6a7.post8.dev9+local1.123.abc",
-            "1!2.3.4.5.6a7.post8.dev9+local1.123.abc",
-        ),
-        # PEP 440 Normalization
-        # Case sensitivity
-        ("1.1RC1", "1.1rc1"),
-        # Integer Normalization
-        ("00", "0"),
-        ("09000", "9000"),
-        ("1.0+foo0100", "1.0+foo0100"),
-        # Pre-release separators
-        ("1.1.a1", "1.1a1"),
-        ("1.1-a1", "1.1a1"),
-        ("1.1_a1", "1.1a1"),
-        ("1.1a.1", "1.1a1"),
-        ("1.1a-1", "1.1a1"),
-        ("1.1a_1", "1.1a1"),
-        # Pre-release spelling
-        ("1.1alpha1", "1.1a1"),
-        ("1.1beta2", "1.1b2"),
-        ("1.1c3", "1.1rc3"),
-        ("1.1pre4", "1.1rc4"),
-        ("1.1preview5", "1.1rc5"),
-        # Implicit pre-release number
-        ("1.2a", "1.2a0"),
-        # Post release separators
-        ("1.2.post2", "1.2.post2"),
-        ("1.2-post2", "1.2.post2"),
-        ("1.2_post2", "1.2.post2"),
-        ("1.2post.2", "1.2.post2"),
-        ("1.2post-2", "1.2.post2"),
-        ("1.2post_2", "1.2.post2"),
-        # Post release spelling
-        ("1.0-r4", "1.0.post4"),
-        ("1.0-rev4", "1.0.post4"),
-        # Implicit post release number
-        ("1.2.post", "1.2.post0"),
-        # Implicit post releases
-        ("1.0-1", "1.0.post1"),
-        # Development release separators
-        ("1.2.dev2", "1.2.dev2"),
-        ("1.2-dev2", "1.2.dev2"),
-        ("1.2_dev2", "1.2.dev2"),
-        ("1.2dev.2", "1.2.dev2"),
-        ("1.2dev-2", "1.2.dev2"),
-        ("1.2dev_2", "1.2.dev2"),
-        # Implicit development release number
-        ("1.2.dev", "1.2.dev0"),
-        # Local version segments
-        ("1.0+ubuntu-1", "1.0+ubuntu.1"),
-        ("1.0+ubuntu_1", "1.0+ubuntu.1"),
-        # Preceding v character
-        ("v1.0", "1.0"),
-        # Leading and Trailing Whitespace
-        (" 1.0 ", "1.0"),
-        ("\t1.0\t", "1.0"),
-        ("\n1.0\n", "1.0"),
-        ("\r\n1.0\r\n", "1.0"),
-        ("\f1.0\f", "1.0"),
-        ("\v1.0\v", "1.0"),
-    ],
-)
-def test_normalize_version(version: str, normalized_version: str) -> None:
-    assert normalize_version(version) == normalized_version
 
 
 def test_parse_requires() -> None:

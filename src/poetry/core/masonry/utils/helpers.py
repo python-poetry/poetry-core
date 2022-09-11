@@ -19,15 +19,6 @@ def normalize_file_permissions(st_mode: int) -> int:
     return new_mode
 
 
-def escape_version(version: str) -> str:
-    """
-    Escaped version in wheel filename. Doesn't exactly follow
-    the escaping specification in :pep:`427#escaping-and-unicode`
-    because this conflicts with :pep:`440#local-version-identifiers`.
-    """
-    return re.sub(r"[^\w\d.+]+", "_", version, flags=re.UNICODE)
-
-
 def escape_name(name: str) -> str:
     """
     Escaped wheel name as specified in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode.

@@ -13,8 +13,6 @@ from typing import Iterator
 
 from packaging.utils import canonicalize_name
 
-from poetry.core.version.pep440 import PEP440Version
-
 
 def combine_unicode(string: str) -> str:
     return unicodedata.normalize("NFC", string)
@@ -22,10 +20,6 @@ def combine_unicode(string: str) -> str:
 
 def module_name(name: str) -> str:
     return canonicalize_name(name).replace("-", "_")
-
-
-def normalize_version(version: str) -> str:
-    return PEP440Version.parse(version).to_string()
 
 
 @contextmanager
