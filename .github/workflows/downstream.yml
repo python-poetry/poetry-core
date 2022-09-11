@@ -58,7 +58,11 @@ jobs:
 
       - name: Install downstream dependencies
         working-directory: ./poetry
-        run: poetry install
+        run: |
+          # force update of directory dependency in cached venv
+          # (even if directory dependency with same version is already installed)
+          poetry run pip uninstall -y poetry-core
+          poetry install
 
       # TODO: mark run as success even when this fails and add comment to PR instead
       - name: Run downstream test suite
