@@ -1,14 +1,34 @@
 # Change Log
 
+## [1.2.0] - 2022-09-13
+
+### Added
+
+- Added support for subdirectories in `url` dependencies  ([#398](https://github.com/python-poetry/poetry-core/pull/398)).
+
+### Changed
+- When setting an invalid version constraint an error is raised instead of silently setting "any version" ([#461](https://github.com/python-poetry/poetry-core/pull/461)).
+- Allow more characters in author name ([#411](https://github.com/python-poetry/poetry-core/pull/411)).
+
+### Fixed
+
+- Fixed an issue where incorrect `Requires-Dist` information was generated when environment markers where used for optional packages ([#462](https://github.com/python-poetry/poetry-core/pull/462)).
+- Fixed an issue where incorrect python constraints were parsed from environment markers ([#457](https://github.com/python-poetry/poetry-core/pull/457)).
+- Fixed the hashing of markers and constraints ([#466](https://github.com/python-poetry/poetry-core/pull/466)).
+- Fixed an issue where the PEP 508 name of directory dependencies used platform paths ([#463](https://github.com/python-poetry/poetry-core/pull/463)).
+
+
 ## [1.1.0] - 2022-08-31
 
 - No functional changes.
+
 
 ## [1.1.0rc3] - 2022-08-26
 
 ### Fixed
 
 - Fixed an issue where a malformed URL was passed to pip when installing from a git subdirectory ([#451](https://github.com/python-poetry/poetry-core/pull/451)).
+
 
 ## [1.1.0rc2] - 2022-08-26
 
@@ -365,7 +385,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.1.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.2.0...main
+[1.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.2.0
 [1.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0
 [1.1.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc3
 [1.1.0rc2]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc2
