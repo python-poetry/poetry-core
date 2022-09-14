@@ -118,6 +118,9 @@ class Builder:
                         Path(excluded).relative_to(self._path).as_posix()
                     )
 
+            for excluded_file in explicitly_excluded:
+                logger.debug(f"Ignoring: {excluded_file}")
+
             explicitly_included = set()
             for inc in self._package.include:
                 if fmt and inc["format"] and fmt not in inc["format"]:
