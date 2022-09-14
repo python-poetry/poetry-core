@@ -129,14 +129,11 @@ class Builder:
                         Path(included).relative_to(self._path).as_posix()
                     )
 
+            result = set()
             ignored = (vcs_ignored_files | explicitly_excluded) - explicitly_included
-
             for ignored_file in ignored:
                 logger.debug(f"Ignoring: {ignored_file}")
-
-            result = set()
-            for file in ignored:
-                result.add(file)
+                result.add(ignored_file)
 
             self._excluded_files = ignored
 
