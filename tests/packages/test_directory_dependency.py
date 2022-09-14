@@ -29,7 +29,7 @@ def _test_directory_dependency_pep_508(
     dep = cast(DirectoryDependency, dep)
     assert dep.name == name
     assert dep.path == path
-    assert dep.to_pep_508() == pep_508_output or pep_508_input
+    assert dep.to_pep_508() == (pep_508_output or pep_508_input)
 
 
 def test_directory_dependency_pep_508_local_absolute() -> None:
@@ -38,11 +38,13 @@ def test_directory_dependency_pep_508_local_absolute() -> None:
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
+    expected = f"demo @ {path.as_uri()}"
+
     requirement = f"demo @ file://{path.as_posix()}"
-    _test_directory_dependency_pep_508("demo", path, requirement)
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
     requirement = f"demo @ {path}"
-    _test_directory_dependency_pep_508("demo", path, requirement)
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 def test_directory_dependency_pep_508_localhost() -> None:
@@ -52,8 +54,8 @@ def test_directory_dependency_pep_508_localhost() -> None:
         / "project_with_multi_constraints_dependency"
     )
     requirement = f"demo @ file://localhost{path.as_posix()}"
-    requirement_expected = f"demo @ file://{path.as_posix()}"
-    _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
+    expected = f"demo @ {path.as_uri()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 def test_directory_dependency_pep_508_local_relative() -> None:
@@ -64,7 +66,8 @@ def test_directory_dependency_pep_508_local_relative() -> None:
         _test_directory_dependency_pep_508("demo", path, requirement)
 
     requirement = f"demo @ {path}"
-    _test_directory_dependency_pep_508("demo", path, requirement)
+    expected = f"demo @ {path.as_posix()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 def test_directory_dependency_pep_508_extras() -> None:
@@ -74,8 +77,8 @@ def test_directory_dependency_pep_508_extras() -> None:
         / "project_with_multi_constraints_dependency"
     )
     requirement = f"demo[foo,bar] @ file://{path.as_posix()}"
-    requirement_expected = f"demo[bar,foo] @ file://{path.as_posix()}"
-    _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
+    expected = f"demo[bar,foo] @ {path.as_uri()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 @pytest.mark.parametrize(
