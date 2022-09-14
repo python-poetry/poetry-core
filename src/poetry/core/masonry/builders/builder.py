@@ -130,14 +130,8 @@ class Builder:
                     )
 
             ignored = (vcs_ignored_files | explicitely_excluded) - explicitely_included
-            result = set()
-            for file in ignored:
-                result.add(file)
 
-            # The list of excluded files might be big and we will do a lot
-            # containment check (x in excluded).
-            # Returning a set make those tests much much faster.
-            self._excluded_files = result
+            self._excluded_files = ignored
 
         return self._excluded_files
 
