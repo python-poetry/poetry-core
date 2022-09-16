@@ -77,10 +77,14 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
     m = TILDE_PEP440_CONSTRAINT.match(constraint)
     if m:
         version = Version.parse(m.group("version"))
-        if version.release.precision == 2:
+        precision = version.release.precision
+
+        if precision == 2:
             high = version.stable.next_major()
-        else:
+        elif precision == 3:
             high = version.stable.next_minor()
+        else:
+            high = version.stable.next_patch()
 
         return VersionRange(version, high, include_min=True)
 
@@ -97,12 +101,16 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
         op = m.group("op")
         major = int(m.group(2))
         minor = m.group(3)
+        patch = m.group(4)
 
-        if minor is not None:
-            version = Version.from_parts(major, int(minor), 0)
+        if patch is not None:
+            version = Version.from_parts(major, int(minor), int(patch))
             result: VersionConstraint = VersionRange(
-                version, version.next_minor(), include_min=True
+                version, version.next_patch(), include_min=True
             )
+        elif minor is not None:
+            version = Version.from_parts(major, int(minor), 0)
+            result = VersionRange(version, version.next_minor(), include_min=True)
         else:
             if major == 0:
                 result = VersionRange(max=Version.from_parts(1, 0, 0))
