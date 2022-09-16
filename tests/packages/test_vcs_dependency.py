@@ -39,8 +39,10 @@ from poetry.core.packages.vcs_dependency import VCSDependency
         ),
         (
             {"branch": "main", "directory": "sub"},
-            "poetry @ git+https://github.com/python-poetry/poetry.git"
-            "@main#subdirectory=sub",
+            (
+                "poetry @ git+https://github.com/python-poetry/poetry.git"
+                "@main#subdirectory=sub"
+            ),
         ),
     ],
 )
