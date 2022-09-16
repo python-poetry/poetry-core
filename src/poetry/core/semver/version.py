@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 @dataclasses.dataclass(frozen=True)
 class Version(PEP440Version, VersionRangeConstraint):
     """
-    A parsed semantic version number.
+    A version constraint representing a single version.
     """
 
     @property
@@ -32,21 +32,17 @@ class Version(PEP440Version, VersionRangeConstraint):
         if self.is_stable():
             return self
 
-        return self.next_patch()
+        post = self.post if self.pre is None else None
+        return Version(release=self.release, post=post, epoch=self.epoch)
 
     def next_breaking(self) -> Version:
-        if self.major == 0:
-            if self.minor is not None and self.minor != 0:
-                return self.next_minor()
+        if self.major > 0 or self.minor is None:
+            return self.stable.next_major()
 
-            if self.precision == 1:
-                return self.next_major()
-            elif self.precision == 2:
-                return self.next_minor()
+        if self.minor > 0 or self.patch is None:
+            return self.stable.next_minor()
 
-            return self.next_patch()
-
-        return self.stable.next_major()
+        return self.stable.next_patch()
 
     @property
     def min(self) -> Version:
