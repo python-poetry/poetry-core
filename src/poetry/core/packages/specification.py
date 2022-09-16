@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from typing import Iterable
 from typing import TypeVar
 
+from packaging.utils import canonicalize_name
+
 
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
@@ -37,7 +39,7 @@ class PackageSpecification:
         if not features:
             features = []
 
-        self._features = frozenset(features)
+        self._features = frozenset(canonicalize_name(feature) for feature in features)
 
     @property
     def name(self) -> NormalizedName:
@@ -78,7 +80,7 @@ class PackageSpecification:
         return self._source_subdirectory
 
     @property
-    def features(self) -> frozenset[str]:
+    def features(self) -> frozenset[NormalizedName]:
         return self._features
 
     def is_direct_origin(self) -> bool:
@@ -167,7 +169,9 @@ class PackageSpecification:
     def with_features(self: T, features: Iterable[str]) -> T:
         package = self.clone()
 
-        package._features = frozenset(features)
+        package._features = frozenset(
+            canonicalize_name(feature) for feature in features
+        )
 
         return package
 

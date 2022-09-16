@@ -4,6 +4,8 @@ from typing import Any
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.packages.vcs_dependency import VCSDependency
 
 
@@ -37,10 +39,8 @@ from poetry.core.packages.vcs_dependency import VCSDependency
         ),
         (
             {"branch": "main", "directory": "sub"},
-            (
-                "poetry @ git+https://github.com/python-poetry/poetry.git"
-                "@main#subdirectory=sub"
-            ),
+            "poetry @ git+https://github.com/python-poetry/poetry.git"
+            "@main#subdirectory=sub",
         ),
     ],
 )
@@ -64,7 +64,7 @@ def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git"
     )
-    dependency.in_extras.append("foo")
+    dependency.in_extras.append(canonicalize_name("foo"))
 
     expected = (
         'poetry @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
@@ -74,7 +74,7 @@ def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git", extras=["bar"]
     )
-    dependency.in_extras.append("foo")
+    dependency.in_extras.append(canonicalize_name("foo"))
 
     expected = (
         'poetry[bar] @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
@@ -85,7 +85,7 @@ def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git", "b;ar;"
     )
-    dependency.in_extras.append("foo;")
+    dependency.in_extras.append(canonicalize_name("foo;"))
 
     expected = (
         "poetry @ git+https://github.com/python-poetry/poetry.git@b;ar; ; extra =="
