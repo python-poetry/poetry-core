@@ -24,7 +24,6 @@ from poetry.core import __version__
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.helpers import escape_name
-from poetry.core.masonry.utils.helpers import escape_version
 from poetry.core.masonry.utils.helpers import normalize_file_permissions
 from poetry.core.masonry.utils.package_include import PackageInclude
 from poetry.core.semver.helpers import parse_constraint
@@ -282,7 +281,7 @@ class WheelBuilder(Builder):
     @property
     def wheel_filename(self) -> str:
         name = escape_name(self._package.pretty_name)
-        version = escape_version(self._meta.version)
+        version = self._meta.version
         return f"{name}-{version}-{self.tag}.whl"
 
     def supports_python2(self) -> bool:
@@ -292,9 +291,8 @@ class WheelBuilder(Builder):
 
     def dist_info_name(self, distribution: str, version: str) -> str:
         escaped_name = escape_name(distribution)
-        escaped_version = escape_version(version)
 
-        return f"{escaped_name}-{escaped_version}.dist-info"
+        return f"{escaped_name}-{version}.dist-info"
 
     @property
     def tag(self) -> str:
