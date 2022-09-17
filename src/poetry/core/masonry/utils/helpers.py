@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import warnings
 
 
 def normalize_file_permissions(st_mode: int) -> int:
@@ -17,6 +18,20 @@ def normalize_file_permissions(st_mode: int) -> int:
         new_mode |= 0o111  # Executable: 644 -> 755
 
     return new_mode
+
+
+def escape_version(version: str) -> str:
+    """
+    Escaped version in wheel filename. Doesn't exactly follow
+    the escaping specification in :pep:`427#escaping-and-unicode`
+    because this conflicts with :pep:`440#local-version-identifiers`.
+    """
+    warnings.warn(
+        "escape_version() is deprecated. Use Version.parse().to_string() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return re.sub(r"[^\w\d.+]+", "_", version, flags=re.UNICODE)
 
 
 def escape_name(name: str) -> str:
