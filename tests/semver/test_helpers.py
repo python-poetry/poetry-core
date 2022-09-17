@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import cast
-
 import pytest
 
 from poetry.core.semver.helpers import parse_constraint
@@ -415,7 +413,7 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
     ],
 )
 def test_versions_are_sortable(unsorted: list[str], sorted_: list[str]) -> None:
-    unsorted_parsed = [cast(Version, parse_constraint(u)) for u in unsorted]
-    sorted_parsed = [cast(Version, parse_constraint(s)) for s in sorted_]
+    unsorted_parsed = [Version.parse(u) for u in unsorted]
+    sorted_parsed = [Version.parse(s) for s in sorted_]
 
     assert sorted(unsorted_parsed) == sorted_parsed
