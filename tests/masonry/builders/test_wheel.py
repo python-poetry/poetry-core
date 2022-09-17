@@ -72,6 +72,18 @@ def test_wheel_prerelease() -> None:
     assert whl.exists()
 
 
+def test_wheel_epoch() -> None:
+    module_path = fixtures_dir / "epoch"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "epoch-1!2.0-py2.py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "epoch-1!2.0.dist-info/METADATA" in z.namelist()
+
+
 def test_wheel_excluded_data() -> None:
     module_path = fixtures_dir / "default_with_excluded_data_toml"
     WheelBuilder.make(Factory().create_poetry(module_path))

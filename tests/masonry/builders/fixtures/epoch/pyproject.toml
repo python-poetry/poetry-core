@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "epoch"
+version = "1!2.0"
+description = "Some description."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
+license = "MIT"
+
+readme = "README.rst"
+
+homepage = "https://python-poetry.org/"
