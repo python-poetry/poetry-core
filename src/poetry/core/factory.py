@@ -43,7 +43,7 @@ class Factory:
         from poetry.core.pyproject.toml import PyProjectTOML
 
         poetry_file = self.locate(cwd)
-        local_config = PyProjectTOML(path=poetry_file).poetry_config
+        local_config = PyProjectTOML(path=poetry_file).poetry_config.unwrap()
 
         # Checking validity
         check_result = self.validate(local_config)
@@ -55,11 +55,7 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        name = local_config["name"]
-        assert isinstance(name, str)
-        version = local_config["version"]
-        assert isinstance(version, str)
-        package = self.get_package(name, version)
+        package = self.get_package(local_config["name"], local_config["version"])
         package = self.configure_package(
             package, local_config, poetry_file.parent, with_groups=with_groups
         )
