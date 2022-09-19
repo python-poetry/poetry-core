@@ -62,13 +62,13 @@ class ExtBuilder(build_ext):
     def run(self):
         try:
             super().run()
-        except (DistutilsPlatformError, FileNotFoundError):
+        except (PlatformError, FileNotFoundError):
             raise BuildFailed('File not found. Could not compile C extension.')
 
     def build_extension(self, ext):
         try:
             super().build_extension(ext)
-        except (CCompilerError, DistutilsExecError, DistutilsPlatformError, ValueError):
+        except (CCompilerError, ExecError, PlatformError, ValueError):
             raise BuildFailed('Could not compile C extension.')
 
 """
@@ -236,15 +236,15 @@ class SdistBuilder(Builder):
                 constructor += "    ),\n"
                 ext_modules_line += constructor
             ext_modules_line += "]\n"
-            imports.append("from distutils.extension import Extension")
+            imports.append("from setuptools import Extension")
             imports.append(
-                "from distutils.errors import DistutilsPlatformError,"
-                " DistutilsExecError, CCompilerError"
+                "from setuptools.errors import PlatformError, ExecError,"
+                " CCompilerError"
             )
             imports.append("import os")
             before.append(ext_modules_line)
             extra.append("'ext_modules': ext_modules,")
-            imports.append("from distutils.command.build_ext import build_ext")
+            imports.append("from setuptools.command.build_ext import build_ext")
             before.append(EXT_BUILDER_DEF)
             extra.append("'cmdclass': {'build_ext': ExtBuilder},")
 

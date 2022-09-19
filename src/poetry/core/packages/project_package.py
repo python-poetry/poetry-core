@@ -8,7 +8,6 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
-    from distutils.extension import Extension
     from poetry.core.packages.dependency import Dependency
     from poetry.core.semver.version import Version
 
@@ -31,7 +30,7 @@ class ProjectPackage(Package):
         self.exclude: list[dict[str, Any]] = []
         self.custom_urls: dict[str, str] = {}
         self.libraries: list[tuple[str, dict[str, Any]]] = []
-        self.ext_modules: list[Extension] = []
+        self.ext_modules: list[dict[str, Any]] = []
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
