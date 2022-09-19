@@ -364,7 +364,7 @@ class Builder:
 
     def convert_libraries(self) -> list[tuple[str, dict[str, Any]]]:
         """
-        Convert library build info to required format for distutils.setup().
+        Convert library build info to required format for setuptools.setup().
         Expand globs and validate existence of source files.
         """
         libraries = []
@@ -391,7 +391,7 @@ class Builder:
 
     def convert_ext_modules(self) -> list[tuple[str, dict[str, Any]]]:
         """
-        Convert extension module build info to arguments for initializing distutils.extension.Extension objects.
+        Convert extension module build info to arguments for initializing setuptools.Extension objects.
         Expand globs and validate existence of source and other files.
         """
         ext_modules = []
