@@ -1,9 +1,8 @@
 import os
 import shutil
 
-from distutils.command.build_ext import build_ext
-from distutils.core import Distribution
-from distutils.core import Extension
+from setuptools.command.build_ext import build_ext
+from setuptools import Distribution, Extension
 
 
 extensions = [Extension("extended.extended", ["extended/extended.c"])]
@@ -11,10 +10,9 @@ extensions = [Extension("extended.extended", ["extended/extended.c"])]
 
 def build() -> None:
     distribution = Distribution({"name": "extended", "ext_modules": extensions})
-    distribution.package_dir = "extended"
 
     cmd = build_ext(distribution)
-    cmd.ensure_finalized()
+    cmd.finalize_options()
     cmd.run()
 
     # Copy built extensions back to the project
