@@ -238,8 +238,7 @@ class SdistBuilder(Builder):
             ext_modules_line += "]\n"
             imports.append("from setuptools import Extension")
             imports.append(
-                "from setuptools.errors import PlatformError, ExecError,"
-                " CCompilerError"
+                "from setuptools.errors import PlatformError, ExecError, CCompilerError"
             )
             imports.append("import os")
             before.append(ext_modules_line)
