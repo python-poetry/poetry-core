@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any
 from typing import Generator
 
-from poetry.core.toml import TOMLFile
+import tomli
+import tomli_w
 
 
 __toml_build_backend_patch__ = {
@@ -43,10 +44,12 @@ def temporary_project_directory(
     with tempfile.TemporaryDirectory(prefix="poetry-core-pep517") as tmp:
         dst = Path(tmp) / path.name
         shutil.copytree(str(path), dst)
-        toml = TOMLFile(str(dst / "pyproject.toml"))
-        data = toml.read()
+        toml = dst / "pyproject.toml"
+        with toml.open("rb") as f:
+            data = tomli.load(f)
         data.update(toml_patch or __toml_build_backend_patch__)
-        toml.write(data)
+        with toml.open("wb") as f:
+            tomli_w.dump(data, f)
         yield str(dst)
 
 
