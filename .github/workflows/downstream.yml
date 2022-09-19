@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         ref: ["master", "1.2"]
+      fail-fast: false
     defaults:
       run:
         shell: bash
