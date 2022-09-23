@@ -149,7 +149,9 @@ class Builder:
 
         return False
 
-    def find_files_to_add(self, exclude_build: bool = True) -> set[BuildIncludeFile]:
+    def find_files_to_add(
+        self, exclude_build: bool = True, resolve_symlinks: bool = True
+    ) -> set[BuildIncludeFile]:
         """
         Finds all files to add to the tarball
         """
@@ -181,6 +183,8 @@ class Builder:
                                 path=current_file,
                                 project_root=self._path,
                                 source_root=source_root,
+                                resolve_symlinks=resolve_symlinks
+                                or not file.is_symlink(),
                             )
 
                             if not current_file.is_dir() and not self.is_excluded(
@@ -190,7 +194,10 @@ class Builder:
                     continue
 
                 include_file = BuildIncludeFile(
-                    path=file, project_root=self._path, source_root=source_root
+                    path=file,
+                    project_root=self._path,
+                    source_root=source_root,
+                    resolve_symlinks=resolve_symlinks or not file.is_symlink(),
                 )
 
                 if self.is_excluded(
