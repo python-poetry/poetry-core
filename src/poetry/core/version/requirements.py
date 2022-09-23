@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import urllib.parse as urlparse
 
-from poetry.core.semver.exceptions import ParseConstraintError
-from poetry.core.semver.helpers import parse_constraint
+from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.grammars import GRAMMAR_PEP_508_CONSTRAINTS
 from poetry.core.version.markers import _compact_markers
 from poetry.core.version.parser import Parser

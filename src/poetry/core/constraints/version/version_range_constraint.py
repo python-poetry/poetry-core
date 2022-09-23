@@ -3,11 +3,11 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-from poetry.core.semver.version_constraint import VersionConstraint
+from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version import Version
+    from poetry.core.constraints.version.version import Version
 
 
 class VersionRangeConstraint(VersionConstraint):

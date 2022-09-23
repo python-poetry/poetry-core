@@ -4,15 +4,17 @@ import dataclasses
 
 from typing import TYPE_CHECKING
 
-from poetry.core.semver.empty_constraint import EmptyConstraint
-from poetry.core.semver.version_range_constraint import VersionRangeConstraint
-from poetry.core.semver.version_union import VersionUnion
+from poetry.core.constraints.version.empty_constraint import EmptyConstraint
+from poetry.core.constraints.version.version_range_constraint import (
+    VersionRangeConstraint,
+)
+from poetry.core.constraints.version.version_union import VersionUnion
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440.version import PEP440Version
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version.version_constraint import VersionConstraint
     from poetry.core.version.pep440 import LocalSegmentType
     from poetry.core.version.pep440 import ReleaseTag
 
@@ -106,7 +108,7 @@ class Version(PEP440Version, VersionRangeConstraint):
         return EmptyConstraint()
 
     def union(self, other: VersionConstraint) -> VersionConstraint:
-        from poetry.core.semver.version_range import VersionRange
+        from poetry.core.constraints.version.version_range import VersionRange
 
         if other.allows(self):
             return other
@@ -146,7 +148,7 @@ class Version(PEP440Version, VersionRangeConstraint):
         return f"<Version {str(self)}>"
 
     def __eq__(self, other: object) -> bool:
-        from poetry.core.semver.version_range import VersionRange
+        from poetry.core.constraints.version.version_range import VersionRange
 
         if isinstance(other, VersionRange):
             return (

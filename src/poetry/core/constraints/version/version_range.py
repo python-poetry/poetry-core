@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from poetry.core.semver.empty_constraint import EmptyConstraint
-from poetry.core.semver.version_range_constraint import VersionRangeConstraint
-from poetry.core.semver.version_union import VersionUnion
+from poetry.core.constraints.version.empty_constraint import EmptyConstraint
+from poetry.core.constraints.version.version_range_constraint import (
+    VersionRangeConstraint,
+)
+from poetry.core.constraints.version.version_union import VersionUnion
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version import Version
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version.version import Version
+    from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
 class VersionRange(VersionRangeConstraint):
@@ -95,7 +97,7 @@ class VersionRange(VersionRangeConstraint):
         return True
 
     def allows_all(self, other: VersionConstraint) -> bool:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version.version import Version
 
         if other.is_empty():
             return True
@@ -112,7 +114,7 @@ class VersionRange(VersionRangeConstraint):
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def allows_any(self, other: VersionConstraint) -> bool:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version.version import Version
 
         if other.is_empty():
             return False
@@ -131,7 +133,7 @@ class VersionRange(VersionRangeConstraint):
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 
     def intersect(self, other: VersionConstraint) -> VersionConstraint:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version.version import Version
 
         if other.is_empty():
             return other
@@ -187,7 +189,7 @@ class VersionRange(VersionRangeConstraint):
         )
 
     def union(self, other: VersionConstraint) -> VersionConstraint:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version.version import Version
 
         if isinstance(other, Version):
             if self.allows(other):
@@ -239,7 +241,7 @@ class VersionRange(VersionRangeConstraint):
         return VersionUnion.of(self, other)
 
     def difference(self, other: VersionConstraint) -> VersionConstraint:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version.version import Version
 
         if other.is_empty():
             return self
