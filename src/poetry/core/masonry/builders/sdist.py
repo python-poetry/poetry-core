@@ -316,7 +316,9 @@ class SdistBuilder(Builder):
 
         return pkgdir, sorted(packages), pkg_data
 
-    def find_files_to_add(self, exclude_build: bool = False) -> set[BuildIncludeFile]:
+    def find_files_to_add(
+        self, exclude_build: bool = False, resolve_symlinks: bool = True
+    ) -> set[BuildIncludeFile]:
         to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
@@ -334,7 +336,10 @@ class SdistBuilder(Builder):
 
         for additional_file in additional_files:
             file = BuildIncludeFile(
-                path=additional_file, project_root=self._path, source_root=self._path
+                path=additional_file,
+                project_root=self._path,
+                source_root=self._path,
+                resolve_symlinks=resolve_symlinks,
             )
             if file.path.exists():
                 logger.debug(f"Adding: {file.relative_to_source_root()}")
