@@ -10,9 +10,7 @@ from typing import TYPE_CHECKING
 from typing import Iterable
 from typing import TypeVar
 
-from poetry.core.packages.constraints import (
-    parse_constraint as parse_generic_constraint,
-)
+from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker

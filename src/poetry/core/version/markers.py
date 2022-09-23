@@ -16,7 +16,7 @@ from poetry.core.version.parser import Parser
 if TYPE_CHECKING:
     from lark import Tree
 
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.constraints.generic import BaseConstraint
 
 
 class InvalidMarker(ValueError):
@@ -184,7 +184,7 @@ class SingleMarker(BaseMarker):
     def __init__(
         self, name: str, constraint: str | BaseConstraint | VersionConstraint
     ) -> None:
-        from poetry.core.packages.constraints import (
+        from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
         from poetry.core.semver.helpers import parse_constraint
