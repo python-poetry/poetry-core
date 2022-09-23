@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from poetry.core.semver.version_constraint import VersionConstraint
+from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version import Version
-    from poetry.core.semver.version_range_constraint import VersionRangeConstraint
+    from poetry.core.constraints.version.version import Version
+    from poetry.core.constraints.version.version_range_constraint import (
+        VersionRangeConstraint,
+    )
 
 
 class EmptyConstraint(VersionConstraint):

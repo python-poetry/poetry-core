@@ -7,6 +7,7 @@ from typing import cast
 
 import pytest
 
+from poetry.core.constraints.version import Version
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
@@ -16,7 +17,6 @@ from poetry.core.packages.package import Package
 from poetry.core.packages.project_package import ProjectPackage
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
-from poetry.core.semver.version import Version
 
 
 @pytest.fixture()

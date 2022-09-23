@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
 def parse_constraint(constraints: str) -> VersionConstraint:
     if constraints == "*":
-        from poetry.core.semver.version_range import VersionRange
+        from poetry.core.constraints.version.version_range import VersionRange
 
         return VersionRange()
 
@@ -44,20 +44,20 @@ def parse_constraint(constraints: str) -> VersionConstraint:
     if len(or_groups) == 1:
         return or_groups[0]
     else:
-        from poetry.core.semver.version_union import VersionUnion
+        from poetry.core.constraints.version.version_union import VersionUnion
 
         return VersionUnion.of(*or_groups)
 
 
 def parse_single_constraint(constraint: str) -> VersionConstraint:
-    from poetry.core.semver.patterns import BASIC_CONSTRAINT
-    from poetry.core.semver.patterns import CARET_CONSTRAINT
-    from poetry.core.semver.patterns import TILDE_CONSTRAINT
-    from poetry.core.semver.patterns import TILDE_PEP440_CONSTRAINT
-    from poetry.core.semver.patterns import X_CONSTRAINT
-    from poetry.core.semver.version import Version
-    from poetry.core.semver.version_range import VersionRange
-    from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.constraints.version.patterns import BASIC_CONSTRAINT
+    from poetry.core.constraints.version.patterns import CARET_CONSTRAINT
+    from poetry.core.constraints.version.patterns import TILDE_CONSTRAINT
+    from poetry.core.constraints.version.patterns import TILDE_PEP440_CONSTRAINT
+    from poetry.core.constraints.version.patterns import X_CONSTRAINT
+    from poetry.core.constraints.version.version import Version
+    from poetry.core.constraints.version.version_range import VersionRange
+    from poetry.core.constraints.version.version_union import VersionUnion
 
     m = re.match(r"(?i)^v?[xX*](\.[xX*])*$", constraint)
     if m:
@@ -142,6 +142,6 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
         return version
 
-    from poetry.core.semver.exceptions import ParseConstraintError
+    from poetry.core.constraints.version.exceptions import ParseConstraintError
 
     raise ParseConstraintError(f"Could not parse version constraint: {constraint}")

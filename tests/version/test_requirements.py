@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from poetry.core.semver.helpers import parse_constraint
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.requirements import InvalidRequirement
 from poetry.core.version.requirements import Requirement
 

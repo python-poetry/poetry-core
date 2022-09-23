@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
-from poetry.core.semver.exceptions import ParseConstraintError
 from poetry.core.version.markers import parse_marker
 
 

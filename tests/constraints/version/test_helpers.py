@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import pytest
 
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
-from poetry.core.semver.version_union import VersionUnion
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import VersionUnion
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.pep440 import ReleaseTag
 
 

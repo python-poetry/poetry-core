@@ -5,8 +5,10 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version import Version
-    from poetry.core.semver.version_range_constraint import VersionRangeConstraint
+    from poetry.core.constraints.version.version import Version
+    from poetry.core.constraints.version.version_range_constraint import (
+        VersionRangeConstraint,
+    )
 
 
 class VersionConstraint:
