@@ -50,6 +50,145 @@ def test_parse_invalid(value: str | None) -> None:
 
 
 @pytest.mark.parametrize(
+    "version, expected",
+    [
+        ("1", "1"),
+        ("1.2", "1.2"),
+        ("1.2.3", "1.2.3"),
+        ("2!1.2.3", "2!1.2.3"),
+        ("1.2.3+local", "1.2.3+local"),
+        ("1.2.3.4", "1.2.3.4"),
+        ("1.dev0", "1"),
+        ("1.2dev0", "1.2"),
+        ("1.2.3dev0", "1.2.3"),
+        ("1.2.3.4dev0", "1.2.3.4"),
+        ("1.post1", "1.post1"),
+        ("1.2.post1", "1.2.post1"),
+        ("1.2.3.post1", "1.2.3.post1"),
+        ("1.post1.dev0", "1.post1"),
+        ("1.2.post1.dev0", "1.2.post1"),
+        ("1.2.3.post1.dev0", "1.2.3.post1"),
+        ("1.a1", "1"),
+        ("1.2a1", "1.2"),
+        ("1.2.3a1", "1.2.3"),
+        ("1.2.3.4a1", "1.2.3.4"),
+        ("1.a1.post2", "1"),
+        ("1.2a1.post2", "1.2"),
+        ("1.2.3a1.post2", "1.2.3"),
+        ("1.2.3.4a1.post2", "1.2.3.4"),
+        ("1.a1.post2.dev0", "1"),
+        ("1.2a1.post2.dev0", "1.2"),
+        ("1.2.3a1.post2.dev0", "1.2.3"),
+        ("1.2.3.4a1.post2.dev0", "1.2.3.4"),
+    ],
+)
+def test_stable(version: str, expected: str) -> None:
+    subject = Version.parse(version)
+
+    assert subject.stable.text == expected
+
+
+@pytest.mark.parametrize(
+    "version, expected",
+    [
+        ("1", "2"),
+        ("1.2", "2.0"),
+        ("1.2.3", "2.0.0"),
+        ("2!1.2.3", "2!2.0.0"),
+        ("1.2.3+local", "2.0.0"),
+        ("1.2.3.4", "2.0.0.0"),
+        ("1.dev0", "2"),
+        ("1.2dev0", "2.0"),
+        ("1.2.3dev0", "2.0.0"),
+        ("1.2.3.4dev0", "2.0.0.0"),
+        ("1.post1", "2"),
+        ("1.2.post1", "2.0"),
+        ("1.2.3.post1", "2.0.0"),
+        ("1.post1.dev0", "2"),
+        ("1.2.post1.dev0", "2.0"),
+        ("1.2.3.post1.dev0", "2.0.0"),
+        ("2.a1", "3"),
+        ("2.2a1", "3.0"),
+        ("2.2.3a1", "3.0.0"),
+        ("2.2.3.4a1", "3.0.0.0"),
+        ("2.a1.post2", "3"),
+        ("2.2a1.post2", "3.0"),
+        ("2.2.3a1.post2", "3.0.0"),
+        ("2.2.3.4a1.post2", "3.0.0.0"),
+        ("2.a1.post2.dev0", "3"),
+        ("2.2a1.post2.dev0", "3.0"),
+        ("2.2.3a1.post2.dev0", "3.0.0"),
+        ("2.2.3.4a1.post2.dev0", "3.0.0.0"),
+    ],
+)
+def test_next_breaking_for_major_over_0_results_into_next_major_and_preserves_precision(
+    version: str, expected: str
+) -> None:
+    subject = Version.parse(version)
+
+    assert subject.next_breaking().text == expected
+
+
+@pytest.mark.parametrize(
+    "version, expected",
+    [
+        ("0", "1"),
+        ("0.0", "0.1"),
+        ("0.2", "0.3"),
+        ("0.2.3", "0.3.0"),
+        ("2!0.2.3", "2!0.3.0"),
+        ("0.2.3+local", "0.3.0"),
+        ("0.2.3.4", "0.3.0.0"),
+        ("0.0.3.4", "0.0.4.0"),
+        ("0.dev0", "1"),
+        ("0.0dev0", "0.1"),
+        ("0.2dev0", "0.3"),
+        ("0.2.3dev0", "0.3.0"),
+        ("0.0.3dev0", "0.0.4"),
+        ("0.post1", "1"),
+        ("0.0.post1", "0.1"),
+        ("0.2.post1", "0.3"),
+        ("0.2.3.post1", "0.3.0"),
+        ("0.0.3.post1", "0.0.4"),
+        ("0.post1.dev0", "1"),
+        ("0.0.post1.dev0", "0.1"),
+        ("0.2.post1.dev0", "0.3"),
+        ("0.2.3.post1.dev0", "0.3.0"),
+        ("0.0.3.post1.dev0", "0.0.4"),
+        ("0.a1", "1"),
+        ("0.0a1", "0.1"),
+        ("0.2a1", "0.3"),
+        ("0.2.3a1", "0.3.0"),
+        ("0.2.3.4a1", "0.3.0.0"),
+        ("0.0.3.4a1", "0.0.4.0"),
+        ("0.a1.post2", "1"),
+        ("0.0a1.post2", "0.1"),
+        ("0.2a1.post2", "0.3"),
+        ("0.2.3a1.post2", "0.3.0"),
+        ("0.2.3.4a1.post2", "0.3.0.0"),
+        ("0.0.3.4a1.post2", "0.0.4.0"),
+        ("0.a1.post2.dev0", "1"),
+        ("0.0a1.post2.dev0", "0.1"),
+        ("0.2a1.post2.dev0", "0.3"),
+        ("0.2.3a1.post2.dev0", "0.3.0"),
+        ("0.2.3.4a1.post2.dev0", "0.3.0.0"),
+        ("0.0.3.4a1.post2.dev0", "0.0.4.0"),
+        ("0-alpha.1", "1"),
+        ("0.0-alpha.1", "0.1"),
+        ("0.2-alpha.1", "0.3"),
+        ("0.0.1-alpha.2", "0.0.2"),
+        ("0.1.2-alpha.1", "0.2.0"),
+    ],
+)
+def test_next_breaking_for_major_0_is_treated_with_more_care_and_preserves_precision(
+    version: str, expected: str
+) -> None:
+    subject = Version.parse(version)
+
+    assert subject.next_breaking().text == expected
+
+
+@pytest.mark.parametrize(
     "versions",
     [
         [

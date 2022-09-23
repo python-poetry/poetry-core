@@ -244,6 +244,30 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
                 Version.from_parts(0, 0, 3), Version.from_parts(0, 0, 4), True
             ),
         ),
+        (
+            "^0.0.3-alpha.21",
+            VersionRange(
+                Version.from_parts(0, 0, 3, pre=ReleaseTag("alpha", 21)),
+                Version.from_parts(0, 0, 4),
+                True,
+            ),
+        ),
+        (
+            "^0.1.3-alpha.21",
+            VersionRange(
+                Version.from_parts(0, 1, 3, pre=ReleaseTag("alpha", 21)),
+                Version.from_parts(0, 2, 0),
+                True,
+            ),
+        ),
+        (
+            "^0.0.0-alpha.21",
+            VersionRange(
+                Version.from_parts(0, 0, 0, pre=ReleaseTag("alpha", 21)),
+                Version.from_parts(0, 0, 1),
+                True,
+            ),
+        ),
     ],
 )
 def test_parse_constraint_caret(input: str, constraint: VersionRange) -> None:
@@ -392,6 +416,15 @@ def test_parse_constraints_with_trailing_comma(
         ("^1", ">=1,<2"),
         ("^1.0", ">=1.0,<2.0"),
         ("^1.0.0", ">=1.0.0,<2.0.0"),
+        ("^1.0.0-alpha.1", ">=1.0.0-alpha.1,<2.0.0"),
+        ("^0", ">=0,<1"),
+        ("^0.1", ">=0.1,<0.2"),
+        ("^0.0.2", ">=0.0.2,<0.0.3"),
+        ("^0.1.2", ">=0.1.2,<0.2.0"),
+        ("^0-alpha.1", ">=0-alpha.1,<1"),
+        ("^0.1-alpha.1", ">=0.1-alpha.1,<0.2"),
+        ("^0.0.2-alpha.1", ">=0.0.2-alpha.1,<0.0.3"),
+        ("^0.1.2-alpha.1", ">=0.1.2-alpha.1,<0.2.0"),
         ("~1", ">=1,<2"),
         ("~1.0", ">=1.0,<1.1"),
         ("~1.0.0", ">=1.0.0,<1.1.0"),
