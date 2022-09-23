@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import operator
 
-from poetry.core.packages.constraints import AnyConstraint
-from poetry.core.packages.constraints.base_constraint import BaseConstraint
-from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
+from poetry.core.constraints.generic.any_constraint import AnyConstraint
+from poetry.core.constraints.generic.base_constraint import BaseConstraint
+from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
 
 
 class Constraint(BaseConstraint):
@@ -78,7 +78,7 @@ class Constraint(BaseConstraint):
         return self
 
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
-        from poetry.core.packages.constraints.multi_constraint import MultiConstraint
+        from poetry.core.constraints.generic.multi_constraint import MultiConstraint
 
         if isinstance(other, Constraint):
             if other == self:
@@ -99,9 +99,7 @@ class Constraint(BaseConstraint):
 
     def union(self, other: BaseConstraint) -> BaseConstraint:
         if isinstance(other, Constraint):
-            from poetry.core.packages.constraints.union_constraint import (
-                UnionConstraint,
-            )
+            from poetry.core.constraints.generic.union_constraint import UnionConstraint
 
             if other == self:
                 return self

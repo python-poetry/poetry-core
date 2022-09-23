@@ -227,7 +227,7 @@ class Factory:
         groups: list[str] | None = None,
         root_dir: Path | None = None,
     ) -> Dependency:
-        from poetry.core.packages.constraints import (
+        from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
         from poetry.core.packages.dependency import Dependency

@@ -22,7 +22,7 @@ from poetry.core.version.markers import dnf
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.constraints.generic import BaseConstraint
     from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
@@ -203,9 +203,9 @@ def create_nested_marker(
     name: str,
     constraint: BaseConstraint | VersionConstraint,
 ) -> str:
-    from poetry.core.packages.constraints.constraint import Constraint
-    from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-    from poetry.core.packages.constraints.union_constraint import UnionConstraint
+    from poetry.core.constraints.generic import Constraint
+    from poetry.core.constraints.generic import MultiConstraint
+    from poetry.core.constraints.generic import UnionConstraint
     from poetry.core.semver.version_union import VersionUnion
 
     if constraint.is_any():

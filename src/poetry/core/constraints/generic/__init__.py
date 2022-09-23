@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import re
 
-from poetry.core.packages.constraints.any_constraint import AnyConstraint
-from poetry.core.packages.constraints.base_constraint import BaseConstraint
-from poetry.core.packages.constraints.constraint import Constraint
-from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
-from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-from poetry.core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.constraints.generic.any_constraint import AnyConstraint
+from poetry.core.constraints.generic.base_constraint import BaseConstraint
+from poetry.core.constraints.generic.constraint import Constraint
+from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
+from poetry.core.constraints.generic.multi_constraint import MultiConstraint
+from poetry.core.constraints.generic.union_constraint import UnionConstraint
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
@@ -69,5 +69,4 @@ __all__ = [
     "MultiConstraint",
     "UnionConstraint",
     "parse_constraint",
-    "parse_single_constraint",
 ]
