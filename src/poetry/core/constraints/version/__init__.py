@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from poetry.core.constraints.version.empty_constraint import EmptyConstraint
-from poetry.core.constraints.version.helpers import parse_constraint
+from poetry.core.constraints.version.parser import parse_constraint
 from poetry.core.constraints.version.util import constraint_regions
 from poetry.core.constraints.version.version import Version
 from poetry.core.constraints.version.version_constraint import VersionConstraint
