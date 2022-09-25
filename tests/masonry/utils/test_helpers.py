@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import pytest
 
 from poetry.core.masonry.utils.helpers import escape_name
@@ -16,4 +18,6 @@ from poetry.core.masonry.utils.helpers import escape_name
     ],
 )
 def test_escape_name(name: str, expected: str) -> None:
-    assert escape_name(name) == expected
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        assert escape_name(name) == expected

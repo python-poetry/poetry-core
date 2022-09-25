@@ -18,6 +18,7 @@ from typing import Iterator
 
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
+from poetry.core.masonry.utils.helpers import distribution_name
 
 
 if TYPE_CHECKING:
@@ -65,7 +66,8 @@ class SdistBuilder(Builder):
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
 
-        target = target_dir / f"{self._package.pretty_name}-{self._meta.version}.tar.gz"
+        name = distribution_name(self._package.name)
+        target = target_dir / f"{name}-{self._meta.version}.tar.gz"
         gz = GzipFile(target.as_posix(), mode="wb", mtime=0)
         tar = tarfile.TarFile(
             target.as_posix(), mode="w", fileobj=gz, format=tarfile.PAX_FORMAT

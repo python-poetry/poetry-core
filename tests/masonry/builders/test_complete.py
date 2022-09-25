@@ -427,7 +427,7 @@ def test_module_src() -> None:
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = module_path / "dist" / "module-src-0.1.tar.gz"
+    sdist = module_path / "dist" / "module_src-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -451,7 +451,7 @@ def test_package_src() -> None:
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = module_path / "dist" / "package-src-0.1.tar.gz"
+    sdist = module_path / "dist" / "package_src-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -476,7 +476,7 @@ def test_split_source() -> None:
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = module_path / "dist" / "split-source-0.1.tar.gz"
+    sdist = module_path / "dist" / "split_source-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -522,7 +522,7 @@ def test_package_with_include(mocker: MockerFixture) -> None:
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = fixtures_dir / "with-include" / "dist" / "with-include-1.2.3.tar.gz"
+    sdist = fixtures_dir / "with-include" / "dist" / "with_include-1.2.3.tar.gz"
 
     assert sdist.exists()
 
@@ -589,7 +589,7 @@ def test_respect_format_for_explicit_included_files() -> None:
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = module_path / "dist" / "exclude-whl-include-sdist-0.1.0.tar.gz"
+    sdist = module_path / "dist" / "exclude_whl_include_sdist-0.1.0.tar.gz"
 
     assert sdist.exists()
 
