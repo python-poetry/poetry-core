@@ -255,7 +255,7 @@ def test_package() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = fixtures_dir / "complete" / "dist" / "my-package-1.2.3.tar.gz"
+    sdist = fixtures_dir / "complete" / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
@@ -272,7 +272,7 @@ def test_sdist_reproducibility() -> None:
         builder = SdistBuilder(poetry)
         builder.build()
 
-        sdist = fixtures_dir / "complete" / "dist" / "my-package-1.2.3.tar.gz"
+        sdist = fixtures_dir / "complete" / "dist" / "my_package-1.2.3.tar.gz"
 
         assert sdist.exists()
 
@@ -388,7 +388,7 @@ def test_with_src_module_file() -> None:
 
     builder.build()
 
-    sdist = fixtures_dir / "source_file" / "dist" / "module-src-0.1.tar.gz"
+    sdist = fixtures_dir / "source_file" / "dist" / "module_src-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -413,7 +413,7 @@ def test_with_src_module_dir() -> None:
 
     builder.build()
 
-    sdist = fixtures_dir / "source_package" / "dist" / "package-src-0.1.tar.gz"
+    sdist = fixtures_dir / "source_package" / "dist" / "package_src-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -465,7 +465,7 @@ def test_default_with_excluded_data(mocker: MockerFixture) -> None:
     builder.build()
 
     sdist = (
-        fixtures_dir / "default_with_excluded_data" / "dist" / "my-package-1.2.3.tar.gz"
+        fixtures_dir / "default_with_excluded_data" / "dist" / "my_package-1.2.3.tar.gz"
     )
 
     assert sdist.exists()
@@ -499,7 +499,7 @@ def test_src_excluded_nested_data() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = module_path / "dist" / "my-package-1.2.3.tar.gz"
+    sdist = module_path / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
@@ -554,7 +554,7 @@ def test_includes() -> None:
 
     builder.build()
 
-    sdist = fixtures_dir / "with-include" / "dist" / "with-include-1.2.3.tar.gz"
+    sdist = fixtures_dir / "with-include" / "dist" / "with_include-1.2.3.tar.gz"
 
     assert sdist.exists()
 
@@ -574,7 +574,7 @@ def test_includes_with_inline_table() -> None:
         fixtures_dir
         / "with_include_inline_table"
         / "dist"
-        / "with-include-1.2.3.tar.gz"
+        / "with_include-1.2.3.tar.gz"
     )
 
     assert sdist.exists()
@@ -608,7 +608,7 @@ def test_sdist_package_pep_561_stub_only() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = root / "dist" / "pep-561-stubs-0.1.tar.gz"
+    sdist = root / "dist" / "pep_561_stubs-0.1.tar.gz"
 
     assert sdist.exists()
 
@@ -626,7 +626,7 @@ def test_sdist_disable_setup_py() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = module_path / "dist" / "my-package-1.2.3.tar.gz"
+    sdist = module_path / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
