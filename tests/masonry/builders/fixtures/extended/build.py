@@ -1,4 +1,4 @@
-from distutils.core import Extension
+from setuptools import Extension
 
 
 extensions = [Extension("extended.extended", ["extended/extended.c"])]

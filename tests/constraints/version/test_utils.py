@@ -4,14 +4,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from poetry.core.semver.empty_constraint import EmptyConstraint
-from poetry.core.semver.util import constraint_regions
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
+from poetry.core.constraints.version import EmptyConstraint
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import constraint_regions
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version import VersionConstraint
 
 
 PY27 = Version.parse("2.7")

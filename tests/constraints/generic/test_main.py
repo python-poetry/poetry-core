@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from poetry.core.packages.constraints import parse_constraint
-from poetry.core.packages.constraints.any_constraint import AnyConstraint
-from poetry.core.packages.constraints.constraint import Constraint
-from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-from poetry.core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.constraints.generic import AnyConstraint
+from poetry.core.constraints.generic import Constraint
+from poetry.core.constraints.generic import MultiConstraint
+from poetry.core.constraints.generic import UnionConstraint
+from poetry.core.constraints.generic import parse_constraint
 
 
 @pytest.mark.parametrize(

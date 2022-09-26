@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from poetry.core.packages.constraints import parse_constraint
+from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
+from poetry.core.constraints.version import parse_constraint as parse_version_constraint
 from poetry.core.packages.utils.utils import convert_markers
 from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 from poetry.core.packages.utils.utils import is_python_project
-from poetry.core.semver.helpers import parse_constraint as parse_version_constraint
 from poetry.core.version.markers import parse_marker
 
 
@@ -100,7 +100,8 @@ def test_convert_markers(
 )
 def test_create_nested_marker_base_constraint(constraint: str, expected: str) -> None:
     assert (
-        create_nested_marker("sys_platform", parse_constraint(constraint)) == expected
+        create_nested_marker("sys_platform", parse_generic_constraint(constraint))
+        == expected
     )
 
 

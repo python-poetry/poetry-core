@@ -4,15 +4,15 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from poetry.core.semver.empty_constraint import EmptyConstraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
+from poetry.core.constraints.version import EmptyConstraint
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
 from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.pep440 import ReleaseTag
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version import VersionConstraint
 
 
 @pytest.mark.parametrize(

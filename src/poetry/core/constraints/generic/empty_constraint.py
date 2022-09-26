@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from poetry.core.packages.constraints.base_constraint import BaseConstraint
+from poetry.core.constraints.generic.base_constraint import BaseConstraint
 
 
 class EmptyConstraint(BaseConstraint):

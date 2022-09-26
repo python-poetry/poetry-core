@@ -4,15 +4,15 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from poetry.core.packages.constraints import AnyConstraint
-from poetry.core.packages.constraints.constraint import Constraint
-from poetry.core.packages.constraints.empty_constraint import EmptyConstraint
-from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-from poetry.core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.constraints.generic import AnyConstraint
+from poetry.core.constraints.generic import Constraint
+from poetry.core.constraints.generic import EmptyConstraint
+from poetry.core.constraints.generic import MultiConstraint
+from poetry.core.constraints.generic import UnionConstraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.constraints.generic import BaseConstraint
 
 
 def test_allows() -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 
-class ParseConstraintError(ValueError):
-    pass
+
+__all__ = ["ParseConstraintError"]
