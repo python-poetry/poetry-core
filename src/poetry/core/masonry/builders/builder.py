@@ -184,7 +184,10 @@ class Builder:
                                 project_root=self._path,
                                 source_root=source_root,
                                 resolve_symlinks=resolve_symlinks
-                                or (not file.is_symlink() and not current_file.is_symlink()),
+                                or (
+                                    not file.is_symlink()
+                                    and not current_file.is_symlink()
+                                ),
                             )
 
                             if not current_file.is_dir() and not self.is_excluded(
