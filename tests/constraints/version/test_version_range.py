@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from poetry.core.semver.empty_constraint import EmptyConstraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
+from poetry.core.constraints.version import EmptyConstraint
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
 
 
 @pytest.fixture()

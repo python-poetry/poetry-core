@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from poetry.core.packages.constraints.constraint import Constraint
-from poetry.core.packages.constraints.union_constraint import UnionConstraint
+from poetry.core.constraints.generic import Constraint
+from poetry.core.constraints.generic import UnionConstraint
 
 
 def test_allows() -> None:

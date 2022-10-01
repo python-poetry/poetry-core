@@ -14,16 +14,16 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
 from poetry.core.version.markers import dnf
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.generic import BaseConstraint
+    from poetry.core.constraints.version import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
@@ -203,10 +203,10 @@ def create_nested_marker(
     name: str,
     constraint: BaseConstraint | VersionConstraint,
 ) -> str:
-    from poetry.core.packages.constraints.constraint import Constraint
-    from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-    from poetry.core.packages.constraints.union_constraint import UnionConstraint
-    from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.constraints.generic import Constraint
+    from poetry.core.constraints.generic import MultiConstraint
+    from poetry.core.constraints.generic import UnionConstraint
+    from poetry.core.constraints.version import VersionUnion
 
     if constraint.is_any():
         return ""
@@ -297,8 +297,8 @@ def create_nested_marker(
 def get_python_constraint_from_marker(
     marker: BaseMarker,
 ) -> VersionConstraint:
-    from poetry.core.semver.empty_constraint import EmptyConstraint
-    from poetry.core.semver.version_range import VersionRange
+    from poetry.core.constraints.version import EmptyConstraint
+    from poetry.core.constraints.version import VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():

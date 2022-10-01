@@ -7,10 +7,10 @@ from typing import cast
 
 import pytest
 
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
-from poetry.core.semver.helpers import parse_constraint
 from poetry.core.toml import TOMLFile
 from poetry.core.version.markers import SingleMarker
 

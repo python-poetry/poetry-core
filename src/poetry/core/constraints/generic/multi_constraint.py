@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from poetry.core.packages.constraints.base_constraint import BaseConstraint
-from poetry.core.packages.constraints.constraint import Constraint
+from poetry.core.constraints.generic.base_constraint import BaseConstraint
+from poetry.core.constraints.generic.constraint import Constraint
 
 
 class MultiConstraint(BaseConstraint):

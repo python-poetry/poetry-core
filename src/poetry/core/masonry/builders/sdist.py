@@ -251,7 +251,7 @@ class SdistBuilder(Builder):
 
         pkg_name = include.package
         pkg_data: dict[str, list[str]] = defaultdict(list)
-        # Undocumented distutils feature:
+        # Undocumented setup() feature:
         # the empty string matches all package names
         pkg_data[""].append("*")
         packages = [pkg_name]
