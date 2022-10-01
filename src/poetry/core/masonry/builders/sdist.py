@@ -14,6 +14,7 @@ from pathlib import Path
 from posixpath import join as pjoin
 from pprint import pformat
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import Iterator
 
 from poetry.core.masonry.builders.builder import Builder
@@ -330,9 +331,13 @@ class SdistBuilder(Builder):
         # Include project files
         additional_files.add(Path("pyproject.toml"))
 
-        # add readme if it is specified
+        # add readme files if it is specified
         if "readme" in self._poetry.local_config:
-            additional_files.add(self._poetry.local_config["readme"])
+            r: str | Iterable = self._poetry.local_config["readme"]
+            if isinstance(r, str):
+                additional_files.add(r)
+            else:
+                additional_files.update(r)
 
         for additional_file in additional_files:
             file = BuildIncludeFile(

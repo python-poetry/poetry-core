@@ -193,6 +193,24 @@ def test_find_files_to_add() -> None:
     )
 
 
+def test_find_files_to_add_with_multiple_readme_files() -> None:
+    poetry = Factory().create_poetry(
+        Path(__file__).parent.parent.parent / "fixtures" / "with_readme_files"
+    )
+
+    builder = SdistBuilder(poetry)
+    result = [f.relative_to_source_root() for f in builder.find_files_to_add()]
+
+    assert sorted(result) == sorted(
+        [
+            Path("README-1.rst"),
+            Path("README-2.rst"),
+            Path("my_package/__init__.py"),
+            Path("pyproject.toml"),
+        ]
+    )
+
+
 def test_make_pkg_info_multi_constraints_dependency() -> None:
     poetry = Factory().create_poetry(
         Path(__file__).parent.parent.parent
