@@ -323,7 +323,7 @@ class SdistBuilder(Builder):
         to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
-        additional_files = set(self._path.glob("LICENSE*"))
+        additional_files: set[str | Path] = set(self._path.glob("LICENSE*"))
 
         # add script files
         additional_files.update(self.convert_script_files())
@@ -333,8 +333,8 @@ class SdistBuilder(Builder):
 
         # add readme files if it is specified
         if "readme" in self._poetry.local_config:
-            r: str | Iterable = self._poetry.local_config["readme"]
-            if isinstance(r, str):
+            r: str | Path | Iterable[Path] = self._poetry.local_config["readme"]
+            if isinstance(r, (str, Path)):
                 additional_files.add(r)
             else:
                 additional_files.update(r)
