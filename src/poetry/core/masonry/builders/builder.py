@@ -111,25 +111,27 @@ class Builder:
             else:
                 vcs_ignored_files = set(vcs.get_ignored_files())
 
-            explicitely_excluded = set()
+            explicitly_excluded = set()
             for excluded_glob in self._package.exclude:
                 for excluded in self._path.glob(str(excluded_glob)):
-                    explicitely_excluded.add(
+                    explicitly_excluded.add(
                         Path(excluded).relative_to(self._path).as_posix()
                     )
 
-            explicitely_included = set()
+            explicitly_included = set()
             for inc in self._package.include:
                 if fmt and inc["format"] and fmt not in inc["format"]:
                     continue
 
                 included_glob = inc["path"]
                 for included in self._path.glob(str(included_glob)):
-                    explicitely_included.add(
+                    explicitly_included.add(
                         Path(included).relative_to(self._path).as_posix()
                     )
 
-            ignored = (vcs_ignored_files | explicitely_excluded) - explicitely_included
+            ignored = (vcs_ignored_files | explicitly_excluded) - explicitly_included
+            for ignored_file in ignored:
+                logger.debug(f"Ignoring: {ignored_file}")
 
             self._excluded_files = ignored
 
