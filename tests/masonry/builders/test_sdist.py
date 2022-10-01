@@ -177,20 +177,18 @@ def test_find_files_to_add() -> None:
     builder = SdistBuilder(poetry)
     result = {f.relative_to_source_root() for f in builder.find_files_to_add()}
 
-    assert result == (
-        {
-            Path("LICENSE"),
-            Path("README.rst"),
-            Path("bin/script.sh"),
-            Path("my_package/__init__.py"),
-            Path("my_package/data1/test.json"),
-            Path("my_package/sub_pkg1/__init__.py"),
-            Path("my_package/sub_pkg2/__init__.py"),
-            Path("my_package/sub_pkg2/data2/data.json"),
-            Path("my_package/sub_pkg3/foo.py"),
-            Path("pyproject.toml"),
-        }
-    )
+    assert result == {
+        Path("LICENSE"),
+        Path("README.rst"),
+        Path("bin/script.sh"),
+        Path("my_package/__init__.py"),
+        Path("my_package/data1/test.json"),
+        Path("my_package/sub_pkg1/__init__.py"),
+        Path("my_package/sub_pkg2/__init__.py"),
+        Path("my_package/sub_pkg2/data2/data.json"),
+        Path("my_package/sub_pkg3/foo.py"),
+        Path("pyproject.toml"),
+    }
 
 
 def test_find_files_to_add_with_multiple_readme_files() -> None:
@@ -201,14 +199,12 @@ def test_find_files_to_add_with_multiple_readme_files() -> None:
     builder = SdistBuilder(poetry)
     result = {f.relative_to_source_root() for f in builder.find_files_to_add()}
 
-    assert result == (
-        {
-            Path("README-1.rst"),
-            Path("README-2.rst"),
-            Path("my_package/__init__.py"),
-            Path("pyproject.toml"),
-        }
-    )
+    assert result == {
+        Path("README-1.rst"),
+        Path("README-2.rst"),
+        Path("my_package/__init__.py"),
+        Path("pyproject.toml"),
+    }
 
 
 def test_make_pkg_info_multi_constraints_dependency() -> None:
