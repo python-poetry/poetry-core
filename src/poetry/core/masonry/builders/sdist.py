@@ -333,8 +333,8 @@ class SdistBuilder(Builder):
 
         # add readme files if it is specified
         if "readme" in self._poetry.local_config:
-            r: str | Path | Iterable[str | Path] = self._poetry.local_config["readme"]
-            if isinstance(r, (str, Path)):
+            r: str | Iterable[str] = self._poetry.local_config["readme"]
+            if isinstance(r, str):
                 additional_files.add(r)
             else:
                 additional_files.update(r)
