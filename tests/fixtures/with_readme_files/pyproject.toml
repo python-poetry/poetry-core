@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "single-python"
+name = "my-package"
 version = "0.1"
 description = "Some description."
 authors = [
@@ -16,4 +16,4 @@ homepage = "https://python-poetry.org/"
 
 
 [tool.poetry.dependencies]
-python = "2.7.15"
+python = "^2.7"
