@@ -180,17 +180,20 @@ def test_dist_info_file_permissions() -> None:
 
     with zipfile.ZipFile(str(whl)) as z:
         assert (
-            z.getinfo("my_package-1.2.3.dist-info/WHEEL").external_attr == 0o644 << 16
-        )
-        assert (
-            z.getinfo("my_package-1.2.3.dist-info/METADATA").external_attr
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").external_attr & 0x1FF0000
             == 0o644 << 16
         )
         assert (
-            z.getinfo("my_package-1.2.3.dist-info/RECORD").external_attr == 0o644 << 16
+            z.getinfo("my_package-1.2.3.dist-info/METADATA").external_attr & 0x1FF0000
+            == 0o644 << 16
+        )
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/RECORD").external_attr & 0x1FF0000
+            == 0o644 << 16
         )
         assert (
             z.getinfo("my_package-1.2.3.dist-info/entry_points.txt").external_attr
+            & 0x1FF0000
             == 0o644 << 16
         )
 
