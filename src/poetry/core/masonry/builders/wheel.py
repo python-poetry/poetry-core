@@ -242,13 +242,15 @@ class WheelBuilder(Builder):
             "scripts" in self._poetry.local_config
             or "plugins" in self._poetry.local_config
         ):
-            with (dist_info / "entry_points.txt").open("w", encoding="utf-8") as f:
+            with (dist_info / "entry_points.txt").open(
+                "w", encoding="utf-8", newline="\n"
+            ) as f:
                 self._write_entry_points(f)
 
-        with (dist_info / "WHEEL").open("w", encoding="utf-8") as f:
+        with (dist_info / "WHEEL").open("w", encoding="utf-8", newline="\n") as f:
             self._write_wheel_file(f)
 
-        with (dist_info / "METADATA").open("w", encoding="utf-8") as f:
+        with (dist_info / "METADATA").open("w", encoding="utf-8", newline="\n") as f:
             self._write_metadata_file(f)
 
         license_files = set()
