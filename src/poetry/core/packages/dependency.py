@@ -46,6 +46,8 @@ class Dependency(PackageSpecification):
         source_reference: str | None = None,
         source_resolved_reference: str | None = None,
         source_subdirectory: str | None = None,
+        *,
+        source_name: str | None = None,
     ) -> None:
         from poetry.core.version.markers import AnyMarker
 
@@ -92,7 +94,7 @@ class Dependency(PackageSpecification):
 
         self.is_root = False
         self._marker: BaseMarker = AnyMarker()
-        self.source_name: str | None = None
+        self.source_name: str | None = source_name
 
     @property
     def name(self) -> NormalizedName:
@@ -474,6 +476,11 @@ class Dependency(PackageSpecification):
             dep.marker = req.marker
 
         return dep
+
+    def is_same_source_as(self, other: PackageSpecification) -> bool:
+        if isinstance(other, Dependency) and self.source_name != other.source_name:
+            return False
+        return super().is_same_source_as(other)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Dependency):

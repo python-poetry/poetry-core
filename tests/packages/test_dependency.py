@@ -4,6 +4,7 @@ import pytest
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.specification import PackageSpecification
 from poetry.core.version.markers import parse_marker
 
 
@@ -312,6 +313,26 @@ def test_marker_properly_unsets_python_constraint() -> None:
 def test_create_from_pep_508_url_with_activated_extras() -> None:
     dependency = Dependency.create_from_pep_508("name [fred,bar] @ http://foo.com")
     assert dependency.extras == {"fred", "bar"}
+
+
+@pytest.mark.parametrize(
+    "dependency, package_specification, expected",
+    [
+        (Dependency("a", "*"), Dependency("b", "*"), True),
+        (Dependency("a", "*", source_name="s"), Dependency("b", "*"), False),
+        (
+            Dependency("a", "*", source_name="s1"),
+            Dependency("b", "*", source_name="s2"),
+            False,
+        ),
+        (Dependency("a", "*", source_name="s"), PackageSpecification("b"), True),
+    ],
+)
+def test_is_same_source_as(
+    dependency: Dependency, package_specification: PackageSpecification, expected: bool
+) -> None:
+    assert dependency.is_same_source_as(package_specification) is expected
+    assert package_specification.is_same_source_as(dependency) is expected
 
 
 @pytest.mark.parametrize(
