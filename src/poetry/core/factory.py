@@ -11,6 +11,8 @@ from typing import Mapping
 from typing import Union
 from warnings import warn
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import readme_content_type
 
@@ -176,6 +178,7 @@ class Factory:
 
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
+            extra_name = canonicalize_name(extra_name)
             package.extras[extra_name] = []
 
             # Checking for dependency

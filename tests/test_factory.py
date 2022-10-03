@@ -7,6 +7,8 @@ from typing import cast
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
@@ -342,7 +344,7 @@ def test_create_poetry_with_markers_and_extras() -> None:
 
     assert len(dependencies) == 2
     assert {dependency.name for dependency in dependencies} == {"orjson"}
-    assert set(extras["all"]) == set(dependencies)
+    assert set(extras[canonicalize_name("all")]) == set(dependencies)
     for dependency in dependencies:
         assert dependency.in_extras == ["all"]
         assert isinstance(dependency, URLDependency)
