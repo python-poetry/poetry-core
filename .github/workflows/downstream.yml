@@ -55,7 +55,7 @@ jobs:
 
       - name: Switch downstream to development poetry-core
         working-directory: ./poetry
-        run: poetry add --lock ../poetry-core
+        run: poetry add --lock --group test ../poetry-core
 
       - name: Install downstream dependencies
         working-directory: ./poetry
