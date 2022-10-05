@@ -10,7 +10,6 @@ from typing import Collection
 from typing import Iterable
 from typing import Iterator
 from typing import TypeVar
-from typing import cast
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -483,9 +482,10 @@ class Package(PackageSpecification):
 
         dep: Dependency
         if self.source_type == "directory":
+            assert self._source_url is not None
             dep = DirectoryDependency(
                 self._name,
-                Path(cast(str, self._source_url)),
+                Path(self._source_url),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
@@ -493,28 +493,31 @@ class Package(PackageSpecification):
                 extras=self.features,
             )
         elif self.source_type == "file":
+            assert self._source_url is not None
             dep = FileDependency(
                 self._name,
-                Path(cast(str, self._source_url)),
+                Path(self._source_url),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
                 extras=self.features,
             )
         elif self.source_type == "url":
+            assert self._source_url is not None
             dep = URLDependency(
                 self._name,
-                cast(str, self._source_url),
+                self._source_url,
                 directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,
             )
         elif self.source_type == "git":
+            assert self._source_url is not None
             dep = VCSDependency(
                 self._name,
                 self.source_type,
-                cast(str, self.source_url),
+                self._source_url,
                 rev=self.source_reference,
                 resolved_rev=self.source_resolved_reference,
                 directory=self.source_subdirectory,

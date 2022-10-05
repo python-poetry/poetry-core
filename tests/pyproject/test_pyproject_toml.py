@@ -83,6 +83,7 @@ def test_pyproject_toml_reload(pyproject_toml: Path, poetry_section: str) -> Non
     name_new = str(uuid.uuid4())
 
     pyproject.poetry_config["name"] = name_new
+    assert isinstance(pyproject.poetry_config["name"], str)
     assert pyproject.poetry_config["name"] == name_new
 
     pyproject.reload()
@@ -106,6 +107,7 @@ def test_pyproject_toml_save(
 
     pyproject = PyProjectTOML(pyproject_toml)
 
+    assert isinstance(pyproject.poetry_config["name"], str)
     assert pyproject.poetry_config["name"] == name
     assert pyproject.build_system.build_backend == build_backend
     assert build_requires in pyproject.build_system.requires
