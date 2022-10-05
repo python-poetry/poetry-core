@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.3.1] - 2022-10-05
+
+### Fixed
+
+- Fix an issue where a typing-driven assertion could be false at runtime, causing a failure during prepare_metadata_for_build_wheel ([#492](https://github.com/python-poetry/poetry-core/pull/492)).
+
 ## [1.3.0] - 2022-10-05
 
 ### Added
