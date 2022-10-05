@@ -9,6 +9,7 @@ from typing import Dict
 from typing import List
 from typing import Mapping
 from typing import Union
+from typing import cast
 from warnings import warn
 
 from packaging.utils import canonicalize_name
@@ -57,10 +58,8 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        name = local_config["name"]
-        assert isinstance(name, str)
-        version = local_config["version"]
-        assert isinstance(version, str)
+        name = cast(str, local_config["name"])
+        version = cast(str, local_config["version"])
         package = self.get_package(name, version)
         package = self.configure_package(
             package, local_config, poetry_file.parent, with_groups=with_groups

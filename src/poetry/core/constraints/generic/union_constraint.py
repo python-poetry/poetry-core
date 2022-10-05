@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.constraint import Constraint
 from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
@@ -97,7 +99,7 @@ class UnionConstraint(BaseConstraint):
                         new_constraints.append(intersection)
 
         else:
-            assert isinstance(other, MultiConstraint)
+            other = cast(MultiConstraint, other)
 
             for our_constraint in self._constraints:
                 intersection = our_constraint

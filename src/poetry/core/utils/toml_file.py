@@ -7,7 +7,7 @@ from poetry.core.toml import TOMLFile
 
 class TomlFile(TOMLFile):
     @classmethod
-    def __new__(cls: type[TOMLFile], *args: Any, **kwargs: Any) -> TomlFile:
+    def __new__(cls: type[TOMLFile], *args: Any, **kwargs: Any) -> TOMLFile:
         import warnings
 
         this_import = f"{cls.__module__}.{cls.__name__}"

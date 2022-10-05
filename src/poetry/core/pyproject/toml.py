@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import cast
 
-from tomlkit.api import table
-from tomlkit.items import Table
+from tomlkit.container import Container
 
 
 if TYPE_CHECKING:
@@ -64,15 +64,11 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Table:
+    def poetry_config(self) -> Container:
         from tomlkit.exceptions import NonExistentKey
 
         try:
-            tool = self.data["tool"]
-            assert isinstance(tool, dict)
-            config = tool["poetry"]
-            assert isinstance(config, Table)
-            return config
+            return cast(Container, self.data["tool"]["poetry"])
         except NonExistentKey as e:
             from poetry.core.pyproject.exceptions import PyProjectException
 
@@ -96,15 +92,15 @@ class PyProjectTOML:
         return getattr(self.data, item)
 
     def save(self) -> None:
+        from tomlkit.container import Container
+
         data = self.data
 
         if self._build_system is not None:
             if "build-system" not in data:
-                data["build-system"] = table()
+                data["build-system"] = Container()
 
-            build_system = data["build-system"]
-            assert isinstance(build_system, Table)
-
+            build_system = cast(Container, data["build-system"])
             build_system["requires"] = self._build_system.requires
             build_system["build-backend"] = self._build_system.build_backend
 
