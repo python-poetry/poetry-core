@@ -74,7 +74,7 @@ class SdistBuilder(Builder):
         )
 
         try:
-            tar_dir = f"{self._package.pretty_name}-{self._meta.version}"
+            tar_dir = f"{name}-{self._meta.version}"
 
             files_to_add = self.find_files_to_add(exclude_build=False)
 

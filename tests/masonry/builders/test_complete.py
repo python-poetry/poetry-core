@@ -432,7 +432,7 @@ def test_module_src() -> None:
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "module-src-0.1/src/module_src.py" in tar.getnames()
+        assert "module_src-0.1/src/module_src.py" in tar.getnames()
 
     whl = module_path / "dist" / "module_src-0.1-py2.py3-none-any.whl"
 
@@ -456,7 +456,7 @@ def test_package_src() -> None:
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "package-src-0.1/src/package_src/module.py" in tar.getnames()
+        assert "package_src-0.1/src/package_src/module.py" in tar.getnames()
 
     whl = module_path / "dist" / "package_src-0.1-py2.py3-none-any.whl"
 
@@ -481,8 +481,8 @@ def test_split_source() -> None:
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "split-source-0.1/lib_a/module_a/__init__.py" in tar.getnames()
-        assert "split-source-0.1/lib_b/module_b/__init__.py" in tar.getnames()
+        assert "split_source-0.1/lib_a/module_a/__init__.py" in tar.getnames()
+        assert "split_source-0.1/lib_b/module_b/__init__.py" in tar.getnames()
 
     whl = module_path / "dist" / "split_source-0.1-py3-none-any.whl"
 
@@ -529,23 +529,23 @@ def test_package_with_include(mocker: MockerFixture) -> None:
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
         assert len(names) == len(set(names))
-        assert "with-include-1.2.3/LICENSE" in names
-        assert "with-include-1.2.3/README.rst" in names
-        assert "with-include-1.2.3/extra_dir/__init__.py" in names
-        assert "with-include-1.2.3/extra_dir/vcs_excluded.txt" in names
-        assert "with-include-1.2.3/extra_dir/sub_pkg/__init__.py" in names
-        assert "with-include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt" not in names
-        assert "with-include-1.2.3/my_module.py" in names
-        assert "with-include-1.2.3/notes.txt" in names
-        assert "with-include-1.2.3/package_with_include/__init__.py" in names
-        assert "with-include-1.2.3/tests/__init__.py" in names
-        assert "with-include-1.2.3/pyproject.toml" in names
-        assert "with-include-1.2.3/setup.py" in names
-        assert "with-include-1.2.3/PKG-INFO" in names
-        assert "with-include-1.2.3/for_wheel_only/__init__.py" not in names
-        assert "with-include-1.2.3/src/src_package/__init__.py" in names
+        assert "with_include-1.2.3/LICENSE" in names
+        assert "with_include-1.2.3/README.rst" in names
+        assert "with_include-1.2.3/extra_dir/__init__.py" in names
+        assert "with_include-1.2.3/extra_dir/vcs_excluded.txt" in names
+        assert "with_include-1.2.3/extra_dir/sub_pkg/__init__.py" in names
+        assert "with_include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt" not in names
+        assert "with_include-1.2.3/my_module.py" in names
+        assert "with_include-1.2.3/notes.txt" in names
+        assert "with_include-1.2.3/package_with_include/__init__.py" in names
+        assert "with_include-1.2.3/tests/__init__.py" in names
+        assert "with_include-1.2.3/pyproject.toml" in names
+        assert "with_include-1.2.3/setup.py" in names
+        assert "with_include-1.2.3/PKG-INFO" in names
+        assert "with_include-1.2.3/for_wheel_only/__init__.py" not in names
+        assert "with_include-1.2.3/src/src_package/__init__.py" in names
 
-        file = tar.extractfile("with-include-1.2.3/setup.py")
+        file = tar.extractfile("with_include-1.2.3/setup.py")
         assert file
         setup = file.read()
         setup_ast = ast.parse(setup)
@@ -596,24 +596,24 @@ def test_respect_format_for_explicit_included_files() -> None:
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
         assert (
-            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/__init__.py"
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/__init__.py"
             in names
         )
         assert (
-            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/compiled/source.c"
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/compiled/source.c"
             in names
         )
         assert (
-            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/compiled/source.h"
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/compiled/source.h"
             in names
         )
         assert (
-            "exclude-whl-include-sdist-0.1.0/exclude_whl_include_sdist/cython_code.pyx"
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/cython_code.pyx"
             in names
         )
-        assert "exclude-whl-include-sdist-0.1.0/pyproject.toml" in names
-        assert "exclude-whl-include-sdist-0.1.0/setup.py" in names
-        assert "exclude-whl-include-sdist-0.1.0/PKG-INFO" in names
+        assert "exclude_whl_include_sdist-0.1.0/pyproject.toml" in names
+        assert "exclude_whl_include_sdist-0.1.0/setup.py" in names
+        assert "exclude_whl_include_sdist-0.1.0/PKG-INFO" in names
 
     whl = module_path / "dist" / "exclude_whl_include_sdist-0.1.0-py3-none-any.whl"
 
