@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.3.2] - 2022-10-07
+
+### Fixed
+
+- Fix an issue where the normalization was not applied to the path of an sdist built using a PEP 517 frontend ([#495](https://github.com/python-poetry/poetry-core/pull/495)).
+
 ## [1.3.1] - 2022-10-05
 
 ### Fixed
