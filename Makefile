@@ -16,11 +16,11 @@ vendor/lock: $(VENDOR_LOCK)
 vendor/sync:
 	# regenerate vendor.txt file (exported from lockfile)
 	@pushd $(VENDOR_SRC) && $(POETRY_BIN) export --without-hashes 2> /dev/null \
-			| egrep -v "(importlib|zipp)" \
+			| grep -E -v "(importlib|zipp)" \
 			| sort > $(VENDOR_TXT)
 
 	# vendor packages
-	@vendoring sync
+	@$(POETRY_BIN) run vendoring sync
 
 	# strip out *.pyi stubs
 	@find "$(VENDOR_DIR)" -type f -name "*.pyi" -exec rm {} \;
