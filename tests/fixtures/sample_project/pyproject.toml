@@ -50,6 +50,10 @@ dataclasses = {version = "^0.7", python = ">=3.6.1,<3.7"}
 [tool.poetry.extras]
 db = [ "orator" ]
 
+# Allows testing https://github.com/python-poetry/poetry-core/pull/492
+[tool.black]
+preview = true
+
 [tool.poetry.group.dev.dependencies]
 pytest = "~3.4"
 
