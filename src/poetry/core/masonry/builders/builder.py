@@ -411,7 +411,7 @@ class _IgnoredFilesChecker:
         self._included_files = included_files
 
     def __contains__(self, filepath: object) -> bool:
-        if not isinstance(filepath, str | Path):
+        if not isinstance(filepath, (str, Path)):
             raise TypeError("value must be a string or path-like object")
 
         # We handle the fact that the included and excluded files may be
