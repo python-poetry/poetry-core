@@ -3,10 +3,8 @@ from __future__ import annotations
 import sys
 
 from email.parser import Parser
-from glob import glob
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Collection
 
 import pytest
 
