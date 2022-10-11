@@ -8,6 +8,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Container
 
 
 if TYPE_CHECKING:
@@ -41,7 +42,7 @@ class Builder:
         self._poetry = poetry
         self._package = poetry.package
         self._path: Path = poetry.file.parent
-        self._excluded_files: set[str] | None = None
+        self._excluded_files: _IgnoredFilesChecker | None = None
         self._executable = Path(executable or sys.executable)
 
         packages = []
@@ -100,7 +101,7 @@ class Builder:
     def build(self, target_dir: Path | None) -> Path:
         raise NotImplementedError()
 
-    def find_excluded_files(self, fmt: str | None = None) -> set[str]:
+    def find_excluded_files(self, fmt: str | None = None) -> Container[str]:
         if self._excluded_files is None:
             from poetry.core.vcs import get_vcs
 
@@ -129,27 +130,25 @@ class Builder:
                         Path(included).relative_to(self._path).as_posix()
                     )
 
+            # Note: `vcs_ignored_files` might return whole directories to
+            # ignore, so removing the list of `explicitly_included` isn't enough
+            # by itself.
             ignored = (vcs_ignored_files | explicitly_excluded) - explicitly_included
             for ignored_file in ignored:
                 logger.debug(f"Ignoring: {ignored_file}")
 
-            self._excluded_files = ignored
+            for included_file in explicitly_included:
+                logger.debug(f"Including: {included_file}")
+
+            self._excluded_files = _IgnoredFilesChecker(
+                included_files=explicitly_included,
+                excluded_files=ignored,
+            )
 
         return self._excluded_files
 
     def is_excluded(self, filepath: str | Path) -> bool:
-        exclude_path = Path(filepath)
-
-        while True:
-            if exclude_path.as_posix() in self.find_excluded_files(fmt=self.format):
-                return True
-
-            if len(exclude_path.parts) > 1:
-                exclude_path = exclude_path.parent
-            else:
-                break
-
-        return False
+        return filepath in self.find_excluded_files(fmt=self.format)
 
     def find_files_to_add(self, exclude_build: bool = True) -> set[BuildIncludeFile]:
         """
@@ -396,3 +395,40 @@ class BuildIncludeFile:
             return self.path.relative_to(self.source_root)
 
         return self.path
+
+
+class _IgnoredFilesChecker:
+    """A container of files that should be ignored.
+
+    Args:
+        included_files: A set of files or directories that should not be
+            ignored, even if they're also in the set of excluded files.
+        excluded_files: A set of files or directories that should be ignored.
+    """
+
+    def __init__(self, included_files: set[str], excluded_files: set[str]) -> None:
+        self._excluded_files = excluded_files
+        self._included_files = included_files
+
+    def __contains__(self, filepath: object) -> bool:
+        if not isinstance(filepath, str | Path):
+            raise TypeError("value must be a string or path-like object")
+
+        # We handle the fact that the included and excluded files may be
+        # directories by first checking the actual file and then recursively
+        # checking each parent directory.
+        exclude_path = Path(filepath)
+
+        while True:
+            if exclude_path.as_posix() in self._included_files:
+                return False
+
+            if exclude_path.as_posix() in self._excluded_files:
+                return True
+
+            if len(exclude_path.parts) > 1:
+                exclude_path = exclude_path.parent
+            else:
+                break
+
+        return False
