@@ -50,6 +50,15 @@ dataclasses = {version = "^0.7", python = ">=3.6.1,<3.7"}
 [tool.poetry.extras]
 db = [ "orator" ]
 
+# Non-regression test for https://github.com/python-poetry/poetry-core/pull/492.
+# The underlying issue occurred because `tomlkit` can either return a TOML table as `Table` instance or an
+# `OutOfOrderProxy` one, if a table is discontinuous and multiple sections of a table are separated by a non-related
+# table, but we were too strict in our type check assertions.
+# So adding `tool.black` here ensure that we have discontinuous tables, so that we don't re-introduce the issue caused
+# by the type check assertion that ended up being reverted.
+[tool.black]
+preview = true
+
 [tool.poetry.group.dev.dependencies]
 pytest = "~3.4"
 
