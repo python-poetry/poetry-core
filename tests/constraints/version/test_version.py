@@ -212,9 +212,15 @@ def test_next_breaking_for_major_0_is_treated_with_more_care_and_preserves_preci
         # PEP 440 example comparisons
         [
             "1.0.dev456",
+            "1.0.dev456+local",
+            "1.0.dev457",
             "1.0a1",
+            "1.0a1+local",
             "1.0a2.dev456",
-            "1.0a12.dev456",
+            "1.0a2.dev456+local",
+            "1.0a2.dev457",
+            "1.0a2",
+            "1.0a12.dev455",
             "1.0a12",
             "1.0b1.dev456",
             "1.0b2",
@@ -223,12 +229,36 @@ def test_next_breaking_for_major_0_is_treated_with_more_care_and_preserves_preci
             "1.0rc1.dev456",
             "1.0rc1",
             "1.0",
-            "1.0+abc.5",
-            "1.0+abc.7",
-            "1.0+5",
+            "1.0+local",
             "1.0.post456.dev34",
+            "1.0.post456.dev34+local",
+            "1.0.post456.dev35",
             "1.0.post456",
+            "1.0.post456+local",
+            "1.0.post457",
             "1.1.dev1",
+        ],
+        # PEP 440 local versions
+        [
+            "1.0",
+            # Comparison and ordering of local versions considers each segment
+            # of the local version (divided by a .) separately.
+            "1.0+abc.2",
+            # If a segment consists entirely of ASCII digits then
+            # that section should be considered an integer for comparison purposes
+            "1.0+abc.10",
+            # and if a segment contains any ASCII letters then
+            # that segment is compared lexicographically with case insensitivity.
+            "1.0+ABD.1",
+            # When comparing a numeric and lexicographic segment, the numeric section
+            # always compares as greater than the lexicographic segment.
+            "1.0+5",
+            # Additionally, a local version with a great number of segments will always
+            # compare as greater than a local version with fewer segments,
+            # as long as the shorter local version's segments match the beginning of
+            # the longer local version's segments exactly.
+            "1.0+5.0",
+            "1.1",
         ],
     ],
 )
