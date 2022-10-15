@@ -229,7 +229,22 @@ def test_complete_name() -> None:
             ["x"],
             "A[x] (>=1.6.5,!=1.8.0,<3.1.0)",
         ),
-        # test single version range exclusions
+        # test single version range (wildcard)
+        ("A", "==2.*", None, "A (==2.*)"),
+        ("A", "==2.0.*", None, "A (==2.0.*)"),
+        ("A", "==0.0.*", None, "A (==0.0.*)"),
+        ("A", "==0.1.*", None, "A (==0.1.*)"),
+        ("A", "==0.*", None, "A (==0.*)"),
+        ("A", ">=1.0.dev0,<2", None, "A (==1.*)"),
+        ("A", ">=1.dev0,<2", None, "A (==1.*)"),
+        ("A", ">=1.0.dev1,<2", None, "A (>=1.0.dev1,<2)"),
+        ("A", ">=1.1.dev0,<2", None, "A (>=1.1.dev0,<2)"),
+        ("A", ">=1.0.dev0,<2.0.dev0", None, "A (==1.*)"),
+        ("A", ">=1.0.dev0,<2.0.dev1", None, "A (>=1.0.dev0,<2.0.dev1)"),
+        ("A", ">=1,<2", None, "A (>=1,<2)"),
+        ("A", ">=1.0.dev0,<1.1", None, "A (==1.0.*)"),
+        ("A", ">=1.0.0.0.dev0,<1.1.0.0.0", None, "A (==1.0.*)"),
+        # test single version range (wildcard) exclusions
         ("A", ">=1.8,!=2.0.*", None, "A (>=1.8,!=2.0.*)"),
         ("A", "!=0.0.*", None, "A (!=0.0.*)"),
         ("A", "!=0.1.*", None, "A (!=0.1.*)"),

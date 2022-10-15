@@ -655,3 +655,94 @@ def test_specifiers(version: str, spec: str, expected: bool) -> None:
         # Test that the version instance form works
         # assert version not in spec
         assert not constraint.allows(v)
+
+
+@pytest.mark.parametrize(
+    ("include_min", "include_max", "expected"),
+    [
+        (True, False, True),
+        (False, False, False),
+        (False, True, False),
+        (True, True, False),
+    ],
+)
+def test_is_single_wildcard_range_include_min_include_max(
+    include_min: bool, include_max: bool, expected: bool
+) -> None:
+    version_range = VersionRange(
+        Version.parse("1.2.dev0"), Version.parse("1.3"), include_min, include_max
+    )
+    assert version_range.is_single_wildcard_range() is expected
+
+
+@pytest.mark.parametrize(
+    ("min", "max", "expected"),
+    [
+        # simple wildcard ranges
+        ("1.2.dev0", "1.3", True),
+        ("1.2.dev0", "1.3.dev0", True),
+        ("1.dev0", "2", True),
+        ("1.2.3.4.5.dev0", "1.2.3.4.6", True),
+        # simple non wilcard ranges
+        (None, "1.3", False),
+        ("1.2.dev0", None, False),
+        (None, None, False),
+        ("1.2a0", "1.3", False),
+        ("1.2.post0", "1.3", False),
+        ("1.2.dev0+local", "1.3", False),
+        ("1.2", "1.3", False),
+        ("1.2.dev1", "1.3", False),
+        ("1.2.dev0", "1.3.post0.dev0", False),
+        ("1.2.dev0", "1.3a0.dev0", False),
+        ("1.2.dev0", "1.3.dev0+local", False),
+        ("1.2.dev0", "1.3.dev1", False),
+        # more complicated ranges
+        ("1.dev0", "1.0.0.1", True),
+        ("1.2.dev0", "1.3.0.0", True),
+        ("1.2.dev0", "1.3.0.0.dev0", True),
+        ("1.2.0.dev0", "1.3", True),
+        ("1.2.1.dev0", "1.3.0.0", False),
+        ("1.2.dev0", "1.4", False),
+        ("1.2.dev0", "2.3", False),
+        # post releases
+        ("2.0.post1.dev0", "2.0.post2", True),
+        ("2.0.post1.dev0", "2.0.post2.dev0", True),
+        ("2.0.post1.dev1", "2.0.post2", False),
+        ("2.0.post1.dev0", "2.0.post2.dev1", False),
+        ("2.0.post1.dev0", "2.0.post3", False),
+        ("2.0.post1.dev0", "2.0.post1", False),
+    ],
+)
+def test_is_single_wildcard_range(
+    min: str | None, max: str | None, expected: bool
+) -> None:
+    version_range = VersionRange(
+        Version.parse(min) if min else None,
+        Version.parse(max) if max else None,
+        include_min=True,
+    )
+    assert version_range.is_single_wildcard_range() is expected
+
+
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [
+        # simple ranges
+        ("*", "*"),
+        (">1.2", ">1.2"),
+        (">=1.2", ">=1.2"),
+        ("<1.3", "<1.3"),
+        ("<=1.3", "<=1.3"),
+        (">=1.2,<1.3", ">=1.2,<1.3"),
+        # wildcard ranges
+        ("1.*", "==1.*"),
+        ("1.0.*", "==1.0.*"),
+        ("1.2.*", "==1.2.*"),
+        ("1.2.3.4.5.*", "==1.2.3.4.5.*"),
+        ("2.0.post1.*", "==2.0.post1.*"),
+        ("2.1.post0.*", "==2.1.post0.*"),
+        (">=1.dev0,<2", "==1.*"),
+    ],
+)
+def test_str(version: str, expected: str) -> None:
+    assert str(parse_constraint(version)) == expected

@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 
 from typing import Optional
+from typing import Sequence
 from typing import Tuple
 from typing import Union
 
@@ -66,6 +67,13 @@ class Release:
             minor=parts[1] if len(parts) > 1 else None,
             patch=parts[2] if len(parts) > 2 else None,
             extra=parts[3:],
+        )
+
+    def to_parts(self) -> Sequence[int]:
+        return tuple(
+            part
+            for part in [self.major, self.minor, self.patch, *self.extra]
+            if part is not None
         )
 
     def to_string(self) -> str:

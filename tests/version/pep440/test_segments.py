@@ -51,8 +51,9 @@ def test_release_equal_zero_padding(precision1: int, precision2: int) -> None:
         ((1, 2, 3, 4, 5, 6), Release(1, 2, 3, (4, 5, 6))),
     ],
 )
-def test_release_from_parts(parts: tuple[int, ...], result: Release) -> None:
+def test_release_from_parts_to_parts(parts: tuple[int, ...], result: Release) -> None:
     assert Release.from_parts(*parts) == result
+    assert result.to_parts() == parts
 
 
 @pytest.mark.parametrize("precision", list(range(1, 6)))
@@ -60,7 +61,9 @@ def test_release_precision(precision: int) -> None:
     """
     Semantically identical releases might have a different precision, e.g. 1 vs. 1.0
     """
-    assert Release.from_parts(1, *[0] * (precision - 1)).precision == precision
+    release = Release.from_parts(1, *[0] * (precision - 1))
+    assert release.precision == precision
+    assert len(release.to_parts()) == precision
 
 
 @pytest.mark.parametrize("precision", list(range(1, 6)))

@@ -6,6 +6,7 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Sequence
 from typing import TypeVar
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_ALPHA
@@ -139,9 +140,12 @@ class PEP440Version:
         return self.release.patch
 
     @property
-    def non_semver_parts(self) -> tuple[int, ...]:
-        assert isinstance(self.release.extra, tuple)
+    def non_semver_parts(self) -> Sequence[int]:
         return self.release.extra
+
+    @property
+    def parts(self) -> Sequence[int]:
+        return self.release.to_parts()
 
     def to_string(self, short: bool = False) -> str:
         if short:
