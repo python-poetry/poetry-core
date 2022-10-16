@@ -35,6 +35,10 @@ class Include:
         return self._base
 
     @property
+    def include(self) -> str:
+        return self._include
+
+    @property
     def elements(self) -> list[Path]:
         return self._elements
 

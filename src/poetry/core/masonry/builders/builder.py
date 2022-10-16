@@ -371,6 +371,9 @@ class Builder:
 
         return {"name": name, "email": email}
 
+    def is_in_workspace(self) -> bool:
+        return self._poetry.workspace is not None
+
 
 class BuildIncludeFile:
     def __init__(
@@ -426,6 +429,9 @@ class BuildIncludeFile:
 
     def calculated_path(self) -> Path:
         if self.workspace:
+            if self.path.is_relative_to(self.project_root):
+                return self.relative_to_project_root()
+
             return namespacing.create_namespaced_path(self.path, self.workspace)
 
         return self.relative_to_source_root()

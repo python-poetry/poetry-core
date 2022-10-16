@@ -91,3 +91,9 @@ class PackageInclude(Include):
                 self._is_module = True
 
         return self
+
+    def get_namespace_path(self) -> str:
+        if self.source and ".." not in self.source:
+            return "/".join([self.source, self.include])
+
+        return self.include

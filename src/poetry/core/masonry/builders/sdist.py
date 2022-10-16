@@ -19,6 +19,7 @@ from typing import Iterator
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
 from poetry.core.masonry.utils.helpers import distribution_name
+from poetry.core.utils import namespacing
 
 
 if TYPE_CHECKING:
@@ -136,6 +137,11 @@ class SdistBuilder(Builder):
             if isinstance(include, PackageInclude):
                 if include.is_package():
                     pkg_dir, _packages, _package_data = self.find_packages(include)
+
+                    if self.is_in_workspace():
+                        ns_path = include.get_namespace_path()
+                        pkg_dir = None
+                        _packages = [namespacing.convert_to_namespace(ns_path)]
 
                     if pkg_dir is not None:
                         pkg_root = os.path.relpath(pkg_dir, str(self._path))

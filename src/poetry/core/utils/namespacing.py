@@ -17,3 +17,9 @@ def create_namespaced_path(path: Path, workspace: Path) -> Path:
     namespaced_path = "/".join([namespace, package_name, module_name])
 
     return Path(namespaced_path)
+
+
+def convert_to_namespace(dirs: str) -> str:
+    parts = dirs.split("/")
+
+    return ".".join(parts)
