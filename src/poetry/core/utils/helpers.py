@@ -105,3 +105,19 @@ def readme_content_type(path: str | Path) -> str:
         return "text/markdown"
     else:
         return "text/plain"
+
+
+def is_path_relative_to_other(path: Path, other: Path) -> bool:
+    """Return True if the path is relative to another path or False.
+
+    Note:
+    this is a custom implementation of Path.is_relative_to
+    that was introduced to pathlib in Python 3.9.
+
+    This is needed because Poetry support Python versions prior to that.
+    """
+    try:
+        path.relative_to(other)
+        return True
+    except ValueError:
+        return False

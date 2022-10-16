@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from poetry.core.utils import helpers
 from poetry.core.utils import namespacing
 
 
@@ -429,7 +430,7 @@ class BuildIncludeFile:
 
     def calculated_path(self) -> Path:
         if self.workspace:
-            if self.path.is_relative_to(self.project_root):
+            if helpers.is_path_relative_to_other(self.path, self.project_root):
                 return self.relative_to_project_root()
 
             return namespacing.create_namespaced_path(self.path, self.workspace)
