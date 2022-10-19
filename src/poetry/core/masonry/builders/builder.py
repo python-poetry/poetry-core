@@ -429,7 +429,7 @@ class BuildIncludeFile:
         return self.path
 
     def calculated_path(self) -> Path:
-        if self.workspace:
+        if self.workspace is not None:
             if helpers.is_path_relative_to_other(self.path, self.project_root):
                 return self.relative_to_project_root()
 
