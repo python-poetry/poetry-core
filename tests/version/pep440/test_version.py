@@ -229,6 +229,88 @@ def test_next_prerelease(version: str, expected: str) -> None:
 @pytest.mark.parametrize(
     "version, expected",
     [
+        ("1", True),
+        ("1.2", True),
+        ("1.2.3", True),
+        ("2!1.2.3", True),
+        ("1.2.3+local", True),
+        ("1.2.3.4", True),
+        ("1.dev0", False),
+        ("1.2dev0", False),
+        ("1.2.3dev0", False),
+        ("1.2.3.4dev0", False),
+        ("1.post1", True),
+        ("1.2.post1", True),
+        ("1.2.3.post1", True),
+        ("1.post1.dev0", False),
+        ("1.2.post1.dev0", False),
+        ("1.2.3.post1.dev0", False),
+        ("1.a1", False),
+        ("1.2a1", False),
+        ("1.2.3a1", False),
+        ("1.2.3.4a1", False),
+        ("1.a1.post2", False),
+        ("1.2a1.post2", False),
+        ("1.2.3a1.post2", False),
+        ("1.2.3.4a1.post2", False),
+        ("1.a1.post2.dev0", False),
+        ("1.2a1.post2.dev0", False),
+        ("1.2.3a1.post2.dev0", False),
+        ("1.2.3.4a1.post2.dev0", False),
+    ],
+)
+def test_is_stable(version: str, expected: bool) -> None:
+    subject = PEP440Version.parse(version)
+
+    assert subject.is_stable() == expected
+    assert subject.is_unstable() == (not expected)
+
+
+@pytest.mark.parametrize(
+    "version, expected",
+    [
+        ("0", True),
+        ("0.2", True),
+        ("0.2.3", True),
+        ("2!0.2.3", True),
+        ("0.2.3+local", True),
+        ("0.2.3.4", True),
+        ("0.dev0", False),
+        ("0.2dev0", False),
+        ("0.2.3dev0", False),
+        ("0.2.3.4dev0", False),
+        ("0.post1", True),
+        ("0.2.post1", True),
+        ("0.2.3.post1", True),
+        ("0.post1.dev0", False),
+        ("0.2.post1.dev0", False),
+        ("0.2.3.post1.dev0", False),
+        ("0.a1", False),
+        ("0.2a1", False),
+        ("0.2.3a1", False),
+        ("0.2.3.4a1", False),
+        ("0.a1.post2", False),
+        ("0.2a1.post2", False),
+        ("0.2.3a1.post2", False),
+        ("0.2.3.4a1.post2", False),
+        ("0.a1.post2.dev0", False),
+        ("0.2a1.post2.dev0", False),
+        ("0.2.3a1.post2.dev0", False),
+        ("0.2.3.4a1.post2.dev0", False),
+    ],
+)
+def test_is_stable_all_major_0_versions_are_treated_as_normal_versions(
+    version: str, expected: bool
+) -> None:
+    subject = PEP440Version.parse(version)
+
+    assert subject.is_stable() == expected
+    assert subject.is_unstable() == (not expected)
+
+
+@pytest.mark.parametrize(
+    "version, expected",
+    [
         ("1", "1.post0"),
         ("1.post1", "1.post2"),
         ("9!1.2.3.4", "9!1.2.3.4.post0"),

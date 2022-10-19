@@ -8,7 +8,7 @@ from typing import Any
 from typing import Callable
 from typing import Iterable
 
-from poetry.core.semver.version_constraint import VersionConstraint
+from poetry.core.constraints.version import VersionConstraint
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
 from poetry.core.version.parser import Parser
 
@@ -16,7 +16,7 @@ from poetry.core.version.parser import Parser
 if TYPE_CHECKING:
     from lark import Tree
 
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.constraints.generic import BaseConstraint
 
 
 class InvalidMarker(ValueError):
@@ -184,10 +184,12 @@ class SingleMarker(BaseMarker):
     def __init__(
         self, name: str, constraint: str | BaseConstraint | VersionConstraint
     ) -> None:
-        from poetry.core.packages.constraints import (
+        from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
-        from poetry.core.semver.helpers import parse_constraint
+        from poetry.core.constraints.version import (
+            parse_constraint as parse_version_constraint,
+        )
 
         self._constraint: BaseConstraint | VersionConstraint
         self._parser: Callable[[str], BaseConstraint | VersionConstraint]
@@ -207,7 +209,7 @@ class SingleMarker(BaseMarker):
         self._parser = parse_generic_constraint
 
         if name in self._VERSION_LIKE_MARKER_NAME:
-            self._parser = parse_constraint
+            self._parser = parse_version_constraint
 
             if self._operator in {"in", "not in"}:
                 versions = []
@@ -321,9 +323,7 @@ class SingleMarker(BaseMarker):
             # This one is more tricky to handle
             # since it's technically a multi marker
             # so the inverse will be a union of inverse
-            from poetry.core.semver.version_range_constraint import (
-                VersionRangeConstraint,
-            )
+            from poetry.core.constraints.version import VersionRangeConstraint
 
             if not isinstance(self._constraint, VersionRangeConstraint):
                 # The constraint must be a version range, otherwise

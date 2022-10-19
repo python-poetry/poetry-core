@@ -5,6 +5,7 @@ import shutil
 import stat
 import tempfile
 import unicodedata
+import warnings
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -25,6 +26,11 @@ def module_name(name: str) -> str:
 
 
 def normalize_version(version: str) -> str:
+    warnings.warn(
+        "normalize_version() is deprecated. Use Version.parse().to_string() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return PEP440Version.parse(version).to_string()
 
 

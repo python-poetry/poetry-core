@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_union import VersionUnion
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionUnion
+from poetry.core.constraints.version import parse_constraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version import VersionConstraint
 
 PYTHON_VERSION = [
     "2.7.*",
@@ -23,6 +23,7 @@ PYTHON_VERSION = [
     "3.8.*",
     "3.9.*",
     "3.10.*",
+    "3.11.*",
 ]
 
 

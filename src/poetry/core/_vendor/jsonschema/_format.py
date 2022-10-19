@@ -6,6 +6,7 @@ import datetime
 import ipaddress
 import re
 import typing
+import warnings
 
 from jsonschema.exceptions import FormatError
 
@@ -16,7 +17,7 @@ _RaisesType = typing.Union[
 ]
 
 
-class FormatChecker(object):
+class FormatChecker:
     """
     A ``format`` property checker.
 
@@ -27,13 +28,12 @@ class FormatChecker(object):
     `FormatChecker` objects always return ``True`` when asked about
     formats that they do not know how to validate.
 
-    To check a custom format using a function that takes an instance and
-    returns a ``bool``, use the `FormatChecker.checks` or
-    `FormatChecker.cls_checks` decorators.
+    To add a check for a custom format use the `FormatChecker.checks`
+    decorator.
 
     Arguments:
 
-        formats (~collections.abc.Iterable):
+        formats:
 
             The known formats to validate. This argument can be used to
             limit which formats will be used during validation.
@@ -44,11 +44,10 @@ class FormatChecker(object):
         tuple[_FormatCheckCallable, _RaisesType],
     ] = {}
 
-    def __init__(self, formats: typing.Iterable[str] | None = None):
+    def __init__(self, formats: typing.Iterable[str] = None):
         if formats is None:
-            self.checkers = self.checkers.copy()
-        else:
-            self.checkers = dict((k, self.checkers[k]) for k in formats)
+            formats = self.checkers.keys()
+        self.checkers = {k: self.checkers[k] for k in formats}
 
     def __repr__(self):
         return "<FormatChecker checkers={}>".format(sorted(self.checkers))
@@ -61,11 +60,11 @@ class FormatChecker(object):
 
         Arguments:
 
-            format (str):
+            format:
 
                 The format that the decorated function will check.
 
-            raises (Exception):
+            raises:
 
                 The exception(s) raised by the decorated function when an
                 invalid instance is found.
@@ -85,6 +84,21 @@ class FormatChecker(object):
     def cls_checks(
         cls, format: str, raises: _RaisesType = (),
     ) -> typing.Callable[[_F], _F]:
+        warnings.warn(
+            (
+                "FormatChecker.cls_checks is deprecated. Call "
+                "FormatChecker.checks on a specific FormatChecker instance "
+                "instead."
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return cls._cls_checks(format=format, raises=raises)
+
+    @classmethod
+    def _cls_checks(
+        cls, format: str, raises: _RaisesType = (),
+    ) -> typing.Callable[[_F], _F]:
         def _checks(func: _F) -> _F:
             cls.checkers[format] = (func, raises)
             return func
@@ -101,14 +115,15 @@ class FormatChecker(object):
 
                 The instance to check
 
-            format (str):
+            format:
 
                 The format that instance should conform to
 
-
         Raises:
 
-            FormatError: if the instance does not conform to ``format``
+            FormatError:
+
+                if the instance does not conform to ``format``
         """
 
         if format not in self.checkers:
@@ -133,7 +148,7 @@ class FormatChecker(object):
 
                 The instance to check
 
-            format (str):
+            format:
 
                 The format that instance should conform to
 
@@ -204,7 +219,7 @@ def _checks_drafts(
 
         # Oy. This is bad global state, but relied upon for now, until
         # deprecation. See #519 and test_format_checkers_come_with_defaults
-        FormatChecker.cls_checks(
+        FormatChecker._cls_checks(
             draft202012 or draft201909 or draft7 or draft6 or draft4 or draft3,
             raises,
         )(func)

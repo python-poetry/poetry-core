@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
-from poetry.core.semver.exceptions import ParseConstraintError
 from poetry.core.version.markers import parse_marker
 
 
@@ -51,7 +53,7 @@ def test_to_pep_508_wilcard() -> None:
 
 def test_to_pep_508_in_extras() -> None:
     dependency = Dependency("Django", "^1.23")
-    dependency.in_extras.append("foo")
+    dependency.in_extras.append(canonicalize_name("foo"))
 
     result = dependency.to_pep_508()
     assert result == 'Django (>=1.23,<2.0); extra == "foo"'
@@ -59,7 +61,7 @@ def test_to_pep_508_in_extras() -> None:
     result = dependency.to_pep_508(with_extras=False)
     assert result == "Django (>=1.23,<2.0)"
 
-    dependency.in_extras.append("bar")
+    dependency.in_extras.append(canonicalize_name("bar"))
 
     result = dependency.to_pep_508()
     assert result == 'Django (>=1.23,<2.0); extra == "foo" or extra == "bar"'

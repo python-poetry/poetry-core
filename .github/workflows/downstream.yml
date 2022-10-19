@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         ref: ["master", "1.2"]
+      fail-fast: false
     defaults:
       run:
         shell: bash
@@ -54,7 +55,12 @@ jobs:
 
       - name: Switch downstream to development poetry-core
         working-directory: ./poetry
-        run: poetry add --lock ../poetry-core
+        run: |
+          # remove poetry-core from main group to avoid version conflicts
+          # with a potential entry in the test group
+          poetry remove poetry-core
+          # add to test group to overwrite a potential entry in that group
+          poetry add --lock --group test ../poetry-core
 
       - name: Install downstream dependencies
         working-directory: ./poetry

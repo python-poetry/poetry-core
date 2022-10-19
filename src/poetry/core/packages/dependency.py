@@ -10,25 +10,25 @@ from typing import TYPE_CHECKING
 from typing import Iterable
 from typing import TypeVar
 
-from poetry.core.packages.constraints import (
-    parse_constraint as parse_generic_constraint,
-)
+from packaging.utils import canonicalize_name
+
+from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
+from poetry.core.constraints.version import VersionRangeConstraint
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker
 from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.packages.utils.utils import normalize_python_version_markers
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
 
+    from poetry.core.constraints.version import VersionConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
-    from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
     T = TypeVar("T", bound="Dependency")
@@ -88,7 +88,7 @@ class Dependency(PackageSpecification):
         self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
 
-        self._in_extras: list[str] = []
+        self._in_extras: list[NormalizedName] = []
 
         self._activated = not self._optional
 
@@ -167,8 +167,8 @@ class Dependency(PackageSpecification):
 
     @marker.setter
     def marker(self, marker: str | BaseMarker) -> None:
+        from poetry.core.constraints.version import parse_constraint
         from poetry.core.packages.utils.utils import convert_markers
-        from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import BaseMarker
         from poetry.core.version.markers import parse_marker
 
@@ -185,7 +185,7 @@ class Dependency(PackageSpecification):
 
             for or_ in markers["extra"]:
                 for _, extra in or_:
-                    self.in_extras.append(extra)
+                    self.in_extras.append(canonicalize_name(extra))
 
         # Recalculate python versions.
         self._python_versions = "*"
@@ -220,18 +220,18 @@ class Dependency(PackageSpecification):
         return self._transitive_python_constraint
 
     @property
-    def extras(self) -> frozenset[str]:
+    def extras(self) -> frozenset[NormalizedName]:
         # extras activated in a dependency is the same as features
         return self._features
 
     @property
-    def in_extras(self) -> list[str]:
+    def in_extras(self) -> list[NormalizedName]:
         return self._in_extras
 
     @property
     def base_pep_508_name(self) -> str:
-        from poetry.core.semver.version import Version
-        from poetry.core.semver.version_union import VersionUnion
+        from poetry.core.constraints.version import Version
+        from poetry.core.constraints.version import VersionUnion
 
         requirement = self.pretty_name
 

@@ -7,6 +7,7 @@ from typing import cast
 
 import pytest
 
+from poetry.core.constraints.version import Version
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
@@ -16,7 +17,6 @@ from poetry.core.packages.package import Package
 from poetry.core.packages.project_package import ProjectPackage
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
-from poetry.core.semver.version import Version
 
 
 @pytest.fixture()
@@ -560,6 +560,34 @@ def test_package_satisfies(
     package: Package, dependency: Dependency, ignore_source_type: bool, result: bool
 ) -> None:
     assert package.satisfies(dependency, ignore_source_type) == result
+
+
+@pytest.mark.parametrize(
+    ("package_repo", "dependency_repo", "result"),
+    [
+        ("pypi", None, True),
+        ("private", None, True),
+        ("pypi", "pypi", True),
+        ("private", "private", True),
+        ("pypi", "private", False),
+        ("private", "pypi", False),
+    ],
+)
+def test_package_satisfies_on_repositories(
+    package_repo: str,
+    dependency_repo: str | None,
+    result: bool,
+) -> None:
+    source_type = None if package_repo == "pypi" else "legacy"
+    source_reference = None if package_repo == "pypi" else package_repo
+    package = Package(
+        "foo", "0.1.0", source_type=source_type, source_reference=source_reference
+    )
+
+    dependency = Dependency("foo", ">=0.1.0")
+    dependency.source_name = dependency_repo
+
+    assert package.satisfies(dependency) == result
 
 
 def test_package_pep592_default_not_yanked() -> None:

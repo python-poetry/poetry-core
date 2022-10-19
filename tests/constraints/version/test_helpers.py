@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import cast
-
 import pytest
 
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
-from poetry.core.semver.version_union import VersionUnion
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import VersionUnion
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.pep440 import ReleaseTag
 
 
@@ -246,6 +244,30 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
                 Version.from_parts(0, 0, 3), Version.from_parts(0, 0, 4), True
             ),
         ),
+        (
+            "^0.0.3-alpha.21",
+            VersionRange(
+                Version.from_parts(0, 0, 3, pre=ReleaseTag("alpha", 21)),
+                Version.from_parts(0, 0, 4),
+                True,
+            ),
+        ),
+        (
+            "^0.1.3-alpha.21",
+            VersionRange(
+                Version.from_parts(0, 1, 3, pre=ReleaseTag("alpha", 21)),
+                Version.from_parts(0, 2, 0),
+                True,
+            ),
+        ),
+        (
+            "^0.0.0-alpha.21",
+            VersionRange(
+                Version.from_parts(0, 0, 0, pre=ReleaseTag("alpha", 21)),
+                Version.from_parts(0, 0, 1),
+                True,
+            ),
+        ),
     ],
 )
 def test_parse_constraint_caret(input: str, constraint: VersionRange) -> None:
@@ -394,6 +416,15 @@ def test_parse_constraints_with_trailing_comma(
         ("^1", ">=1,<2"),
         ("^1.0", ">=1.0,<2.0"),
         ("^1.0.0", ">=1.0.0,<2.0.0"),
+        ("^1.0.0-alpha.1", ">=1.0.0-alpha.1,<2.0.0"),
+        ("^0", ">=0,<1"),
+        ("^0.1", ">=0.1,<0.2"),
+        ("^0.0.2", ">=0.0.2,<0.0.3"),
+        ("^0.1.2", ">=0.1.2,<0.2.0"),
+        ("^0-alpha.1", ">=0-alpha.1,<1"),
+        ("^0.1-alpha.1", ">=0.1-alpha.1,<0.2"),
+        ("^0.0.2-alpha.1", ">=0.0.2-alpha.1,<0.0.3"),
+        ("^0.1.2-alpha.1", ">=0.1.2-alpha.1,<0.2.0"),
         ("~1", ">=1,<2"),
         ("~1.0", ">=1.0,<1.1"),
         ("~1.0.0", ">=1.0.0,<1.1.0"),
@@ -415,7 +446,7 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
     ],
 )
 def test_versions_are_sortable(unsorted: list[str], sorted_: list[str]) -> None:
-    unsorted_parsed = [cast(Version, parse_constraint(u)) for u in unsorted]
-    sorted_parsed = [cast(Version, parse_constraint(s)) for s in sorted_]
+    unsorted_parsed = [Version.parse(u) for u in unsorted]
+    sorted_parsed = [Version.parse(s) for s in sorted_]
 
     assert sorted(unsorted_parsed) == sorted_parsed

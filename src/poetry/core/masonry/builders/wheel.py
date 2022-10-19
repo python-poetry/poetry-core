@@ -21,16 +21,17 @@ from typing import TextIO
 from packaging.tags import sys_tags
 
 from poetry.core import __version__
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.sdist import SdistBuilder
-from poetry.core.masonry.utils.helpers import escape_name
-from poetry.core.masonry.utils.helpers import escape_version
+from poetry.core.masonry.utils.helpers import distribution_name
 from poetry.core.masonry.utils.helpers import normalize_file_permissions
 from poetry.core.masonry.utils.package_include import PackageInclude
-from poetry.core.semver.helpers import parse_constraint
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.poetry import Poetry
 
 wheel_file_template = """\
@@ -282,8 +283,8 @@ class WheelBuilder(Builder):
 
     @property
     def wheel_filename(self) -> str:
-        name = escape_name(self._package.pretty_name)
-        version = escape_version(self._meta.version)
+        name = distribution_name(self._package.name)
+        version = self._meta.version
         return f"{name}-{version}-{self.tag}.whl"
 
     def supports_python2(self) -> bool:
@@ -291,11 +292,9 @@ class WheelBuilder(Builder):
             parse_constraint(">=2.0.0 <3.0.0")
         )
 
-    def dist_info_name(self, distribution: str, version: str) -> str:
-        escaped_name = escape_name(distribution)
-        escaped_version = escape_version(version)
-
-        return f"{escaped_name}-{escaped_version}.dist-info"
+    def dist_info_name(self, name: NormalizedName, version: str) -> str:
+        escaped_name = distribution_name(name)
+        return f"{escaped_name}-{version}.dist-info"
 
     @property
     def tag(self) -> str:

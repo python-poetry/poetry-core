@@ -14,6 +14,8 @@ from typing import Iterator
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.package_include import PackageInclude
@@ -73,7 +75,7 @@ def test_convert_dependencies() -> None:
     assert result == (main, extras)
 
     package = ProjectPackage("foo", "1.2.3")
-    package.extras = {"bar": [Dependency("A", "*")]}
+    package.extras = {canonicalize_name("bar"): [Dependency("A", "*")]}
 
     result = SdistBuilder.convert_dependencies(
         package,
@@ -93,7 +95,7 @@ def test_convert_dependencies() -> None:
     d = Dependency("D", "3.4.5", optional=True)
     d.python_versions = "~2.7 || ^3.4"
 
-    package.extras = {"baz": [Dependency("D", "*")]}
+    package.extras = {canonicalize_name("baz"): [Dependency("D", "*")]}
 
     result = SdistBuilder.convert_dependencies(
         package,
@@ -253,12 +255,12 @@ def test_package() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = fixtures_dir / "complete" / "dist" / "my-package-1.2.3.tar.gz"
+    sdist = fixtures_dir / "complete" / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "my-package-1.2.3/LICENSE" in tar.getnames()
+        assert "my_package-1.2.3/LICENSE" in tar.getnames()
 
 
 def test_sdist_reproducibility() -> None:
@@ -270,7 +272,7 @@ def test_sdist_reproducibility() -> None:
         builder = SdistBuilder(poetry)
         builder.build()
 
-        sdist = fixtures_dir / "complete" / "dist" / "my-package-1.2.3.tar.gz"
+        sdist = fixtures_dir / "complete" / "dist" / "my_package-1.2.3.tar.gz"
 
         assert sdist.exists()
 
@@ -386,12 +388,12 @@ def test_with_src_module_file() -> None:
 
     builder.build()
 
-    sdist = fixtures_dir / "source_file" / "dist" / "module-src-0.1.tar.gz"
+    sdist = fixtures_dir / "source_file" / "dist" / "module_src-0.1.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "module-src-0.1/src/module_src.py" in tar.getnames()
+        assert "module_src-0.1/src/module_src.py" in tar.getnames()
 
 
 def test_with_src_module_dir() -> None:
@@ -411,33 +413,37 @@ def test_with_src_module_dir() -> None:
 
     builder.build()
 
-    sdist = fixtures_dir / "source_package" / "dist" / "package-src-0.1.tar.gz"
+    sdist = fixtures_dir / "source_package" / "dist" / "package_src-0.1.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "package-src-0.1/src/package_src/__init__.py" in tar.getnames()
-        assert "package-src-0.1/src/package_src/module.py" in tar.getnames()
+        assert "package_src-0.1/src/package_src/__init__.py" in tar.getnames()
+        assert "package_src-0.1/src/package_src/module.py" in tar.getnames()
 
 
 def test_default_with_excluded_data(mocker: MockerFixture) -> None:
-    # Patch git module to return specific excluded files
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = [
-        (
-            (
-                Path(__file__).parent
-                / "fixtures"
-                / "default_with_excluded_data"
-                / "my_package"
-                / "data"
-                / "sub_data"
-                / "data2.txt"
-            )
-            .relative_to(project("default_with_excluded_data"))
-            .as_posix()
-        )
-    ]
+    class MockGit:
+        def get_ignored_files(self, folder: Path | None = None) -> list[str]:
+            # Patch git module to return specific excluded files
+            return [
+                (
+                    (
+                        Path(__file__).parent
+                        / "fixtures"
+                        / "default_with_excluded_data"
+                        / "my_package"
+                        / "data"
+                        / "sub_data"
+                        / "data2.txt"
+                    )
+                    .relative_to(project("default_with_excluded_data"))
+                    .as_posix()
+                )
+            ]
+
+    p = mocker.patch("poetry.core.vcs.get_vcs")
+    p.return_value = MockGit()
     poetry = Factory().create_poetry(project("default_with_excluded_data"))
 
     builder = SdistBuilder(poetry)
@@ -459,7 +465,7 @@ def test_default_with_excluded_data(mocker: MockerFixture) -> None:
     builder.build()
 
     sdist = (
-        fixtures_dir / "default_with_excluded_data" / "dist" / "my-package-1.2.3.tar.gz"
+        fixtures_dir / "default_with_excluded_data" / "dist" / "my_package-1.2.3.tar.gz"
     )
 
     assert sdist.exists()
@@ -467,18 +473,18 @@ def test_default_with_excluded_data(mocker: MockerFixture) -> None:
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
         assert len(names) == len(set(names))
-        assert "my-package-1.2.3/LICENSE" in names
-        assert "my-package-1.2.3/README.rst" in names
-        assert "my-package-1.2.3/my_package/__init__.py" in names
-        assert "my-package-1.2.3/my_package/data/data1.txt" in names
-        assert "my-package-1.2.3/pyproject.toml" in names
-        assert "my-package-1.2.3/setup.py" in names
-        assert "my-package-1.2.3/PKG-INFO" in names
+        assert "my_package-1.2.3/LICENSE" in names
+        assert "my_package-1.2.3/README.rst" in names
+        assert "my_package-1.2.3/my_package/__init__.py" in names
+        assert "my_package-1.2.3/my_package/data/data1.txt" in names
+        assert "my_package-1.2.3/pyproject.toml" in names
+        assert "my_package-1.2.3/setup.py" in names
+        assert "my_package-1.2.3/PKG-INFO" in names
         # all last modified times should be set to a valid timestamp
         for tarinfo in tar.getmembers():
             if tarinfo.name in [
-                "my-package-1.2.3/setup.py",
-                "my-package-1.2.3/PKG-INFO",
+                "my_package-1.2.3/setup.py",
+                "my_package-1.2.3/PKG-INFO",
             ]:
                 # generated files have timestamp set to 0
                 assert tarinfo.mtime == 0
@@ -493,30 +499,30 @@ def test_src_excluded_nested_data() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = module_path / "dist" / "my-package-1.2.3.tar.gz"
+    sdist = module_path / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
         assert len(names) == len(set(names))
-        assert "my-package-1.2.3/LICENSE" in names
-        assert "my-package-1.2.3/README.rst" in names
-        assert "my-package-1.2.3/pyproject.toml" in names
-        assert "my-package-1.2.3/setup.py" in names
-        assert "my-package-1.2.3/PKG-INFO" in names
-        assert "my-package-1.2.3/my_package/__init__.py" in names
-        assert "my-package-1.2.3/my_package/data/sub_data/data2.txt" not in names
-        assert "my-package-1.2.3/my_package/data/sub_data/data3.txt" not in names
-        assert "my-package-1.2.3/my_package/data/data1.txt" not in names
-        assert "my-package-1.2.3/my_package/data/data2.txt" in names
-        assert "my-package-1.2.3/my_package/puplic/publicdata.txt" in names
-        assert "my-package-1.2.3/my_package/public/item1/itemdata1.txt" not in names
+        assert "my_package-1.2.3/LICENSE" in names
+        assert "my_package-1.2.3/README.rst" in names
+        assert "my_package-1.2.3/pyproject.toml" in names
+        assert "my_package-1.2.3/setup.py" in names
+        assert "my_package-1.2.3/PKG-INFO" in names
+        assert "my_package-1.2.3/my_package/__init__.py" in names
+        assert "my_package-1.2.3/my_package/data/sub_data/data2.txt" not in names
+        assert "my_package-1.2.3/my_package/data/sub_data/data3.txt" not in names
+        assert "my_package-1.2.3/my_package/data/data1.txt" not in names
+        assert "my_package-1.2.3/my_package/data/data2.txt" in names
+        assert "my_package-1.2.3/my_package/puplic/publicdata.txt" in names
+        assert "my_package-1.2.3/my_package/public/item1/itemdata1.txt" not in names
         assert (
-            "my-package-1.2.3/my_package/public/item1/subitem/subitemdata.txt"
+            "my_package-1.2.3/my_package/public/item1/subitem/subitemdata.txt"
             not in names
         )
-        assert "my-package-1.2.3/my_package/public/item2/itemdata2.txt" not in names
+        assert "my_package-1.2.3/my_package/public/item2/itemdata2.txt" not in names
 
 
 def test_proper_python_requires_if_two_digits_precision_version_specified() -> None:
@@ -548,13 +554,13 @@ def test_includes() -> None:
 
     builder.build()
 
-    sdist = fixtures_dir / "with-include" / "dist" / "with-include-1.2.3.tar.gz"
+    sdist = fixtures_dir / "with-include" / "dist" / "with_include-1.2.3.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "with-include-1.2.3/extra_dir/vcs_excluded.txt" in tar.getnames()
-        assert "with-include-1.2.3/notes.txt" in tar.getnames()
+        assert "with_include-1.2.3/extra_dir/vcs_excluded.txt" in tar.getnames()
+        assert "with_include-1.2.3/notes.txt" in tar.getnames()
 
 
 def test_includes_with_inline_table() -> None:
@@ -568,16 +574,16 @@ def test_includes_with_inline_table() -> None:
         fixtures_dir
         / "with_include_inline_table"
         / "dist"
-        / "with-include-1.2.3.tar.gz"
+        / "with_include-1.2.3.tar.gz"
     )
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "with-include-1.2.3/both.txt" in tar.getnames()
-        assert "with-include-1.2.3/wheel_only.txt" not in tar.getnames()
-        assert "with-include-1.2.3/tests/__init__.py" in tar.getnames()
-        assert "with-include-1.2.3/tests/test_foo/test.py" in tar.getnames()
+        assert "with_include-1.2.3/both.txt" in tar.getnames()
+        assert "with_include-1.2.3/wheel_only.txt" not in tar.getnames()
+        assert "with_include-1.2.3/tests/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/tests/test_foo/test.py" in tar.getnames()
 
 
 def test_excluded_subpackage() -> None:
@@ -602,15 +608,15 @@ def test_sdist_package_pep_561_stub_only() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = root / "dist" / "pep-561-stubs-0.1.tar.gz"
+    sdist = root / "dist" / "pep_561_stubs-0.1.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
-        assert "pep-561-stubs-0.1/pkg-stubs/__init__.pyi" in names
-        assert "pep-561-stubs-0.1/pkg-stubs/module.pyi" in names
-        assert "pep-561-stubs-0.1/pkg-stubs/subpkg/__init__.pyi" in names
+        assert "pep_561_stubs-0.1/pkg-stubs/__init__.pyi" in names
+        assert "pep_561_stubs-0.1/pkg-stubs/module.pyi" in names
+        assert "pep_561_stubs-0.1/pkg-stubs/subpkg/__init__.pyi" in names
 
 
 def test_sdist_disable_setup_py() -> None:
@@ -620,16 +626,16 @@ def test_sdist_disable_setup_py() -> None:
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = module_path / "dist" / "my-package-1.2.3.tar.gz"
+    sdist = module_path / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
         assert set(tar.getnames()) == {
-            "my-package-1.2.3/README.rst",
-            "my-package-1.2.3/pyproject.toml",
-            "my-package-1.2.3/PKG-INFO",
-            "my-package-1.2.3/my_package/__init__.py",
+            "my_package-1.2.3/README.rst",
+            "my_package-1.2.3/pyproject.toml",
+            "my_package-1.2.3/PKG-INFO",
+            "my_package-1.2.3/my_package/__init__.py",
         }
 
 

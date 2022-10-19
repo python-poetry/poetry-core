@@ -47,15 +47,12 @@ class Metadata:
 
     @classmethod
     def from_package(cls, package: Package) -> Metadata:
-        from packaging.utils import canonicalize_name
-
-        from poetry.core.utils.helpers import normalize_version
         from poetry.core.version.helpers import format_python_constraint
 
         meta = cls()
 
-        meta.name = canonicalize_name(package.name)
-        meta.version = normalize_version(package.version.text)
+        meta.name = package.name
+        meta.version = package.version.to_string()
         meta.summary = package.description
         if package.readmes:
             descriptions = []

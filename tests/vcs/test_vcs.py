@@ -86,7 +86,7 @@ if TYPE_CHECKING:
             "git+file://C:\\Users\\hello\\testing.git#zkat/windows-files",
             GitUrl("file://C:\\Users\\hello\\testing.git", "zkat/windows-files", None),
         ),
-        # hidden directories on Windows ues $ in their path
+        # hidden directories on Windows use $ in their path
         # python-poetry/poetry#5493
         (
             "git+file://C:\\Users\\hello$\\testing.git#zkat/windows-files",

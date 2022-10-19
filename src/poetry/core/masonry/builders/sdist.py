@@ -18,6 +18,7 @@ from typing import Iterator
 
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
+from poetry.core.masonry.utils.helpers import distribution_name
 
 
 if TYPE_CHECKING:
@@ -89,14 +90,15 @@ class SdistBuilder(Builder):
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
 
-        target = target_dir / f"{self._package.pretty_name}-{self._meta.version}.tar.gz"
+        name = distribution_name(self._package.name)
+        target = target_dir / f"{name}-{self._meta.version}.tar.gz"
         gz = GzipFile(target.as_posix(), mode="wb", mtime=0)
         tar = tarfile.TarFile(
             target.as_posix(), mode="w", fileobj=gz, format=tarfile.PAX_FORMAT
         )
 
         try:
-            tar_dir = f"{self._package.pretty_name}-{self._meta.version}"
+            tar_dir = f"{name}-{self._meta.version}"
 
             files_to_add = self.find_files_to_add(exclude_build=False)
 
@@ -256,7 +258,7 @@ class SdistBuilder(Builder):
             imports="\n".join(imports),
             before="\n".join(before),
             name=str(self._meta.name),
-            version=str(self._meta.version),
+            version=self._meta.version,
             description=str(self._meta.summary),
             long_description=str(self._meta.description),
             author=str(self._meta.author),
@@ -303,7 +305,7 @@ class SdistBuilder(Builder):
 
         pkg_name = include.package
         pkg_data: dict[str, list[str]] = defaultdict(list)
-        # Undocumented distutils feature:
+        # Undocumented setup() feature:
         # the empty string matches all package names
         pkg_data[""].append("*")
         packages = [pkg_name]

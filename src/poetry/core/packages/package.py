@@ -10,22 +10,21 @@ from typing import Collection
 from typing import Iterable
 from typing import Iterator
 from typing import TypeVar
-from typing import cast
 
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
-from poetry.core.semver.helpers import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
 
+    from poetry.core.constraints.version import Version
+    from poetry.core.constraints.version import VersionConstraint
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
-    from poetry.core.semver.version import Version
-    from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.spdx.license import License
     from poetry.core.version.markers import BaseMarker
 
@@ -46,6 +45,7 @@ class Package(PackageSpecification):
         "3.8",
         "3.9",
         "3.10",
+        "3.11",
     }
 
     def __init__(
@@ -91,7 +91,7 @@ class Package(PackageSpecification):
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
 
-        self.extras: dict[str, list[Dependency]] = {}
+        self.extras: dict[NormalizedName, list[Dependency]] = {}
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 
@@ -212,7 +212,7 @@ class Package(PackageSpecification):
     def _set_version(
         self, version: str | Version, pretty_version: str | None = None
     ) -> None:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version import Version
 
         if not isinstance(version, Version):
             self._version = Version.parse(version)
@@ -291,7 +291,7 @@ class Package(PackageSpecification):
 
     @property
     def all_classifiers(self) -> list[str]:
-        from poetry.core.semver.version import Version
+        from poetry.core.constraints.version import Version
 
         classifiers = copy.copy(self.classifiers)
 
@@ -482,9 +482,10 @@ class Package(PackageSpecification):
 
         dep: Dependency
         if self.source_type == "directory":
+            assert self._source_url is not None
             dep = DirectoryDependency(
                 self._name,
-                Path(cast(str, self._source_url)),
+                Path(self._source_url),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
@@ -492,28 +493,31 @@ class Package(PackageSpecification):
                 extras=self.features,
             )
         elif self.source_type == "file":
+            assert self._source_url is not None
             dep = FileDependency(
                 self._name,
-                Path(cast(str, self._source_url)),
+                Path(self._source_url),
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
                 extras=self.features,
             )
         elif self.source_type == "url":
+            assert self._source_url is not None
             dep = URLDependency(
                 self._name,
-                cast(str, self._source_url),
+                self._source_url,
                 directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 extras=self.features,
             )
         elif self.source_type == "git":
+            assert self._source_url is not None
             dep = VCSDependency(
                 self._name,
                 self.source_type,
-                cast(str, self.source_url),
+                self._source_url,
                 rev=self.source_reference,
                 resolved_rev=self.source_resolved_reference,
                 directory=self.source_subdirectory,
@@ -552,16 +556,47 @@ class Package(PackageSpecification):
         """
         Helper method to check if this package satisfies a given dependency.
 
-        This is determined by assessing if this instance provides the package and
-        features specified by the given dependency. Further, version and source
-        types are checked.
+        This is determined by assessing if this instance provides the package specified
+        by the given dependency. Further, version and source types are checked.
         """
-        if not self.provides(dependency) or not dependency.constraint.allows(
-            self.version
-        ):
+        if self.name != dependency.name:
             return False
 
-        return ignore_source_type or self.is_same_source_as(dependency)
+        if not dependency.constraint.allows(self.version):
+            return False
+
+        if not ignore_source_type and not self.source_satisfies(dependency):
+            return False
+
+        return True
+
+    def source_satisfies(self, dependency: Dependency) -> bool:
+        """Determine whether this package's source satisfies the given dependency."""
+        if dependency.source_type is None:
+            if dependency.source_name is None:
+                # The dependency doesn't care about the source, so this package
+                # certainly satisfies it.
+                return True
+
+            # The dependency specifies a source_name but not a type: it wants either
+            # pypi or a legacy repository.
+            #
+            # - If this package has no source type then it's from pypi, so it
+            #   matches if and only if that's what the dependency wants
+            # - Else this package is a match if and only if it is from the desired
+            #   repository
+            if self.source_type is None:
+                return dependency.source_name.lower() == "pypi"
+
+            return (
+                self.source_type == "legacy"
+                and self.source_reference is not None
+                and self.source_reference.lower() == dependency.source_name.lower()
+            )
+
+        # The dependency specifies a source: this package matches if and only if it is
+        # from that source.
+        return dependency.is_same_source_as(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):
