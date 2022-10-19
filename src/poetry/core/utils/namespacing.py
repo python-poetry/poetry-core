@@ -10,6 +10,23 @@ def extract_namespace(path: Path, workspace: Path) -> str | None:
 
 
 def create_namespaced_path(path: Path, workspace: Path) -> Path:
+    """Create a namespaced path for a package, relative to a workspace.
+
+    Example:
+
+    Given a workspace structure
+    /workspace
+       /components
+         /foo
+          /bar
+           baz.py
+
+    The input:
+    path my_workspace/components/foo/bar/baz.py
+    workspace components
+
+    Returns: foo/bar/baz.py
+    """
     namespace = extract_namespace(path, workspace) or ""
     package_name = path.parent.name
     module_name = path.name
@@ -20,6 +37,10 @@ def create_namespaced_path(path: Path, workspace: Path) -> Path:
 
 
 def convert_to_namespace(dirs: str) -> str:
+    """Convert a directory path string to a Python namespace string
+
+    Example: from foo/bar to foo.bar
+    """
     parts = dirs.split("/")
 
     return ".".join(parts)
