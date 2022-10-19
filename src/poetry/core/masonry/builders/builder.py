@@ -193,7 +193,7 @@ class Builder:
                             if not current_file.is_dir():
                                 include_file_path = (
                                     include_file.relative_to_workspace()
-                                    if self._workspace
+                                    if self.is_in_workspace()
                                     else include_file.relative_to_source_root()
                                 )
                                 if not self.is_excluded(include_file_path):
@@ -209,7 +209,7 @@ class Builder:
 
                 include_file_path = (
                     include_file.relative_to_workspace()
-                    if self._workspace
+                    if self.is_in_workspace()
                     else include_file.relative_to_project_root()
                 )
 
@@ -373,7 +373,7 @@ class Builder:
         return {"name": name, "email": email}
 
     def is_in_workspace(self) -> bool:
-        return self._poetry.workspace is not None
+        return self._workspace is not None
 
 
 class BuildIncludeFile:
