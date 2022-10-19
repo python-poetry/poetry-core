@@ -38,4 +38,8 @@ def find_upwards_dir(cwd: Path, name: str) -> Path | None:
 
 
 def find_workspace_root(cwd: Path) -> Path | None:
+    """Find the workspace root path.
+
+    Navigates upwards a drive directory to find a workspace identifier, if existing.
+    """
     return find_upwards_dir(cwd, workspace_file)
