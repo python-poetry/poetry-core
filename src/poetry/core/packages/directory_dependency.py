@@ -28,6 +28,8 @@ class DirectoryDependency(Dependency):
         self._full_path = path
         self._develop = develop
 
+        self._validate()
+
         super().__init__(
             name,
             "*",
@@ -40,8 +42,6 @@ class DirectoryDependency(Dependency):
         )
         # cache this function to avoid multiple IO reads and parsing
         self.supports_poetry = functools.lru_cache(maxsize=1)(self._supports_poetry)
-
-        self._validate()
 
     def _validate(self) -> None:
         # If the directory exists do some general validation on it.
