@@ -13,7 +13,9 @@ FIXTURES_PATH = Path(__file__).parent.parent / "fixtures"
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"
 SAMPLE_PROJECT = Path(__file__).parent.parent / "fixtures" / "sample_project"
 
-TEST_FILE = Path(__file__).parent.parent / "fixtures" / "distributions" / "demo-0.1.0.tar.gz"
+TEST_FILE = (
+    Path(__file__).parent.parent / "fixtures" / "distributions" / "demo-0.1.0.tar.gz"
+)
 
 
 def test_directory_dependency_warns_if_not_exists() -> None:

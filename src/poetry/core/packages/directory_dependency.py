@@ -53,7 +53,7 @@ class DirectoryDependency(Dependency):
         # But there are also valid situations where we might want to build
         # a directory dependency pointing to a non-existing folder, for example:
         # - We are re-locking a project where a path dependency was removed
-        #   It still exists in the lockfile and once we finish re-locking 
+        #   It still exists in the lockfile and once we finish re-locking
         #   we'll delete it from the lockfile, but we need to load it from the
         #   lockfile first to begin solving.
         # - A user wants to dynamically link to / insert the dependency at runtime.
