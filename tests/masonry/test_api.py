@@ -72,12 +72,11 @@ def test_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
         api.build_wheel(tmp_dir)
 
 
-def test_build_wheel_with_bad_path_dep_fails() -> None:
-    with pytest.raises(ValueError) as err, temporary_directory() as tmp_dir, cwd(
+def test_build_wheel_with_bad_path_dep_succeeds() -> None:
+    with temporary_directory() as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.build_wheel(tmp_dir)
-    assert "does not exist" in str(err.value)
 
 
 @pytest.mark.skipif(
@@ -124,11 +123,10 @@ def test_build_sdist_with_bad_path_dev_dep_succeeds() -> None:
 
 
 def test_build_sdist_with_bad_path_dep_fails() -> None:
-    with pytest.raises(ValueError) as err, temporary_directory() as tmp_dir, cwd(
+    with temporary_directory() as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.build_sdist(tmp_dir)
-    assert "does not exist" in str(err.value)
 
 
 def test_prepare_metadata_for_build_wheel() -> None:
@@ -210,11 +208,10 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> No
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds() -> None:
-    with pytest.raises(ValueError) as err, temporary_directory() as tmp_dir, cwd(
+    with temporary_directory() as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.prepare_metadata_for_build_wheel(tmp_dir)
-    assert "does not exist" in str(err.value)
 
 
 def test_build_editable_wheel() -> None:

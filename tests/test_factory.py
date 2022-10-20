@@ -298,18 +298,6 @@ def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false() -> None:
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true() -> (
-    None
-):
-    with pytest.raises(ValueError) as err:
-        Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
-    assert "does not exist" in str(err.value)
-
-    Factory().create_poetry(
-        fixtures_dir / "project_with_invalid_dev_deps", with_groups=False
-    )
-
-
 def test_create_poetry_with_groups_and_legacy_dev() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_groups_and_legacy_dev"
