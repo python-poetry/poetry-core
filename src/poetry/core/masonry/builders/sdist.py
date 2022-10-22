@@ -141,7 +141,11 @@ class SdistBuilder(Builder):
                     if self.is_in_workspace():
                         ns_path = include.get_namespace_path()
                         pkg_dir = include.get_package_dir()
-                        _packages = _packages if pkg_dir else [namespacing.convert_to_namespace(ns_path)]
+                        _packages = (
+                            _packages
+                            if pkg_dir
+                            else [namespacing.convert_to_namespace(ns_path)]
+                        )
 
                     if pkg_dir is not None:
                         pkg_root = os.path.relpath(pkg_dir, str(self._path))
