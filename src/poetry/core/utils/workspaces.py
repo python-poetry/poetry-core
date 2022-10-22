@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-
-import tomlkit
+from typing import TYPE_CHECKING
 
 from poetry.core.toml import TOMLFile
+
+
+if TYPE_CHECKING:
+    import tomlkit
 
 
 workspace_file = "workspace.toml"
