@@ -24,7 +24,7 @@ class Poetry:
         self._pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
-        self._workspace = workspaces.find_workspace_root(Path.cwd())
+        self._workspace = workspaces.find_workspace_root(file.parent)
 
     @property
     def pyproject(self) -> PyProjectTOML:
