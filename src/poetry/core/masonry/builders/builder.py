@@ -431,7 +431,7 @@ class BuildIncludeFile:
     def calculated_path(self) -> Path:
         if self.workspace is not None:
             if helpers.is_path_relative_to_other(self.path, self.project_root):
-                return self.relative_to_project_root()
+                return self.relative_to_source_root()
 
             return namespacing.create_namespaced_path(self.path, self.workspace)
 
