@@ -321,9 +321,7 @@ class SdistBuilder(Builder):
             pkgdir = include.get_package_dir()
             ns_path = include.get_namespace_path()
             packages = (
-                packages
-                if pkgdir
-                else [namespacing.convert_to_namespace(ns_path)]
+                packages if pkgdir else [namespacing.convert_to_namespace(ns_path)]
             )
 
         return pkgdir, sorted(packages), pkg_data
