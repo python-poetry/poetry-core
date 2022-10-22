@@ -2,8 +2,31 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import tomlkit
+
+from poetry.core.toml import TOMLFile
+
 
 workspace_file = "workspace.toml"
+
+
+def parse_workspace_toml(path: Path) -> tomlkit.toml.TOMLDocument:
+    t = TOMLFile(path / workspace_file)
+
+    return t.read()
+
+
+def is_poetry_workspace(data: tomlkit.toml.TOMLDocument) -> bool:
+    """Check if a workspace is a Poetry workspace
+
+    Returns True when there is a [tool.poetry.workspace] in the workspace TOML,
+    otherwise False.
+    """
+    try:
+        data["tool"]["poetry"]["workspace"]
+        return True
+    except KeyError:
+        return False
 
 
 def is_drive_root(cwd: Path) -> bool:
@@ -42,4 +65,11 @@ def find_workspace_root(cwd: Path) -> Path | None:
 
     Navigates upwards a drive directory to find a workspace identifier, if existing.
     """
-    return find_upwards_dir(cwd, workspace_file)
+    root = find_upwards_dir(cwd, workspace_file)
+
+    if not root:
+        return None
+
+    data = parse_workspace_toml(root)
+
+    return root if is_poetry_workspace(data) else None
