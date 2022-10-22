@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.pyproject.toml import PyProjectTOML
     from poetry.core.toml import TOMLFile
