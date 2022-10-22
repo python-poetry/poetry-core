@@ -26,7 +26,7 @@ def _test_directory_dependency_pep_508(
     )
 
     assert dep.is_directory()
-    dep = cast(DirectoryDependency, dep)
+    dep = cast("DirectoryDependency", dep)
     assert dep.name == name
     assert dep.path == path
     assert dep.to_pep_508() == (pep_508_output or pep_508_input)

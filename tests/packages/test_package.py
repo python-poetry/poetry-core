@@ -350,7 +350,7 @@ def test_to_dependency_for_directory() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_directory()
-    dep = cast(DirectoryDependency, dep)
+    dep = cast("DirectoryDependency", dep)
     assert dep.path == path
     assert dep.source_type == "directory"
     assert dep.source_url == path.as_posix()
@@ -373,7 +373,7 @@ def test_to_dependency_for_file() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_file()
-    dep = cast(FileDependency, dep)
+    dep = cast("FileDependency", dep)
     assert dep.path == path
     assert dep.source_type == "file"
     assert dep.source_url == path.as_posix()
@@ -394,7 +394,7 @@ def test_to_dependency_for_url() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_url()
-    dep = cast(URLDependency, dep)
+    dep = cast("URLDependency", dep)
     assert dep.url == "https://example.com/path.tar.gz"
     assert dep.source_type == "url"
     assert dep.source_url == "https://example.com/path.tar.gz"
@@ -418,7 +418,7 @@ def test_to_dependency_for_vcs() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.source_type == "git"
     assert dep.source == "https://github.com/foo/foo.git"
     assert dep.reference == "master"

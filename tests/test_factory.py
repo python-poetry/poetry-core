@@ -57,7 +57,7 @@ def test_create_poetry() -> None:
     pendulum = dependencies["pendulum"]
     assert pendulum.pretty_constraint == "branch 2.0"
     assert pendulum.is_vcs()
-    pendulum = cast(VCSDependency, pendulum)
+    pendulum = cast("VCSDependency", pendulum)
     assert pendulum.vcs == "git"
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
@@ -67,7 +67,7 @@ def test_create_poetry() -> None:
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
     assert tomlkit.is_vcs()
-    tomlkit = cast(VCSDependency, tomlkit)
+    tomlkit = cast("VCSDependency", tomlkit)
     assert tomlkit.vcs == "git"
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
