@@ -138,15 +138,6 @@ class SdistBuilder(Builder):
                 if include.is_package():
                     pkg_dir, _packages, _package_data = self.find_packages(include)
 
-                    if self.is_in_workspace():
-                        ns_path = include.get_namespace_path()
-                        pkg_dir = include.get_package_dir()
-                        _packages = (
-                            _packages
-                            if pkg_dir
-                            else [namespacing.convert_to_namespace(ns_path)]
-                        )
-
                     if pkg_dir is not None:
                         pkg_root = os.path.relpath(pkg_dir, str(self._path))
                         if "" in package_dir:
@@ -325,6 +316,15 @@ class SdistBuilder(Builder):
 
         # Sort values in pkg_data
         pkg_data = {k: sorted(v) for (k, v) in pkg_data.items() if v}
+
+        if self.is_in_workspace():
+            pkgdir = include.get_package_dir()
+            ns_path = include.get_namespace_path()
+            packages = (
+                packages
+                if pkgdir
+                else [namespacing.convert_to_namespace(ns_path)]
+            )
 
         return pkgdir, sorted(packages), pkg_data
 
