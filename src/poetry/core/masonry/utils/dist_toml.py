@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from io import StringIO
 
-
-if TYPE_CHECKING:
-    import tomlkit
+import tomlkit
 
 
 def to_valid_dist_package(package: dict[str, str]) -> dict[str, str]:
@@ -42,3 +40,26 @@ def to_valid_dist_packages(data: tomlkit.toml.TOMLDocument) -> list[dict[str, st
     packages = data["tool"]["poetry"]["packages"]
 
     return [to_valid_dist_package(p) for p in packages]
+
+
+def create_valid_dist_project_file(data: tomlkit.toml.TOMLDocument) -> StringIO:
+    """Create a project file
+
+    Returns a project file with any relative package includes rearranged,
+    according to the expected sdist build output.
+    """
+    original = tomlkit.dumps(data)
+    copy = tomlkit.parse(original)
+
+    dist_packages = to_valid_dist_packages(copy)
+
+    copy["tool"]["poetry"]["packages"].clear()
+
+    for package in dist_packages:
+        copy["tool"]["poetry"]["packages"].append(package)
+
+    copy["tool"]["poetry"]["packages"].multiline(True)
+
+    content = tomlkit.dumps(copy)
+
+    return StringIO(content)

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import tomlkit
 
+from poetry.core.masonry.utils.dist_toml import create_valid_dist_project_file
 from poetry.core.masonry.utils.dist_toml import to_valid_dist_package
 from poetry.core.masonry.utils.dist_toml import to_valid_dist_packages
+from poetry.core.pyproject.toml import PyProjectTOML
 
 
 def test_to_valid_dist_package() -> None:
@@ -59,3 +61,20 @@ def test_to_valid_dist_packages_with_mixed_includes() -> None:
     res = to_valid_dist_packages(data)
 
     assert res == [{"include": "foo/bar"}, {"include": "foo", "from": "bar"}]
+
+
+def test_create_valid_dist_project_file() -> None:
+    content = """
+    [tool.poetry]
+    packages = [
+       {"include" = "foo/bar", from = "../../components"}
+    ]
+    """
+
+    data = tomlkit.parse(content)
+
+    in_memory_file = create_valid_dist_project_file(data)
+
+    parsed = tomlkit.parse(in_memory_file.getvalue())
+
+    assert parsed["tool"]["poetry"]["packages"] == [{"include": "foo/bar"}]
