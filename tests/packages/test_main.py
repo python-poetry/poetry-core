@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import cast
 
 from poetry.core.constraints.version import Version
 from poetry.core.packages.dependency import Dependency
-from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages.url_dependency import URLDependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 def test_dependency_from_pep_508() -> None:

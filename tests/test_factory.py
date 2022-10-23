@@ -12,13 +12,13 @@ from packaging.utils import canonicalize_name
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.toml import TOMLFile
 from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
