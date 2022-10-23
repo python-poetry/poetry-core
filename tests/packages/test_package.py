@@ -660,3 +660,20 @@ def test_project_package_hash_not_changed_when_version_is_changed() -> None:
     assert hash(package) == package_hash, "Hash must not change!"
     assert hash(package_clone) == package_hash
     assert package != package_clone
+
+
+def test_package_invalid_version() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        Package("foo", "1.2.3.bogus")
+
+    expected = "Invalid version '1.2.3.bogus' on package foo"
+    assert str(exc_info.value) == expected
+
+
+def test_package_invalid_python_versions() -> None:
+    package = Package("foo", "1.2.3")
+    with pytest.raises(ValueError) as exc_info:
+        package.python_versions = ">=3.6.y"
+
+    expected = "Invalid python versions '>=3.6.y' on foo (1.2.3)"
+    assert str(exc_info.value) == expected
