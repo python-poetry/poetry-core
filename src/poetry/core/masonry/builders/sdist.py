@@ -94,7 +94,9 @@ class SdistBuilder(Builder):
                     tar.addfile(tar_info)  # Symlinks & ?
 
             if self.is_in_workspace():
-                dist_pyproject = create_valid_dist_project_file(self._poetry.pyproject.data)
+                dist_pyproject = create_valid_dist_project_file(
+                    self._poetry.pyproject.data
+                )
                 tar_info = tarfile.TarInfo(pjoin(tar_dir, "pyproject.toml"))
                 tar_info.size = len(dist_pyproject)
                 tar_info.mtime = 0
