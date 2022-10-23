@@ -18,6 +18,7 @@ from typing import Iterator
 
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
+from poetry.core.masonry.utils.dist_toml import create_valid_dist_project_file
 from poetry.core.masonry.utils.helpers import distribution_name
 from poetry.core.utils import namespacing
 
@@ -91,6 +92,14 @@ class SdistBuilder(Builder):
                         tar.addfile(tar_info, f)
                 else:
                     tar.addfile(tar_info)  # Symlinks & ?
+
+            if self.is_in_workspace():
+                dist_pyproject = create_valid_dist_project_file(self._poetry.pyproject.data)
+                tar_info = tarfile.TarInfo(pjoin(tar_dir, "pyproject.toml"))
+                tar_info.size = len(dist_pyproject)
+                tar_info.mtime = 0
+                tar_info = self.clean_tarinfo(tar_info)
+                tar.addfile(tar_info, BytesIO(dist_pyproject))
 
             if self._poetry.package.build_should_generate_setup():
                 setup = self.build_setup()
@@ -336,7 +345,8 @@ class SdistBuilder(Builder):
         additional_files.update(self.convert_script_files())
 
         # Include project files
-        additional_files.add(Path("pyproject.toml"))
+        if not self.is_in_workspace():
+            additional_files.add(Path("pyproject.toml"))
 
         # add readme if it is specified
         if "readme" in self._poetry.local_config:

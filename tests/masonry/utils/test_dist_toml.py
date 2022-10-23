@@ -74,6 +74,6 @@ def test_create_valid_dist_project_file() -> None:
 
     in_memory_file = create_valid_dist_project_file(data)
 
-    parsed = tomlkit.parse(in_memory_file.getvalue())
+    parsed = tomlkit.parse(in_memory_file.decode())
 
     assert parsed["tool"]["poetry"]["packages"] == [{"include": "foo/bar"}]

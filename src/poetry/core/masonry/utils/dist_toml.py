@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from io import StringIO
-
 import tomlkit
 
 
@@ -42,7 +40,7 @@ def to_valid_dist_packages(data: tomlkit.toml.TOMLDocument) -> list[dict[str, st
     return [to_valid_dist_package(p) for p in packages]
 
 
-def create_valid_dist_project_file(data: tomlkit.toml.TOMLDocument) -> StringIO:
+def create_valid_dist_project_file(data: tomlkit.toml.TOMLDocument) -> bytes:
     """Create a project file
 
     Returns a project file with any relative package includes rearranged,
@@ -60,6 +58,6 @@ def create_valid_dist_project_file(data: tomlkit.toml.TOMLDocument) -> StringIO:
 
     copy["tool"]["poetry"]["packages"].multiline(True)
 
-    content = tomlkit.dumps(copy)
+    content = tomlkit.dumps(copy) or ""
 
-    return StringIO(content)
+    return content.encode()
