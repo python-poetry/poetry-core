@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import cast
 
 from poetry.core.constraints.version import Version
 from poetry.core.packages.dependency import Dependency
-from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages.url_dependency import URLDependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 def test_dependency_from_pep_508() -> None:
@@ -186,7 +190,7 @@ def test_dependency_from_pep_508_with_git_url() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.vcs == "git"
     assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
     assert dep.reference == "1.2"
@@ -202,7 +206,7 @@ def test_dependency_from_pep_508_with_git_url_and_subdirectory() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.vcs == "git"
     assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
     assert dep.reference == "1.2"
@@ -219,7 +223,7 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra() -> None:
 
     assert dep.name == "poetry"
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.vcs == "git"
     assert dep.source == "https://github.com/python-poetry/poetry.git"
     assert dep.reference == "b;ar;"
@@ -233,7 +237,7 @@ def test_dependency_from_pep_508_with_url() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_url()
-    dep = cast(URLDependency, dep)
+    dep = cast("URLDependency", dep)
     assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
 
 
@@ -247,7 +251,7 @@ def test_dependency_from_pep_508_with_url_and_subdirectory() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_url()
-    dep = cast(URLDependency, dep)
+    dep = cast("URLDependency", dep)
     assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
     assert dep.directory == "django"
 
