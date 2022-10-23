@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import tomlkit
 
-from poetry.core.masonry.utils.dist_toml import (
-    to_valid_dist_package,
-    to_valid_dist_packages,
-)
+from poetry.core.masonry.utils.dist_toml import to_valid_dist_package
+from poetry.core.masonry.utils.dist_toml import to_valid_dist_packages
 
 
 def test_to_valid_dist_package() -> None:
