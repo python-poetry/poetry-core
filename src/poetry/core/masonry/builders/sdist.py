@@ -97,7 +97,9 @@ class SdistBuilder(Builder):
                 dist_pyproject = create_valid_dist_project_file(
                     self._poetry.pyproject.data
                 )
-                tar_info = self.create_tarinfo(tar_dir, "pyproject.toml", dist_pyproject)
+                tar_info = self.create_tarinfo(
+                    tar_dir, "pyproject.toml", dist_pyproject
+                )
                 tar.addfile(tar_info, BytesIO(dist_pyproject))
 
             if self._poetry.package.build_should_generate_setup():
@@ -331,14 +333,14 @@ class SdistBuilder(Builder):
 
         return pkgdir, sorted(packages), pkg_data
 
-    def find_packages_for_workspace(self, include: PackageInclude) -> tuple[str | None, list[str], dict[str, list[str]]]:
+    def find_packages_for_workspace(
+        self, include: PackageInclude
+    ) -> tuple[str | None, list[str], dict[str, list[str]]]:
         _, packages, package_data = self.find_packages(include)
 
         pkgdir = include.get_package_dir()
         ns_path = include.get_namespace_path()
-        packages = (
-            packages if pkgdir else [namespacing.convert_to_namespace(ns_path)]
-        )
+        packages = packages if pkgdir else [namespacing.convert_to_namespace(ns_path)]
 
         return pkgdir, sorted(packages), package_data
 
