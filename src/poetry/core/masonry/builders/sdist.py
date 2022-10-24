@@ -97,26 +97,17 @@ class SdistBuilder(Builder):
                 dist_pyproject = create_valid_dist_project_file(
                     self._poetry.pyproject.data
                 )
-                tar_info = tarfile.TarInfo(pjoin(tar_dir, "pyproject.toml"))
-                tar_info.size = len(dist_pyproject)
-                tar_info.mtime = 0
-                tar_info = self.clean_tarinfo(tar_info)
+                tar_info = self.create_tarinfo(tar_dir, "pyproject.toml", dist_pyproject)
                 tar.addfile(tar_info, BytesIO(dist_pyproject))
 
             if self._poetry.package.build_should_generate_setup():
                 setup = self.build_setup()
-                tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
-                tar_info.size = len(setup)
-                tar_info.mtime = 0
-                tar_info = self.clean_tarinfo(tar_info)
+                tar_info = self.create_tarinfo(tar_dir, "setup.py", setup)
                 tar.addfile(tar_info, BytesIO(setup))
 
             pkg_info = self.build_pkg_info()
 
-            tar_info = tarfile.TarInfo(pjoin(tar_dir, "PKG-INFO"))
-            tar_info.size = len(pkg_info)
-            tar_info.mtime = 0
-            tar_info = self.clean_tarinfo(tar_info)
+            tar_info = self.create_tarinfo(tar_dir, "PKG-INFO", pkg_info)
             tar.addfile(tar_info, BytesIO(pkg_info))
         finally:
             tar.close()
@@ -124,6 +115,12 @@ class SdistBuilder(Builder):
 
         logger.info(f"Built <comment>{target.name}</comment>")
         return target
+
+    def create_tarinfo(self, tar_dir: str, name: str, data: bytes) -> tarfile.TarInfo:
+        tar_info = tarfile.TarInfo(pjoin(tar_dir, name))
+        tar_info.size = len(data)
+        tar_info.mtime = 0
+        return self.clean_tarinfo(tar_info)
 
     def build_setup(self) -> bytes:
         from poetry.core.masonry.utils.package_include import PackageInclude
