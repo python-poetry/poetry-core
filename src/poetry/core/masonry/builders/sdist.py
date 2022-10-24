@@ -147,7 +147,11 @@ class SdistBuilder(Builder):
 
             if isinstance(include, PackageInclude):
                 if include.is_package():
-                    pkg_dir, _packages, _package_data = self.find_packages(include)
+                    pkg_dir, _packages, _package_data = (
+                        self.find_packages_for_workspace(include)
+                        if self.is_in_workspace()
+                        else self.find_packages(include)
+                    )
 
                     if pkg_dir is not None:
                         pkg_root = os.path.relpath(pkg_dir, str(self._path))
@@ -328,14 +332,18 @@ class SdistBuilder(Builder):
         # Sort values in pkg_data
         pkg_data = {k: sorted(v) for (k, v) in pkg_data.items() if v}
 
-        if self.is_in_workspace():
-            pkgdir = include.get_package_dir()
-            ns_path = include.get_namespace_path()
-            packages = (
-                packages if pkgdir else [namespacing.convert_to_namespace(ns_path)]
-            )
-
         return pkgdir, sorted(packages), pkg_data
+
+    def find_packages_for_workspace(self, include: PackageInclude) -> tuple[str | None, list[str], dict[str, list[str]]]:
+        _, packages, package_data = self.find_packages(include)
+
+        pkgdir = include.get_package_dir()
+        ns_path = include.get_namespace_path()
+        packages = (
+            packages if pkgdir else [namespacing.convert_to_namespace(ns_path)]
+        )
+
+        return pkgdir, sorted(packages), package_data
 
     def find_files_to_add(self, exclude_build: bool = False) -> set[BuildIncludeFile]:
         to_add = super().find_files_to_add(exclude_build)
