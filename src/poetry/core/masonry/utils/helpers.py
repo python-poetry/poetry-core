@@ -80,4 +80,4 @@ def distribution_name(name: NormalizedName) -> DistributionName:
     respectively), and replace dash (-) characters with underscore (_) characters ...
     """
     distribution_name = name.replace("-", "_")
-    return cast(DistributionName, distribution_name)
+    return cast("DistributionName", distribution_name)

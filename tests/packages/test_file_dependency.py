@@ -111,7 +111,7 @@ def _test_file_dependency_pep_508(
         dep.marker = marker
 
     assert dep.is_file()
-    dep = cast(FileDependency, dep)
+    dep = cast("FileDependency", dep)
     assert dep.name == name
     assert dep.path == path
     assert dep.to_pep_508() == (pep_508_output or pep_508_input)
