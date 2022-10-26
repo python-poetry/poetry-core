@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import cast
 
 import pytest
@@ -11,12 +12,15 @@ from poetry.core.constraints.version import Version
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
-from poetry.core.packages.directory_dependency import DirectoryDependency
-from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.package import Package
 from poetry.core.packages.project_package import ProjectPackage
-from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages.directory_dependency import DirectoryDependency
+    from poetry.core.packages.file_dependency import FileDependency
+    from poetry.core.packages.url_dependency import URLDependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 @pytest.fixture()
@@ -350,7 +354,7 @@ def test_to_dependency_for_directory() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_directory()
-    dep = cast(DirectoryDependency, dep)
+    dep = cast("DirectoryDependency", dep)
     assert dep.path == path
     assert dep.source_type == "directory"
     assert dep.source_url == path.as_posix()
@@ -373,7 +377,7 @@ def test_to_dependency_for_file() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_file()
-    dep = cast(FileDependency, dep)
+    dep = cast("FileDependency", dep)
     assert dep.path == path
     assert dep.source_type == "file"
     assert dep.source_url == path.as_posix()
@@ -394,7 +398,7 @@ def test_to_dependency_for_url() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_url()
-    dep = cast(URLDependency, dep)
+    dep = cast("URLDependency", dep)
     assert dep.url == "https://example.com/path.tar.gz"
     assert dep.source_type == "url"
     assert dep.source_url == "https://example.com/path.tar.gz"
@@ -418,7 +422,7 @@ def test_to_dependency_for_vcs() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.source_type == "git"
     assert dep.source == "https://github.com/foo/foo.git"
     assert dep.reference == "master"

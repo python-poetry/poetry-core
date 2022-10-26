@@ -12,13 +12,13 @@ from packaging.utils import canonicalize_name
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.toml import TOMLFile
 from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -57,7 +57,7 @@ def test_create_poetry() -> None:
     pendulum = dependencies["pendulum"]
     assert pendulum.pretty_constraint == "branch 2.0"
     assert pendulum.is_vcs()
-    pendulum = cast(VCSDependency, pendulum)
+    pendulum = cast("VCSDependency", pendulum)
     assert pendulum.vcs == "git"
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
@@ -67,7 +67,7 @@ def test_create_poetry() -> None:
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
     assert tomlkit.is_vcs()
-    tomlkit = cast(VCSDependency, tomlkit)
+    tomlkit = cast("VCSDependency", tomlkit)
     assert tomlkit.vcs == "git"
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
