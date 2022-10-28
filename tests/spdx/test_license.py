@@ -57,3 +57,9 @@ def test_custom_license() -> None:
     license = license_by_id("Amazon Software License")
 
     assert license.classifier == "License :: Other/Proprietary License"
+
+
+def test_the_unlicense() -> None:
+    license = license_by_id("Unlicense")
+
+    assert license.classifier == "License :: The Unlicense"
