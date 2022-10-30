@@ -172,16 +172,14 @@ def test_difference() -> None:
 @pytest.mark.parametrize(
     "constraint",
     [
-        (EmptyConstraint()),
-        (AnyConstraint()),
-        (Constraint("win32")),
-        (UnionConstraint(Constraint("win32"), Constraint("linux"))),
-        (MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!="))),
+        EmptyConstraint(),
+        AnyConstraint(),
+        Constraint("win32"),
+        UnionConstraint(Constraint("win32"), Constraint("linux")),
+        MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
     ],
 )
-def test_constraints_are_hashable(
-    constraint: BaseConstraint,
-) -> None:
+def test_constraints_are_hashable(constraint: BaseConstraint) -> None:
     # We're just testing that constraints are hashable, there's nothing much to say
     # about the result.
     hash(constraint)
