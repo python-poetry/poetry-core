@@ -417,9 +417,6 @@ class VersionRange(VersionRangeConstraint):
 
         return text
 
-    def __repr__(self) -> str:
-        return f"<VersionRange ({str(self)})>"
-
     def __hash__(self) -> int:
         return (
             hash(self.min)
