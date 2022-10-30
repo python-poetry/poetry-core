@@ -207,8 +207,8 @@ def test_make_pkg_info_multi_constraints_dependency() -> None:
 
     requires = parsed.get_all("Requires-Dist")
     assert requires == [
-        'pendulum (>=1.5,<2.0); python_version < "3.4"',
-        'pendulum (>=2.0,<3.0); python_version >= "3.4" and python_version < "4.0"',
+        'pendulum (>=1.5,<2.0) ; python_version < "3.4"',
+        'pendulum (>=2.0,<3.0) ; python_version >= "3.4" and python_version < "4.0"',
     ]
 
 
