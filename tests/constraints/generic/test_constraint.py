@@ -56,6 +56,51 @@ def test_allows_all() -> None:
     ("constraint1", "constraint2", "expected"),
     [
         (
+            EmptyConstraint(),
+            Constraint("win32"),
+            EmptyConstraint(),
+        ),
+        (
+            EmptyConstraint(),
+            MultiConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            EmptyConstraint(),
+        ),
+        (
+            EmptyConstraint(),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            EmptyConstraint(),
+        ),
+        (
+            AnyConstraint(),
+            Constraint("win32"),
+            Constraint("win32"),
+        ),
+        (
+            AnyConstraint(),
+            MultiConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+        ),
+        (
+            AnyConstraint(),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+        ),
+        (
+            EmptyConstraint(),
+            AnyConstraint(),
+            EmptyConstraint(),
+        ),
+        (
+            EmptyConstraint(),
+            EmptyConstraint(),
+            EmptyConstraint(),
+        ),
+        (
+            AnyConstraint(),
+            AnyConstraint(),
+            AnyConstraint(),
+        ),
+        (
             Constraint("win32"),
             Constraint("win32"),
             Constraint("win32"),
@@ -63,6 +108,16 @@ def test_allows_all() -> None:
         (
             Constraint("win32"),
             Constraint("linux"),
+            EmptyConstraint(),
+        ),
+        (
+            Constraint("win32"),
+            MultiConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            Constraint("win32"),
+        ),
+        (
+            Constraint("win32"),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             EmptyConstraint(),
         ),
         (
@@ -91,14 +146,62 @@ def test_allows_all() -> None:
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
         ),
         (
+            Constraint("win32", "!="),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+        ),
+        (
+            Constraint("darwin", "!="),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(
+                Constraint("win32", "!="),
+                Constraint("linux", "!="),
+                Constraint("darwin", "!="),
+            ),
+        ),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            Constraint("linux"),
+        ),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(
+                Constraint("win32"), Constraint("linux"), Constraint("darwin")
+            ),
+            UnionConstraint(Constraint("linux"), Constraint("darwin")),
+        ),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(Constraint("linux"), Constraint("linux2")),
+            UnionConstraint(Constraint("linux"), Constraint("linux2")),
+        ),
+        (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
             UnionConstraint(Constraint("win32"), Constraint("darwin")),
             Constraint("win32"),
         ),
         (
+            UnionConstraint(
+                Constraint("win32"), Constraint("linux"), Constraint("darwin")
+            ),
+            UnionConstraint(
+                Constraint("win32"), Constraint("cygwin"), Constraint("darwin")
+            ),
+            UnionConstraint(
+                Constraint("win32"),
+                Constraint("darwin"),
+            ),
+        ),
+        (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
             MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
             Constraint("linux"),
+        ),
+        (
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            EmptyConstraint(),
         ),
     ],
 )
@@ -107,8 +210,8 @@ def test_intersect(
     constraint2: BaseConstraint,
     expected: BaseConstraint,
 ) -> None:
-    intersection = constraint1.intersect(constraint2)
-    assert intersection == expected
+    assert constraint1.intersect(constraint2) == expected
+    assert constraint2.intersect(constraint1) == expected
 
 
 @pytest.mark.parametrize(
@@ -158,8 +261,8 @@ def test_union(
     constraint2: BaseConstraint,
     expected: BaseConstraint,
 ) -> None:
-    union = constraint1.union(constraint2)
-    assert union == expected
+    assert constraint1.union(constraint2) == expected
+    assert constraint2.union(constraint1) == expected
 
 
 def test_difference() -> None:

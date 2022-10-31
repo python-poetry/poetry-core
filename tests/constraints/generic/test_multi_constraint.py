@@ -34,10 +34,3 @@ def test_allows_all() -> None:
     assert not c.allows_all(
         MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!="))
     )
-
-
-def test_intersect() -> None:
-    c = MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!="))
-
-    intersection = c.intersect(Constraint("win32", "!="))
-    assert intersection == Constraint("win32", "!=")

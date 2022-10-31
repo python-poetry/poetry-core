@@ -71,21 +71,13 @@ class UnionConstraint(BaseConstraint):
             return other
 
         if isinstance(other, Constraint):
-            if self.allows(other):
-                return other
+            # (A or B) and C => (A and C) or (B and C)
+            # just a special case of UnionConstraint
+            other = UnionConstraint(other)
 
-            return EmptyConstraint()
-
-        # Two remaining cases: an intersection with another union, or an intersection
-        # with a multi.
-        #
-        # In the first case:
-        # (A or B) and (C or D) => (A and C) or (A and D) or (B and C) or (B and D)
-        #
-        # In the second case:
-        # (A or B) and (C and D) => (A and C and D) or (B and C and D)
         new_constraints = []
         if isinstance(other, UnionConstraint):
+            # (A or B) and (C or D) => (A and C) or (A and D) or (B and C) or (B and D)
             for our_constraint in self._constraints:
                 for their_constraint in other.constraints:
                     intersection = our_constraint.intersect(their_constraint)
@@ -98,6 +90,7 @@ class UnionConstraint(BaseConstraint):
 
         else:
             assert isinstance(other, MultiConstraint)
+            # (A or B) and (C and D) => (A and C and D) or (B and C and D)
 
             for our_constraint in self._constraints:
                 intersection = our_constraint
