@@ -199,7 +199,7 @@ class SingleMarker(BaseMarker):
         # Extract operator and value
         m = self._CONSTRAINT_RE.match(constraint_string)
         if m is None:
-            raise ValueError(f"Invalid marker '{constraint_string}'")
+            raise InvalidMarker(f"Invalid marker '{constraint_string}'")
 
         self._operator = m.group(1)
         if self._operator is None:
