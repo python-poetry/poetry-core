@@ -220,7 +220,9 @@ class Package(PackageSpecification):
             try:
                 version = Version.parse(version)
             except InvalidVersion:
-                raise InvalidVersion(f"Invalid version '{version}' on package {self.name}")
+                raise InvalidVersion(
+                    f"Invalid version '{version}' on package {self.name}"
+                )
 
         self._version = version
         self._pretty_version = pretty_version or version.text
