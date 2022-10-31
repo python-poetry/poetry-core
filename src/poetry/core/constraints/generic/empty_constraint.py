@@ -24,6 +24,9 @@ class EmptyConstraint(BaseConstraint):
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
         return self
 
+    def union(self, other: BaseConstraint) -> BaseConstraint:
+        return other
+
     def difference(self, other: BaseConstraint) -> BaseConstraint:
         return self
 

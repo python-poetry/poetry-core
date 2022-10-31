@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from poetry.core.constraints.generic import AnyConstraint
 from poetry.core.constraints.generic import EmptyConstraint
 from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.constraint import Constraint
@@ -76,6 +77,26 @@ class MultiConstraint(BaseConstraint):
             return other
 
         return MultiConstraint(*self._constraints, other)
+
+    def union(self, other: BaseConstraint) -> BaseConstraint:
+        if not isinstance(other, Constraint):
+            return other.union(self)
+
+        if other in self._constraints:
+            return other
+
+        if other.value not in (c.value for c in self._constraints):
+            if other.operator == "!=":
+                return AnyConstraint()
+
+            return self
+
+        constraints = [c for c in self._constraints if c.value != other.value]
+
+        if len(constraints) == 1:
+            return constraints[0]
+
+        return MultiConstraint(*constraints)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, MultiConstraint):
