@@ -164,6 +164,4 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
         return version
 
-    from poetry.core.constraints.version.exceptions import ParseConstraintError
-
     raise ParseConstraintError(f"Could not parse version constraint: {constraint}")
