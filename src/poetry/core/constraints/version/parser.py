@@ -4,6 +4,9 @@ import re
 
 from typing import TYPE_CHECKING
 
+from poetry.core.constraints.version.exceptions import ParseConstraintError
+from poetry.core.version.exceptions import InvalidVersion
+
 
 if TYPE_CHECKING:
     from poetry.core.constraints.version.version_constraint import VersionConstraint
@@ -66,7 +69,13 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
     # Tilde range
     m = TILDE_CONSTRAINT.match(constraint)
     if m:
-        version = Version.parse(m.group("version"))
+        try:
+            version = Version.parse(m.group("version"))
+        except InvalidVersion as e:
+            raise ParseConstraintError(
+                f"Could not parse version constraint: {constraint}"
+            ) from e
+
         high = version.stable.next_minor()
         if version.release.precision == 1:
             high = version.stable.next_major()
@@ -76,7 +85,13 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
     # PEP 440 Tilde range (~=)
     m = TILDE_PEP440_CONSTRAINT.match(constraint)
     if m:
-        version = Version.parse(m.group("version"))
+        try:
+            version = Version.parse(m.group("version"))
+        except InvalidVersion as e:
+            raise ParseConstraintError(
+                f"Could not parse version constraint: {constraint}"
+            ) from e
+
         if version.release.precision == 2:
             high = version.stable.next_major()
         else:
@@ -87,7 +102,12 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
     # Caret range
     m = CARET_CONSTRAINT.match(constraint)
     if m:
-        version = Version.parse(m.group("version"))
+        try:
+            version = Version.parse(m.group("version"))
+        except InvalidVersion as e:
+            raise ParseConstraintError(
+                f"Could not parse version constraint: {constraint}"
+            ) from e
 
         return VersionRange(version, version.next_breaking(), include_min=True)
 
@@ -127,8 +147,10 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
 
         try:
             version = Version.parse(version_string)
-        except ValueError:
-            raise ValueError(f"Could not parse version constraint: {constraint}")
+        except InvalidVersion as e:
+            raise ParseConstraintError(
+                f"Could not parse version constraint: {constraint}"
+            ) from e
 
         if op == "<":
             return VersionRange(max=version)
@@ -141,7 +163,5 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
         if op == "!=":
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
         return version
-
-    from poetry.core.constraints.version.exceptions import ParseConstraintError
 
     raise ParseConstraintError(f"Could not parse version constraint: {constraint}")

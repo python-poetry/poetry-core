@@ -96,6 +96,17 @@ def test_directory_dependency_pep_508_extras() -> None:
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
+def test_directory_dependency_pep_508_with_marker() -> None:
+    path = (
+        Path(__file__).parent.parent
+        / "fixtures"
+        / "project_with_multi_constraints_dependency"
+    )
+    requirement = f'demo @ file://{path.as_posix()} ; sys_platform == "linux"'
+    expected = f'demo @ {path.as_uri()} ; sys_platform == "linux"'
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
+
+
 @pytest.mark.parametrize(
     "name,path,extras,constraint,expected",
     [

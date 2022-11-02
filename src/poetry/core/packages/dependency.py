@@ -316,14 +316,11 @@ class Dependency(PackageSpecification):
             )
 
         if markers:
-            if self.is_vcs() or self.is_url() or self.is_file():
-                requirement += " "
-
             if len(markers) > 1:
                 marker_str = " and ".join(f"({m})" for m in markers)
-                requirement += f"; {marker_str}"
             else:
-                requirement += f"; {markers[0]}"
+                marker_str = markers[0]
+            requirement += f" ; {marker_str}"
 
         return requirement
 

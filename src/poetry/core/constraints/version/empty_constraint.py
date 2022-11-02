@@ -51,3 +51,6 @@ class EmptyConstraint(VersionConstraint):
             return False
 
         return other.is_empty()
+
+    def __hash__(self) -> int:
+        return hash("empty")
