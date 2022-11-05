@@ -108,9 +108,7 @@ class DirectoryDependency(Dependency):
             extras = ",".join(sorted(self.extras))
             requirement += f"[{extras}]"
 
-        path = (
-            path_to_url(self.path) if self.path.is_absolute() else self.path.as_posix()
-        )
+        path = path_to_url(self.full_path)
         requirement += f" @ {path}"
 
         return requirement

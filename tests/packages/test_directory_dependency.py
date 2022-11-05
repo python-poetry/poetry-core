@@ -81,7 +81,8 @@ def test_directory_dependency_pep_508_local_relative() -> None:
         _test_directory_dependency_pep_508("demo", path, requirement)
 
     requirement = f"demo @ {path}"
-    expected = f"demo @ {path.as_posix()}"
+    base = Path(__file__).parent
+    expected = f"demo @ {(base / path).resolve().as_uri()}"
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
