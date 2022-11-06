@@ -13,6 +13,8 @@ from poetry.core.pyproject.toml import PyProjectTOML
 
 
 class DirectoryDependency(Dependency):
+    _full_path: Path | None
+
     def __init__(
         self,
         name: str,
@@ -25,10 +27,10 @@ class DirectoryDependency(Dependency):
     ) -> None:
         self._path = path
         self._base = base or Path.cwd()
-        self._full_path = path
+        self._full_path = None
         self._develop = develop
 
-        self._validate()
+        full_path = self._get_full_path(False, name)
 
         super().__init__(
             name,
@@ -37,46 +39,47 @@ class DirectoryDependency(Dependency):
             optional=optional,
             allows_prereleases=True,
             source_type="directory",
-            source_url=self._full_path.as_posix(),
+            source_url=full_path.as_posix(),
             extras=extras,
         )
         # cache this function to avoid multiple IO reads and parsing
         self.supports_poetry = functools.lru_cache(maxsize=1)(self._supports_poetry)
 
-    def _validate(self) -> None:
-        # If the directory exists do some general validation on it.
-        # There is no valid reason to have a path dependency to something
-        # that is not a valid Python project.
-        # If the directory doesn't exist, emit a warning and continue.
-        # The most common cause of a directory not existing is likely user error
-        # (e.g. a typo) so we want to do _something_ to alert them.
-        # But there are also valid situations where we might want to build
-        # a directory dependency pointing to a non-existing folder, for example:
-        # - We are re-locking a project where a path dependency was removed
-        #   It still exists in the lockfile and once we finish re-locking
-        #   we'll delete it from the lockfile, but we need to load it from the
-        #   lockfile first to begin solving.
-        # - A user wants to dynamically link to / insert the dependency at runtime.
-        #   This may seem a bit strange but in theory is totally valid and we should
-        #   allow it.
+    def _get_full_path(self, raise_if_invalid: bool, name: str) -> Path:
+        if self._full_path is not None:
+            return self._full_path
+        full_path = self._path
         if not self._path.is_absolute():
             try:
-                self._full_path = self._base.joinpath(self._path).resolve()
+                full_path = self._base.joinpath(self._path).resolve()
             except FileNotFoundError:
-                warn(f"Directory {self._path} does not exist", category=UserWarning)
-                return
+                msg = f"Source directory {self._path} for {name} does not exist"
+                if raise_if_invalid:
+                    raise ValueError(msg)
+                warn(msg, category=UserWarning)
+                return full_path
 
-        if not self._full_path.exists():
-            warn(f"Directory {self._path} does not exist", category=UserWarning)
-            return
+        if not full_path.exists():
+            msg = f"Source directory {self._path} for {name} does not exist"
+            if raise_if_invalid:
+                raise ValueError(msg)
+            warn(msg, category=UserWarning)
+            return full_path
 
-        if self._full_path.is_file():
-            raise ValueError(f"{self._path} is a file, expected a directory")
-
-        if not is_python_project(self._full_path):
+        if full_path.is_file():
             raise ValueError(
-                f"Directory {self._full_path} does not seem to be a Python package",
+                f"Expected source for {name} to be a"
+                f" directory but {self._path} is a file"
             )
+
+        if not is_python_project(full_path):
+            raise ValueError(
+                f"The source directory {self._full_path} for {name}"
+                " does not seem to be a Python package",
+            )
+
+        self._full_path = full_path
+        return full_path
 
     @property
     def path(self) -> Path:
@@ -84,7 +87,7 @@ class DirectoryDependency(Dependency):
 
     @property
     def full_path(self) -> Path:
-        return self._full_path
+        return self._get_full_path(True, self.name)
 
     @property
     def base(self) -> Path:
@@ -95,7 +98,7 @@ class DirectoryDependency(Dependency):
         return self._develop
 
     def _supports_poetry(self) -> bool:
-        return PyProjectTOML(self._full_path / "pyproject.toml").is_poetry_project()
+        return PyProjectTOML(self.full_path / "pyproject.toml").is_poetry_project()
 
     def is_directory(self) -> bool:
         return True
