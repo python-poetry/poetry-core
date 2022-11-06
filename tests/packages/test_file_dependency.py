@@ -22,7 +22,7 @@ TEST_FILE = "demo-0.1.0.tar.gz"
 
 def test_file_dependency_wrong_path() -> None:
     with pytest.raises(ValueError):
-        FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
+        FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz").full_path
 
 
 def test_file_dependency_dir() -> None:

@@ -9,28 +9,13 @@ from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.directory_dependency import DirectoryDependency
 
 
-FIXTURES_PATH = Path(__file__).parent.parent / "fixtures"
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"
 SAMPLE_PROJECT = Path(__file__).parent.parent / "fixtures" / "sample_project"
 
-TEST_FILE = (
-    Path(__file__).parent.parent / "fixtures" / "distributions" / "demo-0.1.0.tar.gz"
-)
 
-
-def test_directory_dependency_warns_if_not_exists() -> None:
-    with pytest.warns(UserWarning, match="does not exist"):
-        DirectoryDependency("demo", FIXTURES_PATH / "invalid")
-
-
-def test_directory_dependency_errors_if_is_not_a_directory() -> None:
-    with pytest.raises(ValueError, match="is a file"):
-        DirectoryDependency("demo", TEST_FILE)
-
-
-def test_directory_dependency_errors_if_not_a_valid_python_project() -> None:
-    with pytest.raises(ValueError, match="does not seem to be a Python package"):
-        DirectoryDependency("demo", FIXTURES_PATH / "non_python_project")
+def test_directory_dependency_must_exist() -> None:
+    with pytest.raises(ValueError):
+        DirectoryDependency("demo", DIST_PATH / "invalid").full_path
 
 
 def _test_directory_dependency_pep_508(
