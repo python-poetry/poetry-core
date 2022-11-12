@@ -28,10 +28,7 @@ class PathDependency(Dependency, ABC):
         self._full_path = path
 
         if not self._path.is_absolute():
-            try:
-                self._full_path = self._base.joinpath(self._path).resolve()
-            except FileNotFoundError:
-                raise ValueError(f"Path {self._path} does not exist")
+            self._full_path = self._base.joinpath(self._path).resolve()
 
         if not self._full_path.exists():
             raise ValueError(f"Path {self._path} does not exist")
