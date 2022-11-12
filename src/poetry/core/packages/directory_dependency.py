@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import logging
 
 from typing import TYPE_CHECKING
 from typing import Iterable
@@ -13,8 +12,6 @@ from poetry.core.pyproject.toml import PyProjectTOML
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-logger = logging.getLogger(__name__)
 
 
 class DirectoryDependency(PathDependency):
@@ -46,28 +43,22 @@ class DirectoryDependency(PathDependency):
     def develop(self) -> bool:
         return self._develop
 
-    def validate(self, *, raise_error: bool) -> bool:
-        if not super().validate(raise_error=raise_error):
-            return False
+    def _validate(self) -> str:
+        message = super()._validate()
+        if message:
+            return message
 
-        message = ""
         if self._full_path.is_file():
-            message = (
+            return (
                 f"{self._full_path} for {self.pretty_name} is a file,"
                 " expected a directory"
             )
-        elif not is_python_project(self._full_path):
-            message = (
+        if not is_python_project(self._full_path):
+            return (
                 f"Directory {self._full_path} for {self.pretty_name} does not seem"
                 " to be a Python package"
             )
-
-        if message:
-            if raise_error:
-                raise ValueError(message)
-            logger.warning(message)
-            return False
-        return True
+        return ""
 
     def _supports_poetry(self) -> bool:
         return PyProjectTOML(self._full_path / "pyproject.toml").is_poetry_project()

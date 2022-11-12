@@ -12,12 +12,18 @@ from poetry.core.packages.directory_dependency import DirectoryDependency
 
 if TYPE_CHECKING:
     from _pytest.logging import LogCaptureFixture
+    from pytest_mock import MockerFixture
+
 
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
 SAMPLE_PROJECT = Path(__file__).parent.parent / "fixtures" / "sample_project"
 
 
-def test_directory_dependency_does_not_exist(caplog: LogCaptureFixture) -> None:
+def test_directory_dependency_does_not_exist(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_exists = mocker.patch.object(Path, "exists")
+    mock_exists.return_value = False
     dep = DirectoryDependency("demo", DIST_PATH / "invalid")
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -27,8 +33,14 @@ def test_directory_dependency_does_not_exist(caplog: LogCaptureFixture) -> None:
     with pytest.raises(ValueError, match="does not exist"):
         dep.validate(raise_error=True)
 
+    mock_exists.assert_called_once()
 
-def test_directory_dependency_is_file(caplog: LogCaptureFixture) -> None:
+
+def test_directory_dependency_is_file(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_is_file = mocker.patch.object(Path, "is_file")
+    mock_is_file.return_value = True
     dep = DirectoryDependency("demo", DIST_PATH / "demo-0.1.0.tar.gz")
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -37,6 +49,8 @@ def test_directory_dependency_is_file(caplog: LogCaptureFixture) -> None:
 
     with pytest.raises(ValueError, match="is a file"):
         dep.validate(raise_error=True)
+
+    mock_is_file.assert_called_once()
 
 
 def test_directory_dependency_is_not_a_python_project(

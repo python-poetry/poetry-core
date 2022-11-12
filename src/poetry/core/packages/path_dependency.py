@@ -45,6 +45,8 @@ class PathDependency(Dependency, ABC):
             source_url=self._full_path.as_posix(),
             extras=extras,
         )
+        # cache validation result to avoid unnecessary file system access
+        self._validation_error = self._validate()
         self.validate(raise_error=False)
 
     @property
@@ -66,13 +68,12 @@ class PathDependency(Dependency, ABC):
         return self._source_type == "directory"
 
     def validate(self, *, raise_error: bool) -> bool:
-        if not self._full_path.exists():
-            message = f"Path {self._full_path} for {self.pretty_name} does not exist"
-            if raise_error:
-                raise ValueError(message)
-            logger.warning(message)
-            return False
-        return True
+        if not self._validation_error:
+            return True
+        if raise_error:
+            raise ValueError(self._validation_error)
+        logger.warning(self._validation_error)
+        return False
 
     @property
     def base_pep_508_name(self) -> str:
@@ -86,3 +87,8 @@ class PathDependency(Dependency, ABC):
         requirement += f" @ {path}"
 
         return requirement
+
+    def _validate(self) -> str:
+        if not self._full_path.exists():
+            return f"Path {self._full_path} for {self.pretty_name} does not exist"
+        return ""
