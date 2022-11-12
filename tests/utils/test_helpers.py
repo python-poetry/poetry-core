@@ -8,6 +8,7 @@ from stat import S_IREAD
 import pytest
 
 from poetry.core.utils.helpers import combine_unicode
+from poetry.core.utils.helpers import parse_author
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
@@ -118,3 +119,60 @@ def test_utils_helpers_readme_content_type(
     readme: str | Path, content_type: str
 ) -> None:
     assert readme_content_type(readme) == content_type
+
+
+def test_utils_helpers_parse_author():
+    """Test the :func:`parse_author` function."""
+
+    # Verify the (probable) default use case
+    name, email = parse_author("John Doe <john.doe@example.com>")
+    assert name == "John Doe"
+    assert email == "john.doe@example.com"
+
+    # Name only
+    name, email = parse_author("John Doe")
+    assert name == "John Doe"
+    assert email is None
+
+    # Name with a “special” character + email address
+    name, email = parse_author("R&D <researchanddevelopment@example.com>")
+    assert name == "R&D"
+    assert email == "researchanddevelopment@example.com"
+
+    # Name with a “special” character only
+    name, email = parse_author("R&D")
+    assert name == "R&D"
+    assert email is None
+
+    # Name with fancy unicode character + email address
+    name, email = parse_author("my·fancy corp <my-fancy-corp@example.com>")
+    assert name == "my·fancy corp"
+    assert email == "my-fancy-corp@example.com"
+
+    # Name with fancy unicode character only
+    name, email = parse_author("my·fancy corp")
+    assert name == "my·fancy corp"
+    assert email is None
+
+    # Email address only, wrapped in angular brackets
+    name, email = parse_author("<john.doe@example.com>")
+    assert name is None
+    assert email == "john.doe@example.com"
+
+    # Email address only
+    name, email = parse_author("john.doe@example.com")
+    assert name is None
+    assert email == "john.doe@example.com"
+
+    # Non-RFC-conform cases with unquoted commas
+    name, email = parse_author("asf,dfu@t.b")
+    assert name == "asf"
+    assert email is None
+
+    name, email = parse_author("asf,<dfu@t.b>")
+    assert name == "asf"
+    assert email is None
+
+    name, email = parse_author("asf, dfu@t.b")
+    assert name == "asf"
+    assert email is None

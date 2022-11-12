@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import sys
 import warnings
 
@@ -13,8 +12,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
 
-
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
 
 METADATA_BASE = """\
 Metadata-Version: 2.1
@@ -344,12 +341,11 @@ class Builder:
 
     @classmethod
     def convert_author(cls, author: str) -> dict[str, str]:
-        m = AUTHOR_REGEX.match(author)
-        if m is None:
-            raise RuntimeError(f"{author} does not match regex")
+        from poetry.core.utils.helpers import parse_author
 
-        name = m.group("name")
-        email = m.group("email")
+        name, email = parse_author(author)
+        if not name or not email:
+            raise RuntimeError(f"{author} does not match regex")
 
         return {"name": name, "email": email}
 

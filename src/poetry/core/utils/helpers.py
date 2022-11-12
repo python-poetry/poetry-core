@@ -8,6 +8,7 @@ import unicodedata
 import warnings
 
 from contextlib import contextmanager
+from email.utils import parseaddr
 from pathlib import Path
 from typing import Any
 from typing import Iterator
@@ -105,3 +106,26 @@ def readme_content_type(path: str | Path) -> str:
         return "text/markdown"
     else:
         return "text/plain"
+
+
+def parse_author(address: str) -> tuple[str | None, str | None]:
+    """Parse name and address parts from an email address string.
+
+    >>> parse_author("John Doe <john.doe@example.com>")
+    ('John Doe', 'john.doe@example.com')
+
+    .. note::
+
+       If the input string does not contain an ``@`` character, it is
+       assumed that it represents only a name without an email address.
+
+    :param address: the email address string to parse.
+    :return: a 2-tuple with the parsed name and email address.  If a
+             part is missing, ``None`` will be returned in its place.
+    """
+    if "@" not in address:
+        return address, None
+    name, email = parseaddr(address)
+    if not name and "@" not in email:
+        return email, None
+    return name or None, email or None
