@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
@@ -7,6 +9,9 @@ from typing import Iterable
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
+
+
+logger = logging.getLogger(__name__)
 
 
 class PathDependency(Dependency, ABC):
@@ -30,9 +35,6 @@ class PathDependency(Dependency, ABC):
         if not self._path.is_absolute():
             self._full_path = self._base.joinpath(self._path).resolve()
 
-        if not self._full_path.exists():
-            raise ValueError(f"Path {self._path} does not exist")
-
         super().__init__(
             name,
             "*",
@@ -43,6 +45,7 @@ class PathDependency(Dependency, ABC):
             source_url=self._full_path.as_posix(),
             extras=extras,
         )
+        self.validate(raise_error=False)
 
     @property
     def path(self) -> Path:
@@ -61,6 +64,15 @@ class PathDependency(Dependency, ABC):
 
     def is_directory(self) -> bool:
         return self._source_type == "directory"
+
+    def validate(self, *, raise_error: bool) -> bool:
+        if not self._full_path.exists():
+            message = f"Path {self._full_path} for {self.pretty_name} does not exist"
+            if raise_error:
+                raise ValueError(message)
+            logger.warning(message)
+            return False
+        return True
 
     @property
     def base_pep_508_name(self) -> str:

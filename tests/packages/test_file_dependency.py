@@ -12,6 +12,7 @@ from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
+    from _pytest.logging import LogCaptureFixture
     from pytest_mock import MockerFixture
 
     from poetry.core.version.markers import BaseMarker
@@ -20,14 +21,26 @@ DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
 TEST_FILE = "demo-0.1.0.tar.gz"
 
 
-def test_file_dependency_wrong_path() -> None:
-    with pytest.raises(ValueError):
-        FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
+def test_file_dependency_does_not_exist(caplog: LogCaptureFixture) -> None:
+    dep = FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "does not exist" in record.message
+
+    with pytest.raises(ValueError, match="does not exist"):
+        dep.validate(raise_error=True)
 
 
-def test_file_dependency_dir() -> None:
-    with pytest.raises(ValueError):
-        FileDependency("demo", DIST_PATH)
+def test_file_dependency_is_directory(caplog: LogCaptureFixture) -> None:
+    dep = FileDependency("demo", DIST_PATH)
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "is a directory" in record.message
+
+    with pytest.raises(ValueError, match="is a directory"):
+        dep.validate(raise_error=True)
 
 
 def test_default_hash() -> None:
