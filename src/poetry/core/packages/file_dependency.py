@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import io
-import logging
 import warnings
 
 from typing import TYPE_CHECKING
@@ -13,8 +12,6 @@ from poetry.core.packages.path_dependency import PathDependency
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-logger = logging.getLogger(__name__)
 
 
 class FileDependency(PathDependency):
@@ -37,20 +34,17 @@ class FileDependency(PathDependency):
             extras=extras,
         )
 
-    def validate(self, *, raise_error: bool) -> bool:
-        if not super().validate(raise_error=raise_error):
-            return False
+    def _validate(self) -> str:
+        message = super()._validate()
+        if message:
+            return message
 
         if self._full_path.is_dir():
-            message = (
+            return (
                 f"{self._full_path} for {self.pretty_name} is a directory,"
                 " expected a file"
             )
-            if raise_error:
-                raise ValueError(message)
-            logger.warning(message)
-            return False
-        return True
+        return ""
 
     def hash(self, hash_name: str = "sha256") -> str:
         warnings.warn(

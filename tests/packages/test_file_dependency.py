@@ -21,7 +21,11 @@ DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
 TEST_FILE = "demo-0.1.0.tar.gz"
 
 
-def test_file_dependency_does_not_exist(caplog: LogCaptureFixture) -> None:
+def test_file_dependency_does_not_exist(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_exists = mocker.patch.object(Path, "exists")
+    mock_exists.return_value = False
     dep = FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -31,8 +35,14 @@ def test_file_dependency_does_not_exist(caplog: LogCaptureFixture) -> None:
     with pytest.raises(ValueError, match="does not exist"):
         dep.validate(raise_error=True)
 
+    mock_exists.assert_called_once()
 
-def test_file_dependency_is_directory(caplog: LogCaptureFixture) -> None:
+
+def test_file_dependency_is_directory(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_is_directory = mocker.patch.object(Path, "is_dir")
+    mock_is_directory.return_value = True
     dep = FileDependency("demo", DIST_PATH)
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -41,6 +51,8 @@ def test_file_dependency_is_directory(caplog: LogCaptureFixture) -> None:
 
     with pytest.raises(ValueError, match="is a directory"):
         dep.validate(raise_error=True)
+
+    mock_is_directory.assert_called_once()
 
 
 def test_default_hash() -> None:
