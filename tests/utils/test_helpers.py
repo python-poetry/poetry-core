@@ -121,58 +121,41 @@ def test_utils_helpers_readme_content_type(
     assert readme_content_type(readme) == content_type
 
 
-def test_utils_helpers_parse_author():
+@pytest.mark.parametrize(
+    "author, name, email",
+    [
+        # Verify the (probable) default use case
+        ("John Doe <john.doe@example.com>", "John Doe", "john.doe@example.com"),
+        # Name only
+        ("John Doe", "John Doe", None),
+        # Name with a “special” character + email address
+        (
+            "R&D <researchanddevelopment@example.com>",
+            "R&D",
+            "researchanddevelopment@example.com",
+        ),
+        # Name with a “special” character only
+        ("R&D", "R&D", None),
+        # Name with fancy unicode character + email address
+        (
+            "my·fancy corp <my-fancy-corp@example.com>",
+            "my·fancy corp",
+            "my-fancy-corp@example.com",
+        ),
+        # Name with fancy unicode character only
+        ("my·fancy corp", "my·fancy corp", None),
+        # Email address only, wrapped in angular brackets
+        ("<john.doe@example.com>", None, "john.doe@example.com"),
+        # Email address only
+        ("john.doe@example.com", None, "john.doe@example.com"),
+        # Non-RFC-conform cases with unquoted commas
+        ("asf,dfu@t.b", "asf", None),
+        ("asf,<dfu@t.b>", "asf", None),
+        ("asf, dfu@t.b", "asf", None),
+    ],
+)
+def test_utils_helpers_parse_author(
+    author: str, name: str | None, email: str | None
+) -> None:
     """Test the :func:`parse_author` function."""
-
-    # Verify the (probable) default use case
-    name, email = parse_author("John Doe <john.doe@example.com>")
-    assert name == "John Doe"
-    assert email == "john.doe@example.com"
-
-    # Name only
-    name, email = parse_author("John Doe")
-    assert name == "John Doe"
-    assert email is None
-
-    # Name with a “special” character + email address
-    name, email = parse_author("R&D <researchanddevelopment@example.com>")
-    assert name == "R&D"
-    assert email == "researchanddevelopment@example.com"
-
-    # Name with a “special” character only
-    name, email = parse_author("R&D")
-    assert name == "R&D"
-    assert email is None
-
-    # Name with fancy unicode character + email address
-    name, email = parse_author("my·fancy corp <my-fancy-corp@example.com>")
-    assert name == "my·fancy corp"
-    assert email == "my-fancy-corp@example.com"
-
-    # Name with fancy unicode character only
-    name, email = parse_author("my·fancy corp")
-    assert name == "my·fancy corp"
-    assert email is None
-
-    # Email address only, wrapped in angular brackets
-    name, email = parse_author("<john.doe@example.com>")
-    assert name is None
-    assert email == "john.doe@example.com"
-
-    # Email address only
-    name, email = parse_author("john.doe@example.com")
-    assert name is None
-    assert email == "john.doe@example.com"
-
-    # Non-RFC-conform cases with unquoted commas
-    name, email = parse_author("asf,dfu@t.b")
-    assert name == "asf"
-    assert email is None
-
-    name, email = parse_author("asf,<dfu@t.b>")
-    assert name == "asf"
-    assert email is None
-
-    name, email = parse_author("asf, dfu@t.b")
-    assert name == "asf"
-    assert email is None
+    assert parse_author(author) == (name, email)
