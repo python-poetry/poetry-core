@@ -21,13 +21,17 @@ class Poetry:
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
 
-        self._pyproject = PyProjectTOML(file)
+        self.pyproject = PyProjectTOML(file)
         self._package = package
         self._local_config = local_config
 
     @property
     def pyproject(self) -> PyProjectTOML:
         return self._pyproject
+
+    @pyproject.setter
+    def pyproject(self, pyproject: PyProjectTOML) -> None:
+        self._pyproject = pyproject
 
     @property
     def file(self) -> TOMLFile:
