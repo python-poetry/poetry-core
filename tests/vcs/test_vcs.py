@@ -36,8 +36,10 @@ if TYPE_CHECKING:
             GitUrl("https://user@hostname/project/blah.git", None, None),
         ),
         (
-            "git+https://user@hostname/project~_-.foo/blah~_-.bar.git",
-            GitUrl("https://user@hostname/project~_-.foo/blah~_-.bar.git", None, None),
+            "git+https://user@hostname/project%20~_-.foo/blah%20~_-.bar.git",
+            GitUrl(
+                "https://user@hostname/project%20~_-.foo/blah%20~_-.bar.git", None, None
+            ),
         ),
         (
             "git+https://user@hostname:project/blah.git",
@@ -176,14 +178,14 @@ def test_normalize_url(url: str, normalized: GitUrl) -> None:
             ),
         ),
         (
-            "git+https://user@hostname/project~_-.foo/blah~_-.bar.git",
+            "git+https://user@hostname/project%20~_-.foo/blah%20~_-.bar.git",
             ParsedUrl(
                 "https",
                 "hostname",
-                "/project~_-.foo/blah~_-.bar.git",
+                "/project%20~_-.foo/blah%20~_-.bar.git",
                 "user",
                 None,
-                "blah~_-.bar",
+                "blah%20~_-.bar",
                 None,
             ),
         ),
