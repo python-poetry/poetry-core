@@ -39,20 +39,8 @@ def prepare_metadata_for_build_wheel(
 ) -> str:
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
     builder = WheelBuilder(poetry)
-
-    dist_info = Path(metadata_directory, builder.dist_info)
-    dist_info.mkdir(parents=True, exist_ok=True)
-
-    if "scripts" in poetry.local_config or "plugins" in poetry.local_config:
-        with (dist_info / "entry_points.txt").open("w", encoding="utf-8") as f:
-            builder._write_entry_points(f)
-
-    with (dist_info / "WHEEL").open("w", encoding="utf-8") as f:
-        builder._write_wheel_file(f)
-
-    with (dist_info / "METADATA").open("w", encoding="utf-8") as f:
-        builder._write_metadata_file(f)
-
+    metadata_path = Path(metadata_directory)
+    dist_info = builder.prepare_metadata(metadata_path)
     return dist_info.name
 
 
@@ -63,8 +51,11 @@ def build_wheel(
 ) -> str:
     """Builds a wheel, places it in wheel_directory"""
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
+    metadata_path = None if metadata_directory is None else Path(metadata_directory)
 
-    return WheelBuilder.make_in(poetry, Path(wheel_directory))
+    return WheelBuilder.make_in(
+        poetry, Path(wheel_directory), metadata_directory=metadata_path
+    )
 
 
 def build_sdist(
