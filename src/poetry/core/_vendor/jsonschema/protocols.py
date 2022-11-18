@@ -7,7 +7,8 @@ typing.Protocol classes for jsonschema interfaces.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Iterator
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING, Any, ClassVar, Iterable
 import sys
 
 # doing these imports with `try ... except ImportError` doesn't pass mypy
@@ -30,7 +31,6 @@ if TYPE_CHECKING:
     import jsonschema
 
 from jsonschema.exceptions import ValidationError
-from jsonschema.validators import RefResolver
 
 # For code authors working on the validator protocol, these are the three
 # use-cases which should be kept in mind:
@@ -48,88 +48,123 @@ from jsonschema.validators import RefResolver
 @runtime_checkable
 class Validator(Protocol):
     """
-    The protocol to which all validator classes should adhere.
+    The protocol to which all validator classes adhere.
 
-    :argument schema: the schema that the validator object
-        will validate with. It is assumed to be valid, and providing
-        an invalid schema can lead to undefined behavior. See
-        `Validator.check_schema` to validate a schema first.
-    :argument resolver: an instance of `jsonschema.RefResolver` that will be
-        used to resolve :kw:`$ref` properties (JSON references). If
-        unprovided, one will be created.
-    :argument format_checker: an instance of `jsonschema.FormatChecker`
-        whose `jsonschema.FormatChecker.conforms` method will be called to
-        check and see if instances conform to each :kw:`format`
-        property present in the schema. If unprovided, no validation
-        will be done for :kw:`format`. Certain formats require
-        additional packages to be installed (ipv5, uri, color, date-time).
-        The required packages can be found at the bottom of this page.
+    Arguments:
+
+        schema:
+
+            The schema that the validator object will validate with.
+            It is assumed to be valid, and providing
+            an invalid schema can lead to undefined behavior. See
+            `Validator.check_schema` to validate a schema first.
+
+        resolver:
+
+            a resolver that will be used to resolve :kw:`$ref`
+            properties (JSON references). If unprovided, one will be created.
+
+        format_checker:
+
+            if provided, a checker which will be used to assert about
+            :kw:`format` properties present in the schema. If unprovided,
+            *no* format validation is done, and the presence of format
+            within schemas is strictly informational. Certain formats
+            require additional packages to be installed in order to assert
+            against instances. Ensure you've installed `jsonschema` with
+            its `extra (optional) dependencies <index:extras>` when
+            invoking ``pip``.
+
+    .. deprecated:: v4.12.0
+
+        Subclassing validator classes now explicitly warns this is not part of
+        their public API.
     """
 
     #: An object representing the validator's meta schema (the schema that
     #: describes valid schemas in the given version).
-    META_SCHEMA: ClassVar[dict]
+    META_SCHEMA: ClassVar[Mapping]
 
     #: A mapping of validation keywords (`str`\s) to functions that
     #: validate the keyword with that name. For more information see
     #: `creating-validators`.
-    VALIDATORS: ClassVar[dict]
+    VALIDATORS: ClassVar[Mapping]
 
     #: A `jsonschema.TypeChecker` that will be used when validating
     #: :kw:`type` keywords in JSON schemas.
     TYPE_CHECKER: ClassVar[jsonschema.TypeChecker]
 
     #: A `jsonschema.FormatChecker` that will be used when validating
-    #: :kw:`format` properties in JSON schemas.
+    #: :kw:`format` keywords in JSON schemas.
     FORMAT_CHECKER: ClassVar[jsonschema.FormatChecker]
 
-    #: The schema that was passed in when initializing the object.
-    schema: dict | bool
+    #: A function which given a schema returns its ID.
+    ID_OF: Callable[[Any], str | None]
+
+    #: The schema that will be used to validate instances
+    schema: Mapping | bool
 
     def __init__(
         self,
-        schema: dict | bool,
-        resolver: RefResolver | None = None,
+        schema: Mapping | bool,
+        resolver: jsonschema.RefResolver | None = None,
         format_checker: jsonschema.FormatChecker | None = None,
     ) -> None:
         ...
 
     @classmethod
-    def check_schema(cls, schema: dict) -> None:
+    def check_schema(cls, schema: Mapping | bool) -> None:
         """
         Validate the given schema against the validator's `META_SCHEMA`.
 
-        :raises: `jsonschema.exceptions.SchemaError` if the schema
-            is invalid
+        Raises:
+
+            `jsonschema.exceptions.SchemaError`:
+
+                if the schema is invalid
         """
 
     def is_type(self, instance: Any, type: str) -> bool:
         """
         Check if the instance is of the given (JSON Schema) type.
 
-        :type type: str
-        :rtype: bool
-        :raises: `jsonschema.exceptions.UnknownType` if ``type``
-            is not a known type.
+        Arguments:
+
+            instance:
+
+                the value to check
+
+            type:
+
+                the name of a known (JSON Schema) type
+
+        Returns:
+
+            whether the instance is of the given type
+
+        Raises:
+
+            `jsonschema.exceptions.UnknownType`:
+
+                if ``type`` is not a known type
         """
 
-    def is_valid(self, instance: dict) -> bool:
+    def is_valid(self, instance: Any) -> bool:
         """
         Check if the instance is valid under the current `schema`.
 
-        :rtype: bool
+        Returns:
+
+            whether the instance is valid or not
 
         >>> schema = {"maxItems" : 2}
         >>> Draft202012Validator(schema).is_valid([2, 3, 4])
         False
         """
 
-    def iter_errors(self, instance: dict) -> Iterator[ValidationError]:
+    def iter_errors(self, instance: Any) -> Iterable[ValidationError]:
         r"""
         Lazily yield each of the validation errors in the given instance.
-
-        :rtype: an `collections.abc.Iterable` of
-            `jsonschema.exceptions.ValidationError`\s
 
         >>> schema = {
         ...     "type" : "array",
@@ -141,14 +176,22 @@ class Validator(Protocol):
         ...     print(error.message)
         4 is not one of [1, 2, 3]
         [2, 3, 4] is too long
+
+        .. deprecated:: v4.0.0
+
+            Calling this function with a second schema argument is deprecated.
+            Use `Validator.evolve` instead.
         """
 
-    def validate(self, instance: dict) -> None:
+    def validate(self, instance: Any) -> None:
         """
         Check if the instance is valid under the current `schema`.
 
-        :raises: `jsonschema.exceptions.ValidationError` if the
-            instance is invalid
+        Raises:
+
+            `jsonschema.exceptions.ValidationError`:
+
+                if the instance is invalid
 
         >>> schema = {"maxItems" : 2}
         >>> Draft202012Validator(schema).validate([2, 3, 4])

@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 from tomlkit.api import table
-from tomlkit.items import Table
 
 
 if TYPE_CHECKING:
@@ -64,14 +63,14 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Table:
+    def poetry_config(self) -> dict[str, Any]:
         from tomlkit.exceptions import NonExistentKey
 
         try:
             tool = self.data["tool"]
             assert isinstance(tool, dict)
             config = tool["poetry"]
-            assert isinstance(config, Table)
+            assert isinstance(config, dict)
             return config
         except NonExistentKey as e:
             from poetry.core.pyproject.exceptions import PyProjectException
@@ -103,7 +102,7 @@ class PyProjectTOML:
                 data["build-system"] = table()
 
             build_system = data["build-system"]
-            assert isinstance(build_system, Table)
+            assert isinstance(build_system, dict)
 
             build_system["requires"] = self._build_system.requires
             build_system["build-backend"] = self._build_system.build_backend

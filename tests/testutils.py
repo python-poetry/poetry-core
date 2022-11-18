@@ -75,7 +75,8 @@ def validate_wheel_contents(
 def validate_sdist_contents(
     name: str, version: str, path: str, files: list[str]
 ) -> None:
+    escaped_name = name.replace("-", "_")
     with tarfile.open(path) as tar:
         namelist = tar.getnames()
         for filename in files:
-            assert f"{name}-{version}/{filename}" in namelist
+            assert f"{escaped_name}-{version}/{filename}" in namelist

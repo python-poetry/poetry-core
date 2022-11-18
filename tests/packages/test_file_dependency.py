@@ -111,7 +111,7 @@ def _test_file_dependency_pep_508(
         dep.marker = marker
 
     assert dep.is_file()
-    dep = cast(FileDependency, dep)
+    dep = cast("FileDependency", dep)
     assert dep.name == name
     assert dep.path == path
     assert dep.to_pep_508() == (pep_508_output or pep_508_input)
@@ -145,7 +145,8 @@ def test_file_dependency_pep_508_local_file_relative_path(
         _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
     requirement = f"demo @ {path}"
-    expected = f"demo @ {path.as_posix()}"
+    base = Path(__file__).parent
+    expected = f"demo @ {(base / path).resolve().as_uri()}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
@@ -168,11 +169,16 @@ def test_relative_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) 
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
     requirement = f'demo @ {rel_path.as_posix()} ; sys_platform == "linux"'
+    base = Path(__file__).parent
+    expected = (
+        f'demo @ {(base / rel_path).resolve().as_uri()} ; sys_platform == "linux"'
+    )
     _test_file_dependency_pep_508(
         mocker,
         "demo",
         rel_path,
         requirement,
+        expected,
         marker=SingleMarker("sys.platform", "linux"),
     )
 
@@ -182,12 +188,17 @@ def test_file_dependency_pep_508_extras(mocker: MockerFixture) -> None:
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
     requirement = f'demo[foo,bar] @ {rel_path.as_posix()} ; sys_platform == "linux"'
+    base = Path(__file__).parent
+    expected = (
+        f"demo[bar,foo] @ {(base / rel_path).resolve().as_uri()} ;"
+        ' sys_platform == "linux"'
+    )
     _test_file_dependency_pep_508(
         mocker,
         "demo",
         rel_path,
         requirement,
-        f'demo[bar,foo] @ {rel_path.as_posix()} ; sys_platform == "linux"',
+        expected,
     )
 
 

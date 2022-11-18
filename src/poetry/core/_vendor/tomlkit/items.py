@@ -170,7 +170,9 @@ def item(
     elif isinstance(value, float):
         return Float(value, Trivia(), str(value))
     elif isinstance(value, dict):
-        table_constructor = InlineTable if isinstance(_parent, Array) else Table
+        table_constructor = (
+            InlineTable if isinstance(_parent, (Array, InlineTable)) else Table
+        )
         val = table_constructor(Container(), Trivia(), False)
         for k, v in sorted(
             value.items(),
@@ -184,7 +186,11 @@ def item(
 
         return val
     elif isinstance(value, (list, tuple)):
-        if value and all(isinstance(v, dict) for v in value):
+        if (
+            value
+            and all(isinstance(v, dict) for v in value)
+            and (_parent is None or isinstance(_parent, Table))
+        ):
             a = AoT([])
             table_constructor = Table
         else:
@@ -199,7 +205,7 @@ def item(
                     v.items(),
                     key=lambda i: (isinstance(i[1], dict), i[0] if _sort_keys else 1),
                 ):
-                    i = item(_v, _parent=a, _sort_keys=_sort_keys)
+                    i = item(_v, _parent=table, _sort_keys=_sort_keys)
                     if isinstance(table, InlineTable):
                         i.trivia.trail = ""
 
@@ -503,7 +509,11 @@ class Item:
         """The TOML representation"""
         raise NotImplementedError()
 
-    def unwrap(self):
+    @property
+    def value(self) -> Any:
+        return self
+
+    def unwrap(self) -> Any:
         """Returns as pure python object (ppo)"""
         raise NotImplementedError()
 
@@ -1036,7 +1046,7 @@ class Time(Item, time):
 
         self._raw = raw
 
-    def unwrap(self) -> datetime:
+    def unwrap(self) -> time:
         (hour, minute, second, microsecond, tzinfo, _, _) = self._getstate()
         return time(hour, minute, second, microsecond, tzinfo)
 
@@ -1157,7 +1167,7 @@ class Array(Item, _CustomList):
         groups.append(this_group)
         return [group for group in groups if group]
 
-    def unwrap(self) -> str:
+    def unwrap(self) -> List[Any]:
         unwrapped = []
         for v in self:
             if isinstance(v, Item):
@@ -1427,7 +1437,7 @@ class AbstractTable(Item, _CustomDict):
             if k is not None:
                 dict.__setitem__(self, k.key, v)
 
-    def unwrap(self):
+    def unwrap(self) -> Dict[str, Any]:
         unwrapped = {}
         for k, v in self.items():
             if isinstance(k, Key):
@@ -1509,7 +1519,7 @@ class AbstractTable(Item, _CustomDict):
 
     def __setitem__(self, key: Union[Key, str], value: Any) -> None:
         if not isinstance(value, Item):
-            value = item(value)
+            value = item(value, _parent=self)
 
         is_replace = key in self
         self._value[key] = value
@@ -1573,7 +1583,7 @@ class Table(AbstractTable):
         Appends a (key, item) to the table.
         """
         if not isinstance(_item, Item):
-            _item = item(_item)
+            _item = item(_item, _parent=self)
 
         self._value.append(key, _item)
 
@@ -1684,7 +1694,7 @@ class InlineTable(AbstractTable):
         Appends a (key, item) to the table.
         """
         if not isinstance(_item, Item):
-            _item = item(_item)
+            _item = item(_item, _parent=self)
 
         if not isinstance(_item, (Whitespace, Comment)):
             if not _item.trivia.indent and len(self._value) > 0 and not self._new:
@@ -1775,18 +1785,16 @@ class String(str, Item):
     def as_string(self) -> str:
         return f"{self._t.value}{decode(self._original)}{self._t.value}"
 
-    def __add__(self, other):
+    def __add__(self: ItemT, other: str) -> ItemT:
+        if not isinstance(other, str):
+            return NotImplemented
         result = super().__add__(other)
+        original = self._original + getattr(other, "_original", other)
 
-        return self._new(result)
+        return self._new(result, original)
 
-    def __sub__(self, other):
-        result = super().__sub__(other)
-
-        return self._new(result)
-
-    def _new(self, result):
-        return String(self._t, result, result, self._trivia)
+    def _new(self, result: str, original: str) -> "String":
+        return String(self._t, result, original, self._trivia)
 
     def _getstate(self, protocol=3):
         return self._t, str(self), self._original, self._trivia
@@ -1822,7 +1830,7 @@ class AoT(Item, _CustomList):
         for table in body:
             self.append(table)
 
-    def unwrap(self) -> str:
+    def unwrap(self) -> List[Dict[str, Any]]:
         unwrapped = []
         for t in self._body:
             if isinstance(t, Item):
@@ -1922,7 +1930,7 @@ class Null(Item):
     def __init__(self) -> None:
         pass
 
-    def unwrap(self) -> str:
+    def unwrap(self) -> None:
         return None
 
     @property

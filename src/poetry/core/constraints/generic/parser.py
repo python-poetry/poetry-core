@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from poetry.core.constraints.generic.any_constraint import AnyConstraint
 from poetry.core.constraints.generic.constraint import Constraint
 from poetry.core.constraints.generic.union_constraint import UnionConstraint
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 
 
 if TYPE_CHECKING:
@@ -61,4 +62,4 @@ def parse_single_constraint(constraint: str) -> Constraint:
 
         return Constraint(version, op)
 
-    raise ValueError(f"Could not parse version constraint: {constraint}")
+    raise ParseConstraintError(f"Could not parse version constraint: {constraint}")

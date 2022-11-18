@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING
 from typing import Iterable
 from typing import TypeVar
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
 from poetry.core.constraints.version import VersionRangeConstraint
 from poetry.core.constraints.version import parse_constraint
@@ -86,7 +88,7 @@ class Dependency(PackageSpecification):
         self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
 
-        self._in_extras: list[str] = []
+        self._in_extras: list[NormalizedName] = []
 
         self._activated = not self._optional
 
@@ -183,7 +185,7 @@ class Dependency(PackageSpecification):
 
             for or_ in markers["extra"]:
                 for _, extra in or_:
-                    self.in_extras.append(extra)
+                    self.in_extras.append(canonicalize_name(extra))
 
         # Recalculate python versions.
         self._python_versions = "*"
@@ -218,12 +220,12 @@ class Dependency(PackageSpecification):
         return self._transitive_python_constraint
 
     @property
-    def extras(self) -> frozenset[str]:
+    def extras(self) -> frozenset[NormalizedName]:
         # extras activated in a dependency is the same as features
         return self._features
 
     @property
-    def in_extras(self) -> list[str]:
+    def in_extras(self) -> list[NormalizedName]:
         return self._in_extras
 
     @property
@@ -314,14 +316,11 @@ class Dependency(PackageSpecification):
             )
 
         if markers:
-            if self.is_vcs() or self.is_url() or self.is_file():
-                requirement += " "
-
             if len(markers) > 1:
                 marker_str = " and ".join(f"({m})" for m in markers)
-                requirement += f"; {marker_str}"
             else:
-                requirement += f"; {markers[0]}"
+                marker_str = markers[0]
+            requirement += f" ; {marker_str}"
 
         return requirement
 

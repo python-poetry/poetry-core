@@ -3,20 +3,26 @@ from __future__ import annotations
 import random
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import cast
 
 import pytest
 
 from poetry.core.constraints.version import Version
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
-from poetry.core.packages.directory_dependency import DirectoryDependency
-from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.package import Package
 from poetry.core.packages.project_package import ProjectPackage
-from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
+from poetry.core.version.exceptions import InvalidVersion
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages.directory_dependency import DirectoryDependency
+    from poetry.core.packages.file_dependency import FileDependency
+    from poetry.core.packages.url_dependency import URLDependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 @pytest.fixture()
@@ -350,7 +356,7 @@ def test_to_dependency_for_directory() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_directory()
-    dep = cast(DirectoryDependency, dep)
+    dep = cast("DirectoryDependency", dep)
     assert dep.path == path
     assert dep.source_type == "directory"
     assert dep.source_url == path.as_posix()
@@ -373,7 +379,7 @@ def test_to_dependency_for_file() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_file()
-    dep = cast(FileDependency, dep)
+    dep = cast("FileDependency", dep)
     assert dep.path == path
     assert dep.source_type == "file"
     assert dep.source_url == path.as_posix()
@@ -394,7 +400,7 @@ def test_to_dependency_for_url() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_url()
-    dep = cast(URLDependency, dep)
+    dep = cast("URLDependency", dep)
     assert dep.url == "https://example.com/path.tar.gz"
     assert dep.source_type == "url"
     assert dep.source_url == "https://example.com/path.tar.gz"
@@ -418,7 +424,7 @@ def test_to_dependency_for_vcs() -> None:
     assert dep.constraint == package.version
     assert dep.features == frozenset({"bar", "baz"})
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.source_type == "git"
     assert dep.source == "https://github.com/foo/foo.git"
     assert dep.reference == "master"
@@ -562,6 +568,34 @@ def test_package_satisfies(
     assert package.satisfies(dependency, ignore_source_type) == result
 
 
+@pytest.mark.parametrize(
+    ("package_repo", "dependency_repo", "result"),
+    [
+        ("pypi", None, True),
+        ("private", None, True),
+        ("pypi", "pypi", True),
+        ("private", "private", True),
+        ("pypi", "private", False),
+        ("private", "pypi", False),
+    ],
+)
+def test_package_satisfies_on_repositories(
+    package_repo: str,
+    dependency_repo: str | None,
+    result: bool,
+) -> None:
+    source_type = None if package_repo == "pypi" else "legacy"
+    source_reference = None if package_repo == "pypi" else package_repo
+    package = Package(
+        "foo", "0.1.0", source_type=source_type, source_reference=source_reference
+    )
+
+    dependency = Dependency("foo", ">=0.1.0")
+    dependency.source_name = dependency_repo
+
+    assert package.satisfies(dependency) == result
+
+
 def test_package_pep592_default_not_yanked() -> None:
     package = Package("foo", "1.0")
 
@@ -628,3 +662,20 @@ def test_project_package_hash_not_changed_when_version_is_changed() -> None:
     assert hash(package) == package_hash, "Hash must not change!"
     assert hash(package_clone) == package_hash
     assert package != package_clone
+
+
+def test_package_invalid_version() -> None:
+    with pytest.raises(InvalidVersion) as exc_info:
+        Package("foo", "1.2.3.bogus")
+
+    expected = "Invalid version '1.2.3.bogus' on package foo"
+    assert str(exc_info.value) == expected
+
+
+def test_package_invalid_python_versions() -> None:
+    package = Package("foo", "1.2.3")
+    with pytest.raises(ParseConstraintError) as exc_info:
+        package.python_versions = ">=3.6.y"
+
+    expected = "Invalid python versions '>=3.6.y' on foo (1.2.3)"
+    assert str(exc_info.value) == expected

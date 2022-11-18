@@ -12,9 +12,11 @@ from typing import Iterator
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
+from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.markers import parse_marker
 
 
@@ -45,6 +47,7 @@ class Package(PackageSpecification):
         "3.8",
         "3.9",
         "3.10",
+        "3.11",
     }
 
     def __init__(
@@ -90,7 +93,7 @@ class Package(PackageSpecification):
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
 
-        self.extras: dict[str, list[Dependency]] = {}
+        self.extras: dict[NormalizedName, list[Dependency]] = {}
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 
@@ -214,11 +217,15 @@ class Package(PackageSpecification):
         from poetry.core.constraints.version import Version
 
         if not isinstance(version, Version):
-            self._version = Version.parse(version)
-            self._pretty_version = pretty_version or version
-        else:
-            self._version = version
-            self._pretty_version = pretty_version or self._version.text
+            try:
+                version = Version.parse(version)
+            except InvalidVersion:
+                raise InvalidVersion(
+                    f"Invalid version '{version}' on package {self.name}"
+                )
+
+        self._version = version
+        self._pretty_version = pretty_version or version.text
 
     def _get_author(self) -> dict[str, str | None]:
         if not self._authors:
@@ -260,8 +267,13 @@ class Package(PackageSpecification):
 
     @python_versions.setter
     def python_versions(self, value: str) -> None:
+        try:
+            constraint = parse_constraint(value)
+        except ParseConstraintError:
+            raise ParseConstraintError(f"Invalid python versions '{value}' on {self}")
+
         self._python_versions = value
-        self._python_constraint = parse_constraint(value)
+        self._python_constraint = constraint
         self._python_marker = parse_marker(
             create_nested_marker("python_version", self._python_constraint)
         )
@@ -555,16 +567,47 @@ class Package(PackageSpecification):
         """
         Helper method to check if this package satisfies a given dependency.
 
-        This is determined by assessing if this instance provides the package and
-        features specified by the given dependency. Further, version and source
-        types are checked.
+        This is determined by assessing if this instance provides the package specified
+        by the given dependency. Further, version and source types are checked.
         """
-        if not self.provides(dependency) or not dependency.constraint.allows(
-            self.version
-        ):
+        if self.name != dependency.name:
             return False
 
-        return ignore_source_type or self.is_same_source_as(dependency)
+        if not dependency.constraint.allows(self.version):
+            return False
+
+        if not ignore_source_type and not self.source_satisfies(dependency):
+            return False
+
+        return True
+
+    def source_satisfies(self, dependency: Dependency) -> bool:
+        """Determine whether this package's source satisfies the given dependency."""
+        if dependency.source_type is None:
+            if dependency.source_name is None:
+                # The dependency doesn't care about the source, so this package
+                # certainly satisfies it.
+                return True
+
+            # The dependency specifies a source_name but not a type: it wants either
+            # pypi or a legacy repository.
+            #
+            # - If this package has no source type then it's from pypi, so it
+            #   matches if and only if that's what the dependency wants
+            # - Else this package is a match if and only if it is from the desired
+            #   repository
+            if self.source_type is None:
+                return dependency.source_name.lower() == "pypi"
+
+            return (
+                self.source_type == "legacy"
+                and self.source_reference is not None
+                and self.source_reference.lower() == dependency.source_name.lower()
+            )
+
+        # The dependency specifies a source: this package matches if and only if it is
+        # from that source.
+        return dependency.is_same_source_as(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Package):

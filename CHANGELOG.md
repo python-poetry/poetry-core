@@ -1,5 +1,36 @@
 # Change Log
 
+## [1.3.2] - 2022-10-07
+
+### Fixed
+
+- Fix an issue where the normalization was not applied to the path of an sdist built using a PEP 517 frontend ([#495](https://github.com/python-poetry/poetry-core/pull/495)).
+
+## [1.3.1] - 2022-10-05
+
+### Fixed
+
+- Fix an issue where a typing-driven assertion could be false at runtime, causing a failure during prepare_metadata_for_build_wheel ([#492](https://github.com/python-poetry/poetry-core/pull/492)).
+
+## [1.3.0] - 2022-10-05
+
+### Added
+
+- Add `3.11` to the list of available Python versions ([#477](https://github.com/python-poetry/poetry-core/pull/477)).
+
+### Changed
+
+- Deprecate `poetry.core.constraints.generic`, which is replaced by `poetry.core.packages.constraints` ([#482](https://github.com/python-poetry/poetry-core/pull/482)).
+- Deprecate `poetry.core.semver`, which is replaced by `poetry.core.constraints.version` ([#482](https://github.com/python-poetry/poetry-core/pull/482)).
+
+### Fixed
+
+- Fix an issue where versions were escaped wrongly when building the wheel name ([#469](https://github.com/python-poetry/poetry-core/pull/469)).
+- Fix an issue where caret constraints of pre-releases with a major version of 0 resulted in an empty version range ([#475](https://github.com/python-poetry/poetry-core/pull/475)).
+- Fix an issue where the names of extras were not normalized according to PEP 685 ([#476](https://github.com/python-poetry/poetry-core/pull/476)).
+- Fix an issue where sdist names were not normalized ([#484](https://github.com/python-poetry/poetry-core/pull/484)).
+
+
 ## [1.2.0] - 2022-09-13
 
 ### Added
@@ -7,6 +38,7 @@
 - Added support for subdirectories in `url` dependencies  ([#398](https://github.com/python-poetry/poetry-core/pull/398)).
 
 ### Changed
+
 - When setting an invalid version constraint an error is raised instead of silently setting "any version" ([#461](https://github.com/python-poetry/poetry-core/pull/461)).
 - Allow more characters in author name ([#411](https://github.com/python-poetry/poetry-core/pull/411)).
 
@@ -33,6 +65,7 @@
 ## [1.1.0rc2] - 2022-08-26
 
 ### Changed
+
 - Enabled setting `version` of `ProjectPackage` to support dynamically setting the project's package version (e.g. from a plugin) ([#447](https://github.com/python-poetry/poetry-core/pull/447)).
 
 ### Fixed
@@ -385,7 +418,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.2.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.3.0...main
+[1.3.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.3.0
 [1.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.2.0
 [1.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0
 [1.1.0rc3]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0rc3

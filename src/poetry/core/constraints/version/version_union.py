@@ -420,6 +420,3 @@ class VersionUnion(VersionConstraint):
             return self._exclude_single_wildcard_range_string()
         except ValueError:
             return " || ".join([str(r) for r in self._ranges])
-
-    def __repr__(self) -> str:
-        return f"<VersionUnion {str(self)}>"

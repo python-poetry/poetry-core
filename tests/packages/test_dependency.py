@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
 from poetry.core.version.markers import parse_marker
@@ -36,7 +38,7 @@ def test_to_pep_508() -> None:
     result = dependency.to_pep_508()
     assert (
         result
-        == "Django (>=1.23,<2.0); "
+        == "Django (>=1.23,<2.0) ; "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -51,25 +53,25 @@ def test_to_pep_508_wilcard() -> None:
 
 def test_to_pep_508_in_extras() -> None:
     dependency = Dependency("Django", "^1.23")
-    dependency.in_extras.append("foo")
+    dependency.in_extras.append(canonicalize_name("foo"))
 
     result = dependency.to_pep_508()
-    assert result == 'Django (>=1.23,<2.0); extra == "foo"'
+    assert result == 'Django (>=1.23,<2.0) ; extra == "foo"'
 
     result = dependency.to_pep_508(with_extras=False)
     assert result == "Django (>=1.23,<2.0)"
 
-    dependency.in_extras.append("bar")
+    dependency.in_extras.append(canonicalize_name("bar"))
 
     result = dependency.to_pep_508()
-    assert result == 'Django (>=1.23,<2.0); extra == "foo" or extra == "bar"'
+    assert result == 'Django (>=1.23,<2.0) ; extra == "foo" or extra == "bar"'
 
     dependency.python_versions = "~2.7 || ^3.6"
 
     result = dependency.to_pep_508()
     assert (
         result
-        == "Django (>=1.23,<2.0); "
+        == "Django (>=1.23,<2.0) ; "
         "("
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
@@ -80,7 +82,7 @@ def test_to_pep_508_in_extras() -> None:
     result = dependency.to_pep_508(with_extras=False)
     assert (
         result
-        == "Django (>=1.23,<2.0); "
+        == "Django (>=1.23,<2.0) ; "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -92,7 +94,7 @@ def test_to_pep_508_in_extras_parsed() -> None:
     )
 
     result = dependency.to_pep_508()
-    assert result == 'foo[bar,baz] (>=1.23,<2.0); extra == "baz"'
+    assert result == 'foo[bar,baz] (>=1.23,<2.0) ; extra == "baz"'
 
     result = dependency.to_pep_508(with_extras=False)
     assert result == "foo[bar,baz] (>=1.23,<2.0)"
@@ -128,7 +130,7 @@ def test_to_pep_508_with_patch_python_version(
     dependency = Dependency("Django", "^1.23")
     dependency.python_versions = python_versions
 
-    expected = f"Django (>=1.23,<2.0); {marker}"
+    expected = f"Django (>=1.23,<2.0) ; {marker}"
 
     assert dependency.to_pep_508() == expected
     assert str(dependency.marker) == marker
