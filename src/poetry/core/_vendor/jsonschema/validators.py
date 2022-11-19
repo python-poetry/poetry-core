@@ -215,9 +215,15 @@ def create(
                 )
 
         @classmethod
-        def check_schema(cls, schema):
+        def check_schema(cls, schema, format_checker=_UNSET):
             Validator = validator_for(cls.META_SCHEMA, default=cls)
-            for error in Validator(cls.META_SCHEMA).iter_errors(schema):
+            if format_checker is _UNSET:
+                format_checker = Validator.FORMAT_CHECKER
+            validator = Validator(
+                schema=cls.META_SCHEMA,
+                format_checker=format_checker,
+            )
+            for error in validator.iter_errors(schema):
                 raise exceptions.SchemaError.create_from(error)
 
         def evolve(self, **changes):
@@ -758,7 +764,7 @@ class RefResolver:
             `RefResolver`
         """
 
-        return cls(base_uri=id_of(schema), referrer=schema, *args, **kwargs)
+        return cls(base_uri=id_of(schema), referrer=schema, *args, **kwargs)  # noqa: B026, E501
 
     def push_scope(self, scope):
         """
