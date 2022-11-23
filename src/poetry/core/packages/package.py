@@ -235,13 +235,6 @@ class Package(PackageSpecification):
             return {"name": None, "email": None}
 
         name, email = parse_author(self._authors[0])
-
-        if not name or not email:
-            raise ValueError(
-                "Invalid author string. Must be in the format: "
-                "John Smith <john@example.com>"
-            )
-
         return {"name": name, "email": email}
 
     def _get_maintainer(self) -> dict[str, str | None]:
@@ -249,13 +242,6 @@ class Package(PackageSpecification):
             return {"name": None, "email": None}
 
         name, email = parse_author(self._maintainers[0])
-
-        if not name or not email:
-            raise ValueError(
-                "Invalid maintainer string. Must be in the format: "
-                "John Smith <john@example.com>"
-            )
-
         return {"name": name, "email": email}
 
     @property

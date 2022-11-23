@@ -144,18 +144,27 @@ def test_utils_helpers_readme_content_type(
         ),
         # Name with fancy unicode character only
         ("my·fancy corp", "my·fancy corp", None),
-        # Email address only, wrapped in angular brackets
-        ("<john.doe@example.com>", None, "john.doe@example.com"),
-        # Email address only
-        ("john.doe@example.com", None, "john.doe@example.com"),
-        # Non-RFC-conform cases with unquoted commas
-        ("asf,dfu@t.b", "asf", None),
-        ("asf,<dfu@t.b>", "asf", None),
-        ("asf, dfu@t.b", "asf", None),
     ],
 )
-def test_utils_helpers_parse_author(
-    author: str, name: str | None, email: str | None
-) -> None:
-    """Test the :func:`parse_author` function."""
+def test_utils_helpers_parse_author(author: str, name: str, email: str | None) -> None:
+    """Test valid inputs for the :func:`parse_author` function."""
     assert parse_author(author) == (name, email)
+
+
+@pytest.mark.parametrize(
+    "author",
+    [
+        # Email address only, wrapped in angular brackets
+        "<john.doe@example.com>",
+        # Email address only
+        "john.doe@example.com",
+        # Non-RFC-conform cases with unquoted commas
+        "asf,dfu@t.b",
+        "asf,<dfu@t.b>",
+        "asf, dfu@t.b",
+    ],
+)
+def test_utils_helpers_parse_author_invalid(author: str) -> None:
+    """Test invalid inputs for the :func:`parse_author` function."""
+    with pytest.raises(ValueError):
+        parse_author(author)

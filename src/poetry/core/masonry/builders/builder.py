@@ -340,13 +340,10 @@ class Builder:
         return script_files
 
     @classmethod
-    def convert_author(cls, author: str) -> dict[str, str]:
+    def convert_author(cls, author: str) -> dict[str, str | None]:
         from poetry.core.utils.helpers import parse_author
 
         name, email = parse_author(author)
-        if not name or not email:
-            raise RuntimeError(f"{author} does not match regex")
-
         return {"name": name, "email": email}
 
 

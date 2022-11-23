@@ -55,14 +55,11 @@ def test_package_authors() -> None:
 def test_package_authors_invalid() -> None:
     package = Package("foo", "0.1.0")
 
-    package.authors.insert(0, "<John Doe")
+    package.authors.insert(0, "john.doe@example.com")
     with pytest.raises(ValueError) as e:
         package.author_name
 
-    assert (
-        str(e.value)
-        == "Invalid author string. Must be in the format: John Smith <john@example.com>"
-    )
+    assert str(e.value) == "Invalid author string: 'john.doe@example.com'"
 
 
 @pytest.mark.parametrize(
@@ -78,11 +75,14 @@ def test_package_authors_invalid() -> None:
         ("Doe, John", None),
         ("(Doe, John)", None),
         ("John Doe", "john@john.doe"),
-        ("Doe, John", "dj@john.doe"),
         ("MyCompanyName R&D", "rnd@MyCompanyName.MyTLD"),
         ("John-Paul: Doe", None),
-        ("John-Paul: Doe", "jp@nomail.none"),
         ("John Doe the 3rd", "3rd@jd.net"),
+        ("<John Doe", None),
+        ("John? Doe", None),
+        ("Jane+Doe", None),
+        ("~John Doe", None),
+        ("John~Doe", None),
     ],
 )
 def test_package_authors_valid(name: str, email: str | None) -> None:
@@ -102,11 +102,8 @@ def test_package_authors_valid(name: str, email: str | None) -> None:
     [
         ("<john@john.doe>",),
         ("john@john.doe",),
-        ("<John Doe",),
-        ("John? Doe",),
-        ("Jane+Doe",),
-        ("~John Doe",),
-        ("John~Doe",),
+        ("Doe, John <dj@john.doe>",),
+        ("John-Paul: Doe <jp@nomail.none>",),
     ],
 )
 def test_package_author_names_invalid(name: str) -> None:
