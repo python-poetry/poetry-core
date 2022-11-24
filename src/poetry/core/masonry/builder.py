@@ -21,7 +21,12 @@ class Builder:
             "wheel": WheelBuilder,
         }
 
-    def build(self, fmt: str, executable: str | Path | None = None) -> None:
+    def build(
+        self,
+        fmt: str,
+        output_directory: Path | None = None,
+        executable: str | Path | None = None
+    ) -> None:
         if fmt in self._formats:
             builders = [self._formats[fmt]]
         elif fmt == "all":
@@ -30,4 +35,4 @@ class Builder:
             raise ValueError(f"Invalid format: {fmt}")
 
         for builder in builders:
-            builder(self._poetry, executable=executable).build()
+            builder(self._poetry, executable=executable).build(output_directory)
