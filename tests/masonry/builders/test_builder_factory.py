@@ -48,7 +48,7 @@ def test_builder_creates_places_built_files_in_specified_directory(
     tmp_path: Path, format: str
 ) -> None:
     poetry = get_poetry("complete")
-    Builder(poetry).build(format, tmp_path)
+    Builder(poetry).build(format, target_dir=tmp_path)
     assert all(archive.exists() for archive in tmp_path.glob(get_package_glob(poetry)))
 
 
@@ -58,7 +58,7 @@ def test_builder_creates_packages_in_dist_directory_if_no_output_is_specified(
 ) -> None:
     with get_project_context("complete") as project:
         poetry = Factory().create_poetry(project)
-        Builder(poetry).build(format, None)
+        Builder(poetry).build(format, target_dir=None)
         package_directory = project / "dist"
         assert package_directory.is_dir()
         assert all(
