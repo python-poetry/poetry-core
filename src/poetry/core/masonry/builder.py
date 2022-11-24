@@ -25,7 +25,7 @@ class Builder:
         self,
         fmt: str,
         output_directory: Path | None = None,
-        executable: str | Path | None = None
+        executable: str | Path | None = None,
     ) -> None:
         if fmt in self._formats:
             builders = [self._formats[fmt]]
