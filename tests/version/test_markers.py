@@ -1311,6 +1311,16 @@ def test_single_markers_are_found_in_complex_intersection() -> None:
     )
 
 
+def test_empty_marker_is_found_in_complex_intersection() -> None:
+    m1 = parse_marker(
+        '(platform_system != "Windows" or platform_machine != "x86") and python_version'
+        ' == "3.8"'
+    )
+    m2 = parse_marker('platform_system == "Windows" and platform_machine == "x86"')
+    intersection = m1.intersect(m2)
+    assert intersection.is_empty()
+
+
 @pytest.mark.parametrize(
     "python_version, python_full_version, "
     "expected_intersection_version, expected_union_version",
