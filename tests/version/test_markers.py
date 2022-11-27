@@ -519,16 +519,16 @@ def test_multi_marker_union_multi_is_multi(
             'python_full_version >= "3.6.2" and python_version < "3.7"',
             'python_version >= "3.6" and python_version < "3.7"',
         ),
-        # Ranges with same end.  Ideally the union would give the lower version first.
+        # Ranges with same end.
         (
             'python_version >= "3.6" and python_version < "3.7"',
             'python_full_version >= "3.6.2" and python_version < "3.7"',
-            'python_version < "3.7" and python_version >= "3.6"',
+            'python_version >= "3.6" and python_version < "3.7"',
         ),
         (
             'python_version >= "3.6" and python_version <= "3.7"',
             'python_full_version >= "3.6.2" and python_version <= "3.7"',
-            'python_version <= "3.7" and python_version >= "3.6"',
+            'python_version >= "3.6" and python_version <= "3.7"',
         ),
         # A range covers an exact marker.
         (

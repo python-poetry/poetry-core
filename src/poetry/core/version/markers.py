@@ -258,19 +258,21 @@ class SingleMarker(BaseMarker):
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
         if isinstance(other, SingleMarker):
-            return MultiMarker.of(self, other)
+            merged = _merge_single_markers(self, other, MultiMarker)
+            if merged is not None:
+                return merged
+
+            return MultiMarker(self, other)
 
         return other.intersect(self)
 
     def union(self, other: BaseMarker) -> BaseMarker:
         if isinstance(other, SingleMarker):
-            if self == other:
-                return self
+            merged = _merge_single_markers(self, other, MarkerUnion)
+            if merged is not None:
+                return merged
 
-            if self == other.invert():
-                return AnyMarker()
-
-            return MarkerUnion.of(self, other)
+            return MarkerUnion(self, other)
 
         return other.union(self)
 
@@ -337,7 +339,7 @@ class SingleMarker(BaseMarker):
             max_ = self._constraint.max
             max_operator = "<=" if self._constraint.include_max else "<"
 
-            return MultiMarker.of(
+            return MultiMarker(
                 SingleMarker(self._name, f"{min_operator} {min_}"),
                 SingleMarker(self._name, f"{max_operator} {max_}"),
             ).invert()
@@ -380,12 +382,11 @@ def _flatten_markers(
 
 class MultiMarker(BaseMarker):
     def __init__(self, *markers: BaseMarker) -> None:
-        self._markers = []
+        self._markers = _flatten_markers(markers, MultiMarker)
 
-        flattened_markers = _flatten_markers(markers, MultiMarker)
-
-        for m in flattened_markers:
-            self._markers.append(m)
+    @property
+    def markers(self) -> list[BaseMarker]:
+        return self._markers
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
@@ -402,36 +403,22 @@ class MultiMarker(BaseMarker):
                 if marker.is_any():
                     continue
 
-                if isinstance(marker, SingleMarker):
-                    intersected = False
-                    for i, mark in enumerate(new_markers):
-                        if isinstance(mark, SingleMarker) and (
-                            mark.name == marker.name
-                            or {mark.name, marker.name} == PYTHON_VERSION_MARKERS
-                        ):
-                            new_marker = _merge_single_markers(mark, marker, cls)
-                            if new_marker is not None:
-                                new_markers[i] = new_marker
-                                intersected = True
+                intersected = False
+                for i, mark in enumerate(new_markers):
+                    # If we have a SingleMarker then with any luck after intersection
+                    # it'll become another SingleMarker.
+                    if isinstance(mark, SingleMarker):
+                        new_marker = marker.intersect(mark)
+                        if new_marker.is_empty():
+                            return EmptyMarker()
 
-                        elif isinstance(mark, MarkerUnion):
-                            intersection = mark.intersect(marker)
-                            if isinstance(intersection, SingleMarker):
-                                new_markers[i] = intersection
-                            elif intersection.is_empty():
-                                return EmptyMarker()
-                    if intersected:
-                        continue
+                        if isinstance(new_marker, SingleMarker):
+                            new_markers[i] = new_marker
+                            intersected = True
+                            break
 
-                elif isinstance(marker, MarkerUnion):
-                    for mark in new_markers:
-                        if isinstance(mark, SingleMarker):
-                            intersection = marker.intersect(mark)
-                            if isinstance(intersection, SingleMarker):
-                                marker = intersection
-                                break
-                            elif intersection.is_empty():
-                                return EmptyMarker()
+                if intersected:
+                    continue
 
                 new_markers.append(marker)
 
@@ -446,34 +433,20 @@ class MultiMarker(BaseMarker):
 
         return MultiMarker(*new_markers)
 
-    @property
-    def markers(self) -> list[BaseMarker]:
-        return self._markers
-
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        if other.is_any():
-            return self
-
-        if other.is_empty():
-            return other
-
-        if isinstance(other, MarkerUnion):
-            return other.intersect(self)
-
-        new_markers = self._markers + [other]
-
-        multi = MultiMarker.of(*new_markers)
-
-        if isinstance(multi, MultiMarker):
-            return dnf(multi)
-
-        return multi
+        multi = MultiMarker(self, other)
+        return dnf(multi)
 
     def union(self, other: BaseMarker) -> BaseMarker:
-        if isinstance(other, (SingleMarker, MultiMarker)):
-            return MarkerUnion.of(self, other)
+        if isinstance(other, MarkerUnion):
+            return other.union(self)
 
-        return other.union(self)
+        union = MarkerUnion(self, other)
+        conjunction = cnf(union)
+        if not isinstance(conjunction, MultiMarker):
+            return conjunction
+
+        return dnf(conjunction)
 
     def union_simplify(self, other: BaseMarker) -> BaseMarker | None:
         """
@@ -494,14 +467,12 @@ class MultiMarker(BaseMarker):
 
             if len(new_markers) == 1:
                 return new_markers[0]
+
             if other in new_markers and all(
                 other == m or isinstance(m, MarkerUnion) and other in m.markers
                 for m in new_markers
             ):
                 return other
-
-            if not any(isinstance(m, MarkerUnion) for m in new_markers):
-                return self.of(*new_markers)
 
         elif isinstance(other, MultiMarker):
             common_markers = [
@@ -521,28 +492,11 @@ class MultiMarker(BaseMarker):
                 return other
 
             if common_markers:
-                unique_union = self.of(*unique_markers).union(
-                    self.of(*other_unique_markers)
+                unique_union = MultiMarker(*unique_markers).union(
+                    MultiMarker(*other_unique_markers)
                 )
                 if not isinstance(unique_union, MarkerUnion):
-                    return self.of(*common_markers).intersect(unique_union)
-
-            else:
-                # Usually this operation just complicates things, but the special case
-                # where it doesn't allows the collapse of adjacent ranges eg
-                #
-                # 'python_version >= "3.6" and python_version < "3.6.2"' union
-                # 'python_version >= "3.6.2" and python_version < "3.7"' ->
-                #
-                # 'python_version >= "3.6" and python_version < "3.7"'.
-                unions = [
-                    m1.union(m2) for m2 in other_unique_markers for m1 in unique_markers
-                ]
-                conjunction = self.of(*unions)
-                if not isinstance(conjunction, MultiMarker) or not any(
-                    isinstance(m, MarkerUnion) for m in conjunction.markers
-                ):
-                    return conjunction
+                    return MultiMarker(*common_markers).intersect(unique_union)
 
         return None
 
@@ -588,7 +542,7 @@ class MultiMarker(BaseMarker):
     def invert(self) -> BaseMarker:
         markers = [marker.invert() for marker in self._markers]
 
-        return MarkerUnion.of(*markers)
+        return MarkerUnion(*markers)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, MultiMarker):
@@ -616,7 +570,7 @@ class MultiMarker(BaseMarker):
 
 class MarkerUnion(BaseMarker):
     def __init__(self, *markers: BaseMarker) -> None:
-        self._markers = list(markers)
+        self._markers = _flatten_markers(markers, MarkerUnion)
 
     @property
     def markers(self) -> list[BaseMarker]:
@@ -631,34 +585,30 @@ class MarkerUnion(BaseMarker):
             old_markers = new_markers
             new_markers = []
             for marker in old_markers:
-                if marker in new_markers or marker.is_empty():
+                if marker in new_markers:
+                    continue
+
+                if marker.is_empty():
                     continue
 
                 included = False
+                for i, mark in enumerate(new_markers):
+                    # If we have a SingleMarker then with any luck after union it'll
+                    # become another SingleMarker.
+                    if isinstance(mark, SingleMarker):
+                        new_marker = marker.union(mark)
+                        if new_marker.is_any():
+                            return AnyMarker()
 
-                if isinstance(marker, SingleMarker):
-                    for i, mark in enumerate(new_markers):
-                        if isinstance(mark, SingleMarker) and (
-                            mark.name == marker.name
-                            or {mark.name, marker.name} == PYTHON_VERSION_MARKERS
-                        ):
-                            new_marker = _merge_single_markers(mark, marker, cls)
-                            if new_marker is not None:
-                                new_markers[i] = new_marker
-                                included = True
-                                break
+                        if isinstance(new_marker, SingleMarker):
+                            new_markers[i] = new_marker
+                            included = True
+                            break
 
-                        elif isinstance(mark, MultiMarker):
-                            union = mark.union_simplify(marker)
-                            if union is not None:
-                                new_markers[i] = union
-                                included = True
-                                break
-
-                elif isinstance(marker, MultiMarker):
-                    included = False
-                    for i, mark in enumerate(new_markers):
-                        union = marker.union_simplify(mark)
+                    # If we have a MultiMarker then we can look for the simplifications
+                    # implemented in union_simplify().
+                    elif isinstance(mark, MultiMarker):
+                        union = mark.union_simplify(marker)
                         if union is not None:
                             new_markers[i] = union
                             included = True
@@ -667,8 +617,9 @@ class MarkerUnion(BaseMarker):
                 if included:
                     # flatten again because union_simplify may return a union
                     new_markers = _flatten_markers(new_markers, MarkerUnion)
-                else:
-                    new_markers.append(marker)
+                    continue
+
+                new_markers.append(marker)
 
         if any(m.is_any() for m in new_markers):
             return AnyMarker()
@@ -688,39 +639,20 @@ class MarkerUnion(BaseMarker):
         self._markers.append(marker)
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        if other.is_any():
-            return self
+        if isinstance(other, MultiMarker):
+            return other.intersect(self)
 
-        if other.is_empty():
-            return other
-
-        new_markers = []
-        if isinstance(other, (SingleMarker, MultiMarker)):
-            for marker in self._markers:
-                intersection = marker.intersect(other)
-
-                if not intersection.is_empty():
-                    new_markers.append(intersection)
-        elif isinstance(other, MarkerUnion):
-            for our_marker in self._markers:
-                for their_marker in other.markers:
-                    intersection = our_marker.intersect(their_marker)
-
-                    if not intersection.is_empty():
-                        new_markers.append(intersection)
-
-        return MarkerUnion.of(*new_markers)
+        multi = MultiMarker(self, other)
+        return dnf(multi)
 
     def union(self, other: BaseMarker) -> BaseMarker:
-        if other.is_any():
-            return other
+        union = MarkerUnion(self, other)
 
-        if other.is_empty():
-            return self
+        conjunction = cnf(union)
+        if not isinstance(conjunction, MultiMarker):
+            return conjunction
 
-        new_markers = self._markers + [other]
-
-        return MarkerUnion.of(*new_markers)
+        return dnf(conjunction)
 
     def validate(self, environment: dict[str, Any] | None) -> bool:
         return any(m.validate(environment) for m in self._markers)
@@ -762,8 +694,7 @@ class MarkerUnion(BaseMarker):
 
     def invert(self) -> BaseMarker:
         markers = [marker.invert() for marker in self._markers]
-
-        return MultiMarker.of(*markers)
+        return MultiMarker(*markers)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, MarkerUnion):
@@ -851,6 +782,23 @@ def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> BaseMarker:
     return MarkerUnion.of(*groups)
 
 
+def cnf(marker: BaseMarker) -> BaseMarker:
+    """Transforms the marker into CNF (conjunctive normal form)."""
+    if isinstance(marker, MarkerUnion):
+        cnf_markers = [cnf(m) for m in marker.markers]
+        sub_marker_lists = [
+            m.markers if isinstance(m, MultiMarker) else [m] for m in cnf_markers
+        ]
+        return MultiMarker.of(
+            *[MarkerUnion.of(*c) for c in itertools.product(*sub_marker_lists)]
+        )
+
+    if isinstance(marker, MultiMarker):
+        return MultiMarker.of(*[cnf(m) for m in marker.markers])
+
+    return marker
+
+
 def dnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into DNF (disjunctive normal form)."""
     if isinstance(marker, MultiMarker):
@@ -873,6 +821,9 @@ def _merge_single_markers(
 ) -> BaseMarker | None:
     if {marker1.name, marker2.name} == PYTHON_VERSION_MARKERS:
         return _merge_python_version_single_markers(marker1, marker2, merge_class)
+
+    if marker1.name != marker2.name:
+        return None
 
     if merge_class == MultiMarker:
         merge_method = marker1.constraint.intersect
