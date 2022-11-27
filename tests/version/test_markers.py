@@ -1304,11 +1304,24 @@ def test_single_markers_are_found_in_complex_intersection() -> None:
         'python_version >= "3.6" and python_version < "4.0" and implementation_name =='
         ' "cpython"'
     )
-    intersection = m1.intersect(m2)
     assert (
-        str(intersection)
+        str(m1.intersect(m2))
         == 'implementation_name == "cpython" and python_version == "3.6"'
     )
+    assert (
+        str(m2.intersect(m1))
+        == 'python_version == "3.6" and implementation_name == "cpython"'
+    )
+
+
+def test_empty_marker_is_found_in_complex_intersection() -> None:
+    m1 = parse_marker(
+        '(platform_system != "Windows" or platform_machine != "x86") and python_version'
+        ' == "3.8"'
+    )
+    m2 = parse_marker('platform_system == "Windows" and platform_machine == "x86"')
+    assert m1.intersect(m2).is_empty()
+    assert m2.intersect(m1).is_empty()
 
 
 @pytest.mark.parametrize(

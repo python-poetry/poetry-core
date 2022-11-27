@@ -396,14 +396,15 @@ class MultiMarker(BaseMarker):
             old_markers = new_markers
             new_markers = []
             for marker in old_markers:
-                if marker in new_markers:
+                if marker.is_empty():
+                    return marker
+
+                if marker in new_markers or marker.is_any():
                     continue
 
-                if marker.is_any():
-                    continue
+                intersected = False
 
                 if isinstance(marker, SingleMarker):
-                    intersected = False
                     for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker) and (
                             mark.name == marker.name
@@ -413,27 +414,26 @@ class MultiMarker(BaseMarker):
                             if new_marker is not None:
                                 new_markers[i] = new_marker
                                 intersected = True
+                                break
 
                         elif isinstance(mark, MarkerUnion):
-                            intersection = mark.intersect(marker)
-                            if isinstance(intersection, SingleMarker):
-                                new_markers[i] = intersection
-                            elif intersection.is_empty():
-                                return EmptyMarker()
-                    if intersected:
-                        continue
+                            intersected = cls._of_marker_union_and_single_marker(
+                                new_markers, i, mark, marker
+                            )
+                            if intersected:
+                                break
 
                 elif isinstance(marker, MarkerUnion):
-                    for mark in new_markers:
+                    for i, mark in enumerate(new_markers):
                         if isinstance(mark, SingleMarker):
-                            intersection = marker.intersect(mark)
-                            if isinstance(intersection, SingleMarker):
-                                marker = intersection
+                            intersected = cls._of_marker_union_and_single_marker(
+                                new_markers, i, marker, mark
+                            )
+                            if intersected:
                                 break
-                            elif intersection.is_empty():
-                                return EmptyMarker()
 
-                new_markers.append(marker)
+                if not intersected:
+                    new_markers.append(marker)
 
         if any(m.is_empty() for m in new_markers) or not new_markers:
             return EmptyMarker()
@@ -442,6 +442,26 @@ class MultiMarker(BaseMarker):
             return new_markers[0]
 
         return MultiMarker(*new_markers)
+
+    @staticmethod
+    def _of_marker_union_and_single_marker(
+        markers: list[BaseMarker],
+        index: int,
+        marker_union: MarkerUnion,
+        single_marker: SingleMarker,
+    ) -> bool:
+        intersection = marker_union.intersect(single_marker)
+
+        if intersection.is_empty() or isinstance(intersection, SingleMarker):
+            markers[index] = intersection
+            return True
+
+        if isinstance(intersection, MultiMarker):
+            markers[index] = intersection.markers[0]
+            markers += intersection.markers[1:]
+            return True
+
+        return False
 
     @property
     def markers(self) -> list[BaseMarker]:
@@ -620,6 +640,9 @@ class MarkerUnion(BaseMarker):
             old_markers = new_markers
             new_markers = []
             for marker in old_markers:
+                if marker.is_any():
+                    return marker
+
                 if marker in new_markers or marker.is_empty():
                     continue
 
@@ -645,7 +668,6 @@ class MarkerUnion(BaseMarker):
                                 break
 
                 elif isinstance(marker, MultiMarker):
-                    included = False
                     for i, mark in enumerate(new_markers):
                         union = marker.union_simplify(mark)
                         if union is not None:
