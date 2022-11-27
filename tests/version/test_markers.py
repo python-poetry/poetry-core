@@ -573,14 +573,21 @@ def test_version_ranges_collapse_on_union(
 
 
 def test_multi_marker_union_with_union() -> None:
-    m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
+    m1 = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
+    m2 = parse_marker('python_version >= "3.6" or os_name == "Windows"')
 
-    union = m.union(parse_marker('python_version >= "3.6" or os_name == "Windows"'))
-    assert (
-        str(union)
-        == 'python_version >= "3.6" or os_name == "Windows"'
-        ' or sys_platform == "darwin" and implementation_name == "cpython"'
+    # Union isn't _quite_ symmetrical.
+    expected1 = (
+        'sys_platform == "darwin" and implementation_name == "cpython" or'
+        ' python_version >= "3.6" or os_name == "Windows"'
     )
+    assert str(m1.union(m2)) == expected1
+
+    expected2 = (
+        'python_version >= "3.6" or os_name == "Windows" or'
+        ' sys_platform == "darwin" and implementation_name == "cpython"'
+    )
+    assert str(m2.union(m1)) == expected2
 
 
 def test_multi_marker_union_with_multi_union_is_single_marker() -> None:
@@ -684,17 +691,24 @@ def test_marker_union_intersect_multi_marker() -> None:
     m1 = parse_marker('sys_platform == "darwin" or python_version < "3.4"')
     m2 = parse_marker('implementation_name == "cpython" and os_name == "Windows"')
 
-    expected = (
+    # Intersection isn't _quite_ symmetrical.
+    expected1 = (
+        'sys_platform == "darwin" and implementation_name == "cpython" and os_name =='
+        ' "Windows" or python_version < "3.4" and implementation_name == "cpython" and'
+        ' os_name == "Windows"'
+    )
+
+    intersection = m1.intersect(m2)
+    assert str(intersection) == expected1
+
+    expected2 = (
         'implementation_name == "cpython" and os_name == "Windows" and sys_platform'
         ' == "darwin" or implementation_name == "cpython" and os_name == "Windows"'
         ' and python_version < "3.4"'
     )
 
-    intersection = m1.intersect(m2)
-    assert str(intersection) == expected
-
     intersection = m2.intersect(m1)
-    assert str(intersection) == expected
+    assert str(intersection) == expected2
 
 
 def test_marker_union_union_with_union() -> None:

@@ -438,9 +438,6 @@ class MultiMarker(BaseMarker):
         return dnf(multi)
 
     def union(self, other: BaseMarker) -> BaseMarker:
-        if isinstance(other, MarkerUnion):
-            return other.union(self)
-
         union = MarkerUnion(self, other)
         conjunction = cnf(union)
         if not isinstance(conjunction, MultiMarker):
@@ -639,9 +636,6 @@ class MarkerUnion(BaseMarker):
         self._markers.append(marker)
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        if isinstance(other, MultiMarker):
-            return other.intersect(self)
-
         multi = MultiMarker(self, other)
         return dnf(multi)
 
