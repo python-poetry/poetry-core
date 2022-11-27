@@ -459,7 +459,12 @@ class MultiMarker(BaseMarker):
 
         new_markers = self._markers + [other]
 
-        return MultiMarker.of(*new_markers)
+        multi = MultiMarker.of(*new_markers)
+
+        if isinstance(multi, MultiMarker):
+            return dnf(multi)
+
+        return multi
 
     def union(self, other: BaseMarker) -> BaseMarker:
         if isinstance(other, (SingleMarker, MultiMarker)):
