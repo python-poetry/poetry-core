@@ -8,6 +8,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import zipfile
 
@@ -180,28 +181,48 @@ class WheelBuilder(Builder):
                     finally:
                         os.chdir(current_path)
 
+                    python_version_major = sys.version_info[0]
+                    python_version_minor = sys.version_info[1]
                     build_dir = self._path / "build"
                     libs: list[Path] = list(build_dir.glob("lib.*"))
-                    if not libs:
-                        # The result of building the extensions
-                        # does not exist, this may due to conditional
-                        # builds, so we assume that it's okay
-                        return
+                    scripts: list[Path] = list(
+                        build_dir.glob(
+                            f"scripts-{python_version_major}.{python_version_minor}/*"
+                        )
+                    )
+                    if libs:
+                        lib = libs[0]
 
-                    lib = libs[0]
+                        for pkg in lib.glob("**/*"):
+                            if pkg.is_dir() or self.is_excluded(pkg):
+                                continue
 
-                    for pkg in lib.glob("**/*"):
-                        if pkg.is_dir() or self.is_excluded(pkg):
-                            continue
+                            rel_path = str(pkg.relative_to(lib))
 
-                        rel_path = str(pkg.relative_to(lib))
+                            if rel_path in wheel.namelist():
+                                continue
 
-                        if rel_path in wheel.namelist():
-                            continue
+                            logger.debug(f"Adding: {rel_path}")
 
-                        logger.debug(f"Adding: {rel_path}")
+                            self._add_file(wheel, pkg, rel_path)
 
-                        self._add_file(wheel, pkg, rel_path)
+                    if scripts:
+                        for abs_path in scripts:
+                            logger.debug(f"Adding: scripts/{abs_path.name}")
+                            self._add_file(
+                                wheel,
+                                abs_path,
+                                Path.joinpath(
+                                    Path(self.wheel_data_folder),
+                                    "scripts",
+                                    abs_path.name,
+                                ),
+                            )
+
+                    # The result of building the extensions
+                    # does not exist, this may due to conditional
+                    # builds, so we assume that it's okay
+                    return
 
     def _copy_file_scripts(self, wheel: zipfile.ZipFile) -> None:
         file_scripts = self.convert_script_files()

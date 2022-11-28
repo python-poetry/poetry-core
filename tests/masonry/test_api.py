@@ -93,7 +93,6 @@ def test_build_wheel_extended() -> None:
         assert whl.exists()
         validate_wheel_contents(name="extended", version="0.1", path=whl.as_posix())
 
-
 def test_build_sdist() -> None:
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         filename = api.build_sdist(tmp_dir)
