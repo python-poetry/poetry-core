@@ -60,16 +60,24 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess[str
 
 
 def validate_wheel_contents(
-    name: str, version: str, path: str, files: list[str] | None = None
+    name: str,
+    version: str,
+    path: str,
+    files: list[str] | None = None,
+    data_files: list[str] | None = None,
 ) -> None:
     dist_info = f"{name}-{version}.dist-info"
+    dist_data = f"{name}-{version}.data"
     files = files or []
+    data_files = data_files or []
 
     with zipfile.ZipFile(path) as z:
         namelist = z.namelist()
         # we use concatenation here for PY2 compat
         for filename in ["WHEEL", "METADATA", "RECORD"] + files:
             assert f"{dist_info}/{filename}" in namelist
+        for filename in data_files:
+            assert f"{dist_data}/{filename}" in namelist
 
 
 def validate_sdist_contents(

@@ -93,6 +93,28 @@ def test_build_wheel_extended() -> None:
         assert whl.exists()
         validate_wheel_contents(name="extended", version="0.1", path=whl.as_posix())
 
+
+@pytest.mark.skipif(
+    sys.platform == "win32"
+    and sys.version_info <= (3, 6)
+    or platform.python_implementation().lower() == "pypy",
+    reason="Disable test on Windows for Python <=3.6 and for PyPy",
+)
+def test_build_wheel_script_generated() -> None:
+    with temporary_directory() as tmp_dir, cwd(
+        os.path.join(fixtures, "script_generated")
+    ):
+        filename = api.build_wheel(tmp_dir)
+        whl = Path(tmp_dir) / filename
+        assert whl.exists()
+        validate_wheel_contents(
+            name="script_generated",
+            version="0.1",
+            path=whl.as_posix(),
+            data_files=["scripts/file.py"],
+        )
+
+
 def test_build_sdist() -> None:
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         filename = api.build_sdist(tmp_dir)
