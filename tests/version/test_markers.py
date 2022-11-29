@@ -1370,6 +1370,16 @@ def test_empty_marker_is_found_in_complex_intersection(
     assert m2.intersect(m1).is_empty()
 
 
+def test_empty_marker_is_found_in_complex_parse() -> None:
+    marker = parse_marker(
+        '(python_implementation != "pypy" or python_version != "3.6") and '
+        '((python_implementation != "pypy" and python_version != "3.6") or'
+        ' (python_implementation == "pypy" and python_version == "3.6")) and '
+        '(python_implementation == "pypy" or python_version == "3.6")'
+    )
+    assert marker.is_empty()
+
+
 @pytest.mark.parametrize(
     "python_version, python_full_version, "
     "expected_intersection_version, expected_union_version",

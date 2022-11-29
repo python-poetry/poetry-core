@@ -102,9 +102,9 @@ def test_dependency_from_pep_508_complex() -> None:
     assert dep.python_versions == ">=2.7 !=3.2.*"
     assert (
         str(dep.marker)
-        == 'python_version >= "2.7" and python_version != "3.2" '
-        'and (sys_platform == "win32" or sys_platform == "darwin") '
-        'and extra == "foo"'
+        == 'python_version >= "2.7" and python_version != "3.2" and sys_platform =='
+        ' "win32" and extra == "foo" or python_version >= "2.7" and python_version'
+        ' != "3.2" and sys_platform == "darwin" and extra == "foo"'
     )
 
 
@@ -278,11 +278,11 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5.4"
+    assert dep.python_versions == ">=2.7 <2.8 || >=3.4.0 <3.5.4"
     assert (
         str(dep.marker)
         == 'python_version >= "2.7" and python_version < "2.8" '
-        'or python_full_version >= "3.4" and python_full_version < "3.5.4"'
+        'or python_full_version >= "3.4.0" and python_full_version < "3.5.4"'
     )
 
 

@@ -702,21 +702,28 @@ def parse_marker(marker: str) -> BaseMarker:
     return markers
 
 
-def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> BaseMarker:
+def _compact_markers(
+    tree_elements: Tree, tree_prefix: str = "", top_level: bool = True
+) -> BaseMarker:
     from lark import Token
 
-    groups: list[BaseMarker] = [MultiMarker()]
+    # groups is a disjunction of conjunctions
+    # eg [[A, B], [C, D]] represents "(A and B) or (C and D)"
+    groups: list[list[BaseMarker]] = [[]]
+
     for token in tree_elements:
         if isinstance(token, Token):
             if token.type == f"{tree_prefix}BOOL_OP" and token.value == "or":
-                groups.append(MultiMarker())
+                groups.append([])
 
             continue
 
         if token.data == "marker":
-            groups[-1] = MultiMarker.of(
-                groups[-1], _compact_markers(token.children, tree_prefix=tree_prefix)
+            sub_marker = _compact_markers(
+                token.children, tree_prefix=tree_prefix, top_level=False
             )
+            groups[-1].append(sub_marker)
+
         elif token.data == f"{tree_prefix}item":
             name, op, value = token.children
             if value.type == f"{tree_prefix}MARKER_NAME":
@@ -726,27 +733,26 @@ def _compact_markers(tree_elements: Tree, tree_prefix: str = "") -> BaseMarker:
                 )
 
             value = value[1:-1]
-            groups[-1] = MultiMarker.of(
-                groups[-1], SingleMarker(str(name), f"{op}{value}")
-            )
+            sub_marker = SingleMarker(str(name), f"{op}{value}")
+            groups[-1].append(sub_marker)
+
         elif token.data == f"{tree_prefix}BOOL_OP" and token.children[0] == "or":
-            groups.append(MultiMarker())
+            groups.append([])
 
-    for i, group in enumerate(reversed(groups)):
-        if group.is_empty():
-            del groups[len(groups) - 1 - i]
-            continue
+    # Combine the groups.
+    sub_markers = [MultiMarker(*group) for group in groups]
+    union = MarkerUnion(*sub_markers)
 
-        if isinstance(group, MultiMarker) and len(group.markers) == 1:
-            groups[len(groups) - 1 - i] = group.markers[0]
+    # This function calls itself recursively. In the inner calls we don't perform any
+    # simplification, instead doing it all only when we have the complete marker.
+    if not top_level:
+        return union
 
-    if not groups:
-        return EmptyMarker()
+    conjunction = cnf(union)
+    if not isinstance(conjunction, MultiMarker):
+        return conjunction
 
-    if len(groups) == 1:
-        return groups[0]
-
-    return MarkerUnion.of(*groups)
+    return dnf(conjunction)
 
 
 def cnf(marker: BaseMarker) -> BaseMarker:
