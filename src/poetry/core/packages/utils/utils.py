@@ -179,8 +179,8 @@ def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
     for i, sub_marker in enumerate(conjunctions):
         if isinstance(sub_marker, MultiMarker):
             for m in sub_marker.markers:
-                if isinstance(m, SingleMarker):
-                    add_constraint(m.name, (m.operator, m.value), i)
+                assert isinstance(m, SingleMarker)
+                add_constraint(m.name, (m.operator, m.value), i)
         elif isinstance(sub_marker, SingleMarker):
             add_constraint(sub_marker.name, (sub_marker.operator, sub_marker.value), i)
 

@@ -41,7 +41,10 @@ from poetry.core.version.markers import parse_marker
                 ' "win32" and python_version < "3.6" and python_version >= "3.3" or'
                 ' sys_platform == "win32" and python_version < "3.3"'
             ),
-            {"python_version": [[("<", "3.6")]], "sys_platform": [[("==", "win32")]]},
+            {
+                "python_version": [[("<", "3.6")], [("<", "3.3")]],
+                "sys_platform": [[("==", "win32")]],
+            },
         ),
         (
             'python_version == "2.7" or python_version == "2.6"',

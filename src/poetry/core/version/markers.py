@@ -447,53 +447,26 @@ class MultiMarker(BaseMarker):
 
     def union_simplify(self, other: BaseMarker) -> BaseMarker | None:
         """
-        In contrast to the standard union method, which prefers to return
-        a MarkerUnion of MultiMarkers, this version prefers to return
-        a MultiMarker of MarkerUnions.
+        Finds a couple of easy simplifications for union on MultiMarkers:
 
-        The rationale behind this approach is to find additional simplifications.
-        In order to avoid endless recursions, this method returns None
-        if it cannot find a simplification.
+            - union with any marker that appears as part of the multi is just that
+              marker
+
+            - union between two multimarkers where one is contained by the other is just
+              the larger of the two
         """
-        if isinstance(other, SingleMarker):
-            new_markers = []
-            for marker in self._markers:
-                union = marker.union(other)
-                if not union.is_any():
-                    new_markers.append(union)
+        if other in self._markers:
+            return other
 
-            if len(new_markers) == 1:
-                return new_markers[0]
+        if isinstance(other, MultiMarker):
+            our_markers = set(self.markers)
+            their_markers = set(other.markers)
 
-            if other in new_markers and all(
-                other == m or isinstance(m, MarkerUnion) and other in m.markers
-                for m in new_markers
-            ):
-                return other
-
-        elif isinstance(other, MultiMarker):
-            common_markers = [
-                marker for marker in self.markers if marker in other.markers
-            ]
-
-            unique_markers = [
-                marker for marker in self.markers if marker not in common_markers
-            ]
-            if not unique_markers:
+            if our_markers.issubset(their_markers):
                 return self
 
-            other_unique_markers = [
-                marker for marker in other.markers if marker not in common_markers
-            ]
-            if not other_unique_markers:
+            if their_markers.issubset(our_markers):
                 return other
-
-            if common_markers:
-                unique_union = MultiMarker(*unique_markers).union(
-                    MultiMarker(*other_unique_markers)
-                )
-                if not isinstance(unique_union, MarkerUnion):
-                    return MultiMarker(*common_markers).intersect(unique_union)
 
         return None
 
