@@ -435,8 +435,11 @@ class MultiMarker(BaseMarker):
 
                 new_markers.append(marker)
 
-        if any(m.is_empty() for m in new_markers) or not new_markers:
+        if any(m.is_empty() for m in new_markers):
             return EmptyMarker()
+
+        if not new_markers:
+            return AnyMarker()
 
         if len(new_markers) == 1:
             return new_markers[0]
@@ -576,6 +579,9 @@ class MultiMarker(BaseMarker):
 
             if not marker.is_empty():
                 new_markers.append(marker)
+
+        if not new_markers:
+            return EmptyMarker()
 
         return self.of(*new_markers)
 
