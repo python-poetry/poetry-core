@@ -1,5 +1,30 @@
 # Change Log
 
+## [1.4.0] - 2022-11-22
+
+### Added
+
+- The PEP 517 `metadata_directory` is now respected as an input to the `build_wheel` hook ([#487](https://github.com/python-poetry/poetry-core/pull/487)).
+
+### Changed
+
+- Sources are now considered more carefully when dealing with dependencies with environment markers ([#497](https://github.com/python-poetry/poetry-core/pull/497)).
+- `EmptyConstraint` is now hashable ([#513](https://github.com/python-poetry/poetry-core/pull/513)).
+- `ParseConstraintError` is now raised on version and constraint parsing errors, and includes information on the package that caused the error ([#514](https://github.com/python-poetry/poetry-core/pull/514)).
+
+### Fixed
+
+- Fix an issue where invalid PEP 508 requirements were generated due to a missing space before semicolons ([#510](https://github.com/python-poetry/poetry-core/pull/510)).
+- Fix an issue where relative paths were encoded into package requirements, instead of a file:// URL as required by PEP 508 ([#512](https://github.com/python-poetry/poetry-core/pull/512)).
+
+### Vendoring
+
+- [`jsonschema==4.17.0`](https://github.com/python-jsonschema/jsonschema/blob/main/CHANGELOG.rst)
+- [`lark==1.1.14`](https://github.com/lark-parser/lark/releases/tag/1.1.4)
+- [`pyrsistent==0.19.2`](https://github.com/tobgu/pyrsistent/blob/master/CHANGES.txt)
+- [`tomlkit==0.11.6`](https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md)
+- [`typing-extensions==4.4.0`](https://github.com/python/typing_extensions/blob/main/CHANGELOG.md)
+
 ## [1.3.2] - 2022-10-07
 
 ### Fixed
@@ -418,7 +443,10 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.3.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.4.0...main
+[1.4.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.4.0
+[1.3.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.3.2
+[1.3.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.3.1
 [1.3.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.3.0
 [1.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.2.0
 [1.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.1.0

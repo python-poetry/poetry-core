@@ -435,8 +435,11 @@ class MultiMarker(BaseMarker):
 
                 new_markers.append(marker)
 
-        if any(m.is_empty() for m in new_markers) or not new_markers:
+        if any(m.is_empty() for m in new_markers):
             return EmptyMarker()
+
+        if not new_markers:
+            return AnyMarker()
 
         if len(new_markers) == 1:
             return new_markers[0]
@@ -459,7 +462,12 @@ class MultiMarker(BaseMarker):
 
         new_markers = self._markers + [other]
 
-        return MultiMarker.of(*new_markers)
+        multi = MultiMarker.of(*new_markers)
+
+        if isinstance(multi, MultiMarker):
+            return dnf(multi)
+
+        return multi
 
     def union(self, other: BaseMarker) -> BaseMarker:
         if isinstance(other, (SingleMarker, MultiMarker)):
@@ -571,6 +579,9 @@ class MultiMarker(BaseMarker):
 
             if not marker.is_empty():
                 new_markers.append(marker)
+
+        if not new_markers:
+            return EmptyMarker()
 
         return self.of(*new_markers)
 

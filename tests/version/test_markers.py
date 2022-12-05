@@ -373,6 +373,14 @@ def test_multi_complex_multi_marker_is_empty() -> None:
     assert m.is_empty()
 
 
+def test_multi_marker_is_any() -> None:
+    m1 = parse_marker('python_version != "3.6" or python_version == "3.6"')
+    m2 = parse_marker('python_version != "3.7" or python_version == "3.7"')
+
+    assert m1.intersect(m2).is_any()
+    assert m2.intersect(m1).is_any()
+
+
 def test_multi_marker_intersect_multi() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
@@ -933,6 +941,7 @@ def test_without_extras(marker: str, expected: str) -> None:
     [
         ('python_version >= "3.6"', "implementation_name", 'python_version >= "3.6"'),
         ('python_version >= "3.6"', "python_version", "*"),
+        ('python_version >= "3.6" and python_version < "3.11"', "python_version", "*"),
         (
             'python_version >= "3.6" and extra == "foo"',
             "extra",
@@ -1309,6 +1318,42 @@ def test_single_markers_are_found_in_complex_intersection() -> None:
         str(intersection)
         == 'implementation_name == "cpython" and python_version == "3.6"'
     )
+
+
+@pytest.mark.parametrize(
+    "marker1, marker2",
+    [
+        (
+            (
+                '(platform_system != "Windows" or platform_machine != "x86") and'
+                ' python_version == "3.8"'
+            ),
+            'platform_system == "Windows" and platform_machine == "x86"',
+        ),
+        # Following example via
+        # https://github.com/python-poetry/poetry-plugin-export/issues/163
+        (
+            (
+                'python_version >= "3.8" and python_version < "3.11" and'
+                ' (python_version > "3.9" or platform_system != "Windows" or'
+                ' platform_machine != "x86") or python_version >= "3.11" and'
+                ' python_version < "3.12"'
+            ),
+            (
+                'python_version == "3.8" and platform_system == "Windows" and'
+                ' platform_machine == "x86" or python_version == "3.9" and'
+                ' platform_system == "Windows" and platform_machine == "x86"'
+            ),
+        ),
+    ],
+)
+def test_empty_marker_is_found_in_complex_intersection(
+    marker1: str, marker2: str
+) -> None:
+    m1 = parse_marker(marker1)
+    m2 = parse_marker(marker2)
+    assert m1.intersect(m2).is_empty()
+    assert m2.intersect(m1).is_empty()
 
 
 @pytest.mark.parametrize(
