@@ -373,6 +373,14 @@ def test_multi_complex_multi_marker_is_empty() -> None:
     assert m.is_empty()
 
 
+def test_multi_marker_is_any() -> None:
+    m1 = parse_marker('python_version != "3.6" or python_version == "3.6"')
+    m2 = parse_marker('python_version != "3.7" or python_version == "3.7"')
+
+    assert m1.intersect(m2).is_any()
+    assert m2.intersect(m1).is_any()
+
+
 def test_multi_marker_intersect_multi() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
@@ -933,6 +941,7 @@ def test_without_extras(marker: str, expected: str) -> None:
     [
         ('python_version >= "3.6"', "implementation_name", 'python_version >= "3.6"'),
         ('python_version >= "3.6"', "python_version", "*"),
+        ('python_version >= "3.6" and python_version < "3.11"', "python_version", "*"),
         (
             'python_version >= "3.6" and extra == "foo"',
             "extra",
