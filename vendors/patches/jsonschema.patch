@@ -1,7 +1,7 @@
-diff --git b/src/poetry/core/_vendor/jsonschema/_utils.py a/src/poetry/core/_vendor/jsonschema/_utils.py
-index a2ad5a9..d4f5697 100644
---- b/src/poetry/core/_vendor/jsonschema/_utils.py
-+++ a/src/poetry/core/_vendor/jsonschema/_utils.py
+diff --git a/src/poetry/core/_vendor/jsonschema/_utils.py b/src/poetry/core/_vendor/jsonschema/_utils.py
+index 418348c..a31ab43 100644
+--- a/src/poetry/core/_vendor/jsonschema/_utils.py
++++ b/src/poetry/core/_vendor/jsonschema/_utils.py
 @@ -2,15 +2,8 @@ from collections.abc import Mapping, MutableMapping, Sequence
  from urllib.parse import urlsplit
  import itertools
@@ -16,7 +16,7 @@ index a2ad5a9..d4f5697 100644
 -else:  # pragma: no cover
 -    import importlib_resources as resources  # type: ignore
 -
- 
+
  class URIDict(MutableMapping):
      """
 @@ -56,9 +49,12 @@ def load_schema(name):
@@ -28,9 +28,30 @@ index a2ad5a9..d4f5697 100644
 +        encoding="utf-8"
 +    ) as f:
 +        data = f.read()
- 
+
 -    path = resources.files(__package__).joinpath(f"schemas/{name}.json")
 -    data = path.read_text(encoding="utf-8")
      return json.loads(data)
- 
- 
+
+
+diff --git a/src/poetry/core/_vendor/jsonschema/validators.py b/src/poetry/core/_vendor/jsonschema/validators.py
+index 66e803e..d9de447 100644
+--- a/src/poetry/core/_vendor/jsonschema/validators.py
++++ b/src/poetry/core/_vendor/jsonschema/validators.py
+@@ -7,6 +7,7 @@ from collections import deque
+ from collections.abc import Mapping, Sequence
+ from functools import lru_cache
+ from operator import methodcaller
++from pathlib import Path
+ from urllib.parse import unquote, urldefrag, urljoin, urlsplit
+ from urllib.request import urlopen
+ from warnings import warn
+@@ -103,7 +104,7 @@ def _id_of(schema):
+
+ def _store_schema_list():
+     if not _VOCABULARIES:
+-        package = _utils.resources.files(__package__)
++        package = Path(__file__).parent.resolve()
+         for version in package.joinpath("schemas", "vocabularies").iterdir():
+             for path in version.iterdir():
+                 vocabulary = json.loads(path.read_text())
