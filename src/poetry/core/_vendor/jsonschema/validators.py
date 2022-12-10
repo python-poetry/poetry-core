@@ -4,9 +4,10 @@ Creation and extension of validators, with implementations for existing drafts.
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from functools import lru_cache
 from operator import methodcaller
+from pathlib import Path
 from urllib.parse import unquote, urldefrag, urljoin, urlsplit
 from urllib.request import urlopen
 from warnings import warn
@@ -103,7 +104,11 @@ def _id_of(schema):
 
 def _store_schema_list():
     if not _VOCABULARIES:
-        _VOCABULARIES.extend(_utils.load_schema("vocabularies").items())
+        package = Path(__file__).parent.resolve()
+        for version in package.joinpath("schemas", "vocabularies").iterdir():
+            for path in version.iterdir():
+                vocabulary = json.loads(path.read_text())
+                _VOCABULARIES.append((vocabulary["$id"], vocabulary))
     return [
         (id, validator.META_SCHEMA) for id, validator in _META_SCHEMAS.items()
     ] + _VOCABULARIES
@@ -741,7 +746,8 @@ class RefResolver:
         self.store.update(store)
         self.store.update(
             (schema["$id"], schema)
-            for schema in store.values() if "$id" in schema
+            for schema in store.values()
+            if isinstance(schema, Mapping) and "$id" in schema
         )
         self.store[base_uri] = referrer
 
@@ -1056,9 +1062,9 @@ def validate(instance, schema, cls=None, *args, **kwargs):
             ...
         ValidationError: [2, 3, 4] is too long
 
-    :func:`validate` will first verify that the provided schema is
-    itself valid, since not doing so can lead to less obvious error
-    messages and fail in less obvious or consistent ways.
+    :func:`~jsonschema.validators.validate` will first verify that the
+    provided schema is itself valid, since not doing so can lead to less
+    obvious error messages and fail in less obvious or consistent ways.
 
     If you know you have a valid schema already, especially
     if you intend to validate multiple instances with
