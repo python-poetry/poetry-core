@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import warnings
 
 from pathlib import Path
 from typing import Iterable
@@ -63,6 +64,11 @@ class FileDependency(Dependency):
         return True
 
     def hash(self, hash_name: str = "sha256") -> str:
+        warnings.warn(
+            "hash() is deprecated. Use poetry.utils.helpers.get_file_hash() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         h = hashlib.new(hash_name)
         with self._full_path.open("rb") as fp:
             for content in iter(lambda: fp.read(io.DEFAULT_BUFFER_SIZE), b""):
