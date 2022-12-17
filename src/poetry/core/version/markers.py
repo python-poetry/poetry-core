@@ -437,16 +437,10 @@ class MultiMarker(BaseMarker):
         return MultiMarker(*new_markers)
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        multi = MultiMarker(self, other)
-        return dnf(multi)
+        return intersection(self, other)
 
     def union(self, other: BaseMarker) -> BaseMarker:
-        union = MarkerUnion(self, other)
-        conjunction = cnf(union)
-        if not isinstance(conjunction, MultiMarker):
-            return conjunction
-
-        return dnf(conjunction)
+        return union(self, other)
 
     def union_simplify(self, other: BaseMarker) -> BaseMarker | None:
         """
@@ -612,17 +606,10 @@ class MarkerUnion(BaseMarker):
         self._markers.append(marker)
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        multi = MultiMarker(self, other)
-        return dnf(multi)
+        return intersection(self, other)
 
     def union(self, other: BaseMarker) -> BaseMarker:
-        union = MarkerUnion(self, other)
-
-        conjunction = cnf(union)
-        if not isinstance(conjunction, MultiMarker):
-            return conjunction
-
-        return dnf(conjunction)
+        return union(self, other)
 
     def validate(self, environment: dict[str, Any] | None) -> bool:
         return any(m.validate(environment) for m in self._markers)
@@ -744,18 +731,13 @@ def _compact_markers(
 
     # Combine the groups.
     sub_markers = [MultiMarker(*group) for group in groups]
-    union = MarkerUnion(*sub_markers)
 
     # This function calls itself recursively. In the inner calls we don't perform any
     # simplification, instead doing it all only when we have the complete marker.
     if not top_level:
-        return union
+        return MarkerUnion(*sub_markers)
 
-    conjunction = cnf(union)
-    if not isinstance(conjunction, MultiMarker):
-        return conjunction
-
-    return dnf(conjunction)
+    return union(*sub_markers)
 
 
 def cnf(marker: BaseMarker) -> BaseMarker:
@@ -788,6 +770,18 @@ def dnf(marker: BaseMarker) -> BaseMarker:
     if isinstance(marker, MarkerUnion):
         return MarkerUnion.of(*[dnf(m) for m in marker.markers])
     return marker
+
+
+def intersection(*markers: BaseMarker) -> BaseMarker:
+    return dnf(MultiMarker(*markers))
+
+
+def union(*markers: BaseMarker) -> BaseMarker:
+    conjunction = cnf(MarkerUnion(*markers))
+    if not isinstance(conjunction, MultiMarker):
+        return conjunction
+
+    return dnf(conjunction)
 
 
 def _merge_single_markers(
