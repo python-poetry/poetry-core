@@ -75,8 +75,11 @@ def build_editable(
     metadata_directory: str | None = None,
 ) -> str:
     poetry = Factory().create_poetry(Path(".").resolve(), with_groups=False)
+    metadata_path = None if metadata_directory is None else Path(metadata_directory)
 
-    return WheelBuilder.make_in(poetry, Path(wheel_directory), editable=True)
+    return WheelBuilder.make_in(
+        poetry, Path(wheel_directory), metadata_directory=metadata_path, editable=True
+    )
 
 
 get_requires_for_build_editable = get_requires_for_build_wheel

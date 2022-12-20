@@ -238,19 +238,56 @@ def test_build_editable_wheel() -> None:
 
 
 def test_build_wheel_with_metadata_directory() -> None:
-    with temporary_directory() as metadata_tmp_dir, cwd(
-        os.path.join(fixtures, "complete")
-    ):
+    pkg_dir = Path(fixtures) / "complete"
+
+    with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
         metadata_directory = api.prepare_metadata_for_build_wheel(metadata_tmp_dir)
 
         with temporary_directory() as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
+            open(dist_info_path / "CUSTOM", "w").close()  # noqa: SIM115
             filename = api.build_wheel(
                 wheel_tmp_dir, metadata_directory=str(dist_info_path)
             )
+            wheel_pth = Path(wheel_tmp_dir) / filename
+
             validate_wheel_contents(
                 name="my_package",
                 version="1.2.3",
-                path=str(os.path.join(wheel_tmp_dir, filename)),
+                path=str(wheel_pth),
                 files=["entry_points.txt"],
             )
+
+            with zipfile.ZipFile(wheel_pth) as z:
+                namelist = z.namelist()
+
+                assert f"{metadata_directory}/CUSTOM" in namelist
+
+
+def test_build_editable_wheel_with_metadata_directory() -> None:
+    pkg_dir = Path(fixtures) / "complete"
+
+    with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
+        metadata_directory = api.prepare_metadata_for_build_editable(metadata_tmp_dir)
+
+        with temporary_directory() as wheel_tmp_dir:
+            dist_info_path = Path(metadata_tmp_dir) / metadata_directory
+            open(dist_info_path / "CUSTOM", "w").close()  # noqa: SIM115
+            filename = api.build_editable(
+                wheel_tmp_dir, metadata_directory=str(dist_info_path)
+            )
+            wheel_pth = Path(wheel_tmp_dir) / filename
+
+            validate_wheel_contents(
+                name="my_package",
+                version="1.2.3",
+                path=str(wheel_pth),
+                files=["entry_points.txt"],
+            )
+
+            with zipfile.ZipFile(wheel_pth) as z:
+                namelist = z.namelist()
+
+                assert "my_package.pth" in namelist
+                assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
+                assert f"{metadata_directory}/CUSTOM" in namelist
