@@ -287,6 +287,7 @@ def test_equality() -> None:
 def test_allows() -> None:
     v = Version.parse("1.2.3")
     assert v.allows(v)
+    assert not v.allows(Version.parse("1.2"))
     assert not v.allows(Version.parse("2.2.3"))
     assert not v.allows(Version.parse("1.3.3"))
     assert not v.allows(Version.parse("1.2.4"))
@@ -294,6 +295,33 @@ def test_allows() -> None:
     assert not v.allows(Version.parse("1.2.3-1"))
     assert not v.allows(Version.parse("1.2.3-1+build"))
     assert v.allows(Version.parse("1.2.3+build"))
+
+
+@pytest.mark.parametrize(
+    ("version1", "version2"),
+    [
+        ("1", "1.0"),
+        ("1", "1.0.0"),
+        ("1", "1.0.0.0"),
+        ("1.2", "1.2.0"),
+        ("1.2", "1.2.0.0"),
+        ("1.2", "1.2.0.0.0"),
+        ("1.2.3", "1.2.3.0"),
+        ("1.2.3", "1.2.3.0.0"),
+        ("1.2.3.4", "1.2.3.4.0"),
+        ("1.2.3.4", "1.2.3.4.0.0"),
+        ("1.2.3.4a1", "1.2.3.4.0a1"),
+    ],
+)
+def test_allows_zero_padding(version1: str, version2: str) -> None:
+    v1 = Version.parse(version1)
+    v2 = Version.parse(version2)
+    assert v1.allows(v2)
+    assert v2.allows(v1)
+    assert v1.allows_all(v2)
+    assert v2.allows_all(v1)
+    assert v1.allows_any(v2)
+    assert v2.allows_any(v1)
 
 
 def test_allows_with_local() -> None:

@@ -50,11 +50,11 @@ class Release:
         ]
         object.__setattr__(self, "text", ".".join(parts))
         object.__setattr__(self, "precision", len(parts))
-        object.__setattr__(
-            self,
-            "_compare_key",
-            (self.major, self.minor or 0, self.patch or 0, *self.extra),
-        )
+
+        compare_key = [self.major, self.minor or 0, self.patch or 0, *self.extra]
+        while compare_key and compare_key[-1] == 0:
+            del compare_key[-1]
+        object.__setattr__(self, "_compare_key", tuple(compare_key))
 
     @classmethod
     def from_parts(cls, *parts: int) -> Release:
