@@ -13,7 +13,6 @@ from typing import TypeVar
 from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
-from poetry.core.constraints.version import VersionRangeConstraint
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
@@ -71,15 +70,6 @@ class Dependency(PackageSpecification):
             groups = [MAIN_GROUP]
 
         self._groups = frozenset(groups)
-
-        if (
-            isinstance(self._constraint, VersionRangeConstraint)
-            and self._constraint.min
-        ):
-            allows_prereleases = (
-                allows_prereleases or self._constraint.min.is_unstable()
-            )
-
         self._allows_prereleases = allows_prereleases
 
         self._python_versions = "*"
