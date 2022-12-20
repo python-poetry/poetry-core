@@ -10,20 +10,22 @@ from poetry.core.version.markers import parse_marker
 
 
 @pytest.mark.parametrize(
-    "constraint,result",
+    "constraint",
     [
-        ("^1.0", False),
-        ("^1.0.dev0", True),
-        ("^1.0.0", False),
-        ("^1.0.0.dev0", True),
-        ("^1.0.0.alpha0", True),
-        ("^1.0.0.alpha0+local", True),
-        ("^1.0.0.rc0+local", True),
-        ("^1.0.0-1", False),
+        "^1.0",
+        "^1.0.dev0",
+        "^1.0.0",
+        "^1.0.0.dev0",
+        "^1.0.0.alpha0",
+        "^1.0.0.alpha0+local",
+        "^1.0.0.rc0+local",
+        "^1.0.0-1",
     ],
 )
-def test_allows_prerelease(constraint: str, result: bool) -> None:
-    assert Dependency("A", constraint).allows_prereleases() == result
+@pytest.mark.parametrize("allows_prereleases", [False, True])
+def test_allows_prerelease(constraint: str, allows_prereleases: bool) -> None:
+    dependency = Dependency("A", constraint, allows_prereleases=allows_prereleases)
+    assert dependency.allows_prereleases() == allows_prereleases
 
 
 def test_to_pep_508() -> None:
