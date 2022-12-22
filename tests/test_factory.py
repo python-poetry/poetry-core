@@ -250,6 +250,14 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
                 'The "pathlib2" dependency specifies the "allows-prereleases" property,'
                 ' which is deprecated. Use "allow-prereleases" instead.'
             ),
+            (
+                'Cannot find dependency "missing_extra" for extra "some-extras" in '
+                'main dependencies.'
+            ),
+            (
+                'Cannot find dependency "another_missing_extra" for extra '
+                '"some-extras" in main dependencies.'
+            )
         ],
     }
 

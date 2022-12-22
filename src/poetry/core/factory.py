@@ -409,6 +409,20 @@ class Factory:
                             'Use "allow-prereleases" instead.'
                         )
 
+                if "extras" in config:
+                    for extra_name, requirements in config["extras"].items():
+                        extra_name = canonicalize_name(extra_name)
+
+                        for req in requirements:
+                            for dependency in config["dependencies"].keys():
+                                if req == dependency:
+                                    break
+                            else:
+                                result["warnings"].append(
+                                    f'Cannot find dependency "{req}" for extra '
+                                    f'"{extra_name}" in main dependencies.'
+                                )
+
             # Checking for scripts with extras
             if "scripts" in config:
                 scripts = config["scripts"]
