@@ -66,4 +66,6 @@ def test_bad_extra(base_object: dict[str, Any]) -> None:
 
     errors = validate_object(base_object, "poetry-schema")
     assert len(errors) == 1
-    assert errors[0] == f"[extras.test.0] {bad_extra!r} does not match '^[a-zA-Z-_.0-9]+$'"
+    assert (
+        errors[0] == f"[extras.test.0] {bad_extra!r} does not match '^[a-zA-Z-_.0-9]+$'"
+    )

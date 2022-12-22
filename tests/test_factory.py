@@ -252,12 +252,12 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             ),
             (
                 'Cannot find dependency "missing_extra" for extra "some-extras" in '
-                'main dependencies.'
+                "main dependencies."
             ),
             (
                 'Cannot find dependency "another_missing_extra" for extra '
                 '"some-extras" in main dependencies.'
-            )
+            ),
         ],
     }
 
