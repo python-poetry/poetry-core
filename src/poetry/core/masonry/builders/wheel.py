@@ -294,7 +294,7 @@ class WheelBuilder(Builder):
 
     def _copy_dist_info(self, wheel: zipfile.ZipFile, source: Path) -> None:
         dist_info = Path(self.dist_info)
-        for file in source.glob("**/*"):
+        for file in sorted(source.glob("**/*")):
             if not file.is_file():
                 continue
 
