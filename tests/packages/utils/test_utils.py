@@ -25,8 +25,8 @@ from poetry.core.version.markers import parse_marker
             {
                 "python_version": [
                     [("<", "3.6")],
-                    [("<", "3.3")],
                     [("<", "3.6"), (">=", "3.3")],
+                    [("<", "3.3")],
                 ],
                 "sys_platform": [
                     [("==", "win32")],
