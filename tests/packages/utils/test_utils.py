@@ -212,6 +212,8 @@ def test_create_nested_marker_version_constraint(
         ),
         # no python_version
         ('sys_platform == "linux"', "*"),
+        ('sys_platform != "linux" and sys_platform != "win32"', "*"),
+        ('sys_platform == "linux" or sys_platform == "win32"', "*"),
         # no relevant python_version
         ('python_version >= "3.9" or sys_platform == "linux"', "*"),
         # relevant python_version

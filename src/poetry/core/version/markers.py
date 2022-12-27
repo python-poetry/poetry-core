@@ -489,22 +489,7 @@ class MultiMarker(BaseMarker):
         return self.of(*new_markers)
 
     def only(self, *marker_names: str) -> BaseMarker:
-        new_markers = []
-
-        for m in self._markers:
-            if isinstance(m, SingleMarker) and m.name not in marker_names:
-                # The marker is not relevant since it's not one we want
-                continue
-
-            marker = m.only(*marker_names)
-
-            if not marker.is_empty():
-                new_markers.append(marker)
-
-        if not new_markers:
-            return EmptyMarker()
-
-        return self.of(*new_markers)
+        return self.of(*(m.only(*marker_names) for m in self._markers))
 
     def invert(self) -> BaseMarker:
         markers = [marker.invert() for marker in self._markers]
@@ -635,19 +620,7 @@ class MarkerUnion(BaseMarker):
         return self.of(*new_markers)
 
     def only(self, *marker_names: str) -> BaseMarker:
-        new_markers = []
-
-        for m in self._markers:
-            if isinstance(m, SingleMarker) and m.name not in marker_names:
-                # The marker is not relevant since it's not one we want
-                continue
-
-            marker = m.only(*marker_names)
-
-            if not marker.is_empty():
-                new_markers.append(marker)
-
-        return self.of(*new_markers)
+        return self.of(*(m.only(*marker_names) for m in self._markers))
 
     def invert(self) -> BaseMarker:
         markers = [marker.invert() for marker in self._markers]
