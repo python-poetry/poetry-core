@@ -420,7 +420,18 @@ class MultiMarker(BaseMarker):
                             intersected = True
                             break
 
+                    # If we have a MarkerUnion then we can look for the simplifications
+                    # implemented in intersect_simplify().
+                    elif isinstance(mark, MarkerUnion):
+                        intersection = mark.intersect_simplify(marker)
+                        if intersection is not None:
+                            new_markers[i] = intersection
+                            intersected = True
+                            break
+
                 if intersected:
+                    # flatten again because intersect_simplify may return a multi
+                    new_markers = _flatten_markers(new_markers, MultiMarker)
                     continue
 
                 new_markers.append(marker)
@@ -451,6 +462,9 @@ class MultiMarker(BaseMarker):
 
             - union between two multimarkers where one is contained by the other is just
               the larger of the two
+
+            - union between two multimarkers where there are some common markers
+              and the union of unique markers is a single marker
         """
         if other in self._markers:
             return other
@@ -464,6 +478,22 @@ class MultiMarker(BaseMarker):
 
             if their_markers.issubset(our_markers):
                 return other
+
+            shared_markers = our_markers.intersection(their_markers)
+            if not shared_markers:
+                return None
+
+            unique_markers = our_markers - their_markers
+            other_unique_markers = their_markers - our_markers
+            unique_union = MultiMarker(*unique_markers).union(
+                MultiMarker(*other_unique_markers)
+            )
+            if isinstance(unique_union, (SingleMarker, AnyMarker)):
+                # Use list instead of set for deterministic order.
+                common_markers = [
+                    marker for marker in self.markers if marker in shared_markers
+                ]
+                return unique_union.intersect(MultiMarker(*common_markers))
 
         return None
 
@@ -595,6 +625,50 @@ class MarkerUnion(BaseMarker):
 
     def union(self, other: BaseMarker) -> BaseMarker:
         return union(self, other)
+
+    def intersect_simplify(self, other: BaseMarker) -> BaseMarker | None:
+        """
+        Finds a couple of easy simplifications for intersection on MarkerUnions:
+
+            - intersection with any marker that appears as part of the union is just
+              that marker
+
+            - intersection between two markerunions where one is contained by the other
+              is just the smaller of the two
+
+            - intersection between two markerunions where there are some common markers
+              and the intersection of unique markers is not a single marker
+        """
+        if other in self._markers:
+            return other
+
+        if isinstance(other, MarkerUnion):
+            our_markers = set(self.markers)
+            their_markers = set(other.markers)
+
+            if our_markers.issubset(their_markers):
+                return self
+
+            if their_markers.issubset(our_markers):
+                return other
+
+            shared_markers = our_markers.intersection(their_markers)
+            if not shared_markers:
+                return None
+
+            unique_markers = our_markers - their_markers
+            other_unique_markers = their_markers - our_markers
+            unique_intersection = MarkerUnion(*unique_markers).intersect(
+                MarkerUnion(*other_unique_markers)
+            )
+            if isinstance(unique_intersection, (SingleMarker, EmptyMarker)):
+                # Use list instead of set for deterministic order.
+                common_markers = [
+                    marker for marker in self.markers if marker in shared_markers
+                ]
+                return unique_intersection.union(MarkerUnion(*common_markers))
+
+        return None
 
     def validate(self, environment: dict[str, Any] | None) -> bool:
         return any(m.validate(environment) for m in self._markers)

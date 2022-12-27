@@ -13,7 +13,9 @@ from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
 from poetry.core.version.markers import cnf
 from poetry.core.version.markers import dnf
+from poetry.core.version.markers import intersection
 from poetry.core.version.markers import parse_marker
+from poetry.core.version.markers import union
 
 
 if TYPE_CHECKING:
@@ -1286,11 +1288,6 @@ def test_union_should_drop_markers_if_their_complement_is_present(
             ),
             MultiMarker(
                 MarkerUnion(
-                    SingleMarker("sys_platform", "!=win32"),
-                    SingleMarker("python_version", "<3.8"),
-                    SingleMarker("python_version", ">=3.9"),
-                ),
-                MarkerUnion(
                     SingleMarker("python_version", "<3.8"),
                     SingleMarker("python_version", ">=3.9"),
                 ),
@@ -1554,6 +1551,68 @@ def test_empty_marker_is_found_in_complex_parse() -> None:
         '(python_implementation == "pypy" or python_version == "3.6")'
     )
     assert marker.is_empty()
+
+
+def test_complex_union() -> None:
+    # real world example on the way to get mutually exclusive markers
+    # for numpy(>=1.21.2) of https://pypi.org/project/opencv-python/4.6.0.66/
+    markers = [
+        parse_marker(m)
+        for m in [
+            (
+                'python_version < "3.7" and python_version >= "3.6"'
+                ' and platform_system == "Darwin" and platform_machine == "arm64"'
+            ),
+            (
+                'python_version >= "3.10" or python_version >= "3.9"'
+                ' and platform_system == "Darwin" and platform_machine == "arm64"'
+            ),
+            (
+                'python_version >= "3.8" and platform_system == "Darwin"'
+                ' and platform_machine == "arm64" and python_version < "3.9"'
+            ),
+            (
+                'python_version >= "3.7" and platform_system == "Darwin"'
+                ' and platform_machine == "arm64" and python_version < "3.8"'
+            ),
+        ]
+    ]
+    assert (
+        str(union(*markers))
+        == 'platform_system == "Darwin" and platform_machine == "arm64"'
+        ' and python_version >= "3.6" or python_version >= "3.10"'
+    )
+
+
+def test_complex_intersection() -> None:
+    # inverse of real world example on the way to get mutually exclusive markers
+    # for numpy(>=1.21.2) of https://pypi.org/project/opencv-python/4.6.0.66/
+    markers = [
+        parse_marker(m).invert()
+        for m in [
+            (
+                'python_version < "3.7" and python_version >= "3.6"'
+                ' and platform_system == "Darwin" and platform_machine == "arm64"'
+            ),
+            (
+                'python_version >= "3.10" or python_version >= "3.9"'
+                ' and platform_system == "Darwin" and platform_machine == "arm64"'
+            ),
+            (
+                'python_version >= "3.8" and platform_system == "Darwin"'
+                ' and platform_machine == "arm64" and python_version < "3.9"'
+            ),
+            (
+                'python_version >= "3.7" and platform_system == "Darwin"'
+                ' and platform_machine == "arm64" and python_version < "3.8"'
+            ),
+        ]
+    ]
+    assert (
+        str(dnf(intersection(*markers).invert()))
+        == 'platform_system == "Darwin" and platform_machine == "arm64"'
+        ' and python_version >= "3.6" or python_version >= "3.10"'
+    )
 
 
 @pytest.mark.parametrize(
