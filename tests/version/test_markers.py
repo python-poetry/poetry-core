@@ -1017,6 +1017,9 @@ def test_exclude(marker: str, excluded: str, expected: str) -> None:
             ["python_version"],
             'python_version >= "3.6"',
         ),
+        ('python_version >= "3.6" and extra == "foo"', ["sys_platform"], ""),
+        ('python_version >= "3.6" or extra == "foo"', ["sys_platform"], ""),
+        ('python_version >= "3.6" or extra == "foo"', ["python_version"], ""),
         (
             'python_version >= "3.6" and (extra == "foo" or extra == "bar")',
             ["extra"],
@@ -1028,31 +1031,31 @@ def test_exclude(marker: str, excluded: str, expected: str) -> None:
                 ' implementation_name == "pypy"'
             ),
             ["implementation_name"],
-            'implementation_name == "pypy"',
+            "",
+        ),
+        (
+            (
+                'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+                ' implementation_name == "pypy"'
+            ),
+            ["implementation_name", "extra"],
+            'extra == "foo" or extra == "bar" or implementation_name == "pypy"',
+        ),
+        (
+            (
+                'python_version >= "3.6" and (extra == "foo" or extra == "bar") or'
+                ' implementation_name == "pypy"'
+            ),
+            ["implementation_name", "python_version"],
+            'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         (
             (
                 'python_version >= "3.6" and extra == "foo" or implementation_name =='
                 ' "pypy" and extra == "bar"'
             ),
-            ["implementation_name"],
-            'implementation_name == "pypy"',
-        ),
-        (
-            (
-                'python_version >= "3.6" or extra == "foo" and implementation_name =='
-                ' "pypy" or extra == "bar"'
-            ),
-            ["implementation_name"],
-            'implementation_name == "pypy"',
-        ),
-        (
-            (
-                'python_version >= "3.6" or extra == "foo" and implementation_name =='
-                ' "pypy" or extra == "bar"'
-            ),
-            ["implementation_name", "python_version"],
-            'python_version >= "3.6" or implementation_name == "pypy"',
+            ["implementation_name", "extra"],
+            'extra == "foo" or implementation_name == "pypy" and extra == "bar"',
         ),
     ],
 )
