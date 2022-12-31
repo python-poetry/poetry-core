@@ -308,7 +308,8 @@ class WheelBuilder(Builder):
 
     @property
     def wheel_data_folder(self) -> str:
-        return f"{self._package.name}-{self._meta.version}.data"
+        name = distribution_name(self._package.name)
+        return f"{name}-{self._meta.version}.data"
 
     @property
     def wheel_filename(self) -> str:
