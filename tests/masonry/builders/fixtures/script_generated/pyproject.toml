@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "script_generated"
+version = "0.1"
+description = ""
+authors = ["Evgenii Gorchakov <evgorchakov@gmail.com>", "Rob Taylor <rob@chipflow.io>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[build-system]
+requires = ["poetry-core", "setuptools"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.build]
+generate-setup-file = true
+script = "build.py"
