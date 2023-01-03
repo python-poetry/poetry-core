@@ -414,8 +414,10 @@ class Factory:
                         extra_name = canonicalize_name(extra_name)
 
                         for req in requirements:
+                            req_name = canonicalize_name(req)
                             for dependency in config["dependencies"].keys():
-                                if req == dependency:
+                                dep_name = canonicalize_name(dependency)
+                                if req_name == dep_name:
                                     break
                             else:
                                 result["warnings"].append(
