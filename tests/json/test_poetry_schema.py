@@ -50,13 +50,21 @@ def test_multi_url_dependencies(multi_url_object: dict[str, Any]) -> None:
     assert len(validate_object(multi_url_object, "poetry-schema")) == 0
 
 
-def test_multiline_description(base_object: dict[str, Any]) -> None:
-    bad_description = "Some multi-\nline string"
+@pytest.mark.parametrize(
+    "bad_description",
+    ["Some multi-\nline string", "Some multiline string\n", "\nSome multi-line string"],
+)
+def test_multiline_description(
+    base_object: dict[str, Any], bad_description: str
+) -> None:
     base_object["description"] = bad_description
 
     errors = validate_object(base_object, "poetry-schema")
+
     assert len(errors) == 1
-    assert errors[0] == f"[description] {bad_description!r} does not match '^[^\\n]*$'"
+
+    regex = r"\\A[^\n]*\\Z"
+    assert errors[0] == f"[description] {bad_description!r} does not match '{regex}'"
 
 
 def test_bad_extra(base_object: dict[str, Any]) -> None:
