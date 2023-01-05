@@ -443,7 +443,6 @@ def test_package_clone(f: Factory) -> None:
     p = Package(
         "lol_wut",
         "3.141.5926535",
-        pretty_version="③.⑭.⑮",
         source_type="git",
         source_url="http://some.url",
         source_reference="fe4d2adabf3feb5d32b70ab5c105285fa713b10c",

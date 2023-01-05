@@ -54,7 +54,6 @@ class Package(PackageSpecification):
         self,
         name: str,
         version: str | Version,
-        pretty_version: str | None = None,
         source_type: str | None = None,
         source_url: str | None = None,
         source_reference: str | None = None,
@@ -79,7 +78,7 @@ class Package(PackageSpecification):
             features=features,
         )
 
-        self._set_version(version, pretty_version)
+        self._set_version(version)
 
         self.description = ""
 
@@ -130,7 +129,7 @@ class Package(PackageSpecification):
 
     @property
     def pretty_version(self) -> str:
-        return self._pretty_version
+        return self._version.text
 
     @property
     def unique_name(self) -> str:
@@ -146,22 +145,22 @@ class Package(PackageSpecification):
     @property
     def full_pretty_version(self) -> str:
         if self.source_type in ["file", "directory", "url"]:
-            return f"{self._pretty_version} {self.source_url}"
+            return f"{self.pretty_version} {self.source_url}"
 
         if self.source_type not in ["hg", "git"]:
-            return self._pretty_version
+            return self.pretty_version
 
         ref: str | None
         if self.source_resolved_reference and len(self.source_resolved_reference) == 40:
             ref = self.source_resolved_reference[0:7]
-            return f"{self._pretty_version} {ref}"
+            return f"{self.pretty_version} {ref}"
 
         # if source reference is a sha1 hash -- truncate
         if self.source_reference and len(self.source_reference) == 40:
-            return f"{self._pretty_version} {self.source_reference[0:7]}"
+            return f"{self.pretty_version} {self.source_reference[0:7]}"
 
         ref = self._source_resolved_reference or self._source_reference
-        return f"{self._pretty_version} {ref}"
+        return f"{self.pretty_version} {ref}"
 
     @property
     def authors(self) -> list[str]:
@@ -210,9 +209,7 @@ class Package(PackageSpecification):
             for dependency in group.dependencies
         ]
 
-    def _set_version(
-        self, version: str | Version, pretty_version: str | None = None
-    ) -> None:
+    def _set_version(self, version: str | Version) -> None:
         from poetry.core.constraints.version import Version
 
         if not isinstance(version, Version):
@@ -224,7 +221,6 @@ class Package(PackageSpecification):
                 )
 
         self._version = version
-        self._pretty_version = pretty_version or version.text
 
     def _get_author(self) -> dict[str, str | None]:
         if not self._authors:
