@@ -108,7 +108,6 @@ class Package(PackageSpecification):
         self._python_constraint = parse_constraint("*")
         self._python_marker: BaseMarker = AnyMarker()
 
-        self.platform = None
         self.marker: BaseMarker = AnyMarker()
 
         self.root_dir: Path | None = None

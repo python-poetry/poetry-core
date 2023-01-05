@@ -152,9 +152,6 @@ class Factory:
             else:
                 package.readmes = tuple(root / readme for readme in config["readme"])
 
-        if "platform" in config:
-            package.platform = config["platform"]
-
         if "dependencies" in config:
             cls._add_package_group_dependencies(
                 package=package, group=MAIN_GROUP, dependencies=config["dependencies"]
