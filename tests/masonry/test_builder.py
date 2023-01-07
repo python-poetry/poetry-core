@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 
 
 def get_project(name: str) -> Path:
-    return Path(__file__).parent / "builders" / "fixtures" / name
+    project_directory = Path(__file__).parent / "builders" / "fixtures" / name
+    assert project_directory.is_dir()
+    return project_directory
 
 
 @contextmanager
@@ -49,7 +51,9 @@ def test_builder_creates_places_built_files_in_specified_directory(
 ) -> None:
     poetry = get_poetry("complete")
     Builder(poetry).build(format, target_dir=tmp_path)
-    assert all(archive.exists() for archive in tmp_path.glob(get_package_glob(poetry)))
+    build_artifacts = tuple(tmp_path.glob(get_package_glob(poetry)))
+    assert len(build_artifacts) > 0
+    assert all(archive.exists() for archive in build_artifacts)
 
 
 @pytest.mark.parametrize("format", ["sdist", "wheel", "all"])
@@ -60,8 +64,7 @@ def test_builder_creates_packages_in_dist_directory_if_no_output_is_specified(
         poetry = Factory().create_poetry(project)
         Builder(poetry).build(format, target_dir=None)
         package_directory = project / "dist"
+        build_artifacts = tuple(package_directory.glob(get_package_glob(poetry)))
         assert package_directory.is_dir()
-        assert all(
-            archive.exists()
-            for archive in package_directory.glob(get_package_glob(poetry))
-        )
+        assert len(build_artifacts) > 0
+        assert all(archive.exists() for archive in build_artifacts)
