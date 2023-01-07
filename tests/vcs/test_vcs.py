@@ -404,6 +404,7 @@ def test_parse_url(url: str, parsed: ParsedUrl) -> None:
     assert result.rev == parsed.rev
     assert result.url == parsed.url
     assert result.user == parsed.user
+    assert result.subdirectory == parsed.subdirectory
 
 
 def test_parse_url_should_fail() -> None:
