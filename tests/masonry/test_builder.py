@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def get_project(name: str) -> Path:
-    return Path(__file__).parent / "fixtures" / name
+    return Path(__file__).parent / "builders" / "fixtures" / name
 
 
 @contextmanager
