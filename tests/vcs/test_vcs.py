@@ -153,7 +153,7 @@ if TYPE_CHECKING:
     ],
 )
 def test_normalize_url(url: str, normalized: GitUrl) -> None:
-    assert normalized == Git.normalize_url(url)
+    assert Git.normalize_url(url) == normalized
 
 
 @pytest.mark.parametrize(
@@ -396,14 +396,14 @@ def test_normalize_url(url: str, normalized: GitUrl) -> None:
 )
 def test_parse_url(url: str, parsed: ParsedUrl) -> None:
     result = ParsedUrl.parse(url)
-    assert parsed.name == result.name
-    assert parsed.pathname == result.pathname
-    assert parsed.port == result.port
-    assert parsed.protocol == result.protocol
-    assert parsed.resource == result.resource
-    assert parsed.rev == result.rev
-    assert parsed.url == result.url
-    assert parsed.user == result.user
+    assert result.name == parsed.name
+    assert result.pathname == parsed.pathname
+    assert result.port == parsed.port
+    assert result.protocol == parsed.protocol
+    assert result.resource == parsed.resource
+    assert result.rev == parsed.rev
+    assert result.url == parsed.url
+    assert result.user == parsed.user
 
 
 def test_parse_url_should_fail() -> None:
