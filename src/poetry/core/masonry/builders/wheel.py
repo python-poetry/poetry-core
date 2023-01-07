@@ -190,7 +190,7 @@ class WheelBuilder(Builder):
 
                     lib = libs[0]
 
-                    for pkg in lib.glob("**/*"):
+                    for pkg in sorted(lib.glob("**/*")):
                         if pkg.is_dir() or self.is_excluded(pkg):
                             continue
 
