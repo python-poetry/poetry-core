@@ -223,10 +223,10 @@ def test_complete() -> None:
 
     try:
         assert "my_package/sub_pgk1/extra_file.xml" not in zip.namelist()
-        assert "my-package-1.2.3.data/scripts/script.sh" in zip.namelist()
+        assert "my_package-1.2.3.data/scripts/script.sh" in zip.namelist()
         assert (
             "Hello World"
-            in zip.read("my-package-1.2.3.data/scripts/script.sh").decode()
+            in zip.read("my_package-1.2.3.data/scripts/script.sh").decode()
         )
 
         entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
@@ -342,7 +342,7 @@ def test_complete_no_vcs() -> None:
         "my_package/sub_pkg1/__init__.py",
         "my_package/sub_pkg2/__init__.py",
         "my_package/sub_pkg2/data2/data.json",
-        "my-package-1.2.3.data/scripts/script.sh",
+        "my_package-1.2.3.data/scripts/script.sh",
         "my_package/sub_pkg3/foo.py",
         "my_package-1.2.3.dist-info/entry_points.txt",
         "my_package-1.2.3.dist-info/LICENSE",

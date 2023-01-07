@@ -190,7 +190,7 @@ class WheelBuilder(Builder):
 
                     lib = libs[0]
 
-                    for pkg in lib.glob("**/*"):
+                    for pkg in sorted(lib.glob("**/*")):
                         if pkg.is_dir() or self.is_excluded(pkg):
                             continue
 
@@ -294,7 +294,7 @@ class WheelBuilder(Builder):
 
     def _copy_dist_info(self, wheel: zipfile.ZipFile, source: Path) -> None:
         dist_info = Path(self.dist_info)
-        for file in source.glob("**/*"):
+        for file in sorted(source.glob("**/*")):
             if not file.is_file():
                 continue
 
@@ -308,7 +308,8 @@ class WheelBuilder(Builder):
 
     @property
     def wheel_data_folder(self) -> str:
-        return f"{self._package.name}-{self._meta.version}.data"
+        name = distribution_name(self._package.name)
+        return f"{name}-{self._meta.version}.data"
 
     @property
     def wheel_filename(self) -> str:

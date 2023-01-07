@@ -24,13 +24,13 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Get full Python version
         id: full-python-version
-        run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+        run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
       - name: Bootstrap poetry
         run: |
@@ -61,6 +61,9 @@ jobs:
           [ "$(command -v timeout)" ] || function timeout() { perl -e 'alarm shift; exec @ARGV' "$@"; }
           # Using `timeout` is a safeguard against the Poetry command hanging for some reason.
           timeout 10s poetry run pip --version || rm -rf .venv
+
+      - name: Check lock file
+        run: poetry lock --check
 
       - name: Install dependencies
         run: poetry install
