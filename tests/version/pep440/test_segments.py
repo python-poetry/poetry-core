@@ -8,9 +8,37 @@ from poetry.core.version.pep440.segments import RELEASE_PHASE_NORMALIZATIONS
 
 
 def test_release_post_init_minor_and_patch() -> None:
+    """
+    Minor and patch must not be None but zero if there are extra parts.
+    """
     release = Release(1, extra=(0,))
     assert release.minor == 0
     assert release.patch == 0
+
+
+def test_release_post_init_zero_version() -> None:
+    """
+    Smoke test for edge case (because zeros are stripped for comparison).
+    """
+    Release(0)
+
+
+@pytest.mark.parametrize("precision1", range(1, 6))
+@pytest.mark.parametrize("precision2", range(1, 6))
+def test_release_equal_zero_padding(precision1: int, precision2: int) -> None:
+    release1 = Release.from_parts(*range(1, precision1 + 1))
+    if precision1 > precision2:
+        # e.g. 1.2.3 != 1.2
+        release2 = Release.from_parts(*range(1, precision2 + 1))
+        assert release1 != release2
+        assert release2 != release1
+    else:
+        # e.g. 1.2 == 1.2.0
+        release2 = Release.from_parts(
+            *range(1, precision1 + 1), *[0] * (precision2 - precision1)
+        )
+        assert release1 == release2
+        assert release2 == release1
 
 
 @pytest.mark.parametrize(
