@@ -155,7 +155,8 @@
         "^[a-zA-Z-_.0-9]+$": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-zA-Z-_.0-9]+$"
           }
         }
       }
