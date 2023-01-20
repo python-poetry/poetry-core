@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import sys
 import warnings
 
@@ -9,12 +8,12 @@ from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from poetry.core.utils.patterns import AUTHOR_REGEX
+
 
 if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
 
-
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
 
 METADATA_BASE = """\
 Metadata-Version: 2.1

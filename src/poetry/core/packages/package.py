@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import re
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -16,6 +15,7 @@ from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
+from poetry.core.utils.patterns import AUTHOR_REGEX
 from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.markers import parse_marker
 
@@ -31,8 +31,6 @@ if TYPE_CHECKING:
     from poetry.core.version.markers import BaseMarker
 
     T = TypeVar("T", bound="Package")
-
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"():&]+)(?: <(?P<email>.+?)>)?$")
 
 
 class Package(PackageSpecification):
