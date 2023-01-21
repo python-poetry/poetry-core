@@ -492,7 +492,6 @@ def test_default_with_excluded_data(mocker: MockerFixture) -> None:
         assert "my_package-1.2.3/my_package/__init__.py" in names
         assert "my_package-1.2.3/my_package/data/data1.txt" in names
         assert "my_package-1.2.3/pyproject.toml" in names
-        assert "my_package-1.2.3/setup.py" in names
         assert "my_package-1.2.3/PKG-INFO" in names
         # all last modified times should be set to a valid timestamp
         for tarinfo in tar.getmembers():
@@ -523,7 +522,6 @@ def test_src_excluded_nested_data() -> None:
         assert "my_package-1.2.3/LICENSE" in names
         assert "my_package-1.2.3/README.rst" in names
         assert "my_package-1.2.3/pyproject.toml" in names
-        assert "my_package-1.2.3/setup.py" in names
         assert "my_package-1.2.3/PKG-INFO" in names
         assert "my_package-1.2.3/my_package/__init__.py" in names
         assert "my_package-1.2.3/my_package/data/sub_data/data2.txt" not in names
