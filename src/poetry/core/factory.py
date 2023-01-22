@@ -72,7 +72,7 @@ class Factory:
     def get_package(cls, name: str, version: str) -> ProjectPackage:
         from poetry.core.packages.project_package import ProjectPackage
 
-        return ProjectPackage(name, version, version)
+        return ProjectPackage(name, version)
 
     @classmethod
     def _add_package_group_dependencies(

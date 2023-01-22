@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import re
+import warnings
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -54,6 +55,7 @@ class Package(PackageSpecification):
         self,
         name: str,
         version: str | Version,
+        pretty_version: str | None = None,
         source_type: str | None = None,
         source_url: str | None = None,
         source_reference: str | None = None,
@@ -67,6 +69,14 @@ class Package(PackageSpecification):
         Creates a new in memory package.
         """
         from poetry.core.version.markers import AnyMarker
+
+        if pretty_version is not None:
+            warnings.warn(
+                "The `pretty_version` parameter is deprecated and will be removed"
+                " in a future release.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         super().__init__(
             name,
@@ -364,8 +374,6 @@ class Package(PackageSpecification):
 
     @property
     def readme(self) -> Path | None:
-        import warnings
-
         warnings.warn(
             "`readme` is deprecated: you are getting only the first readme file. Please"
             " use the plural form `readmes`.",
@@ -375,8 +383,6 @@ class Package(PackageSpecification):
 
     @readme.setter
     def readme(self, path: Path) -> None:
-        import warnings
-
         warnings.warn(
             "`readme` is deprecated. Please assign a tuple to the plural form"
             " `readmes`.",
