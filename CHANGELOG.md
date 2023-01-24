@@ -1,5 +1,48 @@
 # Change Log
 
+
+## [1.5.0] - 2023-01-27
+
+### Added
+
+- Improve marker handling ([#528](https://github.com/python-poetry/poetry-core/pull/528),
+[#534](https://github.com/python-poetry/poetry-core/pull/534),
+[#530](https://github.com/python-poetry/poetry-core/pull/530),
+[#546](https://github.com/python-poetry/poetry-core/pull/546),
+[#547](https://github.com/python-poetry/poetry-core/pull/547)).
+- Allow overriding the output directory when building dist files ([#527](https://github.com/python-poetry/poetry-core/pull/527)).
+- Validate whether dependencies referenced in `extras` are defined in the main dependency group ([#542](https://github.com/python-poetry/poetry-core/pull/542)).
+- Improve handling of generic constraints ([#515](https://github.com/python-poetry/poetry-core/pull/515)).
+
+### Changed
+
+- Deprecate the hash function of `FileDependency` ([#535](https://github.com/python-poetry/poetry-core/pull/535)).
+- Do not set `allows_preleases` implicitly anymore if the lower bound of a constraint is a pre-release ([#543](https://github.com/python-poetry/poetry-core/pull/543)).
+- Poetry no longer generates a `setup.py` file in sdists by default ([#318](https://github.com/python-poetry/poetry-core/pull/318)).
+- Remove the unused `platform` attribute from `Package` ([#548](https://github.com/python-poetry/poetry-core/pull/548)).
+- Deprecate the `pretty_version` parameter when creating a `Package` ([#549](https://github.com/python-poetry/poetry-core/pull/549)).
+- Validate path dependencies during use instead of during construction ([#520](https://github.com/python-poetry/poetry-core/pull/520)).
+
+### Fixed
+
+- Fix an issue where the PEP 517 `metadata_directory` was not respected when building an editable wheel ([#537](https://github.com/python-poetry/poetry-core/pull/537)).
+- Fix an issue where trailing newlines were allowed in `tool.poetry.description` ([#505](https://github.com/python-poetry/poetry-core/pull/505)).
+- Fix an issue where the name of the data folder in wheels was not normalized ([#532](https://github.com/python-poetry/poetry-core/pull/532)).
+- Fix an issue where the order of entries in the RECORD file was not deterministic ([#545](https://github.com/python-poetry/poetry-core/pull/545)).
+- Fix an issue where parsing of VCS URLs with escaped characters failed ([#524](https://github.com/python-poetry/poetry-core/pull/524)).
+- Fix an issue where the subdirectory parameter of VCS URLs was not respected ([#518](https://github.com/python-poetry/poetry-core/pull/518)).
+- Fix an issue where zero padding was not correctly handled in version comparisons ([#540](https://github.com/python-poetry/poetry-core/pull/540)).
+- Fix an issue where sdist builds did not support multiple READMEs ([#486](https://github.com/python-poetry/poetry-core/pull/486)).
+
+### Vendoring
+
+- [`attrs==22.2.0`](https://github.com/python-attrs/attrs/blob/main/CHANGELOG.md)
+- [`jsonschema==4.17.3`](https://github.com/python-jsonschema/jsonschema/blob/main/CHANGELOG.rst)
+- [`lark==1.1.5`](https://github.com/lark-parser/lark/releases/tag/1.1.5)
+- [`packaging==23.0`](https://github.com/pypa/packaging/blob/main/CHANGELOG.rst)
+- [`pyrsistent==0.19.3`](https://github.com/tobgu/pyrsistent/blob/master/CHANGES.txt)
+
+
 ## [1.4.0] - 2022-11-22
 
 ### Added
@@ -20,10 +63,11 @@
 ### Vendoring
 
 - [`jsonschema==4.17.0`](https://github.com/python-jsonschema/jsonschema/blob/main/CHANGELOG.rst)
-- [`lark==1.1.14`](https://github.com/lark-parser/lark/releases/tag/1.1.4)
+- [`lark==1.1.4`](https://github.com/lark-parser/lark/releases/tag/1.1.4)
 - [`pyrsistent==0.19.2`](https://github.com/tobgu/pyrsistent/blob/master/CHANGES.txt)
 - [`tomlkit==0.11.6`](https://github.com/sdispater/tomlkit/blob/master/CHANGELOG.md)
 - [`typing-extensions==4.4.0`](https://github.com/python/typing_extensions/blob/main/CHANGELOG.md)
+
 
 ## [1.3.2] - 2022-10-07
 
@@ -31,11 +75,13 @@
 
 - Fix an issue where the normalization was not applied to the path of an sdist built using a PEP 517 frontend ([#495](https://github.com/python-poetry/poetry-core/pull/495)).
 
+
 ## [1.3.1] - 2022-10-05
 
 ### Fixed
 
 - Fix an issue where a typing-driven assertion could be false at runtime, causing a failure during prepare_metadata_for_build_wheel ([#492](https://github.com/python-poetry/poetry-core/pull/492)).
+
 
 ## [1.3.0] - 2022-10-05
 
@@ -443,7 +489,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.4.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.5.0...main
+[1.5.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.0
 [1.4.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.4.0
 [1.3.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.3.2
 [1.3.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.3.1
