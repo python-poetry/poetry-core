@@ -226,7 +226,7 @@ def create_nested_marker(
 
         marker = glue.join(parts)
     elif isinstance(constraint, Constraint):
-        marker = f'{name} {constraint.operator} "{constraint.version}"'
+        marker = f'{name} {constraint.operator} "{constraint.value}"'
     elif isinstance(constraint, VersionUnion):
         parts = [create_nested_marker(name, c) for c in constraint.ranges]
         glue = " or "
