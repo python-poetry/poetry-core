@@ -178,7 +178,6 @@ class SingleMarker(BaseMarker):
     _VERSION_LIKE_MARKER_NAME = {
         "python_version",
         "python_full_version",
-        "platform_release",
     }
 
     def __init__(

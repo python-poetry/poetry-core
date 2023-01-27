@@ -902,8 +902,8 @@ def test_validate(
     "marker, env",
     [
         (
-            'platform_release >= "9.0" and platform_release < "11.0"',
-            {"platform_release": "10.0"},
+            'python_version >= "9.0" and python_version < "11.0"',
+            {"python_version": "10.0"},
         )
     ],
 )
