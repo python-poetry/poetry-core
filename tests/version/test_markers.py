@@ -912,6 +912,7 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
     assert m.validate(env)
 
 def test_environment_markers() -> None:
+    # These are the platform_release markers given as examples in PEP-508
     parse_marker('platform_release == "3.14.1-x86_64-linode39" or platform_release == "14.5.0" or platform_release == "1.8.0_51"')
 
 @pytest.mark.parametrize(
