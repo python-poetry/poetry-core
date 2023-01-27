@@ -412,6 +412,8 @@ def test_multi_marker_intersect_multi_with_overlapping_constraints() -> None:
         ' "Windows"'
     )
 
+def test_environment_markers() -> None:
+    parse_marker('platform_release == "3.14.1-x86_64-linode39" or platform_release == "14.5.0" or platform_release == "1.8.0_51"')
 
 def test_multi_marker_intersect_with_union_drops_union() -> None:
     m = parse_marker('python_version >= "3" and python_version < "4"')
