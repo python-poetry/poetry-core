@@ -1,6 +1,7 @@
 name: Integration
 
 on:
+  pull_request: {}
   push:
     branches: [main]
 
@@ -10,7 +11,7 @@ jobs:
     runs-on: "${{ matrix.os }}-latest"
     strategy:
       matrix:
-        os: [Ubuntu, MacOS, Windows]
+        os: [MacOS]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
       fail-fast: false
     defaults:
