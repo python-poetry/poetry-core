@@ -15,6 +15,8 @@ from typing import Iterator
 
 import pytest
 
+from packaging.tags import sys_tags
+
 from poetry.core import __version__
 from poetry.core.factory import Factory
 from poetry.core.masonry.builder import Builder
@@ -61,6 +63,7 @@ def test_wheel_c_extension() -> None:
         assert "extended-0.1/extended/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
+    assert whl.stem.rsplit("-")[-1] == next(sys_tags()).platform
 
     assert whl.exists()
 
@@ -116,6 +119,7 @@ def test_wheel_c_extension_with_no_setup() -> None:
         assert "extended-0.1/extended/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
+    assert whl.stem.rsplit("-")[-1] == next(sys_tags()).platform
 
     assert whl.exists()
 
@@ -171,6 +175,7 @@ def test_wheel_c_extension_src_layout() -> None:
         assert "extended-0.1/src/extended/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
+    assert whl.stem.rsplit("-")[-1] == next(sys_tags()).platform
 
     assert whl.exists()
 
