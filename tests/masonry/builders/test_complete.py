@@ -63,7 +63,7 @@ def test_wheel_c_extension() -> None:
         assert "extended-0.1/extended/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
-    assert whl.stem.rsplit("-")[-1] == next(sys_tags()).platform
+    assert whl.stem.rsplit("-")[-1] == "dummy"
 
     assert whl.exists()
 
