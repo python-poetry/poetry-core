@@ -51,8 +51,10 @@ def escape_name(name: str) -> str:
     This function should only be used for the generation of artifact names, and not to normalize or filter existing artifact names.
     """
     warnings.warn(
-        "escape_name() is deprecated. Use packaging.utils.canonicalize_name() and"
-        " distribution_name() instead.",
+        (
+            "escape_name() is deprecated. Use packaging.utils.canonicalize_name() and"
+            " distribution_name() instead."
+        ),
         DeprecationWarning,
         stacklevel=2,
     )

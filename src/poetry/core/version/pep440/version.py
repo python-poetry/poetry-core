@@ -119,8 +119,8 @@ class PEP440Version:
             # - Shorter versions sort before longer versions when the prefixes
             #   match exactly
             assert isinstance(self.local, tuple)
+            # We convert strings that are integers so that they can be compared
             _local = tuple(
-                # We typecast strings that are integers so that they can be compared
                 (int(i), "") if str(i).isnumeric() else (NegativeInfinity(), i)
                 for i in self.local
             )
@@ -148,8 +148,10 @@ class PEP440Version:
             import warnings
 
             warnings.warn(
-                "Parameter 'short' has no effect and will be removed. "
-                "(Versions are always normalized according to PEP 440 now.)",
+                (
+                    "Parameter 'short' has no effect and will be removed. "
+                    "(Versions are always normalized according to PEP 440 now.)"
+                ),
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -232,9 +234,11 @@ class PEP440Version:
     def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
         if self.is_stable():
             warnings.warn(
-                "Calling next_prerelease() on a stable release is deprecated for its"
-                " ambiguity. Use next_major(), next_minor(), etc. together with"
-                " first_prerelease()",
+                (
+                    "Calling next_prerelease() on a stable release is deprecated for"
+                    " its ambiguity. Use next_major(), next_minor(), etc. together with"
+                    " first_prerelease()"
+                ),
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -267,9 +271,11 @@ class PEP440Version:
             dev = self.dev.next()
         else:
             warnings.warn(
-                "Calling next_devrelease() on a non dev release is deprecated for its"
-                " ambiguity. Use next_major(), next_minor(), etc. together with"
-                " first_devrelease()",
+                (
+                    "Calling next_devrelease() on a non dev release is deprecated for"
+                    " its ambiguity. Use next_major(), next_minor(), etc. together with"
+                    " first_devrelease()"
+                ),
                 DeprecationWarning,
                 stacklevel=2,
             )
