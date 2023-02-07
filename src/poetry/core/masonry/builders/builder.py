@@ -283,8 +283,10 @@ class Builder:
 
             if "callable" in specification:
                 warnings.warn(
-                    f"Use of callable in script specification ({name}) is deprecated."
-                    " Use reference instead.",
+                    (
+                        f"Use of callable in script specification ({name}) is"
+                        " deprecated. Use reference instead."
+                    ),
                     DeprecationWarning,
                 )
                 specification = {

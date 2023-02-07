@@ -31,8 +31,10 @@ class Constraint(BaseConstraint):
     @property
     def version(self) -> str:
         warnings.warn(
-            "The property 'version' is deprecated and will be removed. "
-            "Please use the property 'value' instead.",
+            (
+                "The property 'version' is deprecated and will be removed. "
+                "Please use the property 'value' instead."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )
