@@ -13,3 +13,4 @@ homepage = "https://python-poetry.org/"
 
 [tool.poetry.build]
 script = "build.py"
+generate-setup-file = true

@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import cast
 
 import pytest
 
@@ -7,31 +11,62 @@ from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.version.markers import SingleMarker
 
 
+if TYPE_CHECKING:
+    from _pytest.logging import LogCaptureFixture
+    from pytest_mock import MockerFixture
+
+    from poetry.core.version.markers import BaseMarker
+
 DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
 TEST_FILE = "demo-0.1.0.tar.gz"
 
 
-def test_file_dependency_wrong_path():
-    with pytest.raises(ValueError):
-        FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
+def test_file_dependency_does_not_exist(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_exists = mocker.patch.object(Path, "exists")
+    mock_exists.return_value = False
+    dep = FileDependency("demo", DIST_PATH / "demo-0.2.0.tar.gz")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "does not exist" in record.message
+
+    with pytest.raises(ValueError, match="does not exist"):
+        dep.validate(raise_error=True)
+
+    mock_exists.assert_called_once()
 
 
-def test_file_dependency_dir():
-    with pytest.raises(ValueError):
-        FileDependency("demo", DIST_PATH)
+def test_file_dependency_is_directory(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_is_directory = mocker.patch.object(Path, "is_dir")
+    mock_is_directory.return_value = True
+    dep = FileDependency("demo", DIST_PATH)
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "is a directory" in record.message
+
+    with pytest.raises(ValueError, match="is a directory"):
+        dep.validate(raise_error=True)
+
+    mock_is_directory.assert_called_once()
 
 
-def test_default_hash():
-    path = DIST_PATH / TEST_FILE
-    dep = FileDependency("demo", path)
-    SHA_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
-    assert dep.hash() == SHA_256
+def test_default_hash() -> None:
+    with pytest.warns(DeprecationWarning):
+        path = DIST_PATH / TEST_FILE
+        dep = FileDependency("demo", path)
+        sha_256 = "72e8531e49038c5f9c4a837b088bfcb8011f4a9f76335c8f0654df6ac539b3d6"
+        assert dep.hash() == sha_256
 
 
 try:
-    from hashlib import algorithms_guaranteed as ALGORITHMS_GUARANTEED
+    from hashlib import algorithms_guaranteed
 except ImportError:
-    ALGORITHMS_GUARANTEED = "md5,sha1,sha224,sha256,sha384,sha512".split(",")
+    algorithms_guaranteed = {"md5", "sha1", "sha224", "sha256", "sha384", "sha512"}
 
 
 @pytest.mark.parametrize(
@@ -75,18 +110,24 @@ except ImportError:
                 "ba3d2a964b0680b6dc9565a03952e29c294c785d5a2307d3e2d785d73b75ed7e",
             ),
         ]
-        if hash_name in ALGORITHMS_GUARANTEED
+        if hash_name in algorithms_guaranteed
     ],
 )
-def test_guaranteed_hash(hash_name, expected):
-    path = DIST_PATH / TEST_FILE
-    dep = FileDependency("demo", path)
-    assert dep.hash(hash_name) == expected
+def test_guaranteed_hash(hash_name: str, expected: str) -> None:
+    with pytest.warns(DeprecationWarning):
+        path = DIST_PATH / TEST_FILE
+        dep = FileDependency("demo", path)
+        assert dep.hash(hash_name) == expected
 
 
 def _test_file_dependency_pep_508(
-    mocker, name, path, pep_508_input, pep_508_output=None, marker=None
-):
+    mocker: MockerFixture,
+    name: str,
+    path: Path,
+    pep_508_input: str,
+    pep_508_output: str | None = None,
+    marker: BaseMarker | None = None,
+) -> None:
     mocker.patch.object(Path, "exists").return_value = True
     mocker.patch.object(Path, "is_file").return_value = True
 
@@ -97,47 +138,50 @@ def _test_file_dependency_pep_508(
         dep.marker = marker
 
     assert dep.is_file()
+    dep = cast("FileDependency", dep)
     assert dep.name == name
     assert dep.path == path
-    assert dep.to_pep_508() == pep_508_output or pep_508_input
+    assert dep.to_pep_508() == (pep_508_output or pep_508_input)
 
 
-def test_file_dependency_pep_508_local_file_absolute(mocker):
+def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
-    requirement = "{} @ file://{}".format("demo", path.as_posix())
-    _test_file_dependency_pep_508(mocker, "demo", path, requirement)
+    expected = f"demo @ {path.as_uri()}"
 
-    requirement = "{} @ {}".format("demo", path)
-    _test_file_dependency_pep_508(mocker, "demo", path, requirement)
+    requirement = f"demo @ file://{path.as_posix()}"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
+
+    requirement = f"demo @ {path}"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
-def test_file_dependency_pep_508_local_file_localhost(mocker):
+def test_file_dependency_pep_508_local_file_localhost(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
-    requirement = "{} @ file://localhost{}".format("demo", path.as_posix())
-    requirement_expected = "{} @ file://{}".format("demo", path.as_posix())
-    _test_file_dependency_pep_508(
-        mocker, "demo", path, requirement, requirement_expected
-    )
+    requirement = f"demo @ file://localhost{path.as_posix()}"
+    expected = f"demo @ {path.as_uri()}"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
-def test_file_dependency_pep_508_local_file_relative_path(mocker):
+def test_file_dependency_pep_508_local_file_relative_path(
+    mocker: MockerFixture,
+) -> None:
     path = Path("..") / "fixtures" / "distributions" / "demo-0.2.0.tar.gz"
 
     with pytest.raises(ValueError):
-        requirement = "{} @ file://{}".format("demo", path.as_posix())
+        requirement = f"demo @ file://{path.as_posix()}"
         _test_file_dependency_pep_508(mocker, "demo", path, requirement)
 
-    requirement = "{} @ {}".format("demo", path)
-    _test_file_dependency_pep_508(mocker, "demo", path, requirement)
+    requirement = f"demo @ {path}"
+    base = Path(__file__).parent
+    expected = f"demo @ {(base / path).resolve().as_uri()}"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
-def test_absolute_file_dependency_to_pep_508_with_marker(mocker):
+def test_absolute_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     abs_path = DIST_PATH / wheel
-    requirement = '{} @ file://{} ; sys_platform == "linux"'.format(
-        "demo", abs_path.as_posix()
-    )
+    requirement = f'demo @ {abs_path.as_uri()} ; sys_platform == "linux"'
     _test_file_dependency_pep_508(
         mocker,
         "demo",
@@ -147,17 +191,71 @@ def test_absolute_file_dependency_to_pep_508_with_marker(mocker):
     )
 
 
-def test_relative_file_dependency_to_pep_508_with_marker(mocker):
+def test_relative_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     rel_path = Path("..") / "fixtures" / "distributions" / wheel
-    requirement = '{} @ {} ; sys_platform == "linux"'.format(
-        "demo", rel_path.as_posix()
+    requirement = f'demo @ {rel_path.as_posix()} ; sys_platform == "linux"'
+    base = Path(__file__).parent
+    expected = (
+        f'demo @ {(base / rel_path).resolve().as_uri()} ; sys_platform == "linux"'
     )
     _test_file_dependency_pep_508(
         mocker,
         "demo",
         rel_path,
         requirement,
+        expected,
         marker=SingleMarker("sys.platform", "linux"),
     )
+
+
+def test_file_dependency_pep_508_extras(mocker: MockerFixture) -> None:
+    wheel = "demo-0.1.0-py2.py3-none-any.whl"
+
+    rel_path = Path("..") / "fixtures" / "distributions" / wheel
+    requirement = f'demo[foo,bar] @ {rel_path.as_posix()} ; sys_platform == "linux"'
+    base = Path(__file__).parent
+    expected = (
+        f"demo[bar,foo] @ {(base / rel_path).resolve().as_uri()} ;"
+        ' sys_platform == "linux"'
+    )
+    _test_file_dependency_pep_508(
+        mocker,
+        "demo",
+        rel_path,
+        requirement,
+        expected,
+    )
+
+
+@pytest.mark.parametrize(
+    "name,path,extras,constraint,expected",
+    [
+        (
+            "demo",
+            DIST_PATH / TEST_FILE,
+            None,
+            None,
+            f"demo (*) @ {(DIST_PATH / TEST_FILE).as_uri()}",
+        ),
+        (
+            "demo",
+            DIST_PATH / TEST_FILE,
+            ["foo"],
+            "1.2",
+            f"demo[foo] (1.2) @ {(DIST_PATH / TEST_FILE).as_uri()}",
+        ),
+    ],
+)
+def test_file_dependency_string_representation(
+    name: str,
+    path: Path,
+    extras: list[str] | None,
+    constraint: str | None,
+    expected: str,
+) -> None:
+    dependency = FileDependency(name=name, path=path, extras=extras)
+    if constraint:
+        dependency.constraint = constraint  # type: ignore[assignment]
+    assert str(dependency) == expected

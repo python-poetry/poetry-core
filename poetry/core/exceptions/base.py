@@ -1,2 +1,0 @@
-class PoetryCoreException(Exception):
-    pass

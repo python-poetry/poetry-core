@@ -1,18 +1,32 @@
-from __future__ import absolute_import
-from __future__ import unicode_literals
+from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import cast
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
+from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.toml import TOMLFile
+from poetry.core.version.markers import SingleMarker
+
+
+if TYPE_CHECKING:
+    from _pytest.logging import LogCaptureFixture
+
+    from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
-def test_create_poetry():
+def test_create_poetry() -> None:
     poetry = Factory().create_poetry(fixtures_dir / "sample_project")
 
     package = poetry.package
@@ -21,9 +35,10 @@ def test_create_poetry():
     assert package.version.text == "1.2.3"
     assert package.description == "Some description."
     assert package.authors == ["Sébastien Eustace <sebastien@eustace.io>"]
+    assert package.license
     assert package.license.id == "MIT"
     assert (
-        package.readme.relative_to(fixtures_dir).as_posix()
+        package.readmes[0].relative_to(fixtures_dir).as_posix()
         == "sample_project/README.rst"
     )
     assert package.homepage == "https://python-poetry.org"
@@ -33,7 +48,7 @@ def test_create_poetry():
     assert package.python_versions == "~2.7 || ^3.6"
     assert str(package.python_constraint) == ">=2.7,<2.8 || >=3.6,<4.0"
 
-    dependencies = {}
+    dependencies: dict[str, Dependency] = {}
     for dep in package.requires:
         dependencies[dep.name] = dep
 
@@ -44,6 +59,7 @@ def test_create_poetry():
     pendulum = dependencies["pendulum"]
     assert pendulum.pretty_constraint == "branch 2.0"
     assert pendulum.is_vcs()
+    pendulum = cast("VCSDependency", pendulum)
     assert pendulum.vcs == "git"
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
@@ -53,6 +69,7 @@ def test_create_poetry():
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
     assert tomlkit.is_vcs()
+    tomlkit = cast("VCSDependency", tomlkit)
     assert tomlkit.vcs == "git"
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
@@ -96,7 +113,8 @@ def test_create_poetry():
     assert functools32.pretty_constraint == "^3.2.3"
     assert (
         str(functools32.marker)
-        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
+        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in'
+        ' "3.4 3.5"'
     )
 
     dataclasses = dependencies["dataclasses"]
@@ -127,12 +145,13 @@ def test_create_poetry():
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Build Tools",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
 
 
-def test_create_poetry_with_packages_and_includes():
+def test_create_poetry_with_packages_and_includes() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir.parent / "masonry" / "builders" / "fixtures" / "with-include"
     )
@@ -155,7 +174,7 @@ def test_create_poetry_with_packages_and_includes():
     ]
 
 
-def test_create_poetry_with_multi_constraints_dependency():
+def test_create_poetry_with_multi_constraints_dependency() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_multi_constraints_dependency"
     )
@@ -165,27 +184,110 @@ def test_create_poetry_with_multi_constraints_dependency():
     assert len(package.requires) == 2
 
 
-def test_validate():
+def test_validate() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
-    content = complete.read()["tool"]["poetry"]
+    doc: dict[str, Any] = complete.read()
+    content = doc["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
-def test_validate_fails():
+def test_validate_fails() -> None:
     complete = TOMLFile(fixtures_dir / "complete.toml")
-    content = complete.read()["tool"]["poetry"]
-    content["this key is not in the schema"] = ""
+    doc: dict[str, Any] = complete.read()
+    content = doc["tool"]["poetry"]
+    content["authors"] = "this is not a valid array"
 
-    expected = (
-        "Additional properties are not allowed "
-        "('this key is not in the schema' was unexpected)"
-    )
+    expected = "[authors] 'this is not a valid array' is not of type 'array'"
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
 
-def test_create_poetry_fails_on_invalid_configuration():
+def test_validate_without_strict_fails_only_non_strict() -> None:
+    project_failing_strict_validation = TOMLFile(
+        fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
+    )
+    doc: dict[str, Any] = project_failing_strict_validation.read()
+    content = doc["tool"]["poetry"]
+
+    assert Factory.validate(content) == {
+        "errors": [
+            "'name' is a required property",
+            "'version' is a required property",
+            "'description' is a required property",
+            "'authors' is a required property",
+        ],
+        "warnings": [],
+    }
+
+
+def test_validate_strict_fails_strict_and_non_strict() -> None:
+    project_failing_strict_validation = TOMLFile(
+        fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
+    )
+    doc: dict[str, Any] = project_failing_strict_validation.read()
+    content = doc["tool"]["poetry"]
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [
+            "'name' is a required property",
+            "'version' is a required property",
+            "'description' is a required property",
+            "'authors' is a required property",
+            (
+                'Cannot find dependency "missing_extra" for extra "some-extras" in '
+                "main dependencies."
+            ),
+            (
+                'Cannot find dependency "another_missing_extra" for extra '
+                '"some-extras" in main dependencies.'
+            ),
+            (
+                'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
+                " defined."
+            ),
+            (
+                "Declared README files must be of same type: found text/markdown,"
+                " text/x-rst"
+            ),
+        ],
+        "warnings": [
+            (
+                "A wildcard Python dependency is ambiguous. Consider specifying a more"
+                " explicit one."
+            ),
+            (
+                'The "pathlib2" dependency specifies the "allows-prereleases" property,'
+                ' which is deprecated. Use "allow-prereleases" instead.'
+            ),
+        ],
+    }
+
+
+def test_strict_validation_success_on_multiple_readme_files() -> None:
+    with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
+    doc: dict[str, Any] = with_readme_files.read()
+    content = doc["tool"]["poetry"]
+
+    assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
+
+
+def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None:
+    with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
+    doc: dict[str, Any] = with_readme_files.read()
+    content = doc["tool"]["poetry"]
+    content["readme"][0] = "README.md"
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [
+            "Declared README files must be of same type: found text/markdown,"
+            " text/x-rst"
+        ],
+        "warnings": [],
+    }
+
+
+def test_create_poetry_fails_on_invalid_configuration() -> None:
     with pytest.raises(RuntimeError) as e:
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "invalid_pyproject" / "pyproject.toml"
@@ -195,10 +297,10 @@ def test_create_poetry_fails_on_invalid_configuration():
 The Poetry configuration is invalid:
   - 'description' is a required property
 """
-    assert expected == str(e.value)
+    assert str(e.value) == expected
 
 
-def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
+def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false() -> None:
     poetry = Factory().create_poetry(fixtures_dir / "sample_project", with_groups=False)
     assert not any("dev" in r.groups for r in poetry.package.all_requires)
 
@@ -206,11 +308,117 @@ def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false():
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true():
-    with pytest.raises(ValueError) as err:
-        Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
-    assert "does not exist" in str(err.value)
-
-    Factory().create_poetry(
+def test_create_poetry_with_invalid_dev_dependencies(caplog: LogCaptureFixture) -> None:
+    poetry = Factory().create_poetry(
         fixtures_dir / "project_with_invalid_dev_deps", with_groups=False
     )
+    assert not any("dev" in r.groups for r in poetry.package.all_requires)
+
+    assert not caplog.records
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "does not exist" in record.message
+    assert any("dev" in r.groups for r in poetry.package.all_requires)
+
+
+def test_create_poetry_with_groups_and_legacy_dev() -> None:
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_groups_and_legacy_dev"
+    )
+
+    package = poetry.package
+    dependencies = package.all_requires
+
+    assert len(dependencies) == 2
+    assert {dependency.name for dependency in dependencies} == {"pytest", "pre-commit"}
+
+
+def test_create_poetry_with_groups_and_explicit_main() -> None:
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_groups_and_explicit_main"
+    )
+
+    package = poetry.package
+    dependencies = package.requires
+
+    assert len(dependencies) == 1
+    assert {dependency.name for dependency in dependencies} == {
+        "aiohttp",
+    }
+
+
+def test_create_poetry_with_markers_and_extras() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_markers_and_extras")
+
+    package = poetry.package
+    dependencies = package.requires
+    extras = package.extras
+
+    assert len(dependencies) == 2
+    assert {dependency.name for dependency in dependencies} == {"orjson"}
+    assert set(extras[canonicalize_name("all")]) == set(dependencies)
+    for dependency in dependencies:
+        assert dependency.in_extras == ["all"]
+        assert isinstance(dependency, URLDependency)
+        assert isinstance(dependency.marker, SingleMarker)
+        assert dependency.marker.name == "sys_platform"
+        assert dependency.marker.value == (
+            "darwin" if "macosx" in dependency.url else "linux"
+        )
+
+
+@pytest.mark.parametrize(
+    "constraint, exp_python, exp_marker",
+    [
+        ({"python": "3.7"}, "~3.7", 'python_version == "3.7"'),
+        ({"platform": "linux"}, "*", 'sys_platform == "linux"'),
+        ({"markers": 'python_version == "3.7"'}, "~3.7", 'python_version == "3.7"'),
+        (
+            {"markers": 'platform_machine == "x86_64"'},
+            "*",
+            'platform_machine == "x86_64"',
+        ),
+        (
+            {"python": "3.7", "markers": 'platform_machine == "x86_64"'},
+            "~3.7",
+            'platform_machine == "x86_64" and python_version == "3.7"',
+        ),
+        (
+            {"platform": "linux", "markers": 'platform_machine == "x86_64"'},
+            "*",
+            'platform_machine == "x86_64" and sys_platform == "linux"',
+        ),
+        (
+            {
+                "python": "3.7",
+                "platform": "linux",
+                "markers": 'platform_machine == "x86_64"',
+            },
+            "~3.7",
+            (
+                'platform_machine == "x86_64" and python_version == "3.7" and'
+                ' sys_platform == "linux"'
+            ),
+        ),
+        (
+            {"python": ">=3.7", "markers": 'python_version < "4.0"'},
+            "<4.0 >=3.7",
+            'python_version < "4.0" and python_version >= "3.7"',
+        ),
+        (
+            {"platform": "linux", "markers": 'sys_platform == "win32"'},
+            "*",
+            "<empty>",
+        ),
+    ],
+)
+def test_create_dependency_marker_variants(
+    constraint: dict[str, Any], exp_python: str, exp_marker: str
+) -> None:
+    constraint["version"] = "1.0.0"
+    dep = Factory.create_dependency("foo", constraint)
+    assert dep.python_versions == exp_python
+    assert dep.python_constraint == parse_constraint(exp_python)
+    assert str(dep.marker) == exp_marker

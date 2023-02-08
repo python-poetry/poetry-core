@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
+from __future__ import annotations
 
-import ast
 import os
 import platform
 import re
@@ -11,6 +10,8 @@ import tempfile
 import zipfile
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Iterator
 
 import pytest
 
@@ -19,11 +20,14 @@ from poetry.core.factory import Factory
 from poetry.core.masonry.builder import Builder
 
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> Iterator[None]:
     clear_samples_dist()
 
     yield
@@ -31,7 +35,7 @@ def setup():
     clear_samples_dist()
 
 
-def clear_samples_dist():
+def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
@@ -43,7 +47,7 @@ def clear_samples_dist():
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension():
+def test_wheel_c_extension() -> None:
     module_path = fixtures_dir / "extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -74,14 +78,12 @@ def test_wheel_c_extension():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -100,7 +102,7 @@ $""".format(
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_with_no_setup():
+def test_wheel_c_extension_with_no_setup() -> None:
     module_path = fixtures_dir / "extended_with_no_setup"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -131,14 +133,12 @@ def test_wheel_c_extension_with_no_setup():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -157,7 +157,7 @@ $""".format(
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_src_layout():
+def test_wheel_c_extension_src_layout() -> None:
     module_path = fixtures_dir / "src_extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -188,14 +188,12 @@ def test_wheel_c_extension_src_layout():
 
         assert (
             re.match(
-                """(?m)^\
+                f"""(?m)^\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: false
 Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""".format(
-                    __version__
-                ),
+$""",
                 wheel_data,
             )
             is not None
@@ -208,7 +206,7 @@ $""".format(
         zip.close()
 
 
-def test_complete():
+def test_complete() -> None:
     module_path = fixtures_dir / "complete"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -223,10 +221,10 @@ def test_complete():
 
     try:
         assert "my_package/sub_pgk1/extra_file.xml" not in zip.namelist()
-        assert "my-package-1.2.3.data/scripts/script.sh" in zip.namelist()
+        assert "my_package-1.2.3.data/scripts/script.sh" in zip.namelist()
         assert (
             "Hello World"
-            in zip.read("my-package-1.2.3.data/scripts/script.sh").decode()
+            in zip.read("my_package-1.2.3.data/scripts/script.sh").decode()
         )
 
         entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
@@ -245,14 +243,12 @@ my-script=my_package:main
 
         assert (
             wheel_data
-            == """\
+            == f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-                __version__
-            )
+"""
         )
         wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
@@ -278,12 +274,13 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development :: Build Tools
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Provides-Extra: time
 Requires-Dist: cachy[msgpack] (>=0.2.0,<0.3.0)
 Requires-Dist: cleo (>=0.6,<0.7)
-Requires-Dist: pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
+Requires-Dist: pendulum (>=1.4,<2.0) ; (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
 Project-URL: Documentation, https://python-poetry.org/docs
 Project-URL: Issue Tracker, https://github.com/python-poetry/poetry/issues
 Project-URL: Repository, https://github.com/python-poetry/poetry
@@ -319,7 +316,7 @@ My Package
         zip.close()
 
 
-def test_complete_no_vcs():
+def test_complete_no_vcs() -> None:
     # Copy the complete fixtures dir to a temporary directory
     module_path = fixtures_dir / "complete"
     temporary_dir = Path(tempfile.mkdtemp()) / "complete"
@@ -343,7 +340,7 @@ def test_complete_no_vcs():
         "my_package/sub_pkg1/__init__.py",
         "my_package/sub_pkg2/__init__.py",
         "my_package/sub_pkg2/data2/data.json",
-        "my-package-1.2.3.data/scripts/script.sh",
+        "my_package-1.2.3.data/scripts/script.sh",
         "my_package/sub_pkg3/foo.py",
         "my_package-1.2.3.dist-info/entry_points.txt",
         "my_package-1.2.3.dist-info/LICENSE",
@@ -371,14 +368,12 @@ my-script=my_package:main
 
         assert (
             wheel_data
-            == """\
+            == f"""\
 Wheel-Version: 1.0
-Generator: poetry {}
+Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
-""".format(
-                __version__
-            )
+"""
         )
         wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
 
@@ -404,12 +399,13 @@ Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development :: Build Tools
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Provides-Extra: time
 Requires-Dist: cachy[msgpack] (>=0.2.0,<0.3.0)
 Requires-Dist: cleo (>=0.6,<0.7)
-Requires-Dist: pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
+Requires-Dist: pendulum (>=1.4,<2.0) ; (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
 Project-URL: Documentation, https://python-poetry.org/docs
 Project-URL: Issue Tracker, https://github.com/python-poetry/poetry/issues
 Project-URL: Repository, https://github.com/python-poetry/poetry
@@ -424,17 +420,17 @@ My Package
         zip.close()
 
 
-def test_module_src():
+def test_module_src() -> None:
     module_path = fixtures_dir / "source_file"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = module_path / "dist" / "module-src-0.1.tar.gz"
+    sdist = module_path / "dist" / "module_src-0.1.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "module-src-0.1/src/module_src.py" in tar.getnames()
+        assert "module_src-0.1/src/module_src.py" in tar.getnames()
 
     whl = module_path / "dist" / "module_src-0.1-py2.py3-none-any.whl"
 
@@ -448,17 +444,17 @@ def test_module_src():
         zip.close()
 
 
-def test_package_src():
+def test_package_src() -> None:
     module_path = fixtures_dir / "source_package"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = module_path / "dist" / "package-src-0.1.tar.gz"
+    sdist = module_path / "dist" / "package_src-0.1.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "package-src-0.1/src/package_src/module.py" in tar.getnames()
+        assert "package_src-0.1/src/package_src/module.py" in tar.getnames()
 
     whl = module_path / "dist" / "package_src-0.1-py2.py3-none-any.whl"
 
@@ -473,7 +469,33 @@ def test_package_src():
         zip.close()
 
 
-def test_package_with_include(mocker):
+def test_split_source() -> None:
+    module_path = fixtures_dir / "split_source"
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = module_path / "dist" / "split_source-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "split_source-0.1/lib_a/module_a/__init__.py" in tar.getnames()
+        assert "split_source-0.1/lib_b/module_b/__init__.py" in tar.getnames()
+
+    whl = module_path / "dist" / "split_source-0.1-py3-none-any.whl"
+
+    assert whl.exists()
+
+    zip = zipfile.ZipFile(str(whl))
+
+    try:
+        assert "module_a/__init__.py" in zip.namelist()
+        assert "module_b/__init__.py" in zip.namelist()
+    finally:
+        zip.close()
+
+
+def test_package_with_include(mocker: MockerFixture) -> None:
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
@@ -498,45 +520,27 @@ def test_package_with_include(mocker):
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = fixtures_dir / "with-include" / "dist" / "with-include-1.2.3.tar.gz"
+    sdist = fixtures_dir / "with-include" / "dist" / "with_include-1.2.3.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
         assert len(names) == len(set(names))
-        assert "with-include-1.2.3/LICENSE" in names
-        assert "with-include-1.2.3/README.rst" in names
-        assert "with-include-1.2.3/extra_dir/__init__.py" in names
-        assert "with-include-1.2.3/extra_dir/vcs_excluded.txt" in names
-        assert "with-include-1.2.3/extra_dir/sub_pkg/__init__.py" in names
-        assert "with-include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt" not in names
-        assert "with-include-1.2.3/my_module.py" in names
-        assert "with-include-1.2.3/notes.txt" in names
-        assert "with-include-1.2.3/package_with_include/__init__.py" in names
-        assert "with-include-1.2.3/tests/__init__.py" in names
-        assert "with-include-1.2.3/pyproject.toml" in names
-        assert "with-include-1.2.3/setup.py" in names
-        assert "with-include-1.2.3/PKG-INFO" in names
-        assert "with-include-1.2.3/for_wheel_only/__init__.py" not in names
-        assert "with-include-1.2.3/src/src_package/__init__.py" in names
-
-        setup = tar.extractfile("with-include-1.2.3/setup.py").read()
-        setup_ast = ast.parse(setup)
-
-        setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
-        ns = {}
-        exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
-        assert ns["package_dir"] == {"": "src"}
-        assert ns["packages"] == [
-            "extra_dir",
-            "extra_dir.sub_pkg",
-            "package_with_include",
-            "src_package",
-            "tests",
-        ]
-        assert ns["package_data"] == {"": ["*"]}
-        assert ns["modules"] == ["my_module"]
+        assert "with_include-1.2.3/LICENSE" in names
+        assert "with_include-1.2.3/README.rst" in names
+        assert "with_include-1.2.3/extra_dir/__init__.py" in names
+        assert "with_include-1.2.3/extra_dir/vcs_excluded.txt" in names
+        assert "with_include-1.2.3/extra_dir/sub_pkg/__init__.py" in names
+        assert "with_include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt" not in names
+        assert "with_include-1.2.3/my_module.py" in names
+        assert "with_include-1.2.3/notes.txt" in names
+        assert "with_include-1.2.3/package_with_include/__init__.py" in names
+        assert "with_include-1.2.3/tests/__init__.py" in names
+        assert "with_include-1.2.3/pyproject.toml" in names
+        assert "with_include-1.2.3/PKG-INFO" in names
+        assert "with_include-1.2.3/for_wheel_only/__init__.py" not in names
+        assert "with_include-1.2.3/src/src_package/__init__.py" in names
 
     whl = module_path / "dist" / "with_include-1.2.3-py3-none-any.whl"
 
@@ -556,3 +560,45 @@ def test_package_with_include(mocker):
         assert "package_with_include/__init__.py" in names
         assert "tests/__init__.py" not in names
         assert "src_package/__init__.py" in names
+
+
+def test_respect_format_for_explicit_included_files() -> None:
+    module_path = fixtures_dir / "exclude-whl-include-sdist"
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = module_path / "dist" / "exclude_whl_include_sdist-0.1.0.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        names = tar.getnames()
+        assert (
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/__init__.py"
+            in names
+        )
+        assert (
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/compiled/source.c"
+            in names
+        )
+        assert (
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/compiled/source.h"
+            in names
+        )
+        assert (
+            "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/cython_code.pyx"
+            in names
+        )
+        assert "exclude_whl_include_sdist-0.1.0/pyproject.toml" in names
+        assert "exclude_whl_include_sdist-0.1.0/PKG-INFO" in names
+
+    whl = module_path / "dist" / "exclude_whl_include_sdist-0.1.0-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        names = z.namelist()
+        assert "exclude_whl_include_sdist/__init__.py" in names
+        assert "exclude_whl_include_sdist/compiled/source.c" not in names
+        assert "exclude_whl_include_sdist/compiled/source.h" not in names
+        assert "exclude_whl_include_sdist/cython_code.pyx" not in names
