@@ -17,6 +17,7 @@ from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterator
+from typing import List
 from typing import TextIO
 
 from poetry.core import __version__
@@ -325,46 +326,48 @@ class WheelBuilder(Builder):
         escaped_name = distribution_name(name)
         return f"{escaped_name}-{version}.dist-info"
 
-    def get_tags(self) -> Iterator[str]:
-        try:
-            tags = subprocess.check_output(
-                [
-                    self.executable.as_posix(),
-                    '-c',
-                    '''
+    def get_tags(self) -> List[str]:
+        subprocess.check_output(
+            [
+                self.executable.as_posix(),
+                '-m',
+                'pip',
+                'install',
+                'packaging'
+            ]
+        )
+        tags = subprocess.check_output(
+            [
+                self.executable.as_posix(),
+                '-c',
+                '''
 from packaging.tags import sys_tags
 for tag in sys_tags():
   print(tag)
-                    '''
-                ],
-                    stderr=subprocess.STDOUT,
-            ).decode('utf-8').strip().splitlines()
-            return tags
-        except subprocess.CalledProcessError as cpe:
-            output = cpe.output.decode('utf-8').strip()
-            if re.search(r"^ModuleNotFoundError:.*['\"]packaging[\\]?['\"]", output, re.MULTILINE) is not None:
-                raise RuntimeError(f'When using a build script to build a binary wheel, the python interpreter building the wheel requires the `packaging` module to determine the correct binary wheel tag, but it was not found.\nPlease add `packaging = ">= 20.0"` to dev-dependencies, run `poetry update` to install it, and try to build again.')
-            else:
-                raise cpe
+                '''
+            ],
+            stderr=subprocess.STDOUT,
+        ).decode('utf-8').strip().splitlines()
+        return tags
 
     @property
     def tag(self) -> str:
         if self._package.build_script:
             tags = self.get_tags()
             wheel_tag_pattern = re.compile(self._poetry.package.build_wheel_tag_regex())
-            for tag in tags:
-                if wheel_tag_pattern.search(tag) is not None:
-                    return tag
+            for t in tags:
+                if wheel_tag_pattern.search(t) is not None:
+                    tag = t
+                    break
         else:
-            platform = "any"
             if self.supports_python2():
                 impl = "py2.py3"
             else:
                 impl = "py3"
 
-            tag = (impl, "none", platform)
+            tag = f"{impl}-none-any"
 
-            return "-".join(tag)
+        return tag
 
     def _add_file(
         self,
