@@ -17,7 +17,6 @@ from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterator
-from typing import List
 from typing import TextIO
 
 from poetry.core import __version__
@@ -326,28 +325,27 @@ class WheelBuilder(Builder):
         escaped_name = distribution_name(name)
         return f"{escaped_name}-{version}.dist-info"
 
-    def get_tags(self) -> List[str]:
+    def get_tags(self) -> list[str]:
         subprocess.check_output(
-            [
-                self.executable.as_posix(),
-                '-m',
-                'pip',
-                'install',
-                'packaging'
-            ]
+            [self.executable.as_posix(), "-m", "pip", "install", "packaging"]
         )
-        tags = subprocess.check_output(
-            [
-                self.executable.as_posix(),
-                '-c',
-                '''
+        tags = (
+            subprocess.check_output(
+                [
+                    self.executable.as_posix(),
+                    "-c",
+                    """
 from packaging.tags import sys_tags
 for tag in sys_tags():
   print(tag)
-                '''
-            ],
-            stderr=subprocess.STDOUT,
-        ).decode('utf-8').strip().splitlines()
+                """,
+                ],
+                stderr=subprocess.STDOUT,
+            )
+            .decode("utf-8")
+            .strip()
+            .splitlines()
+        )
         return tags
 
     @property
