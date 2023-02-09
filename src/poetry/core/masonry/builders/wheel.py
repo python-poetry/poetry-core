@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 from typing import Iterator
 from typing import TextIO
 
+from poetry.core import __vendor_site__
 from poetry.core import __version__
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.masonry.builders.builder import Builder
@@ -326,9 +327,6 @@ class WheelBuilder(Builder):
         return f"{escaped_name}-{version}.dist-info"
 
     def get_tags(self) -> list[str]:
-        subprocess.check_output(
-            [self.executable.as_posix(), "-m", "pip", "install", "packaging"]
-        )
         tags = (
             subprocess.check_output(
                 [
@@ -340,6 +338,7 @@ for tag in sys_tags():
   print(tag)
                 """,
                 ],
+                env={"PYTHONPATH": __vendor_site__},
                 stderr=subprocess.STDOUT,
             )
             .decode("utf-8")
