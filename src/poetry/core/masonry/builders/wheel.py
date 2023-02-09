@@ -352,10 +352,13 @@ for tag in sys_tags():
         if self._package.build_script:
             tags = self.get_tags()
             wheel_tag_pattern = re.compile(self._poetry.package.build_wheel_tag_regex())
-            for t in tags:
-                if wheel_tag_pattern.search(t) is not None:
-                    tag = t
-                    break
+            for tag in tags:
+                if wheel_tag_pattern.search(tag) is not None:
+                    return tag
+            raise RuntimeError(
+                "no sys tags matched regex"
+                f" '{self._poetry.package.build_wheel_tag_regex()}': {','.join(tags)}"
+            )
         else:
             if self.supports_python2():
                 impl = "py2.py3"
