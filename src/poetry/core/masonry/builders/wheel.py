@@ -327,24 +327,32 @@ class WheelBuilder(Builder):
         return f"{escaped_name}-{version}.dist-info"
 
     def get_tags(self) -> list[str]:
-        tags = (
-            subprocess.check_output(
-                [
-                    self.executable.as_posix(),
-                    "-c",
-                    """
+        try:
+            tags = (
+                subprocess.check_output(
+                    [
+                        self.executable.as_posix(),
+                        "-c",
+                        """
 from packaging.tags import sys_tags
 for tag in sys_tags():
   print(tag)
-                """,
-                ],
-                env={"PYTHONPATH": __vendor_site__},
-                stderr=subprocess.STDOUT,
+                        """,
+                    ],
+                    env={"PYTHONPATH": __vendor_site__},
+                    stderr=subprocess.STDOUT,
+                )
+                .decode("utf-8")
+                .strip()
+                .splitlines()
             )
-            .decode("utf-8")
-            .strip()
-            .splitlines()
-        )
+        except subprocess.CalledProcessError as cpe:
+            raise RuntimeError(
+                "get_tags failed to get sys_tags for python interpreter"
+                f" '{self.executable.as_posix()}' using PYTHONPATH='{__vendor_site__}'"
+                " to supply packaging.tags package: script exited"
+                f" {cpe.returncode} with output '{cpe.output}'"
+            )
         return tags
 
     @property
