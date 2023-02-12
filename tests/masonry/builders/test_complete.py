@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import os
 import platform
 import re
@@ -47,7 +48,7 @@ def clear_samples_dist() -> None:
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension() -> None:
+def test_wheel_c_extension() -> None:  # NOSONAR
     module_path = fixtures_dir / "extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -89,11 +90,18 @@ $""",
             is not None
         )
 
-        records = zip.read("extended-0.1.dist-info/RECORD").decode()
+        record = zip.read("extended-0.1.dist-info/RECORD").decode()
+        records = csv.reader(record.splitlines())
+        record_files = [row[0] for row in records]
 
-        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
+        assert re.search(r"\s+extended/extended.*\.(so|pyd)", record) is not None
     finally:
         zip.close()
+
+    # Files in RECORD should match files in wheel.
+    zip_files = sorted(zip.namelist())
+    assert zip_files == sorted(record_files)
+    assert len(set(record_files)) == len(record_files)
 
 
 @pytest.mark.skipif(
@@ -102,7 +110,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_with_no_setup() -> None:
+def test_wheel_c_extension_with_no_setup() -> None:  # NOSONAR
     module_path = fixtures_dir / "extended_with_no_setup"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -144,11 +152,18 @@ $""",
             is not None
         )
 
-        records = zip.read("extended-0.1.dist-info/RECORD").decode()
+        record = zip.read("extended-0.1.dist-info/RECORD").decode()
+        records = csv.reader(record.splitlines())
+        record_files = [row[0] for row in records]
 
-        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
+        assert re.search(r"\s+extended/extended.*\.(so|pyd)", record) is not None
     finally:
         zip.close()
+
+    # Files in RECORD should match files in wheel.
+    zip_files = sorted(zip.namelist())
+    assert zip_files == sorted(record_files)
+    assert len(set(record_files)) == len(record_files)
 
 
 @pytest.mark.skipif(
@@ -157,7 +172,7 @@ $""",
     or platform.python_implementation().lower() == "pypy",
     reason="Disable test on Windows for Python <=3.6 and for PyPy",
 )
-def test_wheel_c_extension_src_layout() -> None:
+def test_wheel_c_extension_src_layout() -> None:  # NOSONAR
     module_path = fixtures_dir / "src_extended"
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -199,11 +214,18 @@ $""",
             is not None
         )
 
-        records = zip.read("extended-0.1.dist-info/RECORD").decode()
+        record = zip.read("extended-0.1.dist-info/RECORD").decode()
+        records = csv.reader(record.splitlines())
+        record_files = [row[0] for row in records]
 
-        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
+        assert re.search(r"\s+extended/extended.*\.(so|pyd)", record) is not None
     finally:
         zip.close()
+
+    # Files in RECORD should match files in wheel.
+    zip_files = sorted(zip.namelist())
+    assert zip_files == sorted(record_files)
+    assert len(set(record_files)) == len(record_files)
 
 
 def test_complete() -> None:
@@ -297,20 +319,23 @@ My Package
         # vary per operating systems and Python versions.
         # So instead of 1:1 assertion, let's do a bit clunkier one:
 
-        expected_records = [
+        actual_files = [row[0] for row in csv.reader(actual_records.splitlines())]
+        expected_files = [
+            "my_package-1.2.3.data/scripts/script.sh",
+            "my_package-1.2.3.dist-info/LICENSE",
+            "my_package-1.2.3.dist-info/METADATA",
+            "my_package-1.2.3.dist-info/RECORD",
+            "my_package-1.2.3.dist-info/WHEEL",
+            "my_package-1.2.3.dist-info/entry_points.txt",
             "my_package/__init__.py",
             "my_package/data1/test.json",
             "my_package/sub_pkg1/__init__.py",
             "my_package/sub_pkg2/__init__.py",
             "my_package/sub_pkg2/data2/data.json",
-            "my_package-1.2.3.dist-info/entry_points.txt",
-            "my_package-1.2.3.dist-info/LICENSE",
-            "my_package-1.2.3.dist-info/WHEEL",
-            "my_package-1.2.3.dist-info/METADATA",
+            "my_package/sub_pkg3/foo.py",
         ]
 
-        for expected_record in expected_records:
-            assert expected_record in actual_records
+        assert sorted(expected_files) == sorted(actual_files)
 
     finally:
         zip.close()

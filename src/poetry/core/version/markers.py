@@ -830,8 +830,10 @@ def dnf(marker: BaseMarker) -> BaseMarker:
         return MarkerUnion.of(
             *[MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)]
         )
+
     if isinstance(marker, MarkerUnion):
         return MarkerUnion.of(*[dnf(m) for m in marker.markers])
+
     return marker
 
 
