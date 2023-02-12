@@ -163,9 +163,9 @@ class WheelBuilder(Builder):
                 # we assume that the build script will build and copy the files
                 # directly.
                 # That way they will be picked up when adding files to the wheel.
-                current_path = os.getcwd()
+                current_path = Path.cwd()
                 try:
-                    os.chdir(str(self._path))
+                    os.chdir(self._path)
                     self._run_build_script(self._package.build_script)
                 finally:
                     os.chdir(current_path)
@@ -173,9 +173,9 @@ class WheelBuilder(Builder):
                 with SdistBuilder(poetry=self._poetry).setup_py() as setup:
                     # We need to place ourselves in the temporary
                     # directory in order to build the package
-                    current_path = os.getcwd()
+                    current_path = Path.cwd()
                     try:
-                        os.chdir(str(self._path))
+                        os.chdir(self._path)
                         self._run_build_command(setup)
                     finally:
                         os.chdir(current_path)
@@ -194,9 +194,9 @@ class WheelBuilder(Builder):
                         if pkg.is_dir() or self.is_excluded(pkg):
                             continue
 
-                        rel_path = str(pkg.relative_to(lib))
+                        rel_path = pkg.relative_to(lib)
 
-                        if rel_path in wheel.namelist():
+                        if rel_path.as_posix() in wheel.namelist():
                             continue
 
                         logger.debug(f"Adding: {rel_path}")
@@ -210,7 +210,7 @@ class WheelBuilder(Builder):
             self._add_file(
                 wheel,
                 abs_path,
-                Path.joinpath(Path(self.wheel_data_folder), "scripts", abs_path.name),
+                Path(self.wheel_data_folder) / "scripts" / abs_path.name,
             )
 
     def _run_build_command(self, setup: Path) -> None:
@@ -268,7 +268,7 @@ class WheelBuilder(Builder):
                 continue
 
             dest = dist_info / license_file.relative_to(self._path)
-            os.makedirs(dest.parent, exist_ok=True)
+            dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(license_file, dest)
 
         return dist_info
@@ -345,19 +345,15 @@ class WheelBuilder(Builder):
     def _add_file(
         self,
         wheel: zipfile.ZipFile,
-        full_path: Path | str,
-        rel_path: Path | str,
+        full_path: Path,
+        rel_path: Path,
     ) -> None:
-        full_path, rel_path = str(full_path), str(rel_path)
-        if os.sep != "/":
-            # We always want to have /-separated paths in the zip file and in
-            # RECORD
-            rel_path = rel_path.replace(os.sep, "/")
-
-        zinfo = zipfile.ZipInfo(rel_path)
+        # We always want to have /-separated paths in the zip file and in RECORD
+        rel_path_name = rel_path.as_posix()
+        zinfo = zipfile.ZipInfo(rel_path_name)
 
         # Normalize permission bits to either 755 (executable) or 644
-        st_mode = os.stat(full_path).st_mode
+        st_mode = full_path.stat().st_mode
         new_mode = normalize_file_permissions(st_mode)
         zinfo.external_attr = (new_mode & 0xFFFF) << 16  # Unix attributes
 
@@ -375,10 +371,10 @@ class WheelBuilder(Builder):
             src.seek(0)
             wheel.writestr(zinfo, src.read(), compress_type=zipfile.ZIP_DEFLATED)
 
-        size = os.stat(full_path).st_size
+        size = full_path.stat().st_size
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode("ascii").rstrip("=")
 
-        self._records.append((rel_path, hash_digest, size))
+        self._records.append((rel_path_name, hash_digest, size))
 
     @contextlib.contextmanager
     def _write_to_zip(
