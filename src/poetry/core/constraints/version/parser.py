@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import re
 
 from typing import TYPE_CHECKING
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
     from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
+@functools.lru_cache(maxsize=None)
 def parse_constraint(constraints: str) -> VersionConstraint:
     if constraints == "*":
         from poetry.core.constraints.version.version_range import VersionRange
