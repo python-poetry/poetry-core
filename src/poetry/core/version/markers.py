@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import functools
 import itertools
 import re
 
+from abc import ABC
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
@@ -53,10 +56,12 @@ PYTHON_VERSION_MARKERS = {"python_version", "python_full_version"}
 _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
 
-class BaseMarker:
+class BaseMarker(ABC):
+    @abstractmethod
     def intersect(self, other: BaseMarker) -> BaseMarker:
         raise NotImplementedError()
 
+    @abstractmethod
     def union(self, other: BaseMarker) -> BaseMarker:
         raise NotImplementedError()
 
@@ -66,23 +71,36 @@ class BaseMarker:
     def is_empty(self) -> bool:
         return False
 
+    @abstractmethod
     def validate(self, environment: dict[str, Any] | None) -> bool:
         raise NotImplementedError()
 
+    @abstractmethod
     def without_extras(self) -> BaseMarker:
         raise NotImplementedError()
 
+    @abstractmethod
     def exclude(self, marker_name: str) -> BaseMarker:
         raise NotImplementedError()
 
+    @abstractmethod
     def only(self, *marker_names: str) -> BaseMarker:
         raise NotImplementedError()
 
+    @abstractmethod
     def invert(self) -> BaseMarker:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {str(self)}>"
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __eq__(self, other: object) -> bool:
+        raise NotImplementedError()
 
 
 class AnyMarker(BaseMarker):
@@ -725,6 +743,7 @@ class MarkerUnion(BaseMarker):
         return all(m.is_empty() for m in self._markers)
 
 
+@functools.lru_cache(maxsize=None)
 def parse_marker(marker: str) -> BaseMarker:
     if marker == "<empty>":
         return EmptyMarker()
