@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import re
 
 from typing import TYPE_CHECKING
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
 
 
+@functools.lru_cache(maxsize=None)
 def parse_constraint(constraints: str) -> BaseConstraint:
     if constraints == "*":
         return AnyConstraint()
