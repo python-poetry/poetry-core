@@ -91,7 +91,10 @@ class WheelBuilder(Builder):
         """Build a wheel in the dist/ directory, and optionally upload it."""
         cls.make_in(poetry, executable=executable)
 
-    def build(self, target_dir: Path | None = None,) -> Path:
+    def build(
+        self,
+        target_dir: Path | None = None,
+    ) -> Path:
         logger.info("Building wheel")
 
         target_dir = target_dir or self.default_target_dir
@@ -336,7 +339,10 @@ class WheelBuilder(Builder):
         return "-".join(tag)
 
     def _add_file(
-        self, wheel: zipfile.ZipFile, full_path: Path | str, rel_path: Path | str,
+        self,
+        wheel: zipfile.ZipFile,
+        full_path: Path | str,
+        rel_path: Path | str,
     ) -> None:
         full_path, rel_path = str(full_path), str(rel_path)
         if os.sep != "/":
