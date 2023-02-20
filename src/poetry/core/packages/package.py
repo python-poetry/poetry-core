@@ -577,7 +577,7 @@ class Package(PackageSpecification):
         if not dependency.constraint.allows(self.version):
             return False
 
-        if not ignore_source_type and not self.source_satisfies(dependency):
+        if not (ignore_source_type or self.source_satisfies(dependency)):
             return False
 
         return True

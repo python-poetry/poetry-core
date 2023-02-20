@@ -286,7 +286,7 @@ class Dependency(PackageSpecification):
 
             # we re-check for any marker here since the without extra marker might
             # return an any marker again
-            if not marker.is_empty() and not marker.is_any():
+            if not (marker.is_empty() or marker.is_any()):
                 markers.append(str(marker))
 
             has_extras = "extra" in convert_markers(marker)

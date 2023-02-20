@@ -185,9 +185,9 @@ class Builder:
                                 source_root=source_root,
                             )
 
-                            if not current_file.is_dir() and not self.is_excluded(
+                            if not (current_file.is_dir() or self.is_excluded(
                                 include_file.relative_to_source_root()
-                            ):
+                            )):
                                 to_add.add(include_file)
                     continue
 

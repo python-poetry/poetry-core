@@ -73,7 +73,7 @@ class PackageInclude(Include):
             self._is_package = True
             self._package = root.parent.name
 
-            if not self.is_stub_only() and not self.has_modules():
+            if not (self.is_stub_only() or self.has_modules()):
                 raise ValueError(f"{root.name} is not a package.")
 
         else:
@@ -82,7 +82,7 @@ class PackageInclude(Include):
                 self._package = root.name
                 self._elements: list[Path] = sorted(root.glob("**/*"))
 
-                if not self.is_stub_only() and not self.has_modules():
+                if not (self.is_stub_only() or self.has_modules()):
                     raise ValueError(f"{root.name} is not a package.")
 
                 self._is_package = True

@@ -76,7 +76,7 @@ class VersionRangeConstraint(VersionConstraint):
         if self.full_max > other.min:
             return False
 
-        return not self.include_max or not other.include_min
+        return not (self.include_max and other.include_min)
 
     def is_strictly_higher(self, other: VersionRangeConstraint) -> bool:
         return other.is_strictly_lower(self)

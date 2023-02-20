@@ -182,7 +182,7 @@ class Parser:
         if not last:
             return False
 
-        if not isinstance(item, Whitespace) or not isinstance(last, Whitespace):
+        if not (isinstance(item, Whitespace) and isinstance(last, Whitespace)):
             return False
 
         start = self._idx - (len(last.s) + len(item.s))
