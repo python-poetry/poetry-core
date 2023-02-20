@@ -626,21 +626,21 @@ class Package(PackageSpecification):
         args = [repr(self._name), repr(self._version.text)]
 
         if self._features:
-            args.append(f"features={repr(self._features)}")
+            args.append(f"features={self._features!r}")
 
         if self._source_type:
-            args.append(f"source_type={repr(self._source_type)}")
-            args.append(f"source_url={repr(self._source_url)}")
+            args.append(f"source_type={self._source_type!r}")
+            args.append(f"source_url={self._source_url!r}")
 
             if self._source_reference:
-                args.append(f"source_reference={repr(self._source_reference)}")
+                args.append(f"source_reference={self._source_reference!r}")
 
             if self._source_resolved_reference:
                 args.append(
-                    f"source_resolved_reference={repr(self._source_resolved_reference)}"
+                    f"source_resolved_reference={self._source_resolved_reference!r}"
                 )
             if self._source_subdirectory:
-                args.append(f"source_subdirectory={repr(self._source_subdirectory)}")
+                args.append(f"source_subdirectory={self._source_subdirectory!r}")
 
         args_str = ", ".join(args)
         return f"Package({args_str})"

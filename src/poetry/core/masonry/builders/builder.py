@@ -203,7 +203,7 @@ class Builder:
                 if file.suffix == ".pyc":
                     continue
 
-                logger.debug(f"Adding: {str(file)}")
+                logger.debug(f"Adding: {file}")
                 to_add.add(include_file)
 
         # add build script if it is specified and explicitly required
@@ -236,16 +236,16 @@ class Builder:
             content += f"Keywords: {self._meta.keywords}\n"
 
         if self._meta.author:
-            content += f"Author: {str(self._meta.author)}\n"
+            content += f"Author: {self._meta.author}\n"
 
         if self._meta.author_email:
-            content += f"Author-email: {str(self._meta.author_email)}\n"
+            content += f"Author-email: {self._meta.author_email}\n"
 
         if self._meta.maintainer:
-            content += f"Maintainer: {str(self._meta.maintainer)}\n"
+            content += f"Maintainer: {self._meta.maintainer}\n"
 
         if self._meta.maintainer_email:
-            content += f"Maintainer-email: {str(self._meta.maintainer_email)}\n"
+            content += f"Maintainer-email: {self._meta.maintainer_email}\n"
 
         if self._meta.requires_python:
             content += f"Requires-Python: {self._meta.requires_python}\n"
@@ -260,7 +260,7 @@ class Builder:
             content += f"Requires-Dist: {dep}\n"
 
         for url in sorted(self._meta.project_urls, key=lambda u: u[0]):
-            content += f"Project-URL: {str(url)}\n"
+            content += f"Project-URL: {url}\n"
 
         if self._meta.description_content_type:
             content += (
@@ -268,7 +268,7 @@ class Builder:
             )
 
         if self._meta.description is not None:
-            content += "\n" + str(self._meta.description) + "\n"
+            content += f"\n{self._meta.description}\n"
 
         return content
 

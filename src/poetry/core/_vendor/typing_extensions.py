@@ -608,7 +608,7 @@ else:
                         base.__name__ in _PROTO_WHITELIST or
                         isinstance(base, _ProtocolMeta) and base._is_protocol):
                     raise TypeError('Protocols can only inherit from other'
-                                    f' protocols, got {repr(base)}')
+                                    f' protocols, got {base!r}')
             cls.__init__ = _no_init
 
 

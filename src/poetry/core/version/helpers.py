@@ -34,7 +34,7 @@ def format_python_constraint(constraint: VersionConstraint) -> str:
     """
     if isinstance(constraint, Version):
         if constraint.precision >= 3:
-            return f"=={str(constraint)}"
+            return f"=={constraint}"
 
         # Transform 3.6 or 3
         if constraint.precision == 2:

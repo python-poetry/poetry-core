@@ -92,7 +92,7 @@ class BaseMarker(ABC):
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {str(self)}>"
+        return f"<{self.__class__.__name__} {self}>"
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -563,7 +563,7 @@ class MultiMarker(BaseMarker):
             if isinstance(m, (SingleMarker, MultiMarker)):
                 elements.append(str(m))
             else:
-                elements.append(f"({str(m)})")
+                elements.append(f"({m})")
 
         return " and ".join(elements)
 

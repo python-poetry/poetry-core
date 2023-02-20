@@ -238,7 +238,7 @@ class Dependency(PackageSpecification):
                 # This branch is a short-circuit logic for special cases and
                 # avoids having to split and parse constraint again. This has
                 # no functional difference with the logic in the else branch.
-                requirement += f" ({str(constraint)})"
+                requirement += f" ({constraint})"
             else:
                 constraints = ",".join(
                     str(parse_constraint(c)) for c in self.pretty_constraint.split(",")
@@ -491,7 +491,7 @@ class Dependency(PackageSpecification):
         return self.base_pep_508_name
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {str(self)}>"
+        return f"<{self.__class__.__name__} {self}>"
 
 
 def _make_file_or_dir_dep(
