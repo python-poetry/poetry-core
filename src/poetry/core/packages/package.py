@@ -207,9 +207,7 @@ class Package(PackageSpecification):
         return self._dependency_groups[MAIN_GROUP].dependencies
 
     @property
-    def all_requires(
-        self,
-    ) -> list[Dependency]:
+    def all_requires(self,) -> list[Dependency]:
         """
         Returns the main dependencies and group dependencies.
         """
@@ -425,10 +423,7 @@ class Package(PackageSpecification):
 
         return self._dependency_groups[name]
 
-    def add_dependency(
-        self,
-        dependency: Dependency,
-    ) -> Dependency:
+    def add_dependency(self, dependency: Dependency,) -> Dependency:
         from poetry.core.packages.dependency_group import DependencyGroup
 
         for group_name in dependency.groups:

@@ -19,8 +19,10 @@ from ..lexer import Token
 from ..utils import logger
 from ..tree import Tree
 
+
 class ForestNode:
     pass
+
 
 class SymbolNode(ForestNode):
     """
@@ -45,7 +47,19 @@ class SymbolNode(ForestNode):
         is_intermediate: True if this node is an intermediate node.
         priority: The priority of the node's symbol.
     """
-    __slots__ = ('s', 'start', 'end', '_children', 'paths', 'paths_loaded', 'priority', 'is_intermediate', '_hash')
+
+    __slots__ = (
+        "s",
+        "start",
+        "end",
+        "_children",
+        "paths",
+        "paths_loaded",
+        "priority",
+        "is_intermediate",
+        "_hash",
+    )
+
     def __init__(self, s, start, end):
         self.s = s
         self.start = start
@@ -56,7 +70,7 @@ class SymbolNode(ForestNode):
 
         ### We use inf here as it can be safely negated without resorting to conditionals,
         #   unlike None or float('NaN'), and sorts appropriately.
-        self.priority = float('-inf')
+        self.priority = float("-inf")
         self.is_intermediate = isinstance(s, tuple)
         self._hash = hash((self.s, self.start, self.end))
 
@@ -69,11 +83,25 @@ class SymbolNode(ForestNode):
     def load_paths(self):
         for transitive, node in self.paths:
             if transitive.next_titem is not None:
-                vn = SymbolNode(transitive.next_titem.s, transitive.next_titem.start, self.end)
+                vn = SymbolNode(
+                    transitive.next_titem.s, transitive.next_titem.start, self.end
+                )
                 vn.add_path(transitive.next_titem, node)
-                self.add_family(transitive.reduction.rule.origin, transitive.reduction.rule, transitive.reduction.start, transitive.reduction.node, vn)
+                self.add_family(
+                    transitive.reduction.rule.origin,
+                    transitive.reduction.rule,
+                    transitive.reduction.start,
+                    transitive.reduction.node,
+                    vn,
+                )
             else:
-                self.add_family(transitive.reduction.rule.origin, transitive.reduction.rule, transitive.reduction.start, transitive.reduction.node, node)
+                self.add_family(
+                    transitive.reduction.rule.origin,
+                    transitive.reduction.rule,
+                    transitive.reduction.start,
+                    transitive.reduction.node,
+                    node,
+                )
         self.paths_loaded = True
 
     @property
@@ -85,8 +113,9 @@ class SymbolNode(ForestNode):
     def children(self):
         """Returns a list of this node's children sorted from greatest to
         least priority."""
-        if not self.paths_loaded: self.load_paths()
-        return sorted(self._children, key=attrgetter('sort_key'))
+        if not self.paths_loaded:
+            self.load_paths()
+        return sorted(self._children, key=attrgetter("sort_key"))
 
     def __iter__(self):
         return iter(self._children)
@@ -94,7 +123,12 @@ class SymbolNode(ForestNode):
     def __eq__(self, other):
         if not isinstance(other, SymbolNode):
             return False
-        return self is other or (type(self.s) == type(other.s) and self.s == other.s and self.start == other.start and self.end is other.end)
+        return self is other or (
+            type(self.s) == type(other.s)
+            and self.s == other.s
+            and self.start == other.start
+            and self.end is other.end
+        )
 
     def __hash__(self):
         return self._hash
@@ -103,12 +137,15 @@ class SymbolNode(ForestNode):
         if self.is_intermediate:
             rule = self.s[0]
             ptr = self.s[1]
-            before = ( expansion.name for expansion in rule.expansion[:ptr] )
-            after = ( expansion.name for expansion in rule.expansion[ptr:] )
-            symbol = "{} ::= {}* {}".format(rule.origin.name, ' '.join(before), ' '.join(after))
+            before = (expansion.name for expansion in rule.expansion[:ptr])
+            after = (expansion.name for expansion in rule.expansion[ptr:])
+            symbol = "{} ::= {}* {}".format(
+                rule.origin.name, " ".join(before), " ".join(after)
+            )
         else:
             symbol = self.s.name
         return "({}, {}, {}, {})".format(symbol, self.start, self.end, self.priority)
+
 
 class PackedNode(ForestNode):
     """
@@ -121,7 +158,9 @@ class PackedNode(ForestNode):
         right: The right child of this node. ``None`` if one does not exist.
         priority: The priority of this node.
     """
-    __slots__ = ('parent', 's', 'rule', 'start', 'left', 'right', 'priority', '_hash')
+
+    __slots__ = ("parent", "s", "rule", "start", "left", "right", "priority", "_hash")
+
     def __init__(self, parent, s, rule, start, left, right):
         self.parent = parent
         self.s = s
@@ -129,7 +168,7 @@ class PackedNode(ForestNode):
         self.rule = rule
         self.left = left
         self.right = right
-        self.priority = float('-inf')
+        self.priority = float("-inf")
         self._hash = hash((self.left, self.right))
 
     @property
@@ -167,12 +206,17 @@ class PackedNode(ForestNode):
         if isinstance(self.s, tuple):
             rule = self.s[0]
             ptr = self.s[1]
-            before = ( expansion.name for expansion in rule.expansion[:ptr] )
-            after = ( expansion.name for expansion in rule.expansion[ptr:] )
-            symbol = "{} ::= {}* {}".format(rule.origin.name, ' '.join(before), ' '.join(after))
+            before = (expansion.name for expansion in rule.expansion[:ptr])
+            after = (expansion.name for expansion in rule.expansion[ptr:])
+            symbol = "{} ::= {}* {}".format(
+                rule.origin.name, " ".join(before), " ".join(after)
+            )
         else:
             symbol = self.s.name
-        return "({}, {}, {}, {})".format(symbol, self.start, self.priority, self.rule.order)
+        return "({}, {}, {}, {})".format(
+            symbol, self.start, self.priority, self.rule.order
+        )
+
 
 class TokenNode(ForestNode):
     """
@@ -183,7 +227,9 @@ class TokenNode(ForestNode):
         term: The TerminalDef matched by the token.
         priority: The priority of this node.
     """
-    __slots__ = ('token', 'term', 'priority', '_hash')
+
+    __slots__ = ("token", "term", "priority", "_hash")
+
     def __init__(self, token, term, priority=None):
         self.token = token
         self.term = term
@@ -203,6 +249,7 @@ class TokenNode(ForestNode):
 
     def __repr__(self):
         return repr(self.token)
+
 
 class ForestVisitor:
     """
@@ -295,14 +342,14 @@ class ForestVisitor:
 
         # It is much faster to cache these as locals since they are called
         # many times in large parses.
-        vpno = getattr(self, 'visit_packed_node_out')
-        vpni = getattr(self, 'visit_packed_node_in')
-        vsno = getattr(self, 'visit_symbol_node_out')
-        vsni = getattr(self, 'visit_symbol_node_in')
-        vino = getattr(self, 'visit_intermediate_node_out', vsno)
-        vini = getattr(self, 'visit_intermediate_node_in', vsni)
-        vtn = getattr(self, 'visit_token_node')
-        oc = getattr(self, 'on_cycle')
+        vpno = getattr(self, "visit_packed_node_out")
+        vpni = getattr(self, "visit_packed_node_in")
+        vsno = getattr(self, "visit_symbol_node_out")
+        vsni = getattr(self, "visit_symbol_node_in")
+        vino = getattr(self, "visit_intermediate_node_out", vsno)
+        vini = getattr(self, "visit_intermediate_node_in", vsni)
+        vtn = getattr(self, "visit_token_node")
+        oc = getattr(self, "on_cycle")
 
         while input_stack:
             current = next(reversed(input_stack))
@@ -364,6 +411,7 @@ class ForestVisitor:
 
                 input_stack.append(next_node)
 
+
 class ForestTransformer(ForestVisitor):
     """The base class for a bottom-up forest transformation. Most users will
     want to use ``TreeForestTransformer`` instead as it has a friendlier
@@ -390,12 +438,12 @@ class ForestTransformer(ForestVisitor):
 
     def transform(self, root):
         """Perform a transformation on an SPPF."""
-        self.node_stack.append('result')
-        self.data['result'] = []
+        self.node_stack.append("result")
+        self.data["result"] = []
         self.visit(root)
-        assert len(self.data['result']) <= 1
-        if self.data['result']:
-            return self.data['result'][0]
+        assert len(self.data["result"]) <= 1
+        if self.data["result"]:
+            return self.data["result"][0]
 
     def transform_symbol_node(self, node, data):
         """Transform a symbol node."""
@@ -461,6 +509,7 @@ class ForestSumVisitor(ForestVisitor):
     items created during parsing than there are SPPF nodes in the
     final tree.
     """
+
     def __init__(self):
         super(ForestSumVisitor, self).__init__(single_visit=True)
 
@@ -472,20 +521,25 @@ class ForestSumVisitor(ForestVisitor):
         return iter(node.children)
 
     def visit_packed_node_out(self, node):
-        priority = node.rule.options.priority if not node.parent.is_intermediate and node.rule.options.priority else 0
-        priority += getattr(node.right, 'priority', 0)
-        priority += getattr(node.left, 'priority', 0)
+        priority = (
+            node.rule.options.priority
+            if not node.parent.is_intermediate and node.rule.options.priority
+            else 0
+        )
+        priority += getattr(node.right, "priority", 0)
+        priority += getattr(node.left, "priority", 0)
         node.priority = priority
 
     def visit_symbol_node_out(self, node):
         node.priority = max(child.priority for child in node.children)
 
-class PackedData():
+
+class PackedData:
     """Used in transformationss of packed nodes to distinguish the data
     that comes from the left child and the right child.
     """
 
-    class _NoData():
+    class _NoData:
         pass
 
     NO_DATA = _NoData()
@@ -501,6 +555,7 @@ class PackedData():
             else:
                 self.right = data[0]
 
+
 class ForestToParseTree(ForestTransformer):
     """Used by the earley parser when ambiguity equals 'resolve' or
     'explicit'. Transforms an SPPF into an (ambiguous) parse tree.
@@ -514,7 +569,14 @@ class ForestToParseTree(ForestTransformer):
         use_cache: If True, the results of packed node transformations will be cached.
     """
 
-    def __init__(self, tree_class=Tree, callbacks=dict(), prioritizer=ForestSumVisitor(), resolve_ambiguity=True, use_cache=True):
+    def __init__(
+        self,
+        tree_class=Tree,
+        callbacks=dict(),
+        prioritizer=ForestSumVisitor(),
+        resolve_ambiguity=True,
+        use_cache=True,
+    ):
         super(ForestToParseTree, self).__init__()
         self.tree_class = tree_class
         self.callbacks = callbacks
@@ -533,9 +595,12 @@ class ForestToParseTree(ForestTransformer):
         self._cache = {}
 
     def on_cycle(self, node, path):
-        logger.debug("Cycle encountered in the SPPF at node: %s. "
-                "As infinite ambiguities cannot be represented in a tree, "
-                "this family of derivations will be discarded.", node)
+        logger.debug(
+            "Cycle encountered in the SPPF at node: %s. "
+            "As infinite ambiguities cannot be represented in a tree, "
+            "this family of derivations will be discarded.",
+            node,
+        )
         self._cycle_node = node
         self._on_cycle_retreat = True
 
@@ -550,7 +615,7 @@ class ForestToParseTree(ForestTransformer):
     def _collapse_ambig(self, children):
         new_children = []
         for child in children:
-            if hasattr(child, 'data') and child.data == '_ambig':
+            if hasattr(child, "data") and child.data == "_ambig":
                 new_children += child.children
             else:
                 new_children.append(child)
@@ -567,7 +632,7 @@ class ForestToParseTree(ForestTransformer):
         # data is a list of trees where each tree's data is
         # equal to the name of the symbol or one of its aliases.
         if len(data) > 1:
-            return self.tree_class('_ambig', data)
+            return self.tree_class("_ambig", data)
         elif data:
             return data[0]
         return Discard
@@ -590,8 +655,8 @@ class ForestToParseTree(ForestTransformer):
             return r
         self._successful_visits.remove(id(node))
         if len(data) > 1:
-            children = [self.tree_class('_inter', c) for c in data]
-            return self.tree_class('_iambig', children)
+            children = [self.tree_class("_inter", c) for c in data]
+            return self.tree_class("_iambig", children)
         return data[0]
 
     def transform_packed_node(self, node, data):
@@ -634,11 +699,13 @@ class ForestToParseTree(ForestTransformer):
         if not self._on_cycle_retreat:
             self._successful_visits.add(id(node.parent))
 
+
 def handles_ambiguity(func):
     """Decorator for methods of subclasses of ``TreeForestTransformer``.
     Denotes that the method should receive a list of transformed derivations."""
     func.handles_ambiguity = True
     return func
+
 
 class TreeForestTransformer(ForestToParseTree):
     """A ``ForestTransformer`` with a tree ``Transformer``-like interface.
@@ -675,8 +742,16 @@ class TreeForestTransformer(ForestToParseTree):
                           functions are pure and referentially transparent.
     """
 
-    def __init__(self, tree_class=Tree, prioritizer=ForestSumVisitor(), resolve_ambiguity=True, use_cache=False):
-        super(TreeForestTransformer, self).__init__(tree_class, dict(), prioritizer, resolve_ambiguity, use_cache)
+    def __init__(
+        self,
+        tree_class=Tree,
+        prioritizer=ForestSumVisitor(),
+        resolve_ambiguity=True,
+        use_cache=False,
+    ):
+        super(TreeForestTransformer, self).__init__(
+            tree_class, dict(), prioritizer, resolve_ambiguity, use_cache
+        )
 
     def __default__(self, name, data):
         """Default operation on tree (for override).
@@ -692,7 +767,7 @@ class TreeForestTransformer(ForestToParseTree):
         one element.
         """
         if len(data) > 1:
-            return self.tree_class('_ambig', data)
+            return self.tree_class("_ambig", data)
         elif data:
             return data[0]
         return Discard
@@ -708,9 +783,13 @@ class TreeForestTransformer(ForestToParseTree):
         return getattr(self, node.type, self.__default_token__)(node)
 
     def _call_rule_func(self, node, data):
-        name = node.rule.alias or node.rule.options.template_source or node.rule.origin.name
+        name = (
+            node.rule.alias
+            or node.rule.options.template_source
+            or node.rule.origin.name
+        )
         user_func = getattr(self, name, self.__default__)
-        if user_func == self.__default__ or hasattr(user_func, 'handles_ambiguity'):
+        if user_func == self.__default__ or hasattr(user_func, "handles_ambiguity"):
             user_func = partial(self.__default__, name)
         if not self.resolve_ambiguity:
             wrapper = partial(AmbiguousIntermediateExpander, self.tree_class)
@@ -720,9 +799,12 @@ class TreeForestTransformer(ForestToParseTree):
     def _call_ambig_func(self, node, data):
         name = node.s.name
         user_func = getattr(self, name, self.__default_ambig__)
-        if user_func == self.__default_ambig__ or not hasattr(user_func, 'handles_ambiguity'):
+        if user_func == self.__default_ambig__ or not hasattr(
+            user_func, "handles_ambiguity"
+        ):
             user_func = partial(self.__default_ambig__, name)
         return user_func(data)
+
 
 class ForestToPyDotVisitor(ForestVisitor):
     """
@@ -733,10 +815,11 @@ class ForestToPyDotVisitor(ForestVisitor):
     only useful for trivial trees and learning how the SPPF
     is structured.
     """
+
     def __init__(self, rankdir="TB"):
         super(ForestToPyDotVisitor, self).__init__(single_visit=True)
-        self.pydot = import_module('pydot')
-        self.graph = self.pydot.Dot(graph_type='digraph', rankdir=rankdir)
+        self.pydot = import_module("pydot")
+        self.graph = self.pydot.Dot(graph_type="digraph", rankdir=rankdir)
 
     def visit(self, root, filename):
         super(ForestToPyDotVisitor, self).visit(root)
@@ -747,11 +830,17 @@ class ForestToPyDotVisitor(ForestVisitor):
 
     def visit_token_node(self, node):
         graph_node_id = str(id(node))
-        graph_node_label = "\"{}\"".format(node.value.replace('"', '\\"'))
+        graph_node_label = '"{}"'.format(node.value.replace('"', '\\"'))
         graph_node_color = 0x808080
-        graph_node_style = "\"filled,rounded\""
+        graph_node_style = '"filled,rounded"'
         graph_node_shape = "diamond"
-        graph_node = self.pydot.Node(graph_node_id, style=graph_node_style, fillcolor="#{:06x}".format(graph_node_color), shape=graph_node_shape, label=graph_node_label)
+        graph_node = self.pydot.Node(
+            graph_node_id,
+            style=graph_node_style,
+            fillcolor="#{:06x}".format(graph_node_color),
+            shape=graph_node_shape,
+            label=graph_node_label,
+        )
         self.graph.add_node(graph_node)
 
     def visit_packed_node_in(self, node):
@@ -760,7 +849,13 @@ class ForestToPyDotVisitor(ForestVisitor):
         graph_node_color = 0x808080
         graph_node_style = "filled"
         graph_node_shape = "diamond"
-        graph_node = self.pydot.Node(graph_node_id, style=graph_node_style, fillcolor="#{:06x}".format(graph_node_color), shape=graph_node_shape, label=graph_node_label)
+        graph_node = self.pydot.Node(
+            graph_node_id,
+            style=graph_node_style,
+            fillcolor="#{:06x}".format(graph_node_color),
+            shape=graph_node_shape,
+            label=graph_node_label,
+        )
         self.graph.add_node(graph_node)
         yield node.left
         yield node.right
@@ -770,28 +865,46 @@ class ForestToPyDotVisitor(ForestVisitor):
         graph_node = self.graph.get_node(graph_node_id)[0]
         for child in (node.left, node.right):
             if child is not None:
-                child_graph_node_id = str(id(child.token if isinstance(child, TokenNode) else child))
+                child_graph_node_id = str(
+                    id(child.token if isinstance(child, TokenNode) else child)
+                )
                 child_graph_node = self.graph.get_node(child_graph_node_id)[0]
                 self.graph.add_edge(self.pydot.Edge(graph_node, child_graph_node))
             else:
                 #### Try and be above the Python object ID range; probably impl. specific, but maybe this is okay.
-                child_graph_node_id = str(randint(100000000000000000000000000000,123456789012345678901234567890))
+                child_graph_node_id = str(
+                    randint(
+                        100000000000000000000000000000, 123456789012345678901234567890
+                    )
+                )
                 child_graph_node_style = "invis"
-                child_graph_node = self.pydot.Node(child_graph_node_id, style=child_graph_node_style, label="None")
+                child_graph_node = self.pydot.Node(
+                    child_graph_node_id, style=child_graph_node_style, label="None"
+                )
                 child_edge_style = "invis"
                 self.graph.add_node(child_graph_node)
-                self.graph.add_edge(self.pydot.Edge(graph_node, child_graph_node, style=child_edge_style))
+                self.graph.add_edge(
+                    self.pydot.Edge(
+                        graph_node, child_graph_node, style=child_edge_style
+                    )
+                )
 
     def visit_symbol_node_in(self, node):
         graph_node_id = str(id(node))
         graph_node_label = repr(node)
         graph_node_color = 0x808080
-        graph_node_style = "\"filled\""
+        graph_node_style = '"filled"'
         if node.is_intermediate:
             graph_node_shape = "ellipse"
         else:
             graph_node_shape = "rectangle"
-        graph_node = self.pydot.Node(graph_node_id, style=graph_node_style, fillcolor="#{:06x}".format(graph_node_color), shape=graph_node_shape, label=graph_node_label)
+        graph_node = self.pydot.Node(
+            graph_node_id,
+            style=graph_node_style,
+            fillcolor="#{:06x}".format(graph_node_color),
+            shape=graph_node_shape,
+            label=graph_node_label,
+        )
         self.graph.add_node(graph_node)
         return iter(node.children)
 

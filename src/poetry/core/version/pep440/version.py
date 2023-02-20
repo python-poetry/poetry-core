@@ -255,10 +255,7 @@ class PEP440Version:
         else:
             post = ReleaseTag(RELEASE_PHASE_ID_POST)
         return self.__class__(
-            epoch=self.epoch,
-            release=self.release,
-            pre=self.pre,
-            post=post,
+            epoch=self.epoch, release=self.release, pre=self.pre, post=post,
         )
 
     def next_devrelease(self: T) -> T:

@@ -16,13 +16,7 @@ class Token:
 class ParserSyntaxError(Exception):
     """The provided source text could not be parsed correctly."""
 
-    def __init__(
-        self,
-        message: str,
-        *,
-        source: str,
-        span: Tuple[int, int],
-    ) -> None:
+    def __init__(self, message: str, *, source: str, span: Tuple[int, int],) -> None:
         self.span = span
         self.message = message
         self.source = source
@@ -91,10 +85,7 @@ class Tokenizer:
     """
 
     def __init__(
-        self,
-        source: str,
-        *,
-        rules: "Dict[str, Union[str, re.Pattern[str]]]",
+        self, source: str, *, rules: "Dict[str, Union[str, re.Pattern[str]]]",
     ) -> None:
         self.source = source
         self.rules: Dict[str, re.Pattern[str]] = {
@@ -161,9 +152,7 @@ class Tokenizer:
             self.position if span_end is None else span_end,
         )
         raise ParserSyntaxError(
-            message,
-            source=self.source,
-            span=span,
+            message, source=self.source, span=span,
         )
 
     @contextlib.contextmanager
@@ -181,8 +170,7 @@ class Tokenizer:
 
         if not self.check(close_token):
             self.raise_syntax_error(
-                f"Expected closing {close_token}",
-                span_start=open_position,
+                f"Expected closing {close_token}", span_start=open_position,
             )
 
         self.read()

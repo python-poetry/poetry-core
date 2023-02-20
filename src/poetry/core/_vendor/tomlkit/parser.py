@@ -638,10 +638,7 @@ class Parser:
                     self.inc()
                     break
 
-                if (
-                    trailing_comma in (False, None)
-                    and self._current == ","
-                ):
+                if trailing_comma in (False, None) and self._current == ",":
                     # Either the previous key-value pair was not followed by a comma
                     # or the table has an unexpected leading comma.
                     raise self.parse_error(UnexpectedCharError, self._current)
@@ -776,8 +773,7 @@ class Parser:
         # only keep parsing for string if the current character matches the delim
         if self._current != delim.unit:
             raise self.parse_error(
-                InternalParserError,
-                f"Invalid character for string type {delim}",
+                InternalParserError, f"Invalid character for string type {delim}",
             )
 
         # consume the opening/first delim, EOF here is an issue

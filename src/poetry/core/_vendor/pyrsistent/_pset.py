@@ -25,7 +25,8 @@ class PSet(object):
     >>> s3
     pset([1, 3, 4])
     """
-    __slots__ = ('_map', '__weakref__')
+
+    __slots__ = ("_map", "__weakref__")
 
     def __new__(cls, m):
         self = super(PSet, cls).__new__(cls)
@@ -43,9 +44,9 @@ class PSet(object):
 
     def __repr__(self):
         if not self:
-            return 'p' + str(set(self))
+            return "p" + str(set(self))
 
-        return 'pset([{0}])'.format(str(set(self))[1:-1])
+        return "pset([{0}])".format(str(set(self))[1:-1])
 
     def __str__(self):
         return self.__repr__()
@@ -108,7 +109,7 @@ class PSet(object):
         return self
 
     class _Evolver(object):
-        __slots__ = ('_original_pset', '_pmap_evolver')
+        __slots__ = ("_original_pset", "_pmap_evolver")
 
         def __init__(self, original_pset):
             self._original_pset = original_pset
@@ -127,7 +128,7 @@ class PSet(object):
 
         def persistent(self):
             if not self.is_dirty():
-                return  self._original_pset
+                return self._original_pset
 
             return PSet(self._pmap_evolver.persistent())
 
@@ -192,6 +193,7 @@ class PSet(object):
     symmetric_difference = __xor__
 
     isdisjoint = Set.isdisjoint
+
 
 Set.register(PSet)
 Hashable.register(PSet)

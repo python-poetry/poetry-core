@@ -14,10 +14,7 @@ if TYPE_CHECKING:
 
 class Poetry:
     def __init__(
-        self,
-        file: Path,
-        local_config: dict[str, Any],
-        package: ProjectPackage,
+        self, file: Path, local_config: dict[str, Any], package: ProjectPackage,
     ) -> None:
         from poetry.core.pyproject.toml import PyProjectTOML
 

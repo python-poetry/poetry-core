@@ -66,7 +66,10 @@ class _Error(Exception):
 
     def __str__(self):
         essential_for_verbose = (
-            self.validator, self.validator_value, self.instance, self.schema,
+            self.validator,
+            self.validator_value,
+            self.instance,
+            self.schema,
         )
         if any(m is _unset for m in essential_for_verbose):
             return self.message
@@ -137,8 +140,16 @@ class _Error(Exception):
 
     def _contents(self):
         attrs = (
-            "message", "cause", "context", "validator", "validator_value",
-            "path", "schema_path", "instance", "schema", "parent",
+            "message",
+            "cause",
+            "context",
+            "validator",
+            "validator_value",
+            "path",
+            "schema_path",
+            "instance",
+            "schema",
+            "parent",
         )
         return dict((attr, getattr(self, attr)) for attr in attrs)
 
@@ -328,6 +339,7 @@ def by_relevance(weak=WEAK_MATCHES, strong=STRONG_MATCHES):
             a collection of validation keywords to consider to be
             "strong"
     """
+
     def relevance(error):
         validator = error.validator
         return (
@@ -336,6 +348,7 @@ def by_relevance(weak=WEAK_MATCHES, strong=STRONG_MATCHES):
             validator in strong,
             not error._matches_type(),
         )
+
     return relevance
 
 

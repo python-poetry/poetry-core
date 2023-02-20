@@ -79,9 +79,7 @@ def cmp_using(
         num_order_functions += 1
         body["__ge__"] = _make_operator("ge", ge)
 
-    type_ = types.new_class(
-        class_name, (object,), {}, lambda ns: ns.update(body)
-    )
+    type_ = types.new_class(class_name, (object,), {}, lambda ns: ns.update(body))
 
     # Add same type requirement.
     if require_same_type:
@@ -131,9 +129,7 @@ def _make_operator(name, func):
         return result
 
     method.__name__ = f"__{name}__"
-    method.__doc__ = (
-        f"Return a {_operation_names[name]} b.  Computed by attrs."
-    )
+    method.__doc__ = f"Return a {_operation_names[name]} b.  Computed by attrs."
 
     return method
 

@@ -495,10 +495,7 @@ class Dependency(PackageSpecification):
 
 
 def _make_file_or_dir_dep(
-    name: str,
-    path: Path,
-    base: Path | None = None,
-    extras: list[str] | None = None,
+    name: str, path: Path, base: Path | None = None, extras: list[str] | None = None,
 ) -> FileDependency | DirectoryDependency | None:
     """
     Helper function to create a file or directoru dependency with the given arguments. If

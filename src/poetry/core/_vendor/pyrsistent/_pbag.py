@@ -30,7 +30,7 @@ class PBag(object):
     pbag([1, 2, 3, 4])
     """
 
-    __slots__ = ('_counts', '__weakref__')
+    __slots__ = ("_counts", "__weakref__")
 
     def __init__(self, counts):
         self._counts = counts
@@ -145,7 +145,7 @@ class PBag(object):
         return self._counts == other._counts
 
     def __lt__(self, other):
-        raise TypeError('PBags are not orderable')
+        raise TypeError("PBags are not orderable")
 
     __le__ = __lt__
     __gt__ = __lt__
@@ -264,4 +264,3 @@ def pbag(elements):
 
 
 _EMPTY_PBAG = PBag(pmap())
-

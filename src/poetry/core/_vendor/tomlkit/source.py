@@ -158,10 +158,7 @@ class Source(str):
         self._marker = self._idx
 
     def parse_error(
-        self,
-        exception: Type[ParseError] = ParseError,
-        *args: Any,
-        **kwargs: Any,
+        self, exception: Type[ParseError] = ParseError, *args: Any, **kwargs: Any,
     ) -> ParseError:
         """
         Creates a generic "parse error" at the current position.

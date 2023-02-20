@@ -5,6 +5,7 @@ import json
 import os
 import re
 
+
 class URIDict(MutableMapping):
     """
     Dictionary which uses normalized URIs as keys.
@@ -51,7 +52,7 @@ def load_schema(name):
     """
     with open(
         os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name)),
-        encoding="utf-8"
+        encoding="utf-8",
     ) as f:
         data = f.read()
 
@@ -129,10 +130,7 @@ def _mapping_equal(one, two):
     """
     if len(one) != len(two):
         return False
-    return all(
-        key in two and equal(value, two[key])
-        for key, value in one.items()
-    )
+    return all(key in two and equal(value, two[key]) for key, value in one.items())
 
 
 def _sequence_equal(one, two):
@@ -285,7 +283,9 @@ def find_evaluated_property_keys_by_schema(validator, instance, schema):
             validator.resolver.pop_scope()
 
     for keyword in [
-        "properties", "additionalProperties", "unevaluatedProperties",
+        "properties",
+        "additionalProperties",
+        "unevaluatedProperties",
     ]:
         if keyword in schema:
             if validator.is_type(schema[keyword], "boolean"):

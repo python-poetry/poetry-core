@@ -39,10 +39,7 @@ class FormatChecker:
             limit which formats will be used during validation.
     """
 
-    checkers: dict[
-        str,
-        tuple[_FormatCheckCallable, _RaisesType],
-    ] = {}
+    checkers: dict[str, tuple[_FormatCheckCallable, _RaisesType],] = {}
 
     def __init__(self, formats: typing.Iterable[str] | None = None):
         if formats is None:
@@ -209,19 +206,14 @@ def _checks_drafts(
         if draft7:
             func = _draft_checkers["draft7"].checks(draft7, raises)(func)
         if draft201909:
-            func = _draft_checkers["draft201909"].checks(draft201909, raises)(
-                func,
-            )
+            func = _draft_checkers["draft201909"].checks(draft201909, raises)(func,)
         if draft202012:
-            func = _draft_checkers["draft202012"].checks(draft202012, raises)(
-                func,
-            )
+            func = _draft_checkers["draft202012"].checks(draft202012, raises)(func,)
 
         # Oy. This is bad global state, but relied upon for now, until
         # deprecation. See #519 and test_format_checkers_come_with_defaults
         FormatChecker._cls_checks(
-            draft202012 or draft201909 or draft7 or draft6 or draft4 or draft3,
-            raises,
+            draft202012 or draft201909 or draft7 or draft6 or draft4 or draft3, raises,
         )(func)
         return func
 
@@ -317,13 +309,11 @@ except ImportError:
                 return True
             return validate_rfc3986(instance, rule="URI_reference")
 
+
 else:
 
     @_checks_drafts(
-        draft7="iri",
-        draft201909="iri",
-        draft202012="iri",
-        raises=ValueError,
+        draft7="iri", draft201909="iri", draft202012="iri", raises=ValueError,
     )
     def is_iri(instance: object) -> bool:
         if not isinstance(instance, str):
@@ -370,9 +360,7 @@ with suppress(ImportError):
         return validate_rfc3339(instance.upper())
 
     @_checks_drafts(
-        draft7="time",
-        draft201909="time",
-        draft202012="time",
+        draft7="time", draft201909="time", draft202012="time",
     )
     def is_time(instance: object) -> bool:
         if not isinstance(instance, str):
@@ -416,10 +404,7 @@ with suppress(ImportError):
 
     @_checks_drafts(draft3="color", raises=(ValueError, TypeError))
     def is_css21_color(instance: object) -> bool:
-        if (
-            not isinstance(instance, str)
-            or instance.lower() in CSS21_NAMES_TO_HEX
-        ):
+        if not isinstance(instance, str) or instance.lower() in CSS21_NAMES_TO_HEX:
             return True
         return is_css_color_code(instance)
 
@@ -507,9 +492,7 @@ with suppress(ImportError):
 
 
 @_checks_drafts(
-    draft201909="uuid",
-    draft202012="uuid",
-    raises=ValueError,
+    draft201909="uuid", draft202012="uuid", raises=ValueError,
 )
 def is_uuid(instance: object) -> bool:
     if not isinstance(instance, str):

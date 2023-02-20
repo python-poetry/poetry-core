@@ -115,12 +115,7 @@ def asdict(
 
 
 def _asdict_anything(
-    val,
-    is_key,
-    filter,
-    dict_factory,
-    retain_collection_types,
-    value_serializer,
+    val, is_key, filter, dict_factory, retain_collection_types, value_serializer,
 ):
     """
     ``asdict`` only works on attrs instances, this works on anything.
@@ -188,11 +183,7 @@ def _asdict_anything(
 
 
 def astuple(
-    inst,
-    recurse=True,
-    filter=None,
-    tuple_factory=tuple,
-    retain_collection_types=False,
+    inst, recurse=True, filter=None, tuple_factory=tuple, retain_collection_types=False,
 ):
     """
     Return the ``attrs`` attribute values of *inst* as a tuple.

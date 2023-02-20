@@ -381,8 +381,7 @@ class SingleMarker(BaseMarker):
 
 
 def _flatten_markers(
-    markers: Iterable[BaseMarker],
-    flatten_class: type[MarkerUnion | MultiMarker],
+    markers: Iterable[BaseMarker], flatten_class: type[MarkerUnion | MultiMarker],
 ) -> list[BaseMarker]:
     flattened = []
 

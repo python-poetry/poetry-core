@@ -15,10 +15,7 @@ class UnionConstraint(BaseConstraint):
     def constraints(self) -> tuple[BaseConstraint, ...]:
         return self._constraints
 
-    def allows(
-        self,
-        other: BaseConstraint,
-    ) -> bool:
+    def allows(self, other: BaseConstraint,) -> bool:
         return any(constraint.allows(other) for constraint in self._constraints)
 
     def allows_any(self, other: BaseConstraint) -> bool:
@@ -83,10 +80,7 @@ class UnionConstraint(BaseConstraint):
                 for their_constraint in other.constraints:
                     intersection = our_constraint.intersect(their_constraint)
 
-                    if not (
-                        intersection.is_empty()
-                        or intersection in new_constraints
-                    ):
+                    if not (intersection.is_empty() or intersection in new_constraints):
                         new_constraints.append(intersection)
 
         else:

@@ -43,16 +43,11 @@ def constraint_regions(constraints: list[VersionConstraint]) -> list[VersionRang
 
     for low, high in zip(edges, edges[1:]):
         version_range = VersionRange(
-            low[0],
-            high[0],
-            include_min=not low[1],
-            include_max=high[1],
+            low[0], high[0], include_min=not low[1], include_max=high[1],
         )
         regions.append(version_range)
 
     end = edges[-1]
-    regions.append(
-        VersionRange(end[0], None, include_min=not end[1]),
-    )
+    regions.append(VersionRange(end[0], None, include_min=not end[1]),)
 
     return regions

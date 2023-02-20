@@ -15,10 +15,7 @@ from jsonschema.exceptions import UndefinedTypeCheck
 # the concrete type of a type checker mapping
 # this "do nothing" wrapper presents the correct information to mypy
 def _typed_pmap_converter(
-    init_val: typing.Mapping[
-        str,
-        typing.Callable[["TypeChecker", typing.Any], bool],
-    ],
+    init_val: typing.Mapping[str, typing.Callable[["TypeChecker", typing.Any], bool],],
 ) -> PMap[str, typing.Callable[["TypeChecker", typing.Any], bool]]:
     return pmap(init_val)
 
@@ -85,8 +82,7 @@ class TypeChecker:
     _type_checkers: PMap[
         str, typing.Callable[["TypeChecker", typing.Any], bool],
     ] = attr.ib(
-        default=pmap(),
-        converter=_typed_pmap_converter,
+        default=pmap(), converter=_typed_pmap_converter,
     )
 
     def __repr__(self):
@@ -195,7 +191,8 @@ draft6_type_checker = draft4_type_checker.redefine(
     "integer",
     lambda checker, instance: (
         is_integer(checker, instance)
-        or isinstance(instance, float) and instance.is_integer()
+        or isinstance(instance, float)
+        and instance.is_integer()
     ),
 )
 draft7_type_checker = draft6_type_checker

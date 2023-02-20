@@ -1,11 +1,22 @@
 import sys
 from copy import deepcopy
 
-from typing import List, Callable, Iterator, Union, Optional, Generic, TypeVar, Any, TYPE_CHECKING
+from typing import (
+    List,
+    Callable,
+    Iterator,
+    Union,
+    Optional,
+    Generic,
+    TypeVar,
+    Any,
+    TYPE_CHECKING,
+)
 
 if TYPE_CHECKING:
     from .lexer import TerminalDef, Token
     import rich
+
     if sys.version_info >= (3, 8):
         from typing import Literal
     else:
@@ -13,6 +24,7 @@ if TYPE_CHECKING:
 
 ###{standalone
 from collections import OrderedDict
+
 
 class Meta:
 
@@ -23,7 +35,7 @@ class Meta:
     end_line: int
     end_column: int
     end_pos: int
-    orig_expansion: 'List[TerminalDef]'
+    orig_expansion: "List[TerminalDef]"
     match_tree: bool
 
     def __init__(self):
@@ -31,7 +43,7 @@ class Meta:
 
 
 _Leaf_T = TypeVar("_Leaf_T")
-Branch = Union[_Leaf_T, 'Tree[_Leaf_T]']
+Branch = Union[_Leaf_T, "Tree[_Leaf_T]"]
 
 
 class Tree(Generic[_Leaf_T]):
@@ -48,9 +60,11 @@ class Tree(Generic[_Leaf_T]):
     """
 
     data: str
-    children: 'List[Branch[_Leaf_T]]'
+    children: "List[Branch[_Leaf_T]]"
 
-    def __init__(self, data: str, children: 'List[Branch[_Leaf_T]]', meta: Optional[Meta]=None) -> None:
+    def __init__(
+        self, data: str, children: "List[Branch[_Leaf_T]]", meta: Optional[Meta] = None
+    ) -> None:
         self.data = data
         self.children = children
         self._meta = meta
@@ -62,31 +76,31 @@ class Tree(Generic[_Leaf_T]):
         return self._meta
 
     def __repr__(self):
-        return 'Tree(%r, %r)' % (self.data, self.children)
+        return "Tree(%r, %r)" % (self.data, self.children)
 
     def _pretty_label(self):
         return self.data
 
     def _pretty(self, level, indent_str):
-        yield f'{indent_str*level}{self._pretty_label()}'
+        yield f"{indent_str*level}{self._pretty_label()}"
         if len(self.children) == 1 and not isinstance(self.children[0], Tree):
-            yield f'\t{self.children[0]}\n'
+            yield f"\t{self.children[0]}\n"
         else:
-            yield '\n'
+            yield "\n"
             for n in self.children:
                 if isinstance(n, Tree):
-                    yield from n._pretty(level+1, indent_str)
+                    yield from n._pretty(level + 1, indent_str)
                 else:
-                    yield f'{indent_str*(level+1)}{n}\n'
+                    yield f"{indent_str*(level+1)}{n}\n"
 
-    def pretty(self, indent_str: str='  ') -> str:
+    def pretty(self, indent_str: str = "  ") -> str:
         """Returns an indented string representation of the tree.
 
         Great for debugging.
         """
-        return ''.join(self._pretty(0, indent_str))
+        return "".join(self._pretty(0, indent_str))
 
-    def __rich__(self, parent:'rich.tree.Tree'=None) -> 'rich.tree.Tree':
+    def __rich__(self, parent: "rich.tree.Tree" = None) -> "rich.tree.Tree":
         """Returns a tree widget for the 'rich' library.
 
         Example:
@@ -101,16 +115,17 @@ class Tree(Generic[_Leaf_T]):
 
     def _rich(self, parent):
         if parent:
-            tree = parent.add(f'[bold]{self.data}[/bold]')
+            tree = parent.add(f"[bold]{self.data}[/bold]")
         else:
             import rich.tree
+
             tree = rich.tree.Tree(self.data)
 
         for c in self.children:
             if isinstance(c, Tree):
                 c._rich(tree)
             else:
-                tree.add(f'[green]{c}[/green]')
+                tree.add(f"[green]{c}[/green]")
 
         return tree
 
@@ -126,7 +141,7 @@ class Tree(Generic[_Leaf_T]):
     def __hash__(self) -> int:
         return hash((self.data, tuple(self.children)))
 
-    def iter_subtrees(self) -> 'Iterator[Tree[_Leaf_T]]':
+    def iter_subtrees(self) -> "Iterator[Tree[_Leaf_T]]":
         """Depth-first iteration.
 
         Iterates over all the subtrees, never returning to the same node twice (Lark's parse-tree is actually a DAG).
@@ -136,8 +151,11 @@ class Tree(Generic[_Leaf_T]):
         for subtree in queue:
             subtrees[id(subtree)] = subtree
             # Reason for type ignore https://github.com/python/mypy/issues/10999
-            queue += [c for c in reversed(subtree.children)  # type: ignore[misc]
-                      if isinstance(c, Tree) and id(c) not in subtrees]
+            queue += [
+                c
+                for c in reversed(subtree.children)  # type: ignore[misc]
+                if isinstance(c, Tree) and id(c) not in subtrees
+            ]
 
         del queue
         return reversed(list(subtrees.values()))
@@ -158,28 +176,31 @@ class Tree(Generic[_Leaf_T]):
             for child in reversed(node.children):
                 stack_append(child)
 
-    def find_pred(self, pred: 'Callable[[Tree[_Leaf_T]], bool]') -> 'Iterator[Tree[_Leaf_T]]':
+    def find_pred(
+        self, pred: "Callable[[Tree[_Leaf_T]], bool]"
+    ) -> "Iterator[Tree[_Leaf_T]]":
         """Returns all nodes of the tree that evaluate pred(node) as true."""
         return filter(pred, self.iter_subtrees())
 
-    def find_data(self, data: str) -> 'Iterator[Tree[_Leaf_T]]':
+    def find_data(self, data: str) -> "Iterator[Tree[_Leaf_T]]":
         """Returns all nodes of the tree whose data equals the given data."""
         return self.find_pred(lambda t: t.data == data)
 
-###}
+    ###}
 
     def expand_kids_by_data(self, *data_values):
         """Expand (inline) children with any of the given data values. Returns True if anything changed"""
         changed = False
-        for i in range(len(self.children)-1, -1, -1):
+        for i in range(len(self.children) - 1, -1, -1):
             child = self.children[i]
             if isinstance(child, Tree) and child.data in data_values:
-                self.children[i:i+1] = child.children
+                self.children[i : i + 1] = child.children
                 changed = True
         return changed
 
-
-    def scan_values(self, pred: 'Callable[[Branch[_Leaf_T]], bool]') -> Iterator[_Leaf_T]:
+    def scan_values(
+        self, pred: "Callable[[Branch[_Leaf_T]], bool]"
+    ) -> Iterator[_Leaf_T]:
         """Return all values in the tree that evaluate pred(value) as true.
 
         This can be used to find all the tokens in the tree.
@@ -198,22 +219,27 @@ class Tree(Generic[_Leaf_T]):
     def __deepcopy__(self, memo):
         return type(self)(self.data, deepcopy(self.children, memo), meta=self._meta)
 
-    def copy(self) -> 'Tree[_Leaf_T]':
+    def copy(self) -> "Tree[_Leaf_T]":
         return type(self)(self.data, self.children)
 
-    def set(self, data: str, children: 'List[Branch[_Leaf_T]]') -> None:
+    def set(self, data: str, children: "List[Branch[_Leaf_T]]") -> None:
         self.data = data
         self.children = children
 
 
-ParseTree = Tree['Token']
+ParseTree = Tree["Token"]
 
 
 class SlottedTree(Tree):
-    __slots__ = 'data', 'children', 'rule', '_meta'
+    __slots__ = "data", "children", "rule", "_meta"
 
 
-def pydot__tree_to_png(tree: Tree, filename: str, rankdir: 'Literal["TB", "LR", "BT", "RL"]'="LR", **kwargs) -> None:
+def pydot__tree_to_png(
+    tree: Tree,
+    filename: str,
+    rankdir: 'Literal["TB", "LR", "BT", "RL"]' = "LR",
+    **kwargs,
+) -> None:
     graph = pydot__tree_to_graph(tree, rankdir, **kwargs)
     graph.write_png(filename)
 
@@ -235,7 +261,8 @@ def pydot__tree_to_graph(tree: Tree, rankdir="LR", **kwargs):
     """
 
     import pydot  # type: ignore[import]
-    graph = pydot.Dot(graph_type='digraph', rankdir=rankdir, **kwargs)
+
+    graph = pydot.Dot(graph_type="digraph", rankdir=rankdir, **kwargs)
 
     i = [0]
 
@@ -246,12 +273,16 @@ def pydot__tree_to_graph(tree: Tree, rankdir="LR", **kwargs):
         return node
 
     def _to_pydot(subtree):
-        color = hash(subtree.data) & 0xffffff
+        color = hash(subtree.data) & 0xFFFFFF
         color |= 0x808080
 
-        subnodes = [_to_pydot(child) if isinstance(child, Tree) else new_leaf(child)
-                    for child in subtree.children]
-        node = pydot.Node(i[0], style="filled", fillcolor="#%x" % color, label=subtree.data)
+        subnodes = [
+            _to_pydot(child) if isinstance(child, Tree) else new_leaf(child)
+            for child in subtree.children
+        ]
+        node = pydot.Node(
+            i[0], style="filled", fillcolor="#%x" % color, label=subtree.data
+        )
         i[0] += 1
         graph.add_node(node)
 

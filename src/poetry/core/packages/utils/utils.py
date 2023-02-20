@@ -197,8 +197,7 @@ def contains_group_without_marker(markers: ConvertedMarkers, marker_name: str) -
 
 
 def create_nested_marker(
-    name: str,
-    constraint: BaseConstraint | VersionConstraint,
+    name: str, constraint: BaseConstraint | VersionConstraint,
 ) -> str:
     from poetry.core.constraints.generic import Constraint
     from poetry.core.constraints.generic import MultiConstraint
@@ -291,9 +290,7 @@ def create_nested_marker(
     return marker
 
 
-def get_python_constraint_from_marker(
-    marker: BaseMarker,
-) -> VersionConstraint:
+def get_python_constraint_from_marker(marker: BaseMarker,) -> VersionConstraint:
     from poetry.core.constraints.version import EmptyConstraint
     from poetry.core.constraints.version import VersionRange
 

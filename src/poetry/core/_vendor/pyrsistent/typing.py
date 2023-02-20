@@ -26,20 +26,20 @@ with suppress(ImportError):
     from typing import TypeVar
 
     __all__ = (
-        'CheckedPMap',
-        'CheckedPSet',
-        'CheckedPVector',
-        'PBag',
-        'PDeque',
-        'PList',
-        'PMap',
-        'PSet',
-        'PVector',
+        "CheckedPMap",
+        "CheckedPSet",
+        "CheckedPVector",
+        "PBag",
+        "PDeque",
+        "PList",
+        "PMap",
+        "PSet",
+        "PVector",
     )
 
-    T = TypeVar('T')
-    KT = TypeVar('KT')
-    VT = TypeVar('VT')
+    T = TypeVar("T")
+    KT = TypeVar("KT")
+    VT = TypeVar("VT")
 
     class CheckedPMap(Mapping[KT, VT], Hashable):
         pass

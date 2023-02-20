@@ -1,7 +1,7 @@
 import sys
 
 
-def immutable(members='', name='Immutable', verbose=False):
+def immutable(members="", name="Immutable", verbose=False):
     """
     Produces a class that either can be used standalone or as a base class for persistent classes.
 
@@ -47,20 +47,22 @@ def immutable(members='', name='Immutable', verbose=False):
     """
 
     if isinstance(members, str):
-        members = members.replace(',', ' ').split()
+        members = members.replace(",", " ").split()
 
     def frozen_member_test():
-        frozen_members = ["'%s'" % f for f in members if f.endswith('_')]
+        frozen_members = ["'%s'" % f for f in members if f.endswith("_")]
         if frozen_members:
             return """
         frozen_fields = fields_to_modify & set([{frozen_members}])
         if frozen_fields:
             raise AttributeError('Cannot set frozen members %s' % ', '.join(frozen_fields))
-            """.format(frozen_members=', '.join(frozen_members))
+            """.format(
+                frozen_members=", ".join(frozen_members)
+            )
 
-        return ''
+        return ""
 
-    quoted_members = ', '.join("'%s'" % m for m in members)
+    quoted_members = ", ".join("'%s'" % m for m in members)
     template = """
 class {class_name}(namedtuple('ImmutableBase', [{quoted_members}])):
     __slots__ = tuple()
@@ -79,19 +81,22 @@ class {class_name}(namedtuple('ImmutableBase', [{quoted_members}])):
         {frozen_member_test}
 
         return self.__class__.__new__(self.__class__, *map(kwargs.pop, [{quoted_members}], self))
-""".format(quoted_members=quoted_members,
-               member_set="set([%s])" % quoted_members if quoted_members else 'set()',
-               frozen_member_test=frozen_member_test(),
-               class_name=name)
+""".format(
+        quoted_members=quoted_members,
+        member_set="set([%s])" % quoted_members if quoted_members else "set()",
+        frozen_member_test=frozen_member_test(),
+        class_name=name,
+    )
 
     if verbose:
         print(template)
 
     from collections import namedtuple
-    namespace = dict(namedtuple=namedtuple, __name__='pyrsistent_immutable')
+
+    namespace = dict(namedtuple=namedtuple, __name__="pyrsistent_immutable")
     try:
         exec(template, namespace)
     except SyntaxError as e:
-        raise SyntaxError(str(e) + ':\n' + template) from e
+        raise SyntaxError(str(e) + ":\n" + template) from e
 
     return namespace[name]

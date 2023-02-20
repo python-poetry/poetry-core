@@ -108,16 +108,12 @@ class _PrettyFormatter:
             traceback.format_exception(exc_type, exc_value, exc_traceback),
         )
         return self._ERROR_MSG.format(
-            path=path,
-            type=exc_type.__name__,
-            body=exc_lines,
+            path=path, type=exc_type.__name__, body=exc_lines,
         )
 
     def validation_error(self, instance_path, error):
         return self._ERROR_MSG.format(
-            path=instance_path,
-            type=error.__class__.__name__,
-            body=error,
+            path=instance_path, type=error.__class__.__name__, body=error,
         )
 
     def validation_success(self, instance_path):
@@ -134,8 +130,7 @@ class _PlainFormatter:
 
     def parsing_error(self, path, exc_info):
         return "Failed to parse {}: {}\n".format(
-            "<stdin>" if path == "<stdin>" else repr(path),
-            exc_info[1],
+            "<stdin>" if path == "<stdin>" else repr(path), exc_info[1],
         )
 
     def validation_error(self, instance_path, error):
@@ -151,11 +146,10 @@ def _resolve_name_with_default(name):
     return resolve_name(name)
 
 
-parser = argparse.ArgumentParser(
-    description="JSON Schema Validation CLI",
-)
+parser = argparse.ArgumentParser(description="JSON Schema Validation CLI",)
 parser.add_argument(
-    "-i", "--instance",
+    "-i",
+    "--instance",
     action="append",
     dest="instances",
     help="""
@@ -165,7 +159,8 @@ parser.add_argument(
     """,
 )
 parser.add_argument(
-    "-F", "--error-format",
+    "-F",
+    "--error-format",
     help="""
         the format to use for each validation error message, specified
         in a form suitable for str.format. This string will be passed
@@ -176,7 +171,8 @@ parser.add_argument(
     """,
 )
 parser.add_argument(
-    "-o", "--output",
+    "-o",
+    "--output",
     choices=["plain", "pretty"],
     default="plain",
     help="""
@@ -186,7 +182,8 @@ parser.add_argument(
     """,
 )
 parser.add_argument(
-    "-V", "--validator",
+    "-V",
+    "--validator",
     type=_resolve_name_with_default,
     help="""
         the fully qualified object name of a validator to use, or, for
@@ -203,22 +200,17 @@ parser.add_argument(
     """,
 )
 parser.add_argument(
-    "--version",
-    action="version",
-    version=metadata.version("jsonschema"),
+    "--version", action="version", version=metadata.version("jsonschema"),
 )
 parser.add_argument(
-    "schema",
-    help="the path to a JSON Schema to validate with (i.e. schema.json)",
+    "schema", help="the path to a JSON Schema to validate with (i.e. schema.json)",
 )
 
 
 def parse_args(args):
     arguments = vars(parser.parse_args(args=args or ["--help"]))
     if arguments["output"] != "plain" and arguments["error_format"]:
-        raise parser.error(
-            "--error-format can only be used with --output plain",
-        )
+        raise parser.error("--error-format can only be used with --output plain",)
     if arguments["output"] == "plain" and arguments["error_format"] is None:
         arguments["error_format"] = "{error.instance}: {error.message}\n"
     return arguments
@@ -241,9 +233,7 @@ def main(args=sys.argv[1:]):
 
 def run(arguments, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin):
     outputter = _Outputter.from_arguments(
-        arguments=arguments,
-        stdout=stdout,
-        stderr=stderr,
+        arguments=arguments, stdout=stdout, stderr=stderr,
     )
 
     try:
@@ -258,14 +248,14 @@ def run(arguments, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin):
         arguments["validator"].check_schema(schema)
     except SchemaError as error:
         outputter.validation_error(
-            instance_path=arguments["schema"],
-            error=error,
+            instance_path=arguments["schema"], error=error,
         )
         return 1
 
     if arguments["instances"]:
         load, instances = outputter.load, arguments["instances"]
     else:
+
         def load(_):
             try:
                 return json.load(stdin)
@@ -274,12 +264,14 @@ def run(arguments, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin):
                     path="<stdin>", exc_info=sys.exc_info(),
                 )
                 raise _CannotLoadFile
+
         instances = ["<stdin>"]
 
-    resolver = RefResolver(
-        base_uri=arguments["base_uri"],
-        referrer=schema,
-    ) if arguments["base_uri"] is not None else None
+    resolver = (
+        RefResolver(base_uri=arguments["base_uri"], referrer=schema,)
+        if arguments["base_uri"] is not None
+        else None
+    )
 
     validator = arguments["validator"](schema, resolver=resolver)
     exit_code = 0
