@@ -3,22 +3,22 @@ from __future__ import annotations
 
 class BaseConstraint:
     def allows(self, other: BaseConstraint) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def allows_all(self, other: BaseConstraint) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def allows_any(self, other: BaseConstraint) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def difference(self, other: BaseConstraint) -> BaseConstraint:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def union(self, other: BaseConstraint) -> BaseConstraint:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def is_any(self) -> bool:
         return False
@@ -30,10 +30,10 @@ class BaseConstraint:
         return f"<{self.__class__.__name__} {self}>"
 
     def __str__(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __hash__(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __eq__(self, other: object) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError

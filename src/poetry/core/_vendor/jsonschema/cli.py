@@ -60,14 +60,14 @@ class _Outputter:
             file = open(path)
         except FileNotFoundError:
             self.filenotfound_error(path=path, exc_info=sys.exc_info())
-            raise _CannotLoadFile()
+            raise _CannotLoadFile
 
         with file:
             try:
                 return json.load(file)
             except JSONDecodeError:
                 self.parsing_error(path=path, exc_info=sys.exc_info())
-                raise _CannotLoadFile()
+                raise _CannotLoadFile
 
     def filenotfound_error(self, **kwargs):
         self._stderr.write(self._formatter.filenotfound_error(**kwargs))
@@ -273,7 +273,7 @@ def run(arguments, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin):
                 outputter.parsing_error(
                     path="<stdin>", exc_info=sys.exc_info(),
                 )
-                raise _CannotLoadFile()
+                raise _CannotLoadFile
         instances = ["<stdin>"]
 
     resolver = RefResolver(

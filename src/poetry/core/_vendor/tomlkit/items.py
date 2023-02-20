@@ -499,11 +499,11 @@ class Item:
 
     @property
     def discriminant(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def as_string(self) -> str:
         """The TOML representation"""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def value(self) -> Any:
@@ -511,7 +511,7 @@ class Item:
 
     def unwrap(self) -> Any:
         """Returns as pure python object (ppo)"""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     # Helpers
 

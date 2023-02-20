@@ -839,7 +839,7 @@ class FromPackageLoader:
             # Check whether or not the importing grammar was loaded by this module.
             if not isinstance(base_path, PackageResource) or base_path.pkg_name != self.pkg_name:
                 # Technically false, but FileNotFound doesn't exist in python2.7, and this message should never reach the end user anyway
-                raise IOError()
+                raise IOError
             to_try = [base_path.path]
 
         err = None

@@ -59,11 +59,11 @@ _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 class BaseMarker(ABC):
     @abstractmethod
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def union(self, other: BaseMarker) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def is_any(self) -> bool:
         return False
@@ -73,34 +73,34 @@ class BaseMarker(ABC):
 
     @abstractmethod
     def validate(self, environment: dict[str, Any] | None) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def without_extras(self) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def exclude(self, marker_name: str) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def only(self, *marker_names: str) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def invert(self) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self}>"
 
     @abstractmethod
     def __hash__(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def __eq__(self, other: object) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class AnyMarker(BaseMarker):

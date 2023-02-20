@@ -199,4 +199,4 @@ class PackageSpecification:
         return result
 
     def __str__(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError

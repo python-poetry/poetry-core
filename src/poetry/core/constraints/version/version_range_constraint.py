@@ -14,27 +14,27 @@ class VersionRangeConstraint(VersionConstraint):
     @property
     @abstractmethod
     def min(self) -> Version | None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def max(self) -> Version | None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def full_max(self) -> Version | None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def include_min(self) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def include_max(self) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def allows_lower(self, other: VersionRangeConstraint) -> bool:
         if self.min is None:

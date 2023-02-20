@@ -17,11 +17,11 @@ class CheckedType(object):
     @classmethod
     @abstractmethod
     def create(cls, source_data, _factory_fields=None):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def serialize(self, format=None):
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 def _restore_pickle(cls, data):

@@ -44,17 +44,17 @@ class Pattern(Serialize, ABC):
 
     @abstractmethod
     def to_regexp(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def min_width(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def max_width(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _get_flags(self, value):
         for f in self.flags:

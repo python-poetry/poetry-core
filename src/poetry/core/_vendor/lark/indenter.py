@@ -73,32 +73,32 @@ class Indenter(PostLex, ABC):
     @property
     @abstractmethod
     def NL_type(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def OPEN_PAREN_types(self) -> List[str]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def CLOSE_PAREN_types(self) -> List[str]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def INDENT_type(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def DEDENT_type(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def tab_len(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class PythonIndenter(Indenter):

@@ -98,7 +98,7 @@ class Builder:
         return self._path / "dist"
 
     def build(self, target_dir: Path | None) -> Path:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_excluded_files(self, fmt: str | None = None) -> set[str]:
         if self._excluded_files is None:

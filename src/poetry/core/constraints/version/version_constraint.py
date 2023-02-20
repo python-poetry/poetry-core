@@ -14,52 +14,52 @@ if TYPE_CHECKING:
 class VersionConstraint:
     @abstractmethod
     def is_empty(self) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def is_any(self) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def is_simple(self) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def allows(self, version: Version) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def allows_all(self, other: VersionConstraint) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def allows_any(self, other: VersionConstraint) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def intersect(self, other: VersionConstraint) -> VersionConstraint:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def union(self, other: VersionConstraint) -> VersionConstraint:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def difference(self, other: VersionConstraint) -> VersionConstraint:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def flatten(self) -> list[VersionRangeConstraint]:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} {self}>"
 
     def __str__(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __hash__(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __eq__(self, other: object) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
