@@ -7,6 +7,7 @@ import platform
 import subprocess
 import sys
 import sysconfig
+from contextlib import suppress
 from importlib.machinery import EXTENSION_SUFFIXES
 from typing import (
     Dict,
@@ -203,10 +204,8 @@ def cpython_tags(
     abis = list(abis)
     # 'abi3' and 'none' are explicitly handled later.
     for explicit_abi in ("abi3", "none"):
-        try:
+        with suppress(ValueError):
             abis.remove(explicit_abi)
-        except ValueError:
-            pass
 
     platforms = list(platforms or platform_tags())
     for abi in abis:

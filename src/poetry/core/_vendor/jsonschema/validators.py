@@ -959,10 +959,8 @@ class RefResolver:
 
             if isinstance(document, Sequence):
                 # Array indexes should be turned into integers
-                try:
+                with contextlib.suppress(ValueError):
                     part = int(part)
-                except ValueError:
-                    pass
             try:
                 document = document[part]
             except (TypeError, LookupError):

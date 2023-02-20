@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -83,11 +84,9 @@ class PyProjectTOML:
         from poetry.core.pyproject.exceptions import PyProjectException
 
         if self.file.exists():
-            try:
+            with suppress(PyProjectException):
                 _ = self.poetry_config
                 return True
-            except PyProjectException:
-                pass
 
         return False
 

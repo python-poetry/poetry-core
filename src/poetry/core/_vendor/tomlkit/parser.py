@@ -2,6 +2,7 @@ import datetime
 import re
 import string
 
+from contextlib import suppress
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -588,12 +589,10 @@ class Parser:
 
             # consume value
             if not prev_value:
-                try:
+                with suppress(UnexpectedCharError):
                     elems.append(self._parse_value())
                     prev_value = True
                     continue
-                except UnexpectedCharError:
-                    pass
 
             # consume comma
             if prev_value and self._current == ",":

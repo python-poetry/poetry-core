@@ -1,5 +1,6 @@
 import sys
 from argparse import ArgumentParser, FileType
+from contextlib import suppress
 from textwrap import indent
 from logging import DEBUG, INFO, WARN, ERROR
 from typing import Optional
@@ -54,10 +55,8 @@ def showwarning_as_comment(message, category, filename, lineno, file=None, line=
         file = sys.stderr
         if file is None:
             return
-    try:
+    with suppress(OSError):
         file.write(text)
-    except OSError:
-        pass
 
 
 def make_warnings_comments():

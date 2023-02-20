@@ -13,7 +13,9 @@ For example,
 """
 from __future__ import absolute_import
 
-try:
+from contextlib import suppress
+
+with suppress(ImportError):
     from typing import Container
     from typing import Hashable
     from typing import Generic
@@ -76,5 +78,3 @@ try:
 
     class PSetEvolver(Generic[T]):
         pass
-except ImportError:
-    pass

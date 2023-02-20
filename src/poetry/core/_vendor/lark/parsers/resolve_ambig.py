@@ -1,4 +1,5 @@
 from ..utils import compare
+from contextlib import suppress
 from functools import cmp_to_key
 
 from ..tree import Tree
@@ -15,10 +16,8 @@ def _sum_priority(tree):
     p = 0
 
     for n in tree.iter_subtrees():
-        try:
+        with suppress(AttributeError):
             p += n.meta.rule.options.priority or 0
-        except AttributeError:
-            pass
 
     return p
 

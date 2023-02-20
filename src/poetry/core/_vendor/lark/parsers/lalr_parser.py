@@ -3,6 +3,7 @@
 # Author: Erez Shinan (2017)
 # Email : erezshin@gmail.com
 from copy import deepcopy, copy
+from contextlib import suppress
 from typing import Dict, Any
 from ..lexer import Token
 from ..utils import Serialize
@@ -186,10 +187,8 @@ class _Parser:
             end_token = Token.new_borrow_pos('$END', '', token) if token else Token('$END', '', 0, 1, 1)
             return state.feed_token(end_token, True)
         except UnexpectedInput as e:
-            try:
+            with suppress(NameError):
                 e.interactive_parser = InteractiveParser(self, state, state.lexer)
-            except NameError:
-                pass
             raise e
         except Exception as e:
             if self.debug:
