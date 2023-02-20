@@ -154,10 +154,10 @@ class Package(PackageSpecification):
 
     @property
     def full_pretty_version(self) -> str:
-        if self.source_type in ["file", "directory", "url"]:
+        if self.source_type in ("file", "directory", "url"):
             return f"{self.pretty_version} {self.source_url}"
 
-        if self.source_type not in ["hg", "git"]:
+        if self.source_type not in ("hg", "git"):
             return self.pretty_version
 
         ref: str | None

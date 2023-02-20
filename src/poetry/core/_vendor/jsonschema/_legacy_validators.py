@@ -286,13 +286,13 @@ def find_evaluated_item_indexes_by_schema(validator, instance, schema):
                     validator, instance, schema["else"],
                 )
 
-    for keyword in ["contains", "unevaluatedItems"]:
+    for keyword in ("contains", "unevaluatedItems"):
         if keyword in schema:
             for k, v in enumerate(instance):
                 if validator.evolve(schema=schema[keyword]).is_valid(v):
                     evaluated_indexes.append(k)
 
-    for keyword in ["allOf", "oneOf", "anyOf"]:
+    for keyword in ("allOf", "oneOf", "anyOf"):
         if keyword in schema:
             for subschema in schema[keyword]:
                 errs = list(validator.descend(instance, subschema))

@@ -23,7 +23,7 @@ try:
     from typing import Sized
     from typing import TypeVar
 
-    __all__ = [
+    __all__ = (
         'CheckedPMap',
         'CheckedPSet',
         'CheckedPVector',
@@ -33,7 +33,7 @@ try:
         'PMap',
         'PSet',
         'PVector',
-    ]
+    )
 
     T = TypeVar('T')
     KT = TypeVar('KT')

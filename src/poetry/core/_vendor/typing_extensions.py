@@ -8,7 +8,7 @@ import types as _types
 import typing
 
 
-__all__ = [
+__all__ = (
     # Super-special typing primitives.
     'Any',
     'ClassVar',
@@ -74,7 +74,7 @@ __all__ = [
     'NoReturn',
     'Required',
     'NotRequired',
-]
+)
 
 # for backward compatibility
 PEP_560 = True
@@ -567,12 +567,12 @@ else:
                 if not cls.__dict__.get('_is_protocol', None):
                     return NotImplemented
                 if not getattr(cls, '_is_runtime_protocol', False):
-                    if sys._getframe(2).f_globals['__name__'] in ['abc', 'functools']:
+                    if sys._getframe(2).f_globals['__name__'] in ('abc', 'functools'):
                         return NotImplemented
                     raise TypeError("Instance and class checks can only be used with"
                                     " @runtime protocols")
                 if not _is_callable_members_only(cls):
-                    if sys._getframe(2).f_globals['__name__'] in ['abc', 'functools']:
+                    if sys._getframe(2).f_globals['__name__'] in ('abc', 'functools'):
                         return NotImplemented
                     raise TypeError("Protocols with non-method members"
                                     " don't support issubclass()")

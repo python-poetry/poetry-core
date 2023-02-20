@@ -8,11 +8,11 @@ from poetry.core.constraints.version.patterns import TILDE_PEP440_CONSTRAINT
 from poetry.core.constraints.version.patterns import X_CONSTRAINT
 
 
-__all__ = [
+__all__ = (
     "COMPLETE_VERSION",
     "CARET_CONSTRAINT",
     "TILDE_CONSTRAINT",
     "TILDE_PEP440_CONSTRAINT",
     "X_CONSTRAINT",
     "BASIC_CONSTRAINT",
-]
+)

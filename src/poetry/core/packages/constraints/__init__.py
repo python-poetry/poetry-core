@@ -20,7 +20,7 @@ warnings.warn(
 )
 
 
-__all__ = [
+__all__ = (
     "AnyConstraint",
     "BaseConstraint",
     "Constraint",
@@ -29,4 +29,4 @@ __all__ = [
     "UnionConstraint",
     "parse_constraint",
     "parse_single_constraint",
-]
+)

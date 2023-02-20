@@ -233,7 +233,7 @@ class SingleMarker(BaseMarker):
                 versions = []
                 for v in re.split("[ ,]+", self._value):
                     split = v.split(".")
-                    if len(split) in [1, 2]:
+                    if len(split) in (1, 2):
                         split.append("*")
                         op = "" if self._operator == "in" else "!="
                     else:

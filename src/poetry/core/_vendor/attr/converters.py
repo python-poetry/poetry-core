@@ -11,12 +11,12 @@ from ._compat import _AnnotationExtractor
 from ._make import NOTHING, Factory, pipe
 
 
-__all__ = [
+__all__ = (
     "default_if_none",
     "optional",
     "pipe",
     "to_bool",
-]
+)
 
 
 def optional(converter):

@@ -819,7 +819,7 @@ class Parser:
                 and (
                     code == CHR_DEL
                     or code <= CTRL_CHAR_LIMIT
-                    and code not in [CTRL_I, CTRL_J, CTRL_M]
+                    and code not in (CTRL_I, CTRL_J, CTRL_M)
                 )
             ):
                 raise self.parse_error(InvalidControlChar, code, "strings")

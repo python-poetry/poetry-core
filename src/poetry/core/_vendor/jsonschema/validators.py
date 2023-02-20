@@ -943,11 +943,11 @@ class RefResolver:
             def find(key):
                 yield from _search_schema(document, _match_keyword(key))
 
-        for keyword in ["$anchor", "$dynamicAnchor"]:
+        for keyword in ("$anchor", "$dynamicAnchor"):
             for subschema in find(keyword):
                 if fragment == subschema[keyword]:
                     return subschema
-        for keyword in ["id", "$id"]:
+        for keyword in ("id", "$id"):
             for subschema in find(keyword):
                 if "#" + fragment == subschema[keyword]:
                     return subschema
@@ -1010,7 +1010,7 @@ class RefResolver:
 
         if scheme in self.handlers:
             result = self.handlers[scheme](uri)
-        elif scheme in ["http", "https"] and requests:
+        elif scheme in ("http", "https") and requests:
             # Requests has support for detecting the correct encoding of
             # json over http
             result = requests.get(uri).json()

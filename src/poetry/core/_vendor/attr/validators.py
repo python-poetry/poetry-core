@@ -22,7 +22,7 @@ except AttributeError:  # Python <3.7 lacks a Pattern type.
     Pattern = type(re.compile(""))
 
 
-__all__ = [
+__all__ = (
     "and_",
     "deep_iterable",
     "deep_mapping",
@@ -42,7 +42,7 @@ __all__ = [
     "optional",
     "provides",
     "set_disabled",
-]
+)
 
 
 def set_disabled(disabled):

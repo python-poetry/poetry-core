@@ -370,7 +370,7 @@ def normalize_python_version_markers(  # NOSONAR
                 versions = []
                 for v in re.split("[ ,]+", version):
                     split = v.split(".")
-                    if len(split) in [1, 2]:
+                    if len(split) in (1, 2):
                         split.append("*")
                         op_ = "" if op == "in" else "!="
                     else:

@@ -423,7 +423,7 @@ class Dependency(PackageSpecification):
                 dep = VCSDependency(
                     name, "git", link.url_without_fragment, extras=req.extras
                 )
-            elif link.scheme in ["http", "https"]:
+            elif link.scheme in ("http", "https"):
                 dep = URLDependency(
                     name,
                     link.url_without_fragment,

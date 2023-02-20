@@ -26,7 +26,7 @@ from tomlkit.api import ws
 
 
 __version__ = "0.11.6"
-__all__ = [
+__all__ = (
     "aot",
     "array",
     "boolean",
@@ -52,4 +52,4 @@ __all__ = [
     "TOMLDocument",
     "value",
     "ws",
-]
+)

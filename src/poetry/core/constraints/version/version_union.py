@@ -322,7 +322,7 @@ class VersionUnion(VersionConstraint):
             _extras: list[list[int]] = []
             _versions: list[Version] = []
 
-            for _version in [one.max, two.min]:
+            for _version in (one.max, two.min):
                 _extra = list(_version.non_semver_parts or [])
 
                 while len(_extra) < (max_precision - 3):

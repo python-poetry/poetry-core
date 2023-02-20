@@ -149,7 +149,7 @@ class PackedNode(ForestNode):
     @property
     def children(self):
         """Returns a list of this node's children."""
-        return [x for x in [self.left, self.right] if x is not None]
+        return [x for x in (self.left, self.right) if x is not None]
 
     def __iter__(self):
         yield self.left
@@ -768,7 +768,7 @@ class ForestToPyDotVisitor(ForestVisitor):
     def visit_packed_node_out(self, node):
         graph_node_id = str(id(node))
         graph_node = self.graph.get_node(graph_node_id)[0]
-        for child in [node.left, node.right]:
+        for child in (node.left, node.right):
             if child is not None:
                 child_graph_node_id = str(id(child.token if isinstance(child, TokenNode) else child))
                 child_graph_node = self.graph.get_node(child_graph_node_id)[0]
