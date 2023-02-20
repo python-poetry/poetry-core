@@ -76,18 +76,17 @@ class PackageInclude(Include):
             if not (self.is_stub_only() or self.has_modules()):
                 raise ValueError(f"{root.name} is not a package.")
 
+        elif root.is_dir():
+            # If it's a directory, we include everything inside it
+            self._package = root.name
+            self._elements: list[Path] = sorted(root.glob("**/*"))
+
+            if not (self.is_stub_only() or self.has_modules()):
+                raise ValueError(f"{root.name} is not a package.")
+
+            self._is_package = True
         else:
-            if root.is_dir():
-                # If it's a directory, we include everything inside it
-                self._package = root.name
-                self._elements: list[Path] = sorted(root.glob("**/*"))
-
-                if not (self.is_stub_only() or self.has_modules()):
-                    raise ValueError(f"{root.name} is not a package.")
-
-                self._is_package = True
-            else:
-                self._package = root.stem
-                self._is_module = True
+            self._package = root.stem
+            self._is_module = True
 
         return self

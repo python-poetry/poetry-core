@@ -219,9 +219,8 @@ class VersionUnion(VersionConstraint):
                 if state["current"].allows_higher(state["their_range"]):
                     if not their_next_range():
                         break
-                else:
-                    if not our_next_range():
-                        break
+                elif not our_next_range():
+                    break
 
         if not new_ranges:
             return EmptyConstraint()

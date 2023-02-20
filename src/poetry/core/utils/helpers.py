@@ -45,13 +45,10 @@ def parse_requires(requires: str) -> list[str]:
     lines = requires.split("\n")
 
     requires_dist = []
-    in_section = False
     current_marker = None
     for line in lines:
         line = line.strip()
         if not line:
-            if in_section:
-                in_section = False
 
             continue
 
@@ -101,7 +98,7 @@ def readme_content_type(path: str | Path) -> str:
     suffix = Path(path).suffix
     if suffix == ".rst":
         return "text/x-rst"
-    elif suffix in [".md", ".markdown"]:
+    elif suffix in (".md", ".markdown"):
         return "text/markdown"
     else:
         return "text/plain"
