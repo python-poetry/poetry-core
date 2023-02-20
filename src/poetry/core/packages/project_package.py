@@ -19,7 +19,10 @@ from poetry.core.packages.utils.utils import create_nested_marker
 
 class ProjectPackage(Package):
     def __init__(
-        self, name: str, version: str | Version, pretty_version: str | None = None,
+        self,
+        name: str,
+        version: str | Version,
+        pretty_version: str | None = None,
     ) -> None:
         if pretty_version is not None:
             warnings.warn(

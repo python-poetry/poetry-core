@@ -15,7 +15,10 @@ class UnionConstraint(BaseConstraint):
     def constraints(self) -> tuple[BaseConstraint, ...]:
         return self._constraints
 
-    def allows(self, other: BaseConstraint,) -> bool:
+    def allows(
+        self,
+        other: BaseConstraint,
+    ) -> bool:
         return any(constraint.allows(other) for constraint in self._constraints)
 
     def allows_any(self, other: BaseConstraint) -> bool:

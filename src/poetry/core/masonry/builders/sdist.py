@@ -57,7 +57,10 @@ logger = logging.getLogger(__name__)
 class SdistBuilder(Builder):
     format = "sdist"
 
-    def build(self, target_dir: Path | None = None,) -> Path:
+    def build(
+        self,
+        target_dir: Path | None = None,
+    ) -> Path:
         logger.info("Building <info>sdist</info>")
         target_dir = target_dir or self.default_target_dir
 

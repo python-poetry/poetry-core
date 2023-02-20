@@ -49,7 +49,6 @@ def parse_requires(requires: str) -> list[str]:
     for line in lines:
         line = line.strip()
         if not line:
-
             continue
 
         if line.startswith("["):
