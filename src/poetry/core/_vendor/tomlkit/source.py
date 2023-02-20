@@ -68,7 +68,7 @@ class Source(str):
         super().__init__()
 
         # Collection of TOMLChars
-        self._chars = iter([(i, TOMLChar(c)) for i, c in enumerate(self)])
+        self._chars = iter((i, TOMLChar(c)) for i, c in enumerate(self))
 
         self._idx = 0
         self._marker = 0
