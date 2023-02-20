@@ -12,7 +12,6 @@ def id_of_ignore_ref(property="$id"):
         if schema is True or schema is False or "$ref" in schema:
             return ""
         return schema.get(property, "")
-
     return id_of
 
 
@@ -55,7 +54,10 @@ def dependencies_draft3(validator, dependencies, instance, schema):
 
 
 def dependencies_draft4_draft6_draft7(
-    validator, dependencies, instance, schema,
+    validator,
+    dependencies,
+    instance,
+    schema,
 ):
     """
     Support for the ``dependencies`` keyword from pre-draft 2019-09.
@@ -163,7 +165,10 @@ def properties_draft3(validator, properties, instance, schema):
     for property, subschema in properties.items():
         if property in instance:
             yield from validator.descend(
-                instance[property], subschema, path=property, schema_path=property,
+                instance[property],
+                subschema,
+                path=property,
+                schema_path=property,
             )
         elif subschema.get("required", False):
             error = ValidationError(f"{property!r} is a required property")
@@ -199,7 +204,8 @@ def type_draft3(validator, types, instance, schema):
             except Exception:
                 reprs.append(repr(type))
         yield ValidationError(
-            f"{instance!r} is not of type {', '.join(reprs)}", context=all_errors,
+            f"{instance!r} is not of type {', '.join(reprs)}",
+            context=all_errors,
         )
 
 
@@ -208,9 +214,12 @@ def contains_draft6_draft7(validator, contains, instance, schema):
         return
 
     if not any(
-        validator.evolve(schema=contains).is_valid(element) for element in instance
+        validator.evolve(schema=contains).is_valid(element)
+        for element in instance
     ):
-        yield ValidationError(f"None of {instance!r} are valid under the given schema",)
+        yield ValidationError(
+            f"None of {instance!r} are valid under the given schema",
+        )
 
 
 def recursiveRef(validator, recursiveRef, instance, schema):
@@ -277,13 +286,13 @@ def find_evaluated_item_indexes_by_schema(validator, instance, schema):
                     validator, instance, schema["else"],
                 )
 
-    for keyword in ("contains", "unevaluatedItems"):
+    for keyword in ["contains", "unevaluatedItems"]:
         if keyword in schema:
             for k, v in enumerate(instance):
                 if validator.evolve(schema=schema[keyword]).is_valid(v):
                     evaluated_indexes.append(k)
 
-    for keyword in ("allOf", "oneOf", "anyOf"):
+    for keyword in ["allOf", "oneOf", "anyOf"]:
         if keyword in schema:
             for subschema in schema[keyword]:
                 errs = list(validator.descend(instance, subschema))
@@ -302,8 +311,7 @@ def unevaluatedItems_draft2019(validator, unevaluatedItems, instance, schema):
         validator, instance, schema,
     )
     unevaluated_items = [
-        item
-        for index, item in enumerate(instance)
+        item for index, item in enumerate(instance)
         if index not in evaluated_item_indexes
     ]
     if unevaluated_items:

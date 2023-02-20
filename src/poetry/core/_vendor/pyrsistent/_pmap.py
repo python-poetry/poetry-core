@@ -3,7 +3,6 @@ from itertools import chain
 from pyrsistent._pvector import pvector
 from pyrsistent._transformations import transform
 
-
 class PMapView:
     """View type for the persistent map/dict type `PMap`.
 
@@ -21,7 +20,6 @@ class PMapView:
         The mapping/dict-like object of which a view is to be created. This
         should generally be a `PMap` object.
     """
-
     # The public methods that use the above.
     def __init__(self, m):
         # Make sure this is a persistnt map
@@ -31,7 +29,7 @@ class PMapView:
                 m = pmap(m)
             else:
                 raise TypeError("PViewMap requires a Mapping object")
-        object.__setattr__(self, "_map", m)
+        object.__setattr__(self, '_map', m)
 
     def __len__(self):
         return len(self._map)
@@ -41,7 +39,6 @@ class PMapView:
 
     def __reversed__(self):
         raise TypeError("Persistent maps are not reversible")
-
 
 class PMapValues(PMapView):
     """View type for the values of the persistent map/dict type `PMap`.
@@ -55,7 +52,6 @@ class PMapValues(PMapView):
         The mapping/dict-like object of which a view is to be created. This
         should generally be a `PMap` object.
     """
-
     def __iter__(self):
         return self._map.itervalues()
 
@@ -65,19 +61,16 @@ class PMapValues(PMapView):
     # The str and repr methods imitate the dict_view style currently.
     def __str__(self):
         return f"pmap_values({list(iter(self))})"
-
+    
     def __repr__(self):
         return f"pmap_values({list(iter(self))})"
-
+    
     def __eq__(self, x):
         # For whatever reason, dict_values always seem to return False for ==
         # (probably it's not implemented), so we mimic that.
-        if x is self:
-            return True
-        else:
-            return False
-
-
+        if x is self: return True
+        else: return False
+    
 class PMapItems(PMapView):
     """View type for the items of the persistent map/dict type `PMap`.
 
@@ -90,32 +83,25 @@ class PMapItems(PMapView):
         The mapping/dict-like object of which a view is to be created. This
         should generally be a `PMap` object.
     """
-
     def __iter__(self):
         return self._map.iteritems()
 
     def __contains__(self, arg):
-        try:
-            (k, v) = arg
-        except Exception:
-            return False
+        try: (k,v) = arg
+        except Exception: return False
         return k in self._map and self._map[k] == v
 
     # The str and repr methods mitate the dict_view style currently.
     def __str__(self):
         return f"pmap_items({list(iter(self))})"
-
+    
     def __repr__(self):
         return f"pmap_items({list(iter(self))})"
-
+        
     def __eq__(self, x):
-        if x is self:
-            return True
-        elif not isinstance(x, type(self)):
-            return False
-        else:
-            return self._map == x._map
-
+        if x is self: return True
+        elif not isinstance(x, type(self)): return False
+        else: return self._map == x._map
 
 class PMap(object):
     """
@@ -155,8 +141,7 @@ class PMap(object):
     >>> m3.c
     3
     """
-
-    __slots__ = ("_size", "_buckets", "__weakref__", "_cached_hash")
+    __slots__ = ('_size', '_buckets', '__weakref__', '_cached_hash')
 
     def __new__(cls, size, buckets):
         self = super(PMap, cls).__new__(cls)
@@ -239,7 +224,6 @@ class PMap(object):
 
     def keys(self):
         from ._pset import PSet
-
         return PSet(self)
 
     def items(self):
@@ -249,7 +233,7 @@ class PMap(object):
         return self._size
 
     def __repr__(self):
-        return "pmap({0})".format(str(dict(self)))
+        return 'pmap({0})'.format(str(dict(self)))
 
     def __eq__(self, other):
         if self is other:
@@ -259,11 +243,8 @@ class PMap(object):
         if len(self) != len(other):
             return False
         if isinstance(other, PMap):
-            if (
-                hasattr(self, "_cached_hash")
-                and hasattr(other, "_cached_hash")
-                and self._cached_hash != other._cached_hash
-            ):
+            if (hasattr(self, '_cached_hash') and hasattr(other, '_cached_hash')
+                    and self._cached_hash != other._cached_hash):
                 return False
             if self._buckets == other._buckets:
                 return True
@@ -275,7 +256,7 @@ class PMap(object):
     __ne__ = Mapping.__ne__
 
     def __lt__(self, other):
-        raise TypeError("PMaps are not orderable")
+        raise TypeError('PMaps are not orderable')
 
     __le__ = __lt__
     __gt__ = __lt__
@@ -285,7 +266,7 @@ class PMap(object):
         return self.__repr__()
 
     def __hash__(self):
-        if not hasattr(self, "_cached_hash"):
+        if not hasattr(self, '_cached_hash'):
             self._cached_hash = hash(frozenset(self.iteritems()))
         return self._cached_hash
 
@@ -362,9 +343,7 @@ class PMap(object):
         evolver = self.evolver()
         for map in maps:
             for key, value in map.items():
-                evolver.set(
-                    key, update_fn(evolver[key], value) if key in evolver else value
-                )
+                evolver.set(key, update_fn(evolver[key], value) if key in evolver else value)
 
         return evolver.persistent()
 
@@ -409,7 +388,7 @@ class PMap(object):
         return self
 
     class _Evolver(object):
-        __slots__ = ("_buckets_evolver", "_size", "_original_pmap")
+        __slots__ = ('_buckets_evolver', '_size', '_original_pmap')
 
         def __init__(self, original_pmap):
             self._original_pmap = original_pmap
@@ -430,9 +409,7 @@ class PMap(object):
                 for k, v in bucket:
                     if k == key:
                         if v is not val:
-                            new_bucket = [
-                                (k2, v2) if k2 != k else (k2, val) for k2, v2 in bucket
-                            ]
+                            new_bucket = [(k2, v2) if k2 != k else (k2, val) for k2, v2 in bucket]
                             self._buckets_evolver[index] = new_bucket
 
                         return self
@@ -478,9 +455,7 @@ class PMap(object):
 
         def persistent(self):
             if self.is_dirty():
-                self._original_pmap = PMap(
-                    self._size, self._buckets_evolver.persistent()
-                )
+                self._original_pmap = PMap(self._size, self._buckets_evolver.persistent())
 
             return self._original_pmap
 
@@ -503,7 +478,7 @@ class PMap(object):
                     self._size -= 1
                     return self
 
-            raise KeyError("{0}".format(key))
+            raise KeyError('{0}'.format(key))
 
     def evolver(self):
         """
@@ -535,7 +510,6 @@ class PMap(object):
         been done if only using operations on the pmap.
         """
         return self._Evolver(self)
-
 
 Mapping.register(PMap)
 Hashable.register(PMap)

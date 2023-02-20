@@ -34,7 +34,7 @@ from attr._next_gen import asdict, astuple
 from . import converters, exceptions, filters, setters, validators
 
 
-__all__ = (
+__all__ = [
     "__author__",
     "__copyright__",
     "__description__",
@@ -69,4 +69,4 @@ __all__ = (
     "setters",
     "validate",
     "validators",
-)
+]

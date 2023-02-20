@@ -57,7 +57,7 @@ class AttrsInstance:
     pass
 
 
-__all__ = (
+__all__ = [
     "Attribute",
     "AttrsInstance",
     "Factory",
@@ -90,4 +90,4 @@ __all__ = (
     "setters",
     "validate",
     "validators",
-)
+]

@@ -13,13 +13,13 @@ from ._tokenizer import ParserSyntaxError
 from .specifiers import InvalidSpecifier, Specifier
 from .utils import canonicalize_name
 
-__all__ = (
+__all__ = [
     "InvalidMarker",
     "UndefinedComparison",
     "UndefinedEnvironmentName",
     "Marker",
     "default_environment",
-)
+]
 
 Operator = Callable[[str, str], bool]
 
@@ -150,7 +150,7 @@ def _evaluate_markers(markers: MarkerList, environment: Dict[str, str]) -> bool:
             lhs_value, rhs_value = _normalize(lhs_value, rhs_value, key=environment_key)
             groups[-1].append(_eval_op(lhs_value, op, rhs_value))
         else:
-            assert marker in ("and", "or")
+            assert marker in ["and", "or"]
             if marker == "or":
                 groups.append([])
 

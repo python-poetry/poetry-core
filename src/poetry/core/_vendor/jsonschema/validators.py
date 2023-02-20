@@ -45,7 +45,6 @@ def __getattr__(name):
             stacklevel=2,
         )
         from jsonschema.exceptions import ErrorTree
-
         return ErrorTree
     elif name == "validators":
         warnings.warn(
@@ -91,7 +90,6 @@ def validates(version):
         meta_schema_id = cls.ID_OF(cls.META_SCHEMA)
         _META_SCHEMAS[meta_schema_id] = cls
         return cls
-
     return _validates
 
 
@@ -216,7 +214,10 @@ def create(
 
         def __attrs_post_init__(self):
             if self.resolver is None:
-                self.resolver = RefResolver.from_schema(self.schema, id_of=id_of,)
+                self.resolver = RefResolver.from_schema(
+                    self.schema,
+                    id_of=id_of,
+                )
 
         @classmethod
         def check_schema(cls, schema, format_checker=_UNSET):
@@ -224,7 +225,8 @@ def create(
             if format_checker is _UNSET:
                 format_checker = Validator.FORMAT_CHECKER
             validator = Validator(
-                schema=cls.META_SCHEMA, format_checker=format_checker,
+                schema=cls.META_SCHEMA,
+                format_checker=format_checker,
             )
             for error in validator.iter_errors(schema):
                 raise exceptions.SchemaError.create_from(error)
@@ -344,7 +346,11 @@ def create(
 
 
 def extend(
-    validator, validators=(), version=None, type_checker=None, format_checker=None,
+    validator,
+    validators=(),
+    version=None,
+    type_checker=None,
+    format_checker=None,
 ):
     """
     Create a new validator class by extending an existing one.
@@ -764,9 +770,7 @@ class RefResolver:
             `RefResolver`
         """
 
-        return cls(
-            base_uri=id_of(schema), referrer=schema, *args, **kwargs
-        )  # noqa: B026, E501
+        return cls(base_uri=id_of(schema), referrer=schema, *args, **kwargs)  # noqa: B026, E501
 
     def push_scope(self, scope):
         """
@@ -775,7 +779,9 @@ class RefResolver:
         Treats further dereferences as being performed underneath the
         given scope.
         """
-        self._scopes_stack.append(self._urljoin_cache(self.resolution_scope, scope),)
+        self._scopes_stack.append(
+            self._urljoin_cache(self.resolution_scope, scope),
+        )
 
     def pop_scope(self):
         """
@@ -870,7 +876,9 @@ class RefResolver:
             return None
         uri, fragment = urldefrag(url)
         for subschema in subschemas:
-            target_uri = self._urljoin_cache(self.resolution_scope, subschema["$id"],)
+            target_uri = self._urljoin_cache(
+                self.resolution_scope, subschema["$id"],
+            )
             if target_uri.rstrip("/") == uri.rstrip("/"):
                 if fragment:
                     subschema = self.resolve_fragment(subschema, fragment)
@@ -935,11 +943,11 @@ class RefResolver:
             def find(key):
                 yield from _search_schema(document, _match_keyword(key))
 
-        for keyword in ("$anchor", "$dynamicAnchor"):
+        for keyword in ["$anchor", "$dynamicAnchor"]:
             for subschema in find(keyword):
                 if fragment == subschema[keyword]:
                     return subschema
-        for keyword in ("id", "$id"):
+        for keyword in ["id", "$id"]:
             for subschema in find(keyword):
                 if "#" + fragment == subschema[keyword]:
                     return subschema
@@ -951,8 +959,10 @@ class RefResolver:
 
             if isinstance(document, Sequence):
                 # Array indexes should be turned into integers
-                with contextlib.suppress(ValueError):
+                try:
                     part = int(part)
+                except ValueError:
+                    pass
             try:
                 document = document[part]
             except (TypeError, LookupError):
@@ -1000,7 +1010,7 @@ class RefResolver:
 
         if scheme in self.handlers:
             result = self.handlers[scheme](uri)
-        elif scheme in ("http", "https") and requests:
+        elif scheme in ["http", "https"] and requests:
             # Requests has support for detecting the correct encoding of
             # json over http
             result = requests.get(uri).json()
@@ -1018,6 +1028,7 @@ _SUBSCHEMAS_KEYWORDS = ("$id", "id", "$anchor", "$dynamicAnchor")
 
 
 def _match_keyword(keyword):
+
     def matcher(value):
         if keyword in value:
             yield value

@@ -2,7 +2,6 @@ import datetime
 import re
 import string
 
-from contextlib import suppress
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -182,7 +181,7 @@ class Parser:
         if not last:
             return False
 
-        if not (isinstance(item, Whitespace) and isinstance(last, Whitespace)):
+        if not isinstance(item, Whitespace) or not isinstance(last, Whitespace):
             return False
 
         start = self._idx - (len(last.s) + len(item.s))
@@ -232,7 +231,7 @@ class Parser:
                     return None, Comment(Trivia(indent, cws, comment, trail))
                 elif c == "[":
                     # Found a table, delegate to the calling function.
-                    return None
+                    return
                 else:
                     # Beginning of a KV pair.
                     # Return to beginning of whitespace so it gets included
@@ -589,10 +588,12 @@ class Parser:
 
             # consume value
             if not prev_value:
-                with suppress(UnexpectedCharError):
+                try:
                     elems.append(self._parse_value())
                     prev_value = True
                     continue
+                except UnexpectedCharError:
+                    pass
 
             # consume comma
             if prev_value and self._current == ",":
@@ -638,13 +639,17 @@ class Parser:
                     self.inc()
                     break
 
-                if trailing_comma in (False, None) and self._current == ",":
+                if (
+                    trailing_comma is False
+                    or trailing_comma is None
+                    and self._current == ","
+                ):
                     # Either the previous key-value pair was not followed by a comma
                     # or the table has an unexpected leading comma.
                     raise self.parse_error(UnexpectedCharError, self._current)
             else:
                 # True: previous key-value pair was followed by a comma
-                if self._current in ",}":
+                if self._current == "}" or self._current == ",":
                     raise self.parse_error(UnexpectedCharError, self._current)
 
             key, val = self._parse_key_value(False)
@@ -773,7 +778,8 @@ class Parser:
         # only keep parsing for string if the current character matches the delim
         if self._current != delim.unit:
             raise self.parse_error(
-                InternalParserError, f"Invalid character for string type {delim}",
+                InternalParserError,
+                f"Invalid character for string type {delim}",
             )
 
         # consume the opening/first delim, EOF here is an issue
@@ -813,7 +819,7 @@ class Parser:
                 and (
                     code == CHR_DEL
                     or code <= CTRL_CHAR_LIMIT
-                    and code not in (CTRL_I, CTRL_J, CTRL_M)
+                    and code not in [CTRL_I, CTRL_J, CTRL_M]
                 )
             ):
                 raise self.parse_error(InvalidControlChar, code, "strings")

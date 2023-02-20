@@ -263,7 +263,7 @@ class Specifier(BaseSpecifier):
         # operators, and if they are if they are including an explicit
         # prerelease.
         operator, version = self._spec
-        if operator in ("==", ">=", "<=", "~=", "==="):
+        if operator in ["==", ">=", "<=", "~=", "==="]:
             # The == specifier can include a trailing .*, if it does we
             # want to remove before parsing.
             if operator == "==" and version.endswith(".*"):
@@ -329,7 +329,8 @@ class Specifier(BaseSpecifier):
     @property
     def _canonical_spec(self) -> Tuple[str, str]:
         canonical_version = canonicalize_version(
-            self._spec[1], strip_trailing_zero=(self._spec[0] != "~="),
+            self._spec[1],
+            strip_trailing_zero=(self._spec[0] != "~="),
         )
         return self._spec[0], canonical_version
 

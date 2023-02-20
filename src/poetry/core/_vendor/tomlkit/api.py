@@ -107,7 +107,11 @@ def boolean(raw: str) -> Bool:
 
 
 def string(
-    raw: str, *, literal: bool = False, multiline: bool = False, escape: bool = True,
+    raw: str,
+    *,
+    literal: bool = False,
+    multiline: bool = False,
+    escape: bool = True,
 ) -> String:
     """Create a string item.
 

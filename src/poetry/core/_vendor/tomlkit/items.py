@@ -499,11 +499,11 @@ class Item:
 
     @property
     def discriminant(self) -> int:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def as_string(self) -> str:
         """The TOML representation"""
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @property
     def value(self) -> Any:
@@ -511,7 +511,7 @@ class Item:
 
     def unwrap(self) -> Any:
         """Returns as pure python object (ppo)"""
-        raise NotImplementedError
+        raise NotImplementedError()
 
     # Helpers
 
@@ -590,7 +590,7 @@ class Whitespace(Item):
         return self._s
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {self._s!r}>"
+        return f"<{self.__class__.__name__} {repr(self._s)}>"
 
     def _getstate(self, protocol=3):
         return self._s, self._fixed

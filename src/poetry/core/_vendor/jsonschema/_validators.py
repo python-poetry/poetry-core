@@ -74,13 +74,16 @@ def items(validator, items, instance, schema):
     else:
         for index in range(prefix, total):
             yield from validator.descend(
-                instance=instance[index], schema=items, path=index,
+                instance=instance[index],
+                schema=items,
+                path=index,
             )
 
 
 def additionalItems(validator, aI, instance, schema):
-    if not validator.is_type(instance, "array") or validator.is_type(
-        schema.get("items", {}), "object"
+    if (
+        not validator.is_type(instance, "array")
+        or validator.is_type(schema.get("items", {}), "object")
     ):
         return
 
@@ -91,7 +94,7 @@ def additionalItems(validator, aI, instance, schema):
     elif not aI and len(instance) > len(schema.get("items", [])):
         error = "Additional items are not allowed (%s %s unexpected)"
         yield ValidationError(
-            error % extras_msg(instance[len(schema.get("items", [])) :]),
+            error % extras_msg(instance[len(schema.get("items", [])):]),
         )
 
 
@@ -123,7 +126,8 @@ def contains(validator, contains, instance, schema):
     if matches < min_contains:
         if not matches:
             yield ValidationError(
-                f"{instance!r} does not contain items " "matching the given schema",
+                f"{instance!r} does not contain items "
+                "matching the given schema",
             )
         else:
             yield ValidationError(
@@ -140,7 +144,8 @@ def exclusiveMinimum(validator, minimum, instance, schema):
 
     if instance <= minimum:
         yield ValidationError(
-            f"{instance!r} is less than or equal to " f"the minimum of {minimum!r}",
+            f"{instance!r} is less than or equal to "
+            f"the minimum of {minimum!r}",
         )
 
 
@@ -150,7 +155,8 @@ def exclusiveMaximum(validator, maximum, instance, schema):
 
     if instance >= maximum:
         yield ValidationError(
-            f"{instance!r} is greater than or equal " f"to the maximum of {maximum!r}",
+            f"{instance!r} is greater than or equal "
+            f"to the maximum of {maximum!r}",
         )
 
 
@@ -210,12 +216,19 @@ def maxItems(validator, mI, instance, schema):
 
 
 def uniqueItems(validator, uI, instance, schema):
-    if uI and validator.is_type(instance, "array") and not uniq(instance):
+    if (
+        uI
+        and validator.is_type(instance, "array")
+        and not uniq(instance)
+    ):
         yield ValidationError(f"{instance!r} has non-unique elements")
 
 
 def pattern(validator, patrn, instance, schema):
-    if validator.is_type(instance, "string") and not re.search(patrn, instance):
+    if (
+        validator.is_type(instance, "string")
+        and not re.search(patrn, instance)
+    ):
         yield ValidationError(f"{instance!r} does not match {patrn!r}")
 
 
@@ -293,10 +306,8 @@ def dynamicRef(validator, dynamicRef, instance, schema):
     for url in validator.resolver._scopes_stack:
         lookup_url = urljoin(url, dynamicRef)
         with validator.resolver.resolving(lookup_url) as subschema:
-            if (
-                "$dynamicAnchor" in subschema
-                and fragment == subschema["$dynamicAnchor"]
-            ):
+            if ("$dynamicAnchor" in subschema
+                    and fragment == subschema["$dynamicAnchor"]):
                 yield from validator.descend(instance, subschema)
                 break
     else:
@@ -319,7 +330,10 @@ def properties(validator, properties, instance, schema):
     for property, subschema in properties.items():
         if property in instance:
             yield from validator.descend(
-                instance[property], subschema, path=property, schema_path=property,
+                instance[property],
+                subschema,
+                path=property,
+                schema_path=property,
             )
 
 
@@ -378,8 +392,7 @@ def oneOf(validator, oneOf, instance, schema):
         )
 
     more_valid = [
-        each
-        for _, each in subschemas
+        each for _, each in subschemas
         if validator.evolve(schema=each).is_valid(instance)
     ]
     if more_valid:
@@ -411,8 +424,7 @@ def unevaluatedItems(validator, unevaluatedItems, instance, schema):
         validator, instance, schema,
     )
     unevaluated_items = [
-        item
-        for index, item in enumerate(instance)
+        item for index, item in enumerate(instance)
         if index not in evaluated_item_indexes
     ]
     if unevaluated_items:
@@ -457,5 +469,8 @@ def prefixItems(validator, prefixItems, instance, schema):
 
     for (index, item), subschema in zip(enumerate(instance), prefixItems):
         yield from validator.descend(
-            instance=item, schema=subschema, schema_path=index, path=index,
+            instance=item,
+            schema=subschema,
+            schema_path=index,
+            path=index,
         )

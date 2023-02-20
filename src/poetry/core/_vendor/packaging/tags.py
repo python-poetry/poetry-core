@@ -7,7 +7,6 @@ import platform
 import subprocess
 import sys
 import sysconfig
-from contextlib import suppress
 from importlib.machinery import EXTENSION_SUFFIXES
 from typing import (
     Dict,
@@ -38,7 +37,7 @@ INTERPRETER_SHORT_NAMES: Dict[str, str] = {
 }
 
 
-_32_BIT_INTERPRETER = sys.maxsize <= 2 ** 32
+_32_BIT_INTERPRETER = sys.maxsize <= 2**32
 
 
 class Tag:
@@ -204,12 +203,15 @@ def cpython_tags(
     abis = list(abis)
     # 'abi3' and 'none' are explicitly handled later.
     for explicit_abi in ("abi3", "none"):
-        with suppress(ValueError):
+        try:
             abis.remove(explicit_abi)
+        except ValueError:
+            pass
 
     platforms = list(platforms or platform_tags())
     for abi in abis:
-        yield from (Tag(interpreter, abi, platform_) for platform_ in platforms)
+        for platform_ in platforms:
+            yield Tag(interpreter, abi, platform_)
     if _abi3_applies(python_version):
         yield from (Tag(interpreter, "abi3", platform_) for platform_ in platforms)
     yield from (Tag(interpreter, "none", platform_) for platform_ in platforms)

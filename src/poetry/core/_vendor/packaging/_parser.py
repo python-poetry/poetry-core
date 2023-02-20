@@ -145,7 +145,8 @@ def _parse_requirement_marker(
 
     if not tokenizer.check("SEMICOLON"):
         tokenizer.raise_syntax_error(
-            f"Expected end or semicolon (after {after})", span_start=span_start,
+            f"Expected end or semicolon (after {after})",
+            span_start=span_start,
         )
     tokenizer.read()
 

@@ -68,7 +68,7 @@ class Source(str):
         super().__init__()
 
         # Collection of TOMLChars
-        self._chars = iter((i, TOMLChar(c)) for i, c in enumerate(self))
+        self._chars = iter([(i, TOMLChar(c)) for i, c in enumerate(self)])
 
         self._idx = 0
         self._marker = 0
@@ -158,7 +158,10 @@ class Source(str):
         self._marker = self._idx
 
     def parse_error(
-        self, exception: Type[ParseError] = ParseError, *args: Any, **kwargs: Any,
+        self,
+        exception: Type[ParseError] = ParseError,
+        *args: Any,
+        **kwargs: Any,
     ) -> ParseError:
         """
         Creates a generic "parse error" at the current position.

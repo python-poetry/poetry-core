@@ -326,7 +326,7 @@ class Container(_CustomDict):
                 current_idx = current_idx[-1]
 
             current = self._body[current_idx][1]
-            if not (key is None and isinstance(current, Table)):
+            if key is not None and not isinstance(current, Table):
                 raise KeyAlreadyPresent(key)
 
             # Adding sub tables to a currently existing table

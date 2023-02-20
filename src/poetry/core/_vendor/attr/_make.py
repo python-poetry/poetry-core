@@ -7,7 +7,6 @@ import sys
 import types
 import typing
 
-from contextlib import suppress
 from operator import itemgetter
 
 # We need to import _compat itself in addition to the _compat members to avoid
@@ -236,15 +235,20 @@ def attrib(
     .. versionchanged:: 21.1.0 *cmp* undeprecated
     .. versionadded:: 22.2.0 *alias*
     """
-    eq, eq_key, order, order_key = _determine_attrib_eq_order(cmp, eq, order, True)
+    eq, eq_key, order, order_key = _determine_attrib_eq_order(
+        cmp, eq, order, True
+    )
 
     if hash is not None and hash is not True and hash is not False:
-        raise TypeError("Invalid value for hash.  Must be True, False, or None.")
+        raise TypeError(
+            "Invalid value for hash.  Must be True, False, or None."
+        )
 
     if factory is not None:
         if default is not NOTHING:
             raise ValueError(
-                "The `default` and `factory` arguments are mutually " "exclusive."
+                "The `default` and `factory` arguments are mutually "
+                "exclusive."
             )
         if not callable(factory):
             raise ValueError("The `factory` argument must be a callable.")
@@ -484,7 +488,9 @@ def _transform_attrs(
         ca_list = [(name, ca) for name, ca in these.items()]
     elif auto_attribs is True:
         ca_names = {
-            name for name, attr in cd.items() if isinstance(attr, _CountingAttr)
+            name
+            for name, attr in cd.items()
+            if isinstance(attr, _CountingAttr)
         }
         ca_list = []
         annot_names = set()
@@ -505,7 +511,9 @@ def _transform_attrs(
         if len(unannotated) > 0:
             raise UnannotatedAttributeError(
                 "The following `attr.ib`s lack a type annotation: "
-                + ", ".join(sorted(unannotated, key=lambda n: cd.get(n).counter))
+                + ", ".join(
+                    sorted(unannotated, key=lambda n: cd.get(n).counter)
+                )
                 + "."
             )
     else:
@@ -519,7 +527,9 @@ def _transform_attrs(
         )
 
     own_attrs = [
-        Attribute.from_counting_attr(name=attr_name, ca=ca, type=anns.get(attr_name))
+        Attribute.from_counting_attr(
+            name=attr_name, ca=ca, type=anns.get(attr_name)
+        )
         for attr_name, ca in ca_list
     ]
 
@@ -578,12 +588,14 @@ if PYPY:
         """
         Attached to frozen classes as __setattr__.
         """
-        if isinstance(self, BaseException) and name in ("__cause__", "__context__",):
+        if isinstance(self, BaseException) and name in (
+            "__cause__",
+            "__context__",
+        ):
             BaseException.__setattr__(self, name, value)
             return
 
-        raise FrozenInstanceError
-
+        raise FrozenInstanceError()
 
 else:
 
@@ -591,14 +603,14 @@ else:
         """
         Attached to frozen classes as __setattr__.
         """
-        raise FrozenInstanceError
+        raise FrozenInstanceError()
 
 
 def _frozen_delattrs(self, name):
     """
     Attached to frozen classes as __delattr__.
     """
-    raise FrozenInstanceError
+    raise FrozenInstanceError()
 
 
 class _ClassBuilder:
@@ -644,7 +656,12 @@ class _ClassBuilder:
         field_transformer,
     ):
         attrs, base_attrs, base_map = _transform_attrs(
-            cls, these, auto_attribs, kw_only, collect_by_mro, field_transformer,
+            cls,
+            these,
+            auto_attribs,
+            kw_only,
+            collect_by_mro,
+            field_transformer,
         )
 
         self._cls = cls
@@ -673,7 +690,11 @@ class _ClassBuilder:
             self._cls_dict["__delattr__"] = _frozen_delattrs
 
             self._wrote_own_setattr = True
-        elif on_setattr in (_ng_default_on_setattr, setters.validate, setters.convert,):
+        elif on_setattr in (
+            _ng_default_on_setattr,
+            setters.validate,
+            setters.convert,
+        ):
             has_validator = has_converter = False
             for a in attrs:
                 if a.validator is not None:
@@ -717,7 +738,9 @@ class _ClassBuilder:
             if self._slots is True:
                 return self._create_slots_class()
 
-            return self.abc.update_abstractmethods(self._patch_original_class())
+            return self.abc.update_abstractmethods(
+                self._patch_original_class()
+            )
 
     else:
 
@@ -760,7 +783,9 @@ class _ClassBuilder:
 
         # If we've inherited an attrs __setattr__ and don't write our own,
         # reset it to object's.
-        if not self._wrote_own_setattr and getattr(cls, "__attrs_own_setattr__", False):
+        if not self._wrote_own_setattr and getattr(
+            cls, "__attrs_own_setattr__", False
+        ):
             cls.__attrs_own_setattr__ = False
 
             if not self._has_custom_setattr:
@@ -883,7 +908,9 @@ class _ClassBuilder:
     def add_str(self):
         repr = self._cls_dict.get("__repr__")
         if repr is None:
-            raise ValueError("__str__ can only be generated if a __repr__ exists.")
+            raise ValueError(
+                "__str__ can only be generated if a __repr__ exists."
+            )
 
         def __str__(self):
             return self.__repr__()
@@ -896,7 +923,9 @@ class _ClassBuilder:
         Create custom __setstate__ and __getstate__ methods.
         """
         # __weakref__ is not writable.
-        state_attr_names = tuple(an for an in self._attr_names if an != "__weakref__")
+        state_attr_names = tuple(
+            an for an in self._attr_names if an != "__weakref__"
+        )
 
         def slots_getstate(self):
             """
@@ -961,7 +990,9 @@ class _ClassBuilder:
 
     def add_match_args(self):
         self._cls_dict["__match_args__"] = tuple(
-            field.name for field in self._attrs if field.init and not field.kw_only
+            field.name
+            for field in self._attrs
+            if field.init and not field.kw_only
         )
 
     def add_attrs_init(self):
@@ -986,7 +1017,9 @@ class _ClassBuilder:
     def add_eq(self):
         cd = self._cls_dict
 
-        cd["__eq__"] = self._add_method_dunders(_make_eq(self._cls, self._attrs))
+        cd["__eq__"] = self._add_method_dunders(
+            _make_eq(self._cls, self._attrs)
+        )
         cd["__ne__"] = self._add_method_dunders(_make_ne())
 
         return self
@@ -1016,7 +1049,9 @@ class _ClassBuilder:
 
         if self._has_custom_setattr:
             # We need to write a __setattr__ but there already is one!
-            raise ValueError("Can't combine custom __setattr__ with on_setattr hooks.")
+            raise ValueError(
+                "Can't combine custom __setattr__ with on_setattr hooks."
+            )
 
         # docstring comes from _add_method_dunders
         def __setattr__(self, name, val):
@@ -1039,16 +1074,25 @@ class _ClassBuilder:
         """
         Add __module__ and __qualname__ to a *method* if possible.
         """
-        with suppress(AttributeError):
+        try:
             method.__module__ = self._cls.__module__
+        except AttributeError:
+            pass
 
-        with suppress(AttributeError):
-            method.__qualname__ = ".".join((self._cls.__qualname__, method.__name__))
-
-        with suppress(AttributeError):
-            method.__doc__ = (
-                "Method generated by attrs for class " f"{self._cls.__qualname__}."
+        try:
+            method.__qualname__ = ".".join(
+                (self._cls.__qualname__, method.__name__)
             )
+        except AttributeError:
+            pass
+
+        try:
+            method.__doc__ = (
+                "Method generated by attrs for class "
+                f"{self._cls.__qualname__}."
+            )
+        except AttributeError:
+            pass
 
         return method
 
@@ -1120,7 +1164,9 @@ def _determine_attrib_eq_order(cmp, eq, order, default_eq):
     return eq, eq_key, order, order_key
 
 
-def _determine_whether_to_implement(cls, flag, auto_detect, dunders, default=True):
+def _determine_whether_to_implement(
+    cls, flag, auto_detect, dunders, default=True
+):
     """
     Check whether we should implement a set of methods for *cls*.
 
@@ -1435,7 +1481,9 @@ def attrs(
     def wrap(cls):
         is_frozen = frozen or _has_frozen_base_class(cls)
         is_exc = auto_exc is True and issubclass(cls, BaseException)
-        has_own_setattr = auto_detect and _has_own_attribute(cls, "__setattr__")
+        has_own_setattr = auto_detect and _has_own_attribute(
+            cls, "__setattr__"
+        )
 
         if has_own_setattr and is_frozen:
             raise ValueError("Can't freeze a class with a custom __setattr__.")
@@ -1462,7 +1510,9 @@ def attrs(
             has_own_setattr,
             field_transformer,
         )
-        if _determine_whether_to_implement(cls, repr, auto_detect, ("__repr__",)):
+        if _determine_whether_to_implement(
+            cls, repr, auto_detect, ("__repr__",)
+        ):
             builder.add_repr(repr_ns)
         if str is True:
             builder.add_str()
@@ -1480,12 +1530,18 @@ def attrs(
         builder.add_setattr()
 
         nonlocal hash
-        if hash is None and auto_detect is True and _has_own_attribute(cls, "__hash__"):
+        if (
+            hash is None
+            and auto_detect is True
+            and _has_own_attribute(cls, "__hash__")
+        ):
             hash = False
 
         if hash is not True and hash is not False and hash is not None:
             # Can't use `hash in` because 1 == True for example.
-            raise TypeError("Invalid value for hash.  Must be True, False, or None.")
+            raise TypeError(
+                "Invalid value for hash.  Must be True, False, or None."
+            )
         elif hash is False or (hash is None and eq is False) or is_exc:
             # Don't do anything. Should fall back to __object__'s __hash__
             # which is by id.
@@ -1495,7 +1551,9 @@ def attrs(
                     " hashing must be either explicitly or implicitly "
                     "enabled."
                 )
-        elif hash is True or (hash is None and eq is True and is_frozen is True):
+        elif hash is True or (
+            hash is None and eq is True and is_frozen is True
+        ):
             # Build a __hash__ if told so, or if it's safe.
             builder.add_hash()
         else:
@@ -1508,7 +1566,9 @@ def attrs(
                 )
             builder.make_unhashable()
 
-        if _determine_whether_to_implement(cls, init, auto_detect, ("__init__",)):
+        if _determine_whether_to_implement(
+            cls, init, auto_detect, ("__init__",)
+        ):
             builder.add_init()
         else:
             builder.add_attrs_init()
@@ -1518,7 +1578,11 @@ def attrs(
                     " init must be True."
                 )
 
-        if PY310 and match_args and not _has_own_attribute(cls, "__match_args__"):
+        if (
+            PY310
+            and match_args
+            and not _has_own_attribute(cls, "__match_args__")
+        ):
             builder.add_match_args()
 
         return builder.build_class()
@@ -1577,7 +1641,8 @@ def _make_hash(cls, attrs, frozen, cache_hash):
         hash_def += ", *"
 
         hash_def += (
-            ", _cache_wrapper=" + "__import__('attr._make')._make._CacheHashWrapper):"
+            ", _cache_wrapper="
+            + "__import__('attr._make')._make._CacheHashWrapper):"
         )
         hash_func = "_cache_wrapper(" + hash_func
         closing_braces += ")"
@@ -1592,14 +1657,19 @@ def _make_hash(cls, attrs, frozen, cache_hash):
         """
 
         method_lines.extend(
-            [indent + prefix + hash_func, indent + f"        {type_hash},",]
+            [
+                indent + prefix + hash_func,
+                indent + f"        {type_hash},",
+            ]
         )
 
         for a in attrs:
             if a.eq_key:
                 cmp_name = f"_{a.name}_key"
                 globs[cmp_name] = a.eq_key
-                method_lines.append(indent + f"        {cmp_name}(self.{a.name}),")
+                method_lines.append(
+                    indent + f"        {cmp_name}(self.{a.name}),"
+                )
             else:
                 method_lines.append(indent + f"        self.{a.name},")
 
@@ -1613,7 +1683,9 @@ def _make_hash(cls, attrs, frozen, cache_hash):
             )
             method_lines.append(tab * 2 + ")")  # close __setattr__
         else:
-            append_hash_computation_lines(f"self.{_hash_cache_field} = ", tab * 2)
+            append_hash_computation_lines(
+                f"self.{_hash_cache_field} = ", tab * 2
+            )
         method_lines.append(tab + f"return self.{_hash_cache_field}")
     else:
         append_hash_computation_lines("return ", tab)
@@ -1701,7 +1773,9 @@ def _make_order(cls, attrs):
         """
         return tuple(
             key(value) if key else value
-            for value, key in ((getattr(obj, a.name), a.order_key) for a in attrs)
+            for value, key in (
+                (getattr(obj, a.name), a.order_key) for a in attrs
+            )
         )
 
     def __lt__(self, other):
@@ -1766,13 +1840,17 @@ def _make_repr(attrs, ns, cls):
         for a in attrs
         if a.repr is not False
     )
-    globs = {name + "_repr": r for name, r, _ in attr_names_with_reprs if r != repr}
+    globs = {
+        name + "_repr": r for name, r, _ in attr_names_with_reprs if r != repr
+    }
     globs["_compat"] = _compat
     globs["AttributeError"] = AttributeError
     globs["NOTHING"] = NOTHING
     attribute_fragments = []
     for name, r, i in attr_names_with_reprs:
-        accessor = "self." + name if i else 'getattr(self, "' + name + '", NOTHING)'
+        accessor = (
+            "self." + name if i else 'getattr(self, "' + name + '", NOTHING)'
+        )
         fragment = (
             "%s={%s!r}" % (name, accessor)
             if r == repr
@@ -1804,7 +1882,9 @@ def _make_repr(attrs, ns, cls):
         "    already_repring.remove(id(self))",
     ]
 
-    return _make_method("__repr__", "\n".join(lines), unique_filename, globs=globs)
+    return _make_method(
+        "__repr__", "\n".join(lines), unique_filename, globs=globs
+    )
 
 
 def _add_repr(cls, ns=None, attrs=None):
@@ -1960,7 +2040,10 @@ def _make_init(
         globs["_cached_setattr_get"] = _obj_setattr.__get__
 
     init = _make_method(
-        "__attrs_init__" if attrs_init else "__init__", script, unique_filename, globs,
+        "__attrs_init__" if attrs_init else "__init__",
+        script,
+        unique_filename,
+        globs,
     )
     init.__annotations__ = annotations
 
@@ -2062,9 +2145,13 @@ def _attrs_to_init_script(
 
                 return f"_inst_dict['{attr_name}'] = {value_var}"
 
-            def fmt_setter_with_converter(attr_name, value_var, has_on_setattr):
+            def fmt_setter_with_converter(
+                attr_name, value_var, has_on_setattr
+            ):
                 if has_on_setattr or _is_slot_attr(attr_name, base_attr_map):
-                    return _setattr_with_converter(attr_name, value_var, has_on_setattr)
+                    return _setattr_with_converter(
+                        attr_name, value_var, has_on_setattr
+                    )
 
                 return "_inst_dict['%s'] = %s(%s)" % (
                     attr_name,
@@ -2154,9 +2241,13 @@ def _attrs_to_init_script(
 
             if a.converter is not None:
                 lines.append(
-                    fmt_setter_with_converter(attr_name, arg_name, has_on_setattr)
+                    fmt_setter_with_converter(
+                        attr_name, arg_name, has_on_setattr
+                    )
                 )
-                names_for_globals[_init_converter_pat % (a.name,)] = a.converter
+                names_for_globals[
+                    _init_converter_pat % (a.name,)
+                ] = a.converter
             else:
                 lines.append(fmt_setter(attr_name, arg_name, has_on_setattr))
 
@@ -2172,7 +2263,9 @@ def _attrs_to_init_script(
             if a.converter is not None:
                 lines.append(
                     "    "
-                    + fmt_setter_with_converter(attr_name, arg_name, has_on_setattr)
+                    + fmt_setter_with_converter(
+                        attr_name, arg_name, has_on_setattr
+                    )
                 )
                 lines.append("else:")
                 lines.append(
@@ -2183,9 +2276,13 @@ def _attrs_to_init_script(
                         has_on_setattr,
                     )
                 )
-                names_for_globals[_init_converter_pat % (a.name,)] = a.converter
+                names_for_globals[
+                    _init_converter_pat % (a.name,)
+                ] = a.converter
             else:
-                lines.append("    " + fmt_setter(attr_name, arg_name, has_on_setattr))
+                lines.append(
+                    "    " + fmt_setter(attr_name, arg_name, has_on_setattr)
+                )
                 lines.append("else:")
                 lines.append(
                     "    "
@@ -2204,9 +2301,13 @@ def _attrs_to_init_script(
 
             if a.converter is not None:
                 lines.append(
-                    fmt_setter_with_converter(attr_name, arg_name, has_on_setattr)
+                    fmt_setter_with_converter(
+                        attr_name, arg_name, has_on_setattr
+                    )
                 )
-                names_for_globals[_init_converter_pat % (a.name,)] = a.converter
+                names_for_globals[
+                    _init_converter_pat % (a.name,)
+                ] = a.converter
             else:
                 lines.append(fmt_setter(attr_name, arg_name, has_on_setattr))
 
@@ -2402,7 +2503,7 @@ class Attribute:
         bound_setattr("alias", alias)
 
     def __setattr__(self, name, value):
-        raise FrozenInstanceError
+        raise FrozenInstanceError()
 
     @classmethod
     def from_counting_attr(cls, name, ca, type=None):
@@ -2410,7 +2511,9 @@ class Attribute:
         if type is None:
             type = ca.type
         elif ca.type is not None:
-            raise ValueError("Type annotation and type argument cannot both be present")
+            raise ValueError(
+                "Type annotation and type argument cannot both be present"
+            )
         inst_dict = {
             k: getattr(ca, k)
             for k in Attribute.__slots__
@@ -2500,7 +2603,8 @@ _a = [
 
 Attribute = _add_hash(
     _add_eq(
-        _add_repr(Attribute, attrs=_a), attrs=[a for a in _a if a.name != "inherited"],
+        _add_repr(Attribute, attrs=_a),
+        attrs=[a for a in _a if a.name != "inherited"],
     ),
     attrs=[a for a in _a if a.hash and a.name != "inherited"],
 )
@@ -2645,7 +2749,7 @@ class _CountingAttr:
         .. versionadded:: 17.1.0
         """
         if self._default is not NOTHING:
-            raise DefaultAlreadySetError
+            raise DefaultAlreadySetError()
 
         self._default = Factory(meth, takes_self=True)
 
@@ -2762,8 +2866,12 @@ def make_class(name, attrs, bases=(object,), **attributes_arguments):
     # frame where the class is created.  Bypass this step in environments where
     # sys._getframe is not defined (Jython for example) or sys._getframe is not
     # defined for arguments greater than 0 (IronPython).
-    with suppress(AttributeError, ValueError):
-        type_.__module__ = sys._getframe(1).f_globals.get("__name__", "__main__")
+    try:
+        type_.__module__ = sys._getframe(1).f_globals.get(
+            "__name__", "__main__"
+        )
+    except (AttributeError, ValueError):
+        pass
 
     # We do it here for proper warnings with meaningful stacklevel.
     cmp = attributes_arguments.pop("cmp", None)
@@ -2771,7 +2879,10 @@ def make_class(name, attrs, bases=(object,), **attributes_arguments):
         attributes_arguments["eq"],
         attributes_arguments["order"],
     ) = _determine_attrs_eq_order(
-        cmp, attributes_arguments.get("eq"), attributes_arguments.get("order"), True,
+        cmp,
+        attributes_arguments.get("eq"),
+        attributes_arguments.get("order"),
+        True,
     )
 
     return _attrs(these=cls_dict, **attributes_arguments)(type_)

@@ -22,7 +22,7 @@ except AttributeError:  # Python <3.7 lacks a Pattern type.
     Pattern = type(re.compile(""))
 
 
-__all__ = (
+__all__ = [
     "and_",
     "deep_iterable",
     "deep_mapping",
@@ -42,7 +42,7 @@ __all__ = (
     "optional",
     "provides",
     "set_disabled",
-)
+]
 
 
 def set_disabled(disabled):
@@ -105,7 +105,10 @@ class _InstanceOfValidator:
             raise TypeError(
                 "'{name}' must be {type!r} (got {value!r} that is a "
                 "{actual!r}).".format(
-                    name=attr.name, type=self.type, actual=value.__class__, value=value,
+                    name=attr.name,
+                    type=self.type,
+                    actual=value.__class__,
+                    value=value,
                 ),
                 attr,
                 self.type,
@@ -113,7 +116,9 @@ class _InstanceOfValidator:
             )
 
     def __repr__(self):
-        return "<instance_of validator for type {type!r}>".format(type=self.type)
+        return "<instance_of validator for type {type!r}>".format(
+            type=self.type
+        )
 
 
 def instance_of(type):
@@ -178,7 +183,11 @@ def matches_re(regex, flags=0, func=None):
     if func not in valid_funcs:
         raise ValueError(
             "'func' must be one of {}.".format(
-                ", ".join(sorted(e and e.__name__ or "None" for e in set(valid_funcs)))
+                ", ".join(
+                    sorted(
+                        e and e.__name__ or "None" for e in set(valid_funcs)
+                    )
+                )
             )
         )
 
@@ -299,7 +308,9 @@ class _InValidator:
             )
 
     def __repr__(self):
-        return "<in_ validator with options {options!r}>".format(options=self.options)
+        return "<in_ validator with options {options!r}>".format(
+            options=self.options
+        )
 
 
 def in_(options):
@@ -332,10 +343,13 @@ class _IsCallableValidator:
         """
         if not callable(value):
             message = (
-                "'{name}' must be callable " "(got {value!r} that is a {actual!r})."
+                "'{name}' must be callable "
+                "(got {value!r} that is a {actual!r})."
             )
             raise NotCallableError(
-                msg=message.format(name=attr.name, value=value, actual=value.__class__),
+                msg=message.format(
+                    name=attr.name, value=value, actual=value.__class__
+                ),
                 value=value,
             )
 
@@ -361,7 +375,9 @@ def is_callable():
 @attrs(repr=False, slots=True, hash=True)
 class _DeepIterable:
     member_validator = attrib(validator=is_callable())
-    iterable_validator = attrib(default=None, validator=optional(is_callable()))
+    iterable_validator = attrib(
+        default=None, validator=optional(is_callable())
+    )
 
     def __call__(self, inst, attr, value):
         """
@@ -375,12 +391,17 @@ class _DeepIterable:
 
     def __repr__(self):
         iterable_identifier = (
-            "" if self.iterable_validator is None else f" {self.iterable_validator!r}"
+            ""
+            if self.iterable_validator is None
+            else f" {self.iterable_validator!r}"
         )
         return (
             "<deep_iterable validator for{iterable_identifier}"
             " iterables of {member!r}>"
-        ).format(iterable_identifier=iterable_identifier, member=self.member_validator,)
+        ).format(
+            iterable_identifier=iterable_identifier,
+            member=self.member_validator,
+        )
 
 
 def deep_iterable(member_validator, iterable_validator=None):
@@ -452,7 +473,10 @@ class _NumberValidator:
         if not self.compare_func(value, self.bound):
             raise ValueError(
                 "'{name}' must be {op} {bound}: {value}".format(
-                    name=attr.name, op=self.compare_op, bound=self.bound, value=value,
+                    name=attr.name,
+                    op=self.compare_op,
+                    bound=self.bound,
+                    value=value,
                 )
             )
 
@@ -583,14 +607,20 @@ class _SubclassOfValidator:
         if not issubclass(value, self.type):
             raise TypeError(
                 "'{name}' must be a subclass of {type!r} "
-                "(got {value!r}).".format(name=attr.name, type=self.type, value=value,),
+                "(got {value!r}).".format(
+                    name=attr.name,
+                    type=self.type,
+                    value=value,
+                ),
                 attr,
                 self.type,
                 value,
             )
 
     def __repr__(self):
-        return "<subclass_of validator for type {type!r}>".format(type=self.type)
+        return "<subclass_of validator for type {type!r}>".format(
+            type=self.type
+        )
 
 
 def _subclass_of(type):
@@ -614,7 +644,8 @@ class _NotValidator:
     validator = attrib()
     msg = attrib(
         converter=default_if_none(
-            "not_ validator child '{validator!r}' " "did not raise a captured error"
+            "not_ validator child '{validator!r}' "
+            "did not raise a captured error"
         )
     )
     exc_types = attrib(
@@ -631,7 +662,10 @@ class _NotValidator:
             pass  # suppress error to invert validity
         else:
             raise ValueError(
-                self.msg.format(validator=self.validator, exc_types=self.exc_types,),
+                self.msg.format(
+                    validator=self.validator,
+                    exc_types=self.exc_types,
+                ),
                 attr,
                 self.validator,
                 value,
@@ -641,7 +675,10 @@ class _NotValidator:
     def __repr__(self):
         return (
             "<not_ validator wrapping {what!r}, " "capturing {exc_types!r}>"
-        ).format(what=self.validator, exc_types=self.exc_types,)
+        ).format(
+            what=self.validator,
+            exc_types=self.exc_types,
+        )
 
 
 def not_(validator, *, msg=None, exc_types=(ValueError, TypeError)):

@@ -5,7 +5,6 @@ import json
 import os
 import re
 
-
 class URIDict(MutableMapping):
     """
     Dictionary which uses normalized URIs as keys.
@@ -52,7 +51,7 @@ def load_schema(name):
     """
     with open(
         os.path.join(os.path.dirname(__file__), "schemas", "{0}.json".format(name)),
-        encoding="utf-8",
+        encoding="utf-8"
     ) as f:
         data = f.read()
 
@@ -130,7 +129,10 @@ def _mapping_equal(one, two):
     """
     if len(one) != len(two):
         return False
-    return all(key in two and equal(value, two[key]) for key, value in one.items())
+    return all(
+        key in two and equal(value, two[key])
+        for key, value in one.items()
+    )
 
 
 def _sequence_equal(one, two):
@@ -241,13 +243,13 @@ def find_evaluated_item_indexes_by_schema(validator, instance, schema):
                     validator, instance, schema["else"],
                 )
 
-    for keyword in ("contains", "unevaluatedItems"):
+    for keyword in ["contains", "unevaluatedItems"]:
         if keyword in schema:
             for k, v in enumerate(instance):
                 if validator.evolve(schema=schema[keyword]).is_valid(v):
                     evaluated_indexes.append(k)
 
-    for keyword in ("allOf", "oneOf", "anyOf"):
+    for keyword in ["allOf", "oneOf", "anyOf"]:
         if keyword in schema:
             for subschema in schema[keyword]:
                 errs = list(validator.descend(instance, subschema))
@@ -283,9 +285,7 @@ def find_evaluated_property_keys_by_schema(validator, instance, schema):
             validator.resolver.pop_scope()
 
     for keyword in [
-        "properties",
-        "additionalProperties",
-        "unevaluatedProperties",
+        "properties", "additionalProperties", "unevaluatedProperties",
     ]:
         if keyword in schema:
             if validator.is_type(schema[keyword], "boolean"):
@@ -318,7 +318,7 @@ def find_evaluated_property_keys_by_schema(validator, instance, schema):
                 validator, instance, subschema,
             )
 
-    for keyword in ("allOf", "oneOf", "anyOf"):
+    for keyword in ["allOf", "oneOf", "anyOf"]:
         if keyword in schema:
             for subschema in schema[keyword]:
                 errs = list(validator.descend(instance, subschema))
