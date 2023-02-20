@@ -209,8 +209,7 @@ def cpython_tags(
 
     platforms = list(platforms or platform_tags())
     for abi in abis:
-        for platform_ in platforms:
-            yield Tag(interpreter, abi, platform_)
+        yield from (Tag(interpreter, abi, platform_) for platform_ in platforms)
     if _abi3_applies(python_version):
         yield from (Tag(interpreter, "abi3", platform_) for platform_ in platforms)
     yield from (Tag(interpreter, "none", platform_) for platform_ in platforms)

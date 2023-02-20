@@ -32,7 +32,7 @@ def validate_object(obj: dict[str, Any], schema_name: str) -> list[str]:
     for error in validation_errors:
         message = error.message
         if error.path:
-            path = ".".join(str(x) for x in error.absolute_path)
+            path = ".".join(map(str, error.absolute_path))
             message = f"[{path}] {message}"
 
         errors.append(message)

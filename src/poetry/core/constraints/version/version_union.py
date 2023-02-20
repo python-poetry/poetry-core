@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import operator as op
+
+from functools import reduce
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.empty_constraint import EmptyConstraint
@@ -350,10 +353,10 @@ class VersionUnion(VersionConstraint):
             }
 
             # for each non-semver (extra) part, bump a version
-            for idx in range(len(_extra_one)):
+            for idx, val in enumerate(_extra_one):
                 _extra = [
                     *_extra_one[: idx - 1],
-                    (_extra_one[idx] + 1),
+                    (val + 1),
                     *_extra_one[idx + 1 :],
                 ]
                 _check_versions.add(
@@ -402,12 +405,7 @@ class VersionUnion(VersionConstraint):
         return self._ranges == other.ranges
 
     def __hash__(self) -> int:
-        h = hash(self._ranges[0])
-
-        for range in self._ranges[1:]:
-            h ^= hash(range)
-
-        return h
+        return reduce(op.xor, map(hash, self._ranges))
 
     def __str__(self) -> str:
         from poetry.core.constraints.version.version_range import VersionRange

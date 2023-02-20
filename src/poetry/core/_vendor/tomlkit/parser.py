@@ -639,8 +639,7 @@ class Parser:
                     break
 
                 if (
-                    trailing_comma is False
-                    or trailing_comma is None
+                    trailing_comma in (False, None)
                     and self._current == ","
                 ):
                     # Either the previous key-value pair was not followed by a comma
@@ -648,7 +647,7 @@ class Parser:
                     raise self.parse_error(UnexpectedCharError, self._current)
             else:
                 # True: previous key-value pair was followed by a comma
-                if self._current == "}" or self._current == ",":
+                if self._current in ",}":
                     raise self.parse_error(UnexpectedCharError, self._current)
 
             key, val = self._parse_key_value(False)
