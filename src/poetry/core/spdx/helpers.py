@@ -23,7 +23,7 @@ def _load_licenses() -> dict[str, License]:
     licenses_file = os.path.join(os.path.dirname(__file__), "data", "licenses.json")
 
     with open(licenses_file, encoding="utf-8") as f:
-        data = json.loads(f.read())
+        data = json.load(f)
 
     for name, license_info in data.items():
         license = License(name, license_info[0], license_info[1], license_info[2])

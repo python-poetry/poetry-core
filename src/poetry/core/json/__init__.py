@@ -20,7 +20,7 @@ def validate_object(obj: dict[str, Any], schema_name: str) -> list[str]:
         raise ValueError(f"Schema {schema_name} does not exist.")
 
     with open(schema_file, encoding="utf-8") as f:
-        schema = json.loads(f.read())
+        schema = json.load(f)
 
     from jsonschema import Draft7Validator
 
