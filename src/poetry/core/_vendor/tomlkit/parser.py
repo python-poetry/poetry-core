@@ -232,7 +232,7 @@ class Parser:
                     return None, Comment(Trivia(indent, cws, comment, trail))
                 elif c == "[":
                     # Found a table, delegate to the calling function.
-                    return
+                    return None
                 else:
                     # Beginning of a KV pair.
                     # Return to beginning of whitespace so it gets included
