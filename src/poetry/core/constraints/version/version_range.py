@@ -362,10 +362,7 @@ class VersionRange(VersionRangeConstraint):
 
     def _cmp(self, other: VersionRangeConstraint) -> int:
         if self.min is None:
-            if other.min is None:
-                return self._compare_max(other)
-
-            return -1
+            return self._compare_max(other) if other.min is None else -1
         elif other.min is None:
             return 1
 
@@ -381,10 +378,7 @@ class VersionRange(VersionRangeConstraint):
 
     def _compare_max(self, other: VersionRangeConstraint) -> int:
         if self.max is None:
-            if other.max is None:
-                return 0
-
-            return 1
+            return 0 if other.max is None else 1
         elif other.max is None:
             return -1
 

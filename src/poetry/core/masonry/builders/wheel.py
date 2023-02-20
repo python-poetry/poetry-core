@@ -333,11 +333,7 @@ class WheelBuilder(Builder):
             tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
             platform = "any"
-            if self.supports_python2():
-                impl = "py2.py3"
-            else:
-                impl = "py3"
-
+            impl = "py2.py3" if self.supports_python2() else "py3"
             tag = (impl, "none", platform)
 
         return "-".join(tag)
