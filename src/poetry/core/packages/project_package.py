@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import warnings
+import warnings, logging
 
 from typing import TYPE_CHECKING
 from typing import Any
@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectPackage(Package):
@@ -33,6 +35,13 @@ class ProjectPackage(Package):
             )
 
         super().__init__(name, version)
+
+        if name != self.name and '.' in name:
+            logger.warning(
+                f"Project name has been canonicalised from <info>{name}</info> to <info>{self.name}</info>. "
+                "This may not be compatible with previous releases or package metadata looks and may cause issues when uploading to package repositories. "
+                "See https://github.com/python-poetry/poetry/issues/6198.",
+            )
 
         self.build_config: dict[str, Any] = {}
         self.packages: list[dict[str, Any]] = []
