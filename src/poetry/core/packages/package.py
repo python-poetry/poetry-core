@@ -382,6 +382,7 @@ class Package(PackageSpecification):
                 " Please use the plural form `readmes`."
             ),
             DeprecationWarning,
+            stacklevel=2,
         )
         return next(iter(self.readmes), None)
 
@@ -393,6 +394,7 @@ class Package(PackageSpecification):
                 " `readmes`."
             ),
             DeprecationWarning,
+            stacklevel=2,
         )
         self.readmes = (path,)
 
