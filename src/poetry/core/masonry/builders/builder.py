@@ -288,6 +288,7 @@ class Builder:
                         " deprecated. Use reference instead."
                     ),
                     DeprecationWarning,
+                    stacklevel=2,
                 )
                 specification = {
                     "reference": specification["callable"],
