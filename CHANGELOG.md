@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [1.5.2] - 2023-03-13
+
+### Fixed
+
+- Fix an issue where wheels built on Windows could contain duplicate entries in the RECORD file ([#555](https://github.com/python-poetry/poetry-core/pull/555)).
+
+
 ## [1.5.1] - 2023-02-20
 
 ### Changed
@@ -496,7 +503,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.5.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.5.2...main
+[1.5.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.2
 [1.5.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.1
 [1.5.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.0
 [1.4.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.4.0
