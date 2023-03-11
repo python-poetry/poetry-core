@@ -95,8 +95,7 @@ $""",
         assert re.search(r"\s+extended/extended.*\.(so|pyd)", record) is not None
 
         # Files in RECORD should match files in wheel.
-        zip_files = sorted(zipf.namelist())
-        assert zip_files == sorted(record_files)
+        assert zipf.namelist() == record_files
         assert len(set(record_files)) == len(record_files)
 
 
@@ -119,23 +118,30 @@ def test_complete(no_vcs: bool) -> None:
     if sys.platform != "win32":
         assert (os.stat(str(whl)).st_mode & 0o777) == 0o644
 
-    expected_name_list = [
-        "my_package/__init__.py",
-        "my_package/data1/test.json",
-        "my_package/sub_pkg1/__init__.py",
-        "my_package/sub_pkg2/__init__.py",
-        "my_package/sub_pkg2/data2/data.json",
-        "my_package-1.2.3.data/scripts/script.sh",
-        "my_package/sub_pkg3/foo.py",
-        "my_package-1.2.3.dist-info/entry_points.txt",
-        "my_package-1.2.3.dist-info/LICENSE",
-        "my_package-1.2.3.dist-info/WHEEL",
-        "my_package-1.2.3.dist-info/METADATA",
-        "my_package-1.2.3.dist-info/RECORD",
-    ]
+    expected_name_list = (
+        [
+            "my_package/__init__.py",
+            "my_package/data1/test.json",
+            "my_package/sub_pkg1/__init__.py",
+            "my_package/sub_pkg2/__init__.py",
+            "my_package/sub_pkg2/data2/data.json",
+            "my_package/sub_pkg3/foo.py",
+            "my_package-1.2.3.data/scripts/script.sh",
+        ]
+        + sorted(
+            [
+                "my_package-1.2.3.dist-info/entry_points.txt",
+                "my_package-1.2.3.dist-info/LICENSE",
+                "my_package-1.2.3.dist-info/METADATA",
+                "my_package-1.2.3.dist-info/WHEEL",
+            ],
+            key=lambda x: Path(x),
+        )
+        + ["my_package-1.2.3.dist-info/RECORD"]
+    )
 
     with zipfile.ZipFile(str(whl)) as zipf:
-        assert sorted(zipf.namelist()) == sorted(expected_name_list)
+        assert zipf.namelist() == expected_name_list
         assert (
             "Hello World"
             in zipf.read("my_package-1.2.3.data/scripts/script.sh").decode()
@@ -208,12 +214,11 @@ My Package
         )
         actual_records = zipf.read("my_package-1.2.3.dist-info/RECORD").decode()
 
-        # For some reason, the ordering of the files and the SHA hashes
-        # vary per operating systems and Python versions.
+        # The SHA hashes vary per operating systems.
         # So instead of 1:1 assertion, let's do a bit clunkier one:
         actual_files = [row[0] for row in csv.reader(actual_records.splitlines())]
 
-        assert sorted(actual_files) == sorted(expected_name_list)
+        assert actual_files == expected_name_list
 
 
 def test_module_src() -> None:
