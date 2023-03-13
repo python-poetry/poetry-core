@@ -324,6 +324,8 @@ class Git:
         return output.strip()
 
     def get_ignored_files(self, folder: Path | None = None) -> list[str]:
+        """Returns the list of files and directories that are ignored by Git."""
+
         args = []
         if folder is None and self._work_dir:
             folder = self._work_dir
@@ -336,7 +338,7 @@ class Git:
                 folder.as_posix(),
             ]
 
-        args += ["ls-files", "--others", "-i", "--exclude-standard"]
+        args += ["ls-files", "--others", "-i", "--exclude-standard", "--directory"]
         output = self.run(*args)
 
         return output.strip().split("\n")

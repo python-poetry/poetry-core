@@ -16,6 +16,18 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+def get_excluded_files(builder: Builder) -> set[str]:
+    """Get all excluded files in the project directory"""
+
+    relative_paths = [
+        path.relative_to(builder._path).as_posix()
+        for path in builder._path.rglob("*")
+        if path.is_file()
+    ]
+
+    return {path for path in relative_paths if path in builder.find_excluded_files()}
+
+
 def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
@@ -24,7 +36,23 @@ def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
     )
 
-    assert builder.find_excluded_files() == {"my_package/sub_pkg1/extra_file.xml"}
+    assert get_excluded_files(builder) == {"my_package/sub_pkg1/extra_file.xml"}
+
+
+def test_builder_find_excluded_files_whole_directory(mocker: MockerFixture) -> None:
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
+    p.return_value = [
+        "my_package/sub_pkg1",
+    ]
+
+    builder = Builder(
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
+    )
+
+    assert get_excluded_files(builder) == {
+        "my_package/sub_pkg1/extra_file.xml",
+        "my_package/sub_pkg1/__init__.py",
+    }
 
 
 @pytest.mark.xfail(
@@ -41,7 +69,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> No
         )
     )
 
-    assert builder.find_excluded_files() == {
+    assert get_excluded_files(builder) == {
         "my_package/FooBar/Bar.py",
         "my_package/FooBar/lowercasebar.py",
         "my_package/Foo/SecondBar.py",
@@ -68,7 +96,7 @@ def test_builder_find_invalid_case_sensitive_excluded_files(
         )
     )
 
-    assert {"my_package/Bar/foo/bar/Foo.py"} == builder.find_excluded_files()
+    assert {"my_package/Bar/foo/bar/Foo.py"} == get_excluded_files(builder)
 
 
 def test_get_metadata_content() -> None:
