@@ -273,6 +273,16 @@ def test_allows_all_contained_unions(
     assert not range.allows_all(VersionRange(v123, v234).union(v140))
 
 
+def test_allows_all_regression() -> None:
+    system_python = VersionRange(
+        Version.parse("3.8"), Version.parse("3.12"), include_min=True
+    )
+    package_version = VersionRange(
+        Version.parse("3.11"), Version.parse("4"), include_min=True
+    )
+    assert package_version.allows_all(system_python)
+
+
 def test_allows_any(
     v003: Version,
     v010: Version,
