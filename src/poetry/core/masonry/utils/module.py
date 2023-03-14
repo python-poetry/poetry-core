@@ -66,9 +66,9 @@ class Module:
                         }
                     ]
                 else:
-                    raise ModuleOrPackageNotFound(
-                        f"No file/folder found for package {name}"
-                    )
+                    if self._name != name:
+                        raise ModuleOrPackageNotFound(f"Project file/folder contains disallowed characters - expected naming: {name}")
+                    raise ModuleOrPackageNotFound(f"No file/folder found for package {name}")
 
         for package in packages:
             formats = package.get("format")
