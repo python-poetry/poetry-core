@@ -902,8 +902,8 @@ def test_validate(
     "marker, env",
     [
         (
-            'platform_release >= "9.0" and platform_release < "11.0"',
-            {"platform_release": "10.0"},
+            'python_version >= "9.0" and python_version < "11.0"',
+            {"python_version": "10.0"},
         )
     ],
 )
@@ -911,6 +911,14 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
     m = parse_marker(marker)
 
     assert m.validate(env)
+
+
+def test_environment_marker_examples() -> None:
+    # These are the platform_release examples in PEP-508, so should always parse
+    parse_marker(
+        'platform_release == "3.14.1-x86_64-linode39" or platform_release == "14.5.0"'
+        ' or platform_release == "1.8.0_51"'
+    )
 
 
 @pytest.mark.parametrize(
