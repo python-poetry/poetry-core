@@ -66,7 +66,7 @@ class Module:
                         }
                     ]
                 else:
-                    if self._name != name:
+                    if self._name != name.lower():
                         raise ModuleOrPackageNotFound(f"Project file/folder contains disallowed characters - expected naming: {name}")
                     raise ModuleOrPackageNotFound(f"No file/folder found for package {name}")
 
