@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 import os
-import platform
-import sys
 import zipfile
 
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterator
-
-import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
@@ -88,12 +84,6 @@ def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
     assert "does not exist" in record.message
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32"
-    and sys.version_info <= (3, 6)
-    or platform.python_implementation().lower() == "pypy",
-    reason="Disable test on Windows for Python <=3.6 and for PyPy",
-)
 def test_build_wheel_extended() -> None:
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "extended")):
         filename = api.build_wheel(tmp_dir)

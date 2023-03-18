@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -78,12 +76,6 @@ def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path) -
     assert len(wheels) == 1
 
 
-@pytest.mark.xfail(
-    sys.version_info < (3, 8),
-    # see https://github.com/python/importlib_metadata/issues/392
-    reason="importlib-metadata can't be installed with --no-binary anymore",
-    strict=True,
-)
 def test_pip_install_no_binary(python: str, project_source_root: Path) -> None:
     subprocess_run(
         python,
