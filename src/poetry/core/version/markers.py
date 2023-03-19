@@ -783,10 +783,7 @@ def _compact_markers(
         elif token.data == f"{tree_prefix}item":
             name, op, value = token.children
             if value.type == f"{tree_prefix}MARKER_NAME":
-                name, value, = (
-                    value,
-                    name,
-                )
+                name, value = value, name
 
             value = value[1:-1]
             sub_marker = SingleMarker(str(name), f"{op}{value}")
@@ -833,8 +830,10 @@ def dnf(marker: BaseMarker) -> BaseMarker:
         return MarkerUnion.of(
             *[MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)]
         )
+
     if isinstance(marker, MarkerUnion):
         return MarkerUnion.of(*[dnf(m) for m in marker.markers])
+
     return marker
 
 

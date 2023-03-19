@@ -13,8 +13,10 @@ from poetry.core.constraints.generic.parser import parse_single_constraint
 
 
 warnings.warn(
-    "poetry.core.packages.constraints is deprecated."
-    " Use poetry.core.constraints.generic instead.",
+    (
+        "poetry.core.packages.constraints is deprecated."
+        " Use poetry.core.constraints.generic instead."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )

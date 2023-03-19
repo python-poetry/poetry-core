@@ -114,8 +114,10 @@ class ReleaseTag:
             import warnings
 
             warnings.warn(
-                "Parameter 'short' has no effect and will be removed. "
-                "(Release tags are always normalized according to PEP 440 now.)",
+                (
+                    "Parameter 'short' has no effect and will be removed. "
+                    "(Release tags are always normalized according to PEP 440 now.)"
+                ),
                 DeprecationWarning,
                 stacklevel=2,
             )

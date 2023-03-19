@@ -1616,8 +1616,10 @@ def test_complex_intersection() -> None:
 
 
 @pytest.mark.parametrize(
-    "python_version, python_full_version, "
-    "expected_intersection_version, expected_union_version",
+    (
+        "python_version, python_full_version, "
+        "expected_intersection_version, expected_union_version"
+    ),
     [
         # python_version > 3.6 (equal to python_full_version >= 3.7.0)
         ('> "3.6"', '> "3.5.2"', '> "3.6"', '> "3.5.2"'),

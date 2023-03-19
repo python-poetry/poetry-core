@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import os
 import platform
 import re
@@ -42,40 +43,39 @@ def clear_samples_dist() -> None:
 
 
 @pytest.mark.skipif(
-    sys.platform == "win32"
-    and sys.version_info <= (3, 6)
-    or platform.python_implementation().lower() == "pypy",
-    reason="Disable test on Windows for Python <=3.6 and for PyPy",
+    platform.python_implementation().lower() == "pypy", reason="Disable test for PyPy"
 )
-def test_wheel_c_extension() -> None:
-    module_path = fixtures_dir / "extended"
+@pytest.mark.parametrize(
+    ["project", "exptected_c_dir"],
+    [
+        ("extended", "extended"),
+        ("extended_with_no_setup", "extended"),
+        ("src_extended", "src/extended"),
+    ],
+)
+def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
+    module_path = fixtures_dir / project
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
-    sdist = fixtures_dir / "extended" / "dist" / "extended-0.1.tar.gz"
-
+    sdist = fixtures_dir / project / "dist" / "extended-0.1.tar.gz"
     assert sdist.exists()
 
-    with tarfile.open(str(sdist), "r") as tar:
+    with tarfile.open(sdist, "r") as tar:
         assert "extended-0.1/build.py" in tar.getnames()
-        assert "extended-0.1/extended/extended.c" in tar.getnames()
+        assert f"extended-0.1/{exptected_c_dir}/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
-
     assert whl.exists()
 
-    zip = zipfile.ZipFile(str(whl))
+    with zipfile.ZipFile(whl) as zipf:
+        has_compiled_extension = False
+        for name in zipf.namelist():
+            if name.startswith("extended/extended") and name.endswith((".so", ".pyd")):
+                has_compiled_extension = True
+        assert has_compiled_extension
 
-    has_compiled_extension = False
-    for name in zip.namelist():
-        if name.startswith("extended/extended") and name.endswith((".so", ".pyd")):
-            has_compiled_extension = True
-
-    assert has_compiled_extension
-
-    try:
-        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
-
+        wheel_data = zipf.read("extended-0.1.dist-info/WHEEL").decode()
         assert (
             re.match(
                 f"""(?m)^\
@@ -89,125 +89,26 @@ $""",
             is not None
         )
 
-        records = zip.read("extended-0.1.dist-info/RECORD").decode()
+        record = zipf.read("extended-0.1.dist-info/RECORD").decode()
+        records = csv.reader(record.splitlines())
+        record_files = [row[0] for row in records]
+        assert re.search(r"\s+extended/extended.*\.(so|pyd)", record) is not None
 
-        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
-    finally:
-        zip.close()
-
-
-@pytest.mark.skipif(
-    sys.platform == "win32"
-    and sys.version_info <= (3, 6)
-    or platform.python_implementation().lower() == "pypy",
-    reason="Disable test on Windows for Python <=3.6 and for PyPy",
-)
-def test_wheel_c_extension_with_no_setup() -> None:
-    module_path = fixtures_dir / "extended_with_no_setup"
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
-
-    sdist = fixtures_dir / "extended_with_no_setup" / "dist" / "extended-0.1.tar.gz"
-
-    assert sdist.exists()
-
-    with tarfile.open(str(sdist), "r") as tar:
-        assert "extended-0.1/build.py" in tar.getnames()
-        assert "extended-0.1/extended/extended.c" in tar.getnames()
-
-    whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
-
-    assert whl.exists()
-
-    zip = zipfile.ZipFile(str(whl))
-
-    has_compiled_extension = False
-    for name in zip.namelist():
-        if name.startswith("extended/extended") and name.endswith((".so", ".pyd")):
-            has_compiled_extension = True
-
-    assert has_compiled_extension
-
-    try:
-        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
-
-        assert (
-            re.match(
-                f"""(?m)^\
-Wheel-Version: 1.0
-Generator: poetry-core {__version__}
-Root-Is-Purelib: false
-Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""",
-                wheel_data,
-            )
-            is not None
-        )
-
-        records = zip.read("extended-0.1.dist-info/RECORD").decode()
-
-        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
-    finally:
-        zip.close()
+        # Files in RECORD should match files in wheel.
+        assert zipf.namelist() == record_files
+        assert len(set(record_files)) == len(record_files)
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32"
-    and sys.version_info <= (3, 6)
-    or platform.python_implementation().lower() == "pypy",
-    reason="Disable test on Windows for Python <=3.6 and for PyPy",
-)
-def test_wheel_c_extension_src_layout() -> None:
-    module_path = fixtures_dir / "src_extended"
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
-
-    sdist = fixtures_dir / "src_extended" / "dist" / "extended-0.1.tar.gz"
-
-    assert sdist.exists()
-
-    with tarfile.open(str(sdist), "r") as tar:
-        assert "extended-0.1/build.py" in tar.getnames()
-        assert "extended-0.1/src/extended/extended.c" in tar.getnames()
-
-    whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
-
-    assert whl.exists()
-
-    zip = zipfile.ZipFile(str(whl))
-
-    has_compiled_extension = False
-    for name in zip.namelist():
-        if name.startswith("extended/extended") and name.endswith((".so", ".pyd")):
-            has_compiled_extension = True
-
-    assert has_compiled_extension
-
-    try:
-        wheel_data = zip.read("extended-0.1.dist-info/WHEEL").decode()
-
-        assert (
-            re.match(
-                f"""(?m)^\
-Wheel-Version: 1.0
-Generator: poetry-core {__version__}
-Root-Is-Purelib: false
-Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
-$""",
-                wheel_data,
-            )
-            is not None
-        )
-
-        records = zip.read("extended-0.1.dist-info/RECORD").decode()
-
-        assert re.search(r"\s+extended/extended.*\.(so|pyd)", records) is not None
-    finally:
-        zip.close()
-
-
-def test_complete() -> None:
+@pytest.mark.parametrize("no_vcs", [False, True])
+def test_complete(no_vcs: bool) -> None:
     module_path = fixtures_dir / "complete"
+
+    if no_vcs:
+        # Copy the complete fixtures dir to a temporary directory
+        temporary_dir = Path(tempfile.mkdtemp()) / "complete"
+        shutil.copytree(module_path.as_posix(), temporary_dir.as_posix())
+        module_path = temporary_dir
+
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
 
@@ -217,142 +118,36 @@ def test_complete() -> None:
     if sys.platform != "win32":
         assert (os.stat(str(whl)).st_mode & 0o777) == 0o644
 
-    zip = zipfile.ZipFile(str(whl))
-
-    try:
-        assert "my_package/sub_pgk1/extra_file.xml" not in zip.namelist()
-        assert "my_package-1.2.3.data/scripts/script.sh" in zip.namelist()
-        assert (
-            "Hello World"
-            in zip.read("my_package-1.2.3.data/scripts/script.sh").decode()
-        )
-
-        entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
-
-        assert (
-            entry_points.decode()
-            == """\
-[console_scripts]
-extra-script=my_package.extra:main[time]
-my-2nd-script=my_package:main2
-my-script=my_package:main
-
-"""
-        )
-        wheel_data = zip.read("my_package-1.2.3.dist-info/WHEEL").decode()
-
-        assert (
-            wheel_data
-            == f"""\
-Wheel-Version: 1.0
-Generator: poetry-core {__version__}
-Root-Is-Purelib: true
-Tag: py3-none-any
-"""
-        )
-        wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
-
-        assert (
-            wheel_data
-            == """\
-Metadata-Version: 2.1
-Name: my-package
-Version: 1.2.3
-Summary: Some description.
-Home-page: https://python-poetry.org/
-License: MIT
-Keywords: packaging,dependency,poetry
-Author: Sébastien Eustace
-Author-email: sebastien@eustace.io
-Maintainer: People Everywhere
-Maintainer-email: people@everywhere.com
-Requires-Python: >=3.6,<4.0
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
-Classifier: Programming Language :: Python :: 3.11
-Classifier: Topic :: Software Development :: Build Tools
-Classifier: Topic :: Software Development :: Libraries :: Python Modules
-Provides-Extra: time
-Requires-Dist: cachy[msgpack] (>=0.2.0,<0.3.0)
-Requires-Dist: cleo (>=0.6,<0.7)
-Requires-Dist: pendulum (>=1.4,<2.0) ; (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
-Project-URL: Documentation, https://python-poetry.org/docs
-Project-URL: Issue Tracker, https://github.com/python-poetry/poetry/issues
-Project-URL: Repository, https://github.com/python-poetry/poetry
-Description-Content-Type: text/x-rst
-
-My Package
-==========
-
-"""
-        )
-        actual_records = zip.read("my_package-1.2.3.dist-info/RECORD").decode()
-
-        # For some reason, the ordering of the files and the SHA hashes
-        # vary per operating systems and Python versions.
-        # So instead of 1:1 assertion, let's do a bit clunkier one:
-
-        expected_records = [
+    expected_name_list = (
+        [
             "my_package/__init__.py",
             "my_package/data1/test.json",
             "my_package/sub_pkg1/__init__.py",
             "my_package/sub_pkg2/__init__.py",
             "my_package/sub_pkg2/data2/data.json",
-            "my_package-1.2.3.dist-info/entry_points.txt",
-            "my_package-1.2.3.dist-info/LICENSE",
-            "my_package-1.2.3.dist-info/WHEEL",
-            "my_package-1.2.3.dist-info/METADATA",
+            "my_package/sub_pkg3/foo.py",
+            "my_package-1.2.3.data/scripts/script.sh",
         ]
+        + sorted(
+            [
+                "my_package-1.2.3.dist-info/entry_points.txt",
+                "my_package-1.2.3.dist-info/LICENSE",
+                "my_package-1.2.3.dist-info/METADATA",
+                "my_package-1.2.3.dist-info/WHEEL",
+            ],
+            key=lambda x: Path(x),
+        )
+        + ["my_package-1.2.3.dist-info/RECORD"]
+    )
 
-        for expected_record in expected_records:
-            assert expected_record in actual_records
+    with zipfile.ZipFile(str(whl)) as zipf:
+        assert zipf.namelist() == expected_name_list
+        assert (
+            "Hello World"
+            in zipf.read("my_package-1.2.3.data/scripts/script.sh").decode()
+        )
 
-    finally:
-        zip.close()
-
-
-def test_complete_no_vcs() -> None:
-    # Copy the complete fixtures dir to a temporary directory
-    module_path = fixtures_dir / "complete"
-    temporary_dir = Path(tempfile.mkdtemp()) / "complete"
-
-    shutil.copytree(module_path.as_posix(), temporary_dir.as_posix())
-
-    builder = Builder(Factory().create_poetry(temporary_dir))
-    builder.build(fmt="all")
-
-    whl = temporary_dir / "dist" / "my_package-1.2.3-py3-none-any.whl"
-
-    assert whl.exists()
-
-    zip = zipfile.ZipFile(str(whl))
-
-    # Check the zipped file to be sure that included and excluded files are
-    # correctly taken account of without vcs
-    expected_name_list = [
-        "my_package/__init__.py",
-        "my_package/data1/test.json",
-        "my_package/sub_pkg1/__init__.py",
-        "my_package/sub_pkg2/__init__.py",
-        "my_package/sub_pkg2/data2/data.json",
-        "my_package-1.2.3.data/scripts/script.sh",
-        "my_package/sub_pkg3/foo.py",
-        "my_package-1.2.3.dist-info/entry_points.txt",
-        "my_package-1.2.3.dist-info/LICENSE",
-        "my_package-1.2.3.dist-info/WHEEL",
-        "my_package-1.2.3.dist-info/METADATA",
-        "my_package-1.2.3.dist-info/RECORD",
-    ]
-
-    assert sorted(zip.namelist()) == sorted(expected_name_list)
-
-    try:
-        entry_points = zip.read("my_package-1.2.3.dist-info/entry_points.txt")
+        entry_points = zipf.read("my_package-1.2.3.dist-info/entry_points.txt")
 
         assert (
             entry_points.decode()
@@ -364,7 +159,7 @@ my-script=my_package:main
 
 """
         )
-        wheel_data = zip.read("my_package-1.2.3.dist-info/WHEEL").decode()
+        wheel_data = zipf.read("my_package-1.2.3.dist-info/WHEEL").decode()
 
         assert (
             wheel_data
@@ -375,7 +170,7 @@ Root-Is-Purelib: true
 Tag: py3-none-any
 """
         )
-        wheel_data = zip.read("my_package-1.2.3.dist-info/METADATA").decode()
+        wheel_data = zipf.read("my_package-1.2.3.dist-info/METADATA").decode()
 
         assert (
             wheel_data
@@ -405,7 +200,8 @@ Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Provides-Extra: time
 Requires-Dist: cachy[msgpack] (>=0.2.0,<0.3.0)
 Requires-Dist: cleo (>=0.6,<0.7)
-Requires-Dist: pendulum (>=1.4,<2.0) ; (python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
+Requires-Dist: pendulum (>=1.4,<2.0) ; (python_version ~= "2.7"\
+ and sys_platform == "win32" or python_version in "3.4 3.5") and (extra == "time")
 Project-URL: Documentation, https://python-poetry.org/docs
 Project-URL: Issue Tracker, https://github.com/python-poetry/poetry/issues
 Project-URL: Repository, https://github.com/python-poetry/poetry
@@ -416,8 +212,13 @@ My Package
 
 """
         )
-    finally:
-        zip.close()
+        actual_records = zipf.read("my_package-1.2.3.dist-info/RECORD").decode()
+
+        # The SHA hashes vary per operating systems.
+        # So instead of 1:1 assertion, let's do a bit clunkier one:
+        actual_files = [row[0] for row in csv.reader(actual_records.splitlines())]
+
+        assert actual_files == expected_name_list
 
 
 def test_module_src() -> None:
@@ -436,12 +237,8 @@ def test_module_src() -> None:
 
     assert whl.exists()
 
-    zip = zipfile.ZipFile(str(whl))
-
-    try:
-        assert "module_src.py" in zip.namelist()
-    finally:
-        zip.close()
+    with zipfile.ZipFile(str(whl)) as zipf:
+        assert "module_src.py" in zipf.namelist()
 
 
 def test_package_src() -> None:
@@ -460,13 +257,9 @@ def test_package_src() -> None:
 
     assert whl.exists()
 
-    zip = zipfile.ZipFile(str(whl))
-
-    try:
-        assert "package_src/__init__.py" in zip.namelist()
-        assert "package_src/module.py" in zip.namelist()
-    finally:
-        zip.close()
+    with zipfile.ZipFile(str(whl)) as zipf:
+        assert "package_src/__init__.py" in zipf.namelist()
+        assert "package_src/module.py" in zipf.namelist()
 
 
 def test_split_source() -> None:
@@ -486,13 +279,9 @@ def test_split_source() -> None:
 
     assert whl.exists()
 
-    zip = zipfile.ZipFile(str(whl))
-
-    try:
-        assert "module_a/__init__.py" in zip.namelist()
-        assert "module_b/__init__.py" in zip.namelist()
-    finally:
-        zip.close()
+    with zipfile.ZipFile(str(whl)) as zipf:
+        assert "module_a/__init__.py" in zipf.namelist()
+        assert "module_b/__init__.py" in zipf.namelist()
 
 
 def test_package_with_include(mocker: MockerFixture) -> None:
