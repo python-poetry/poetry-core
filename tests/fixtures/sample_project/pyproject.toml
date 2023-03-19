@@ -5,6 +5,9 @@ description = "Some description."
 authors = [
     "Sébastien Eustace <sebastien@eustace.io>"
 ]
+maintainers = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
 license = "MIT"
 
 readme = "README.rst"
@@ -26,7 +29,7 @@ python = "~2.7 || ^3.6"
 cleo = "^0.6"
 pendulum = { git = "https://github.com/sdispater/pendulum.git", branch = "2.0" }
 tomlkit = { git = "https://github.com/sdispater/tomlkit.git", rev = "3bff550", develop = false }
-requests = { version = "^2.18", optional = true, extras=[ "security" ] }
+requests = { version = "^2.18", optional = true, extras = ["security"] }
 pathlib2 = { version = "^2.2", python = "~2.7" }
 
 orator = { version = "^0.9", optional = true }
@@ -44,11 +47,12 @@ simple-project = { path = "../simple_project/" }
 functools32 = { version = "^3.2.3", markers = "python_version ~= '2.7' and sys_platform == 'win32' or python_version in '3.4 3.5'" }
 
 # Dependency with python constraint
-dataclasses = {version = "^0.7", python = ">=3.6.1,<3.7"}
+dataclasses = { version = "^0.7", python = ">=3.6.1,<3.7" }
 
 
 [tool.poetry.extras]
-db = [ "orator" ]
+db = ["orator"]
+network = ["requests"]
 
 # Non-regression test for https://github.com/python-poetry/poetry-core/pull/492.
 # The underlying issue occurred because `tomlkit` can either return a TOML table as `Table` instance or an

@@ -105,6 +105,7 @@ class Package(PackageSpecification):
         self.documentation_url: str | None = None
         self.keywords: list[str] = []
         self._license: License | None = None
+        self._readme: Path | None = None
         self.readmes: tuple[Path, ...] = ()
 
         self.extras: dict[NormalizedName, list[Dependency]] = {}
@@ -397,27 +398,14 @@ class Package(PackageSpecification):
 
     @property
     def readme(self) -> Path | None:
-        warnings.warn(
-            (
-                "`readme` is deprecated: you are getting only the first readme file."
-                " Please use the plural form `readmes`."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return next(iter(self.readmes), None)
+        if self._readme is None and self.readmes:
+            return next(iter(self.readmes), None)
+
+        return self._readme
 
     @readme.setter
     def readme(self, path: Path) -> None:
-        warnings.warn(
-            (
-                "`readme` is deprecated. Please assign a tuple to the plural form"
-                " `readmes`."
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.readmes = (path,)
+        self._readme = path
 
     @property
     def yanked(self) -> bool:

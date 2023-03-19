@@ -4,25 +4,18 @@ import functools
 import posixpath
 import re
 import sys
-
 from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Tuple
-from urllib.parse import unquote
-from urllib.parse import urlsplit
+from typing import TYPE_CHECKING, Dict, List, Tuple
+from urllib.parse import unquote, urlsplit
 from urllib.request import url2pathname
 
-from poetry.core.constraints.version import Version
-from poetry.core.constraints.version import VersionRange
-from poetry.core.constraints.version import parse_marker_version_constraint
-from poetry.core.pyproject.toml import PyProjectTOML
-from poetry.core.version.markers import SingleMarker
-from poetry.core.version.markers import SingleMarkerLike
-from poetry.core.version.markers import dnf
-
+from poetry.core.constraints.version import (
+    Version,
+    VersionRange,
+    parse_marker_version_constraint,
+)
+from poetry.core.version.markers import SingleMarker, SingleMarkerLike, dnf
 
 if TYPE_CHECKING:
     from poetry.core.constraints.generic import BaseConstraint
@@ -32,7 +25,6 @@ if TYPE_CHECKING:
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
     # this as `dict[str, ...]`
     ConvertedMarkers = Dict[str, List[List[Tuple[str, str]]]]
-
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
 XZ_EXTENSIONS = (".tar.xz", ".txz", ".tlz", ".tar.lz", ".tar.lzma")
@@ -125,6 +117,8 @@ def is_python_project(path: Path) -> bool:
     if not path.is_dir():
         return False
 
+    from poetry.core.pyproject.toml import PyProjectTOML
+
     setup_py = path / "setup.py"
     setup_cfg = path / "setup.cfg"
     setuptools_project = setup_py.exists() or setup_cfg.exists()
@@ -155,9 +149,7 @@ def splitext(path: str) -> tuple[str, str]:
 
 
 def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
-    from poetry.core.version.markers import MarkerUnion
-    from poetry.core.version.markers import MultiMarker
-    from poetry.core.version.markers import SingleMarker
+    from poetry.core.version.markers import MarkerUnion, MultiMarker, SingleMarker
 
     requirements: ConvertedMarkers = {}
     marker = dnf(marker)
@@ -210,9 +202,11 @@ def create_nested_marker(
     name: str,
     constraint: BaseConstraint | VersionConstraint,
 ) -> str:
-    from poetry.core.constraints.generic import Constraint
-    from poetry.core.constraints.generic import MultiConstraint
-    from poetry.core.constraints.generic import UnionConstraint
+    from poetry.core.constraints.generic import (
+        Constraint,
+        MultiConstraint,
+        UnionConstraint,
+    )
     from poetry.core.constraints.version import VersionUnion
 
     if constraint.is_any():
@@ -304,8 +298,7 @@ def create_nested_marker(
 def get_python_constraint_from_marker(
     marker: BaseMarker,
 ) -> VersionConstraint:
-    from poetry.core.constraints.version import EmptyConstraint
-    from poetry.core.constraints.version import VersionRange
+    from poetry.core.constraints.version import EmptyConstraint, VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():

@@ -242,10 +242,7 @@ class WheelBuilder(Builder):
         dist_info = metadata_directory / self.dist_info
         dist_info.mkdir(parents=True, exist_ok=True)
 
-        if (
-            "scripts" in self._poetry.local_config
-            or "plugins" in self._poetry.local_config
-        ):
+        if self._poetry.package.scripts or self._poetry.package.entrypoints:
             with (dist_info / "entry_points.txt").open(
                 "w", encoding="utf-8", newline="\n"
             ) as f:

@@ -278,7 +278,7 @@ class Builder:
         result = defaultdict(list)
 
         # Scripts -> Entry points
-        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+        for name, specification in self._poetry.package.scripts.items():
             if isinstance(specification, str):
                 # TODO: deprecate this in favour or reference
                 specification = {"reference": specification, "type": "console"}
@@ -308,7 +308,7 @@ class Builder:
                 result["console_scripts"].append(f"{name} = {reference}{extras}")
 
         # Plugins -> entry points
-        plugins = self._poetry.local_config.get("plugins", {})
+        plugins = self._poetry.package.entrypoints
         for groupname, group in plugins.items():
             for name, specification in sorted(group.items()):
                 result[groupname].append(f"{name} = {specification}")
@@ -321,7 +321,7 @@ class Builder:
     def convert_script_files(self) -> list[Path]:
         script_files: list[Path] = []
 
-        for name, specification in self._poetry.local_config.get("scripts", {}).items():
+        for name, specification in self._poetry.package.scripts.items():
             if isinstance(specification, dict) and specification.get("type") == "file":
                 source = specification["reference"]
 

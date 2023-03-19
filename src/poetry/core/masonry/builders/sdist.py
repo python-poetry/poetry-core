@@ -21,7 +21,6 @@ from poetry.core.masonry.utils.helpers import distribution_name
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
     from collections.abc import Iterator
     from tarfile import TarInfo
 
@@ -330,12 +329,11 @@ class SdistBuilder(Builder):
         additional_files.add(Path("pyproject.toml"))
 
         # add readme files if specified
-        if "readme" in self._poetry.local_config:
-            readme: str | Iterable[str] = self._poetry.local_config["readme"]
-            if isinstance(readme, str):
-                additional_files.add(Path(readme))
-            else:
-                additional_files.update(Path(r) for r in readme)
+        if self._poetry.package.readmes:
+            for readme in self._poetry.package.readmes:
+                additional_files.add(readme)
+        elif self._poetry.package.readme:
+            additional_files.add(self._poetry.package.readme)
 
         for additional_file in additional_files:
             file = BuildIncludeFile(

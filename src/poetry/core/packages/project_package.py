@@ -41,6 +41,9 @@ class ProjectPackage(Package):
         self.include: list[dict[str, Any]] = []
         self.exclude: list[dict[str, Any]] = []
         self.custom_urls: dict[str, str] = {}
+        self.scripts: dict[str, str | dict[str, Any]] = {}
+        self.gui_scripts: dict[str, str] = {}
+        self.entrypoints: dict[str, dict[str, str | dict[str, str]]] = {}
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")

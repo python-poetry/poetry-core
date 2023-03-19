@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from poetry.core.pyproject.exceptions import PyProjectException
 from poetry.core.pyproject.toml import PyProjectTOML
 from poetry.core.utils._compat import tomllib
 
@@ -15,31 +12,6 @@ def test_pyproject_toml_simple(
     with pyproject_toml.open("rb") as f:
         data = tomllib.load(f)
     assert PyProjectTOML(pyproject_toml).data == data
-
-
-def test_pyproject_toml_no_poetry_config(pyproject_toml: Path) -> None:
-    pyproject = PyProjectTOML(pyproject_toml)
-
-    assert not pyproject.is_poetry_project()
-
-    with pytest.raises(PyProjectException) as excval:
-        _ = pyproject.poetry_config
-
-    assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
-        excval.value
-    )
-
-
-def test_pyproject_toml_poetry_config(
-    pyproject_toml: Path, poetry_section: str
-) -> None:
-    pyproject = PyProjectTOML(pyproject_toml)
-    with pyproject_toml.open("rb") as f:
-        doc = tomllib.load(f)
-    config = doc["tool"]["poetry"]
-
-    assert pyproject.is_poetry_project()
-    assert pyproject.poetry_config == config
 
 
 def test_pyproject_toml_no_build_system_defaults() -> None:

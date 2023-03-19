@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from contextlib import suppress
 from typing import TYPE_CHECKING
 from typing import Any
 
+from poetry.core.pyproject.formats.content_format import ContentFormat
+from poetry.core.pyproject.formats.legacy_content_format import LegacyContentFormat
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 
@@ -13,9 +14,12 @@ if TYPE_CHECKING:
 
 
 class PyProjectTOML:
+    SUPPORTED_FORMATS: list[type[ContentFormat]] = [LegacyContentFormat]
+
     def __init__(self, path: Path) -> None:
         self._path = path
         self._data: dict[str, Any] | None = None
+        self._content_format: ContentFormat | None = None
         self._build_system: BuildSystem | None = None
 
     @property
@@ -31,7 +35,16 @@ class PyProjectTOML:
                 with self.path.open("rb") as f:
                     self._data = tomllib.load(f)
 
+                self._content_format = self.guess_format(self._data)
+
         return self._data
+
+    @property
+    def content_format(self) -> ContentFormat | None:
+        if self.data:
+            return self._content_format
+
+        return None
 
     def is_build_system_defined(self) -> bool:
         return "build-system" in self.data
@@ -56,25 +69,25 @@ class PyProjectTOML:
 
     @property
     def poetry_config(self) -> dict[str, Any]:
-        try:
-            tool = self.data["tool"]
-            assert isinstance(tool, dict)
-            config = tool["poetry"]
-            assert isinstance(config, dict)
-            return config
-        except KeyError as e:
+        if not self.is_poetry_project():
             from poetry.core.pyproject.exceptions import PyProjectException
 
-            raise PyProjectException(
-                f"[tool.poetry] section not found in {self._path.as_posix()}"
-            ) from e
+            raise PyProjectException(f"{self._path} is not a Poetry pyproject file")
+
+        assert isinstance(self._content_format, ContentFormat)
+
+        return self._content_format.poetry_config
 
     def is_poetry_project(self) -> bool:
-        from poetry.core.pyproject.exceptions import PyProjectException
+        if not self.data:
+            return False
 
-        if self.path.exists():
-            with suppress(PyProjectException):
-                _ = self.poetry_config
-                return True
+        return self._content_format is not None
 
-        return False
+    @classmethod
+    def guess_format(cls, data: dict[str, Any]) -> ContentFormat | None:
+        for fmt in cls.SUPPORTED_FORMATS:
+            if fmt.supports(data):
+                return fmt(data)
+
+        return None
