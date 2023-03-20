@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.file_dependency import FileDependency
     from poetry.core.packages.vcs_dependency import VCSDependency
 
-
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
@@ -60,8 +59,8 @@ def test_create_poetry() -> None:
 
     pendulum = dependencies["pendulum"]
     assert pendulum.pretty_constraint == "branch 2.0"
-    assert pendulum.is_vcs()
     pendulum = cast("VCSDependency", pendulum)
+    assert pendulum.is_vcs()
     assert pendulum.vcs == "git"
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
@@ -70,8 +69,8 @@ def test_create_poetry() -> None:
 
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
-    assert tomlkit.is_vcs()
     tomlkit = cast("VCSDependency", tomlkit)
+    assert tomlkit.is_vcs()
     assert tomlkit.vcs == "git"
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
@@ -201,6 +200,130 @@ def test_create_poetry_with_dependencies_with_subdirectory() -> None:
     assert foo.directory == "sub"
 
 
+def test_create_poetry_pep621() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "sample_pep621_project")
+
+    package = poetry.package
+
+    assert package.name == "my-package"
+    assert package.version.text == "1.2.3"
+    assert package.description == "Some description."
+    assert package.authors == ["Sébastien Eustace <sebastien@eustace.io>"]
+    assert package.license
+    assert package.license.id == "MIT"
+    assert package.readme is not None
+    assert (
+        package.readme.relative_to(fixtures_dir).as_posix()
+        == "sample_pep621_project/README.md"
+    )
+    assert package.urls["homepage"] == "https://python-poetry.org"
+    assert package.urls["repository"] == "https://github.com/python-poetry/poetry"
+    assert package.keywords == ["packaging", "dependency", "poetry"]
+
+    assert package.python_versions == ">=3.6"
+    assert str(package.python_constraint) == ">=3.6"
+
+    dependencies: dict[str, Dependency] = {}
+    for dep in package.requires:
+        dependencies[dep.name] = dep
+
+    cleo = dependencies["cleo"]
+    assert cleo.pretty_constraint == ">=0.6,<1.0"
+    assert not cleo.is_optional()
+
+    pendulum = dependencies["pendulum"]
+    assert pendulum.pretty_constraint == "rev 2.0"
+    assert pendulum.is_vcs()
+    pendulum = cast("VCSDependency", pendulum)
+    assert pendulum.vcs == "git"
+    assert pendulum.rev == "2.0"
+    assert pendulum.source == "https://github.com/sdispater/pendulum.git"
+    assert pendulum.allows_prereleases()
+    assert not pendulum.develop
+
+    tomlkit = dependencies["tomlkit"]
+    assert tomlkit.pretty_constraint == "rev 3bff550"
+    assert tomlkit.is_vcs()
+    tomlkit = cast("VCSDependency", tomlkit)
+    assert tomlkit.vcs == "git"
+    assert tomlkit.rev == "3bff550"
+    assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
+    assert tomlkit.allows_prereleases()
+    assert not tomlkit.develop
+
+    requests = dependencies["requests"]
+    assert requests.pretty_constraint == ">=2.18,<3.0"
+    assert not requests.is_vcs()
+    assert not requests.allows_prereleases()
+    assert requests.is_optional()
+    assert requests.extras == frozenset({"security"})
+
+    pathlib2 = dependencies["pathlib2"]
+    assert pathlib2.pretty_constraint == ">=2.2,<3.0"
+    assert pathlib2.python_versions == "~2.7"
+    assert not pathlib2.is_optional()
+
+    demo = dependencies["demo"]
+    assert demo.is_file()
+    assert not demo.is_vcs()
+    assert demo.name == "demo"
+    assert demo.pretty_constraint == "*"
+
+    demo = dependencies["my-package"]
+    assert not demo.is_file()
+    assert demo.is_directory()
+    assert not demo.is_vcs()
+    assert demo.name == "my-package"
+    assert demo.pretty_constraint == "*"
+
+    simple_project = dependencies["simple-project"]
+    assert not simple_project.is_file()
+    assert simple_project.is_directory()
+    assert not simple_project.is_vcs()
+    assert simple_project.name == "simple-project"
+    assert simple_project.pretty_constraint == "*"
+
+    functools32 = dependencies["functools32"]
+    assert functools32.name == "functools32"
+    assert functools32.pretty_constraint == ">=3.2.3,<3.3.0"
+    assert (
+        str(functools32.marker)
+        == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in'
+        ' "3.4 3.5"'
+    )
+
+    dataclasses = dependencies["dataclasses"]
+    assert dataclasses.name == "dataclasses"
+    assert dataclasses.pretty_constraint == ">=0.7,<1.0"
+    assert dataclasses.python_versions == ">=3.6.1 <3.7"
+    assert (
+        str(dataclasses.marker)
+        == 'python_full_version >= "3.6.1" and python_version < "3.7"'
+    )
+
+    assert "db" in package.extras
+
+    classifiers = package.classifiers
+
+    assert classifiers == [
+        "Topic :: Software Development :: Build Tools",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ]
+
+    assert package.all_classifiers == [
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development :: Build Tools",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ]
+
+
 def test_create_poetry_with_packages_and_includes() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir.parent / "masonry" / "builders" / "fixtures" / "with-include"
@@ -288,32 +411,20 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             "'version' is a required property",
             "'description' is a required property",
             "'authors' is a required property",
-            (
-                'Cannot find dependency "missing_extra" for extra "some-extras" in '
-                "main dependencies."
-            ),
-            (
-                'Cannot find dependency "another_missing_extra" for extra '
-                '"some-extras" in main dependencies.'
-            ),
-            (
-                'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
-                " defined."
-            ),
-            (
-                "Declared README files must be of same type: found text/markdown,"
-                " text/x-rst"
-            ),
+            'Cannot find dependency "missing_extra" for extra "some-extras" in '
+            "main dependencies.",
+            'Cannot find dependency "another_missing_extra" for extra '
+            '"some-extras" in main dependencies.',
+            'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
+            " defined.",
+            "Declared README files must be of same type: found text/markdown,"
+            " text/x-rst",
         ],
         "warnings": [
-            (
-                "A wildcard Python dependency is ambiguous. Consider specifying a more"
-                " explicit one."
-            ),
-            (
-                'The "pathlib2" dependency specifies the "allows-prereleases" property,'
-                ' which is deprecated. Use "allow-prereleases" instead.'
-            ),
+            "A wildcard Python dependency is ambiguous. Consider specifying a more"
+            " explicit one.",
+            'The "pathlib2" dependency specifies the "allows-prereleases" property,'
+            ' which is deprecated. Use "allow-prereleases" instead.',
         ],
     }
 
@@ -453,10 +564,8 @@ def test_create_poetry_with_markers_and_extras() -> None:
                 "markers": 'platform_machine == "x86_64"',
             },
             "~3.7",
-            (
-                'platform_machine == "x86_64" and python_version == "3.7" and'
-                ' sys_platform == "linux"'
-            ),
+            'platform_machine == "x86_64" and python_version == "3.7" and'
+            ' sys_platform == "linux"',
         ),
         (
             {"python": ">=3.7", "markers": 'python_version < "4.0"'},

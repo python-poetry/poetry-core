@@ -106,6 +106,8 @@ class Package(PackageSpecification):
         self.keywords: list[str] = []
         self._license: License | None = None
         self._readme: Path | None = None
+        self.readme_content_type: str | None = None
+        self.readme_content: str | None = None
         self.readmes: tuple[Path, ...] = ()
 
         self.extras: dict[NormalizedName, list[Dependency]] = {}

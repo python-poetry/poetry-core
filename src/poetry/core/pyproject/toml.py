@@ -5,6 +5,7 @@ from typing import Any
 
 from poetry.core.pyproject.formats.content_format import ContentFormat
 from poetry.core.pyproject.formats.legacy_content_format import LegacyContentFormat
+from poetry.core.pyproject.formats.standard_content_format import StandardContentFormat
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 
@@ -14,7 +15,10 @@ if TYPE_CHECKING:
 
 
 class PyProjectTOML:
-    SUPPORTED_FORMATS: list[type[ContentFormat]] = [LegacyContentFormat]
+    SUPPORTED_FORMATS: list[type[ContentFormat]] = [
+        LegacyContentFormat,
+        StandardContentFormat,
+    ]
 
     def __init__(self, path: Path) -> None:
         self._path = path
