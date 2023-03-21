@@ -4,9 +4,8 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
-import tomli
-
 from poetry.core.pyproject.tables import BuildSystem
+from poetry.core.utils._compat import tomllib
 
 
 class PyProjectTOML:
@@ -26,7 +25,7 @@ class PyProjectTOML:
                 self._data = {}
             else:
                 with self.file.open("rb") as f:
-                    self._data = tomli.load(f)
+                    self._data = tomllib.load(f)
 
         return self._data
 

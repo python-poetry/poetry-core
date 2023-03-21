@@ -6,13 +6,13 @@ from typing import Any
 from typing import cast
 
 import pytest
-import tomli
 
 from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
+from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
 
 
@@ -187,7 +187,7 @@ def test_create_poetry_with_multi_constraints_dependency() -> None:
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
@@ -196,7 +196,7 @@ def test_validate() -> None:
 def test_validate_fails() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
     content["authors"] = "this is not a valid array"
 
@@ -210,7 +210,7 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
     )
     with project_failing_strict_validation.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content) == {
@@ -229,7 +229,7 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
     )
     with project_failing_strict_validation.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content, strict=True) == {
@@ -271,7 +271,7 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
 def test_strict_validation_success_on_multiple_readme_files() -> None:
     with_readme_files = fixtures_dir / "with_readme_files" / "pyproject.toml"
     with with_readme_files.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
@@ -280,7 +280,7 @@ def test_strict_validation_success_on_multiple_readme_files() -> None:
 def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None:
     with_readme_files = fixtures_dir / "with_readme_files" / "pyproject.toml"
     with with_readme_files.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
     content["readme"][0] = "README.md"
 

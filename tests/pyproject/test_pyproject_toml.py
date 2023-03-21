@@ -3,17 +3,17 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import tomli
 
 from poetry.core.pyproject.exceptions import PyProjectException
 from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.core.utils._compat import tomllib
 
 
 def test_pyproject_toml_simple(
     pyproject_toml: Path, build_system_section: str, poetry_section: str
 ) -> None:
     with pyproject_toml.open("rb") as f:
-        data = tomli.load(f)
+        data = tomllib.load(f)
     assert PyProjectTOML(pyproject_toml).data == data
 
 
@@ -35,7 +35,7 @@ def test_pyproject_toml_poetry_config(
 ) -> None:
     pyproject = PyProjectTOML(pyproject_toml)
     with pyproject_toml.open("rb") as f:
-        doc = tomli.load(f)
+        doc = tomllib.load(f)
     config = doc["tool"]["poetry"]
 
     assert pyproject.is_poetry_project()
