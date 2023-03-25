@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from poetry.core.constraints.generic import UnionConstraint
+from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
 from poetry.core.version.markers import AnyMarker
+from poetry.core.version.markers import AtomicMarkerUnion
 from poetry.core.version.markers import EmptyMarker
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
@@ -20,6 +23,34 @@ from poetry.core.version.markers import union
 
 if TYPE_CHECKING:
     from poetry.core.version.markers import BaseMarker
+
+
+@pytest.mark.parametrize(
+    "marker",
+    [
+        'sys_platform == "linux" or sys_platform == "win32"',
+        'sys_platform == "win32" or sys_platform == "linux"',
+        (
+            'sys_platform == "linux" or sys_platform == "win32"'
+            ' or sys_platform == "darwin"'
+        ),
+        (
+            'python_version >= "3.6" and extra == "foo"'
+            ' or implementation_name == "pypy" and extra == "bar"'
+        ),
+        (
+            'python_version < "3.9" or python_version >= "3.10"'
+            ' and sys_platform == "linux" or sys_platform == "win32"'
+        ),
+        (
+            'sys_platform == "win32" and python_version < "3.6" or sys_platform =='
+            ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
+            ' sys_platform == "darwin" and python_version < "3.3"'
+        ),
+    ],
+)
+def test_parse_marker(marker: str) -> None:
+    assert str(parse_marker(marker)) == marker
 
 
 def test_single_marker() -> None:
@@ -257,9 +288,10 @@ def test_single_marker_union_with_multi_duplicate() -> None:
 def test_single_marker_union_with_multi_is_single_marker(
     single_marker: str, multi_marker: str, expected: str
 ) -> None:
-    m = parse_marker(single_marker)
-    union = m.union(parse_marker(multi_marker))
-    assert str(union) == expected
+    m1 = parse_marker(single_marker)
+    m2 = parse_marker(multi_marker)
+    assert str(m1.union(m2)) == expected
+    assert str(m2.union(m1)) == expected
 
 
 def test_single_marker_union_with_multi_cannot_be_simplified() -> None:
@@ -941,7 +973,7 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
                 'python_version >= "3.6" or extra == "foo" and implementation_name =='
                 ' "pypy" or extra == "bar"'
             ),
-            'python_version >= "3.6" or implementation_name == "pypy"',
+            "",
         ),
         ('extra == "foo"', ""),
         ('extra == "foo" or extra == "bar"', ""),
@@ -1256,12 +1288,15 @@ def test_union_should_drop_markers_if_their_complement_is_present(
                     SingleMarker("implementation_name", "cpython"),
                 ),
                 MarkerUnion(
-                    SingleMarker("python_version", "<3.7"),
                     SingleMarker("python_version", ">=3.8"),
+                    SingleMarker("python_version", "<3.7"),
                 ),
-                MarkerUnion(
-                    SingleMarker("sys_platform", "win32"),
-                    SingleMarker("sys_platform", "linux"),
+                AtomicMarkerUnion(
+                    "sys_platform",
+                    UnionConstraint(
+                        parse_generic_constraint("win32"),
+                        parse_generic_constraint("linux"),
+                    ),
                 ),
             ),
         ),
@@ -1460,31 +1495,35 @@ def test_cnf(scheme: str, marker: BaseMarker, expected: BaseMarker) -> None:
             MarkerUnion(
                 MultiMarker(
                     SingleMarker("python_version", ">=3.9"),
-                    SingleMarker("sys_platform", "win32"),
-                ),
-                MultiMarker(
-                    SingleMarker("python_version", ">=3.9"),
-                    SingleMarker("sys_platform", "linux"),
-                ),
-                MultiMarker(
-                    SingleMarker("implementation_name", "cpython"),
-                    SingleMarker("python_version", "<3.7"),
-                    SingleMarker("sys_platform", "win32"),
+                    AtomicMarkerUnion(
+                        "sys_platform",
+                        UnionConstraint(
+                            parse_generic_constraint("win32"),
+                            parse_generic_constraint("linux"),
+                        ),
+                    ),
                 ),
                 MultiMarker(
                     SingleMarker("implementation_name", "cpython"),
                     SingleMarker("python_version", "<3.7"),
-                    SingleMarker("sys_platform", "linux"),
+                    AtomicMarkerUnion(
+                        "sys_platform",
+                        UnionConstraint(
+                            parse_generic_constraint("win32"),
+                            parse_generic_constraint("linux"),
+                        ),
+                    ),
                 ),
                 MultiMarker(
                     SingleMarker("implementation_name", "cpython"),
                     SingleMarker("python_version", ">=3.8"),
-                    SingleMarker("sys_platform", "win32"),
-                ),
-                MultiMarker(
-                    SingleMarker("implementation_name", "cpython"),
-                    SingleMarker("python_version", ">=3.8"),
-                    SingleMarker("sys_platform", "linux"),
+                    AtomicMarkerUnion(
+                        "sys_platform",
+                        UnionConstraint(
+                            parse_generic_constraint("win32"),
+                            parse_generic_constraint("linux"),
+                        ),
+                    ),
                 ),
             ),
         ),
@@ -1554,8 +1593,10 @@ def test_empty_marker_is_found_in_complex_parse() -> None:
 
 
 def test_complex_union() -> None:
-    # real world example on the way to get mutually exclusive markers
-    # for numpy(>=1.21.2) of https://pypi.org/project/opencv-python/4.6.0.66/
+    """
+    real world example on the way to get mutually exclusive markers
+    for numpy(>=1.21.2) of https://pypi.org/project/opencv-python/4.6.0.66/
+    """
     markers = [
         parse_marker(m)
         for m in [
@@ -1585,8 +1626,10 @@ def test_complex_union() -> None:
 
 
 def test_complex_intersection() -> None:
-    # inverse of real world example on the way to get mutually exclusive markers
-    # for numpy(>=1.21.2) of https://pypi.org/project/opencv-python/4.6.0.66/
+    """
+    inverse of real world example on the way to get mutually exclusive markers
+    for numpy(>=1.21.2) of https://pypi.org/project/opencv-python/4.6.0.66/
+    """
     markers = [
         parse_marker(m).invert()
         for m in [
@@ -1612,6 +1655,64 @@ def test_complex_intersection() -> None:
         str(dnf(intersection(*markers).invert()))
         == 'platform_system == "Darwin" and platform_machine == "arm64"'
         ' and python_version >= "3.6" or python_version >= "3.10"'
+    )
+
+
+def test_union_avoids_combinatorial_explosion() -> None:
+    """
+    combinatorial explosion without AtomicMultiMarker and AtomicMarkerUnion
+    based gevent constraint of sqlalchemy 2.0.7
+    see https://github.com/python-poetry/poetry/issues/7689 for details
+    """
+    expected = (
+        'python_full_version >= "3.11.0" and python_version < "4.0"'
+        ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
+        ' or platform_machine == "x86_64" or platform_machine == "amd64"'
+        ' or platform_machine == "AMD64" or platform_machine == "win32"'
+        ' or platform_machine == "WIN32")'
+    )
+    m1 = parse_marker(expected)
+    m2 = parse_marker(
+        'python_full_version >= "3.11.0" and python_full_version < "4.0.0"'
+        ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
+        ' or platform_machine == "x86_64" or platform_machine == "amd64"'
+        ' or platform_machine == "AMD64" or platform_machine == "win32"'
+        ' or platform_machine == "WIN32")'
+    )
+    assert str(m1.union(m2)) == expected
+    assert str(m2.union(m1)) == expected
+
+
+def test_intersection_avoids_combinatorial_explosion() -> None:
+    """
+    combinatorial explosion without AtomicMultiMarker and AtomicMarkerUnion
+    based gevent constraint of sqlalchemy 2.0.7
+    see https://github.com/python-poetry/poetry/issues/7689 for details
+    """
+    m1 = parse_marker(
+        'python_full_version >= "3.11.0" and python_full_version < "4.0.0"'
+    )
+    m2 = parse_marker(
+        'python_version >= "3" and (platform_machine == "aarch64" '
+        'or platform_machine == "ppc64le" or platform_machine == "x86_64" '
+        'or platform_machine == "amd64" or platform_machine == "AMD64" '
+        'or platform_machine == "win32" or platform_machine == "WIN32")'
+    )
+    assert (
+        str(m1.intersect(m2))
+        == 'python_full_version >= "3.11.0" and python_full_version < "4.0.0"'
+        ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
+        ' or platform_machine == "x86_64" or platform_machine == "amd64"'
+        ' or platform_machine == "AMD64" or platform_machine == "win32"'
+        ' or platform_machine == "WIN32")'
+    )
+    assert (
+        str(m2.intersect(m1))
+        == 'python_full_version >= "3.11.0"'
+        ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
+        ' or platform_machine == "x86_64" or platform_machine == "amd64"'
+        ' or platform_machine == "AMD64" or platform_machine == "win32"'
+        ' or platform_machine == "WIN32") and python_full_version < "4.0.0"'
     )
 
 

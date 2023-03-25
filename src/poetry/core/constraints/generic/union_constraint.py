@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import itertools
+
 from poetry.core.constraints.generic import AnyConstraint
 from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.constraint import Constraint
@@ -132,19 +134,28 @@ class UnionConstraint(BaseConstraint):
         new_constraints: list[BaseConstraint] = []
         if isinstance(other, UnionConstraint):
             # (A or B) or (C or D) => A or B or C or D
+            our_new_constraints: list[BaseConstraint] = []
+            their_new_constraints: list[BaseConstraint] = []
+            merged_new_constraints: list[BaseConstraint] = []
             for our_constraint in self._constraints:
                 for their_constraint in other.constraints:
                     union = our_constraint.union(their_constraint)
                     if union.is_any():
                         return AnyConstraint()
                     if isinstance(union, Constraint):
-                        if union not in new_constraints:
-                            new_constraints.append(union)
+                        if union not in merged_new_constraints:
+                            merged_new_constraints.append(union)
                     else:
-                        if our_constraint not in new_constraints:
-                            new_constraints.append(our_constraint)
-                        if their_constraint not in new_constraints:
-                            new_constraints.append(their_constraint)
+                        if our_constraint not in our_new_constraints:
+                            our_new_constraints.append(our_constraint)
+                        if their_constraint not in their_new_constraints:
+                            their_new_constraints.append(their_constraint)
+            new_constraints = our_new_constraints
+            for constraint in itertools.chain(
+                their_new_constraints, merged_new_constraints
+            ):
+                if constraint not in new_constraints:
+                    new_constraints.append(constraint)
 
         else:
             assert isinstance(other, MultiConstraint)

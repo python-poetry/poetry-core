@@ -102,9 +102,9 @@ def test_dependency_from_pep_508_complex() -> None:
     assert dep.python_versions == ">=2.7 !=3.2.*"
     assert (
         str(dep.marker)
-        == 'python_version >= "2.7" and python_version != "3.2" and sys_platform =='
-        ' "win32" and extra == "foo" or python_version >= "2.7" and python_version'
-        ' != "3.2" and sys_platform == "darwin" and extra == "foo"'
+        == 'python_version >= "2.7" and python_version != "3.2" '
+        'and (sys_platform == "win32" or sys_platform == "darwin") '
+        'and extra == "foo"'
     )
 
 
