@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from poetry.core.constraints.generic import AnyConstraint
 from poetry.core.constraints.generic import EmptyConstraint
 from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.constraint import Constraint
+
+
+if TYPE_CHECKING:
+    from poetry.core.constraints.generic import UnionConstraint
 
 
 class MultiConstraint(BaseConstraint):
@@ -61,6 +67,11 @@ class MultiConstraint(BaseConstraint):
             )
 
         return False
+
+    def invert(self) -> UnionConstraint:
+        from poetry.core.constraints.generic import UnionConstraint
+
+        return UnionConstraint(*(c.invert() for c in self._constraints))
 
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
         if not isinstance(other, Constraint):
