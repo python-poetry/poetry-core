@@ -18,6 +18,7 @@ from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.core.version.markers import SingleMarkerLike
 from poetry.core.version.markers import dnf
 
 
@@ -179,10 +180,18 @@ def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
     for i, sub_marker in enumerate(conjunctions):
         if isinstance(sub_marker, MultiMarker):
             for m in sub_marker.markers:
-                assert isinstance(m, SingleMarker)
-                add_constraint(m.name, (m.operator, m.value), i)
-        elif isinstance(sub_marker, SingleMarker):
-            add_constraint(sub_marker.name, (sub_marker.operator, sub_marker.value), i)
+                assert isinstance(m, SingleMarkerLike)
+                if isinstance(m, SingleMarker):
+                    add_constraint(m.name, (m.operator, m.value), i)
+                else:
+                    add_constraint(m.name, ("", str(m.constraint)), i)
+        elif isinstance(sub_marker, SingleMarkerLike):
+            if isinstance(sub_marker, SingleMarker):
+                add_constraint(
+                    sub_marker.name, (sub_marker.operator, sub_marker.value), i
+                )
+            else:
+                add_constraint(sub_marker.name, ("", str(sub_marker.constraint)), i)
 
     for group_name in requirements:
         # remove duplicates
