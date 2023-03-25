@@ -64,6 +64,14 @@ class UnionConstraint(BaseConstraint):
 
         return their_constraint is None
 
+    def invert(self) -> MultiConstraint:
+        inverted_constraints = [c.invert() for c in self._constraints]
+        if any(not isinstance(c, Constraint) for c in inverted_constraints):
+            raise NotImplementedError(
+                "Inversion of complex union constraints not implemented"
+            )
+        return MultiConstraint(*inverted_constraints)  # type: ignore[arg-type]
+
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
         if other.is_any():
             return self
