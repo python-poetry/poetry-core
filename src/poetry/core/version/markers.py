@@ -19,6 +19,7 @@ from poetry.core.constraints.generic import Constraint
 from poetry.core.constraints.generic import MultiConstraint
 from poetry.core.constraints.generic import UnionConstraint
 from poetry.core.constraints.version import VersionConstraint
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
 from poetry.core.version.parser import Parser
 
@@ -313,7 +314,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
 
         parsed_constraint: BaseConstraint | VersionConstraint
         parser: Callable[[str], BaseConstraint | VersionConstraint]
-        constraint_string = str(constraint)
+        original_constraint_string = constraint_string = str(constraint)
 
         # Extract operator and value
         m = self._CONSTRAINT_RE.match(constraint_string)
@@ -346,9 +347,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
                 if self._operator == "in":
                     glue = " || "
 
-                parsed_constraint = parser(glue.join(versions))
-            else:
-                parsed_constraint = parser(constraint_string)
+                constraint_string = glue.join(versions)
         else:
             # if we have a in/not in operator we split the constraint
             # into a union/multi-constraint of single constraint
@@ -357,7 +356,10 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
                 values = re.split("[ ,]+", self._value)
                 constraint_string = glue.join(f"{op} {value}" for value in values)
 
+        try:
             parsed_constraint = parser(constraint_string)
+        except ParseConstraintError as e:
+            raise InvalidMarker(f"Invalid marker: {original_constraint_string}") from e
 
         super().__init__(name, parsed_constraint)
 
