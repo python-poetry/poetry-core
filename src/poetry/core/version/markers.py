@@ -319,7 +319,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         # Extract operator and value
         m = self._CONSTRAINT_RE.match(constraint_string)
         if m is None:
-            raise InvalidMarker(f"Invalid marker '{constraint_string}'")
+            raise InvalidMarker(f"Invalid marker for '{name}': {constraint_string}")
 
         self._operator = m.group(1)
         if self._operator is None:
@@ -359,7 +359,9 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         try:
             parsed_constraint = parser(constraint_string)
         except ParseConstraintError as e:
-            raise InvalidMarker(f"Invalid marker: {original_constraint_string}") from e
+            raise InvalidMarker(
+                f"Invalid marker for '{name}': {original_constraint_string}"
+            ) from e
 
         super().__init__(name, parsed_constraint)
 
