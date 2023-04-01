@@ -176,8 +176,12 @@ class Dependency(PackageSpecification):
             self.deactivate()
 
             for or_ in markers["extra"]:
-                for _, extra in or_:
-                    self.in_extras.append(canonicalize_name(extra))
+                for op, extra in or_:
+                    if op == "==":
+                        self.in_extras.append(canonicalize_name(extra))
+                    elif op == "" and "||" in extra:
+                        for _extra in extra.split(" || "):
+                            self.in_extras.append(canonicalize_name(_extra))
 
         # Recalculate python versions.
         self._python_versions = "*"

@@ -11,6 +11,9 @@ class BaseConstraint:
     def allows_any(self, other: BaseConstraint) -> bool:
         raise NotImplementedError
 
+    def invert(self) -> BaseConstraint:
+        raise NotImplementedError()
+
     def difference(self, other: BaseConstraint) -> BaseConstraint:
         raise NotImplementedError
 

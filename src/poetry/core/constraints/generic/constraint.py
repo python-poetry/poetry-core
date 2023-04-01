@@ -84,6 +84,9 @@ class Constraint(BaseConstraint):
 
         return other.allows(self)
 
+    def invert(self) -> Constraint:
+        return Constraint(self._value, "!=" if self._operator == "==" else "==")
+
     def difference(self, other: BaseConstraint) -> Constraint | EmptyConstraint:
         if other.allows(self):
             return EmptyConstraint()

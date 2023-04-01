@@ -21,6 +21,11 @@ class EmptyConstraint(BaseConstraint):
     def allows_any(self, other: BaseConstraint) -> bool:
         return False
 
+    def invert(self) -> BaseConstraint:
+        from poetry.core.constraints.generic.any_constraint import AnyConstraint
+
+        return AnyConstraint()
+
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
         return self
 

@@ -14,6 +14,9 @@ class AnyConstraint(BaseConstraint):
     def allows_any(self, other: BaseConstraint) -> bool:
         return True
 
+    def invert(self) -> BaseConstraint:
+        return EmptyConstraint()
+
     def difference(self, other: BaseConstraint) -> BaseConstraint:
         if other.is_any():
             return EmptyConstraint()
