@@ -40,7 +40,7 @@ class Builder:
 
         self._poetry = poetry
         self._package = poetry.package
-        self._path: Path = poetry.file.parent
+        self._path: Path = poetry.pyproject_path.parent
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
 

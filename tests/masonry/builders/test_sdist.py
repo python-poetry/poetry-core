@@ -300,7 +300,7 @@ def test_setup_py_context() -> None:
 
     builder = SdistBuilder(poetry)
 
-    project_setup_py = poetry.file.parent / "setup.py"
+    project_setup_py = poetry.pyproject_path.parent / "setup.py"
 
     assert not project_setup_py.exists()
 
