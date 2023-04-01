@@ -135,7 +135,7 @@ class PackageSpecification:
 
         if self._source_reference or other.source_reference:
             # special handling for packages with references
-            if not self._source_reference or not other.source_reference:
+            if not (self._source_reference and other.source_reference):
                 # case: one reference is defined and is non-empty, but other is not
                 return False
 
@@ -199,4 +199,4 @@ class PackageSpecification:
         return result
 
     def __str__(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError

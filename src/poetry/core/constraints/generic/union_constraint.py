@@ -93,10 +93,7 @@ class UnionConstraint(BaseConstraint):
                 for their_constraint in other.constraints:
                     intersection = our_constraint.intersect(their_constraint)
 
-                    if (
-                        not intersection.is_empty()
-                        and intersection not in new_constraints
-                    ):
+                    if not (intersection.is_empty() or intersection in new_constraints):
                         new_constraints.append(intersection)
 
         else:
@@ -108,7 +105,7 @@ class UnionConstraint(BaseConstraint):
                 for their_constraint in other.constraints:
                     intersection = intersection.intersect(their_constraint)
 
-                if not intersection.is_empty() and intersection not in new_constraints:
+                if not (intersection.is_empty() or intersection in new_constraints):
                     new_constraints.append(intersection)
 
         if not new_constraints:
@@ -182,8 +179,5 @@ class UnionConstraint(BaseConstraint):
         return h
 
     def __str__(self) -> str:
-        constraints = []
-        for constraint in self._constraints:
-            constraints.append(str(constraint))
-
+        constraints = [str(constraint) for constraint in self._constraints]
         return " || ".join(constraints)

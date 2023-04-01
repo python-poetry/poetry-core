@@ -12,7 +12,7 @@ from poetry.core.constraints.version.version_range_constraint import (
 from poetry.core.constraints.version.version_union import VersionUnion
 
 
-__all__ = [
+__all__ = (
     "EmptyConstraint",
     "Version",
     "VersionConstraint",
@@ -21,4 +21,4 @@ __all__ = [
     "VersionUnion",
     "constraint_regions",
     "parse_constraint",
-]
+)

@@ -53,7 +53,6 @@ class Requirement:
                     )
             elif (
                 not (parsed_url.scheme and parsed_url.netloc)
-                or (not parsed_url.scheme and not parsed_url.netloc)
             ) and not parsed_url.path:
                 raise InvalidRequirement(
                     f'The requirement is invalid: invalid URL "{url}"'

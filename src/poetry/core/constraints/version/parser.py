@@ -125,13 +125,12 @@ def parse_single_constraint(constraint: str) -> VersionConstraint:
             result: VersionConstraint = VersionRange(
                 version, version.next_minor(), include_min=True
             )
+        elif major == 0:
+            result = VersionRange(max=Version.from_parts(1, 0, 0))
         else:
-            if major == 0:
-                result = VersionRange(max=Version.from_parts(1, 0, 0))
-            else:
-                version = Version.from_parts(major, 0, 0)
+            version = Version.from_parts(major, 0, 0)
 
-                result = VersionRange(version, version.next_major(), include_min=True)
+            result = VersionRange(version, version.next_major(), include_min=True)
 
         if op == "!=":
             result = VersionRange().difference(result)

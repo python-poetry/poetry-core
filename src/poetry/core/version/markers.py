@@ -73,11 +73,11 @@ class BaseMarker(ABC):
 
     @abstractmethod
     def intersect(self, other: BaseMarker) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def union(self, other: BaseMarker) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def is_any(self) -> bool:
         return False
@@ -87,34 +87,34 @@ class BaseMarker(ABC):
 
     @abstractmethod
     def validate(self, environment: dict[str, Any] | None) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def without_extras(self) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def exclude(self, marker_name: str) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def only(self, *marker_names: str) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def invert(self) -> BaseMarker:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {str(self)}>"
+        return f"<{self.__class__.__name__} {self}>"
 
     @abstractmethod
     def __hash__(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def __eq__(self, other: object) -> bool:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class AnyMarker(BaseMarker):
@@ -334,7 +334,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
                 versions = []
                 for v in re.split("[ ,]+", self._value):
                     split = v.split(".")
-                    if len(split) in [1, 2]:
+                    if len(split) in (1, 2):
                         split.append("*")
                         op = "" if self._operator == "in" else "!="
                     else:
@@ -661,7 +661,7 @@ class MultiMarker(BaseMarker):
             if isinstance(m, (SingleMarker, MultiMarker)):
                 elements.append(str(m))
             else:
-                elements.append(f"({str(m)})")
+                elements.append(f"({m})")
 
         return " and ".join(elements)
 

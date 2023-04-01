@@ -156,10 +156,10 @@ class Package(PackageSpecification):
 
     @property
     def full_pretty_version(self) -> str:
-        if self.source_type in ["file", "directory", "url"]:
+        if self.source_type in ("file", "directory", "url"):
             return f"{self.pretty_version} {self.source_url}"
 
-        if self.source_type not in ["hg", "git"]:
+        if self.source_type not in ("hg", "git"):
             return self.pretty_version
 
         ref: str | None
@@ -585,7 +585,7 @@ class Package(PackageSpecification):
         if not dependency.constraint.allows(self.version):
             return False
 
-        if not ignore_source_type and not self.source_satisfies(dependency):
+        if not (ignore_source_type or self.source_satisfies(dependency)):
             return False
 
         return True
@@ -634,21 +634,21 @@ class Package(PackageSpecification):
         args = [repr(self._name), repr(self._version.text)]
 
         if self._features:
-            args.append(f"features={repr(self._features)}")
+            args.append(f"features={self._features!r}")
 
         if self._source_type:
-            args.append(f"source_type={repr(self._source_type)}")
-            args.append(f"source_url={repr(self._source_url)}")
+            args.append(f"source_type={self._source_type!r}")
+            args.append(f"source_url={self._source_url!r}")
 
             if self._source_reference:
-                args.append(f"source_reference={repr(self._source_reference)}")
+                args.append(f"source_reference={self._source_reference!r}")
 
             if self._source_resolved_reference:
                 args.append(
-                    f"source_resolved_reference={repr(self._source_resolved_reference)}"
+                    f"source_resolved_reference={self._source_resolved_reference!r}"
                 )
             if self._source_subdirectory:
-                args.append(f"source_subdirectory={repr(self._source_subdirectory)}")
+                args.append(f"source_subdirectory={self._source_subdirectory!r}")
 
         args_str = ", ".join(args)
         return f"Package({args_str})"

@@ -412,7 +412,7 @@ class Factory:
 
                     for req in requirements:
                         req_name = canonicalize_name(req)
-                        for dependency in config.get("dependencies", {}).keys():
+                        for dependency in config.get("dependencies", {}):
                             dep_name = canonicalize_name(dependency)
                             if req_name == dep_name:
                                 break

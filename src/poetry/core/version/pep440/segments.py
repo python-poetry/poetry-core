@@ -45,7 +45,7 @@ class Release:
                 object.__setattr__(self, "patch", 0)
         parts = [
             str(part)
-            for part in [self.major, self.minor, self.patch, *self.extra]
+            for part in (self.major, self.minor, self.patch, *self.extra)
             if part is not None
         ]
         object.__setattr__(self, "text", ".".join(parts))

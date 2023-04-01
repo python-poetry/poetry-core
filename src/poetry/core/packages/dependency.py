@@ -244,7 +244,7 @@ class Dependency(PackageSpecification):
                 # This branch is a short-circuit logic for special cases and
                 # avoids having to split and parse constraint again. This has
                 # no functional difference with the logic in the else branch.
-                requirement += f" ({str(constraint)})"
+                requirement += f" ({constraint})"
             else:
                 constraints = ",".join(
                     str(parse_constraint(c)) for c in self.pretty_constraint.split(",")
@@ -292,7 +292,7 @@ class Dependency(PackageSpecification):
 
             # we re-check for any marker here since the without extra marker might
             # return an any marker again
-            if not marker.is_empty() and not marker.is_any():
+            if not (marker.is_empty() or marker.is_any()):
                 markers.append(str(marker))
 
             has_extras = "extra" in convert_markers(marker)
@@ -429,7 +429,7 @@ class Dependency(PackageSpecification):
                 dep = VCSDependency(
                     name, "git", link.url_without_fragment, extras=req.extras
                 )
-            elif link.scheme in ["http", "https"]:
+            elif link.scheme in ("http", "https"):
                 dep = URLDependency(
                     name,
                     link.url_without_fragment,
@@ -497,7 +497,7 @@ class Dependency(PackageSpecification):
         return self.base_pep_508_name
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {str(self)}>"
+        return f"<{self.__class__.__name__} {self}>"
 
 
 def _make_file_or_dir_dep(

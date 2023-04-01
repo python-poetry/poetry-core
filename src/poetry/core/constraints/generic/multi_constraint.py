@@ -123,8 +123,5 @@ class MultiConstraint(BaseConstraint):
         return h
 
     def __str__(self) -> str:
-        constraints = []
-        for constraint in self._constraints:
-            constraints.append(str(constraint))
-
+        constraints = [str(constraint) for constraint in self._constraints]
         return ", ".join(constraints)
