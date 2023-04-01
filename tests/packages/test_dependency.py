@@ -6,7 +6,9 @@ from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
+from poetry.core.version.markers import InvalidMarker
 from poetry.core.version.markers import parse_marker
+from poetry.core.version.requirements import InvalidRequirement
 
 
 @pytest.mark.parametrize(
@@ -182,6 +184,29 @@ def test_to_pep_508_combination() -> None:
     dependency = Dependency("foo", "~1.2,!=1.2.5")
 
     assert dependency.to_pep_508() == "foo (>=1.2,<1.3,!=1.2.5)"
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        "enum34; extra == ':python_version < \"3.4\"'",
+        "enum34; extra == \":python_version < '3.4'\"",
+    ],
+)
+def test_to_pep_508_with_invalid_marker(requirement: str) -> None:
+    with pytest.raises(InvalidMarker):
+        _ = Dependency.create_from_pep_508(requirement)
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        'enum34; extra == ":python_version < "3.4""',
+    ],
+)
+def test_to_pep_508_with_invalid_requirement(requirement: str) -> None:
+    with pytest.raises(InvalidRequirement):
+        _ = Dependency.create_from_pep_508(requirement)
 
 
 def test_complete_name() -> None:
