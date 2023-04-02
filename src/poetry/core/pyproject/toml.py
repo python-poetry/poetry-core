@@ -1,30 +1,34 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
+
 class PyProjectTOML:
-    def __init__(self, path: str | Path) -> None:
-        self._file = path if isinstance(path, Path) else Path(path)
+    def __init__(self, path: Path) -> None:
+        self._file = path
         self._data: dict[str, Any] | None = None
         self._build_system: BuildSystem | None = None
 
     @property
-    def file(self) -> Path:
+    def path(self) -> Path:
         return self._file
 
     @property
     def data(self) -> dict[str, Any]:
         if self._data is None:
-            if not self.file.exists():
+            if not self.path.exists():
                 self._data = {}
             else:
-                with self.file.open("rb") as f:
+                with self.path.open("rb") as f:
                     self._data = tomllib.load(f)
 
         return self._data
@@ -38,7 +42,7 @@ class PyProjectTOML:
             build_backend = None
             requires = None
 
-            if not self.file.exists():
+            if not self.path.exists():
                 build_backend = "poetry.core.masonry.api"
                 requires = ["poetry-core"]
 
@@ -68,7 +72,7 @@ class PyProjectTOML:
     def is_poetry_project(self) -> bool:
         from poetry.core.pyproject.exceptions import PyProjectException
 
-        if self.file.exists():
+        if self.path.exists():
             with suppress(PyProjectException):
                 _ = self.poetry_config
                 return True

@@ -30,7 +30,7 @@ class Poetry:
 
     @property
     def pyproject_path(self) -> Path:
-        return self._pyproject.file
+        return self._pyproject.path
 
     @property
     def package(self) -> ProjectPackage:
