@@ -1,23 +1,19 @@
 from __future__ import annotations
 
-import uuid
-
 from pathlib import Path
-from typing import Any
 
 import pytest
 
-from tomlkit.toml_document import TOMLDocument
-from tomlkit.toml_file import TOMLFile
-
 from poetry.core.pyproject.exceptions import PyProjectException
 from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.core.utils._compat import tomllib
 
 
 def test_pyproject_toml_simple(
     pyproject_toml: Path, build_system_section: str, poetry_section: str
 ) -> None:
-    data = TOMLFile(pyproject_toml.as_posix()).read()
+    with pyproject_toml.open("rb") as f:
+        data = tomllib.load(f)
     assert PyProjectTOML(pyproject_toml).data == data
 
 
@@ -38,7 +34,8 @@ def test_pyproject_toml_poetry_config(
     pyproject_toml: Path, poetry_section: str
 ) -> None:
     pyproject = PyProjectTOML(pyproject_toml)
-    doc: dict[str, Any] = TOMLFile(pyproject_toml.as_posix()).read()
+    with pyproject_toml.open("rb") as f:
+        doc = tomllib.load(f)
     config = doc["tool"]["poetry"]
 
     assert pyproject.is_poetry_project()
@@ -72,42 +69,6 @@ def test_pyproject_toml_non_existent(pyproject_toml: Path) -> None:
     pyproject = PyProjectTOML(pyproject_toml)
     build_system = pyproject.build_system
 
-    assert pyproject.data == TOMLDocument()
+    assert pyproject.data == {}
     assert build_system.requires == ["poetry-core"]
     assert build_system.build_backend == "poetry.core.masonry.api"
-
-
-def test_pyproject_toml_reload(pyproject_toml: Path, poetry_section: str) -> None:
-    pyproject = PyProjectTOML(pyproject_toml)
-    name_original = pyproject.poetry_config["name"]
-    name_new = str(uuid.uuid4())
-
-    pyproject.poetry_config["name"] = name_new
-    assert isinstance(pyproject.poetry_config["name"], str)
-    assert pyproject.poetry_config["name"] == name_new
-
-    pyproject.reload()
-    assert pyproject.poetry_config["name"] == name_original
-
-
-def test_pyproject_toml_save(
-    pyproject_toml: Path, poetry_section: str, build_system_section: str
-) -> None:
-    pyproject = PyProjectTOML(pyproject_toml)
-
-    name = str(uuid.uuid4())
-    build_backend = str(uuid.uuid4())
-    build_requires = str(uuid.uuid4())
-
-    pyproject.poetry_config["name"] = name
-    pyproject.build_system.build_backend = build_backend
-    pyproject.build_system.requires.append(build_requires)
-
-    pyproject.save()
-
-    pyproject = PyProjectTOML(pyproject_toml)
-
-    assert isinstance(pyproject.poetry_config["name"], str)
-    assert pyproject.poetry_config["name"] == name
-    assert pyproject.build_system.build_backend == build_backend
-    assert build_requires in pyproject.build_system.requires

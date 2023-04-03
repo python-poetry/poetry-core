@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Any
 
+from poetry.core.pyproject.toml import PyProjectTOML
+
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from poetry.core.packages.project_package import ProjectPackage
-    from poetry.core.pyproject.toml import PyProjectTOML
-    from poetry.core.toml import TOMLFile
 
 
 class Poetry:
@@ -18,10 +18,9 @@ class Poetry:
         file: Path,
         local_config: dict[str, Any],
         package: ProjectPackage,
+        pyproject_type: type[PyProjectTOML] = PyProjectTOML,
     ) -> None:
-        from poetry.core.pyproject.toml import PyProjectTOML
-
-        self._pyproject = PyProjectTOML(file)
+        self._pyproject = pyproject_type(file)
         self._package = package
         self._local_config = local_config
 
@@ -30,8 +29,8 @@ class Poetry:
         return self._pyproject
 
     @property
-    def file(self) -> TOMLFile:
-        return self._pyproject.file
+    def pyproject_path(self) -> Path:
+        return self._pyproject.path
 
     @property
     def package(self) -> ProjectPackage:
