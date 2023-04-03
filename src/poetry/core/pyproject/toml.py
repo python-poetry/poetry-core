@@ -14,13 +14,13 @@ if TYPE_CHECKING:
 
 class PyProjectTOML:
     def __init__(self, path: Path) -> None:
-        self._file = path
+        self._path = path
         self._data: dict[str, Any] | None = None
         self._build_system: BuildSystem | None = None
 
     @property
     def path(self) -> Path:
-        return self._file
+        return self._path
 
     @property
     def data(self) -> dict[str, Any]:
@@ -66,7 +66,7 @@ class PyProjectTOML:
             from poetry.core.pyproject.exceptions import PyProjectException
 
             raise PyProjectException(
-                f"[tool.poetry] section not found in {self._file.as_posix()}"
+                f"[tool.poetry] section not found in {self._path.as_posix()}"
             ) from e
 
     def is_poetry_project(self) -> bool:
