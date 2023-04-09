@@ -5,10 +5,14 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 logger = logging.getLogger(__name__)

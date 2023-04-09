@@ -5,11 +5,7 @@ import re
 import warnings
 
 from contextlib import contextmanager
-from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Collection
-from typing import Iterable
-from typing import Iterator
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
@@ -22,6 +18,11 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+    from collections.abc import Iterable
+    from collections.abc import Iterator
+    from pathlib import Path
+
     from packaging.utils import NormalizedName
 
     from poetry.core.constraints.version import Version

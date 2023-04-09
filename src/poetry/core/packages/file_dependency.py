@@ -5,12 +5,12 @@ import io
 import warnings
 
 from typing import TYPE_CHECKING
-from typing import Iterable
 
 from poetry.core.packages.path_dependency import PathDependency
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from pathlib import Path
 
 

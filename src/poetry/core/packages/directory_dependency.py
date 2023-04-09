@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 
 from typing import TYPE_CHECKING
-from typing import Iterable
 
 from poetry.core.packages.path_dependency import PathDependency
 from poetry.core.packages.utils.utils import is_python_project
@@ -11,6 +10,7 @@ from poetry.core.pyproject.toml import PyProjectTOML
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from pathlib import Path
 
 
