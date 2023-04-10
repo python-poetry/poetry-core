@@ -128,9 +128,6 @@ class AnyMarker(BaseMarker):
     def is_any(self) -> bool:
         return True
 
-    def is_empty(self) -> bool:
-        return False
-
     def validate(self, environment: dict[str, Any] | None) -> bool:
         return True
 
@@ -168,9 +165,6 @@ class EmptyMarker(BaseMarker):
 
     def union(self, other: BaseMarker) -> BaseMarker:
         return other
-
-    def is_any(self) -> bool:
-        return False
 
     def is_empty(self) -> bool:
         return True
@@ -840,15 +834,7 @@ class MarkerUnion(BaseMarker):
         return h
 
     def __str__(self) -> str:
-        return " or ".join(
-            str(m) for m in self._markers if not m.is_any() and not m.is_empty()
-        )
-
-    def is_any(self) -> bool:
-        return any(m.is_any() for m in self._markers)
-
-    def is_empty(self) -> bool:
-        return all(m.is_empty() for m in self._markers)
+        return " or ".join(str(m) for m in self._markers)
 
 
 @functools.lru_cache(maxsize=None)
