@@ -109,8 +109,8 @@ class Package(PackageSpecification):
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 
-        # For compatibility with previous version, we keep the category
-        self.category = "main"
+        # Category is heading towards deprecation.
+        self._category = "main"
         self.files: list[dict[str, str]] = []
         self.optional = False
 
@@ -374,6 +374,24 @@ class Package(PackageSpecification):
             urls["Documentation"] = self.documentation_url
 
         return urls
+
+    @property
+    def category(self) -> str:
+        warnings.warn(
+            "`category` is deprecated and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._category
+
+    @category.setter
+    def category(self, category: str) -> None:
+        warnings.warn(
+            "Setting `category` is deprecated and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self._category = category
 
     @property
     def readme(self) -> Path | None:
