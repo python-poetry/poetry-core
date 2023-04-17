@@ -106,10 +106,7 @@ class Builder:
 
             # Checking VCS
             vcs = get_vcs(self._path)
-            if not vcs:
-                vcs_ignored_files = set()
-            else:
-                vcs_ignored_files = set(vcs.get_ignored_files())
+            vcs_ignored_files = set(vcs.get_ignored_files()) if vcs else set()
 
             explicitly_excluded = set()
             for excluded_glob in self._package.exclude:

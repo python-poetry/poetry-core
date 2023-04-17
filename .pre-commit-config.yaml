@@ -11,7 +11,6 @@ repos:
       - id: trailing-whitespace
         exclude: "vendors/patches/jsonschema.patch"
       - id: end-of-file-fixer
-      - id: debug-statements
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: check-json

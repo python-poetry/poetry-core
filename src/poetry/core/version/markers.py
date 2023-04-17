@@ -8,9 +8,7 @@ from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Callable
 from typing import Generic
-from typing import Iterable
 from typing import TypeVar
 from typing import Union
 
@@ -25,6 +23,9 @@ from poetry.core.version.parser import Parser
 
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from collections.abc import Iterable
+
     from lark import Tree
 
 

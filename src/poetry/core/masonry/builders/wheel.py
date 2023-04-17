@@ -15,7 +15,6 @@ from base64 import urlsafe_b64encode
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterator
 from typing import TextIO
 
 from packaging.tags import sys_tags
@@ -31,6 +30,8 @@ from poetry.core.utils.helpers import temporary_directory
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from packaging.utils import NormalizedName
 
     from poetry.core.poetry import Poetry
@@ -357,7 +358,7 @@ class WheelBuilder(Builder):
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
 
         hashsum = hashlib.sha256()
-        with open(full_path, "rb") as src:
+        with full_path.open("rb") as src:
             while True:
                 buf = src.read(1024 * 8)
                 if not buf:

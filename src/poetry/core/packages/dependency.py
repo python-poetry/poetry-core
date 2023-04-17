@@ -7,7 +7,6 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterable
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
@@ -23,6 +22,8 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from packaging.utils import NormalizedName
 
     from poetry.core.constraints.version import VersionConstraint
@@ -345,9 +346,9 @@ class Dependency(PackageSpecification):
         cls, name: str, relative_to: Path | None = None
     ) -> Dependency:
         """
-        Resolve a PEP-508 requirement string to a `Dependency` instance. If a `relative_to`
-        path is specified, this is used as the base directory if the identified dependency is
-        of file or directory type.
+        Resolve a PEP-508 requirement string to a `Dependency` instance. If a
+        `relative_to` path is specified, this is used as the base directory if the
+        identified dependency is of file or directory type.
         """
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.link import Link
@@ -459,10 +460,7 @@ class Dependency(PackageSpecification):
                 dep._constraint = parse_constraint(version)
         else:
             constraint: VersionConstraint | str
-            if req.pretty_constraint:
-                constraint = req.constraint
-            else:
-                constraint = "*"
+            constraint = req.constraint if req.pretty_constraint else "*"
             dep = Dependency(name, constraint, extras=req.extras)
 
         if req.marker:
@@ -507,8 +505,8 @@ def _make_file_or_dir_dep(
     extras: list[str] | None = None,
 ) -> FileDependency | DirectoryDependency | None:
     """
-    Helper function to create a file or directoru dependency with the given arguments. If
-    path is not a file or directory that exists, `None` is returned.
+    Helper function to create a file or directoru dependency with the given arguments.
+    If path is not a file or directory that exists, `None` is returned.
     """
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency

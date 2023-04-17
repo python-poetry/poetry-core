@@ -9,12 +9,16 @@ import warnings
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Iterator
 
 from packaging.utils import canonicalize_name
 
 from poetry.core.version.pep440 import PEP440Version
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 def combine_unicode(string: str) -> str:

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import functools
 import json
-import os
+
+from pathlib import Path
 
 from poetry.core.spdx.license import License
 
@@ -20,9 +21,9 @@ def license_by_id(identifier: str) -> License:
 @functools.lru_cache()
 def _load_licenses() -> dict[str, License]:
     licenses = {}
-    licenses_file = os.path.join(os.path.dirname(__file__), "data", "licenses.json")
+    licenses_file = Path(__file__).parent / "data" / "licenses.json"
 
-    with open(licenses_file, encoding="utf-8") as f:
+    with licenses_file.open(encoding="utf-8") as f:
         data = json.load(f)
 
     for name, license_info in data.items():
