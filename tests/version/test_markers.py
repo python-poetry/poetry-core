@@ -1770,7 +1770,7 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
         ('<= "3.6"', '>= "3.7.0"', EMPTY, ""),
         ('<= "3.6"', '> "3.6.2"', None, ""),
         ('<= "3.6"', '>= "3.6.2"', None, ""),
-        # python_version == 3.6  # noqa: E800
+        # python_version == 3.6  # noqa: ERA001
         # (equal to python_full_version >= 3.6.0 and python_full_version < 3.7.0)
         ('== "3.6"', '< "3.5.2"', EMPTY, None),
         ('== "3.6"', '<= "3.5.2"', EMPTY, None),
@@ -1797,7 +1797,7 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
         ('== "3.6"', '> "3.7.1"', EMPTY, None),
         ('== "3.6"', '>= "3.7.1"', EMPTY, None),
         ('== "3.6"', '!= "3.7.1"', '== "3.6"', '!= "3.7.1"'),
-        # python_version != 3.6  # noqa: E800
+        # python_version != 3.6  # noqa: ERA001
         # (equal to python_full_version < 3.6.0 or python_full_version >= 3.7.0)
         ('!= "3.6"', '< "3.5.2"', '< "3.5.2"', '!= "3.6"'),
         ('!= "3.6"', '<= "3.5.2"', '<= "3.5.2"', '!= "3.6"'),

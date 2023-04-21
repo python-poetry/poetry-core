@@ -328,7 +328,7 @@ class VersionRange(VersionRangeConstraint):
             if not ranges:
                 return current
 
-            return VersionUnion.of(*(ranges + [current]))
+            return VersionUnion.of(*([*ranges, current]))
 
         raise ValueError(f"Unknown VersionConstraint type {other}.")
 

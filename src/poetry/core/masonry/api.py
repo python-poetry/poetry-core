@@ -23,8 +23,9 @@ def get_requires_for_build_wheel(
     Returns an additional list of requirements for building, as PEP508 strings,
     above and beyond those specified in the pyproject.toml file.
 
-    This implementation is optional. At the moment it only returns an empty list, which would be the same as if
-    not define. So this is just for completeness for future implementation.
+    This implementation is optional. At the moment it only returns an empty list,
+    which would be the same as if not define. So this is just for completeness
+    for future implementation.
     """
 
     return []

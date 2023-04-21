@@ -191,7 +191,7 @@ Description-Content-Type: text/x-rst
 My Package
 ==========
 
-"""
+"""  # noqa: E501
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
 
