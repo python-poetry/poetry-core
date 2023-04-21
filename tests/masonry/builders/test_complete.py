@@ -118,17 +118,15 @@ def test_complete(no_vcs: bool) -> None:
     if sys.platform != "win32":
         assert (os.stat(str(whl)).st_mode & 0o777) == 0o644
 
-    expected_name_list = (
-        [
-            "my_package/__init__.py",
-            "my_package/data1/test.json",
-            "my_package/sub_pkg1/__init__.py",
-            "my_package/sub_pkg2/__init__.py",
-            "my_package/sub_pkg2/data2/data.json",
-            "my_package/sub_pkg3/foo.py",
-            "my_package-1.2.3.data/scripts/script.sh",
-        ]
-        + sorted(
+    expected_name_list = [
+        "my_package/__init__.py",
+        "my_package/data1/test.json",
+        "my_package/sub_pkg1/__init__.py",
+        "my_package/sub_pkg2/__init__.py",
+        "my_package/sub_pkg2/data2/data.json",
+        "my_package/sub_pkg3/foo.py",
+        "my_package-1.2.3.data/scripts/script.sh",
+        *sorted(
             [
                 "my_package-1.2.3.dist-info/entry_points.txt",
                 "my_package-1.2.3.dist-info/LICENSE",
@@ -136,9 +134,8 @@ def test_complete(no_vcs: bool) -> None:
                 "my_package-1.2.3.dist-info/WHEEL",
             ],
             key=lambda x: Path(x),
-        )
-        + ["my_package-1.2.3.dist-info/RECORD"]
-    )
+        ),
+    ] + ["my_package-1.2.3.dist-info/RECORD"]
 
     with zipfile.ZipFile(str(whl)) as zipf:
         assert zipf.namelist() == expected_name_list

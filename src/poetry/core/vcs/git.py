@@ -366,11 +366,12 @@ class Git:
                 (folder / ".git").as_posix(),
                 "--work-tree",
                 folder.as_posix(),
-            ) + args
+                *args,
+            )
 
         return (
             subprocess.check_output(
-                [executable()] + list(args), stderr=subprocess.STDOUT
+                [executable(), *list(args)], stderr=subprocess.STDOUT
             )
             .decode()
             .strip()

@@ -289,7 +289,7 @@ class SdistBuilder(Builder):
             if is_subpkg:
                 subpkg_paths.add(from_top_level)
                 parts = from_top_level.split(os.sep)
-                packages.append(".".join([pkg_name] + parts))
+                packages.append(".".join([pkg_name, *parts]))
             else:
                 pkg, from_nearest_pkg = find_nearest_pkg(from_top_level)
 
