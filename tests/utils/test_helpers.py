@@ -8,6 +8,7 @@ from stat import S_IREAD
 import pytest
 
 from poetry.core.utils.helpers import combine_unicode
+from poetry.core.utils.helpers import parse_author
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
 from poetry.core.utils.helpers import temporary_directory
@@ -118,3 +119,52 @@ def test_utils_helpers_readme_content_type(
     readme: str | Path, content_type: str
 ) -> None:
     assert readme_content_type(readme) == content_type
+
+
+@pytest.mark.parametrize(
+    "author, name, email",
+    [
+        # Verify the (probable) default use case
+        ("John Doe <john.doe@example.com>", "John Doe", "john.doe@example.com"),
+        # Name only
+        ("John Doe", "John Doe", None),
+        # Name with a “special” character + email address
+        (
+            "R&D <researchanddevelopment@example.com>",
+            "R&D",
+            "researchanddevelopment@example.com",
+        ),
+        # Name with a “special” character only
+        ("R&D", "R&D", None),
+        # Name with fancy unicode character + email address
+        (
+            "my·fancy corp <my-fancy-corp@example.com>",
+            "my·fancy corp",
+            "my-fancy-corp@example.com",
+        ),
+        # Name with fancy unicode character only
+        ("my·fancy corp", "my·fancy corp", None),
+    ],
+)
+def test_utils_helpers_parse_author(author: str, name: str, email: str | None) -> None:
+    """Test valid inputs for the :func:`parse_author` function."""
+    assert parse_author(author) == (name, email)
+
+
+@pytest.mark.parametrize(
+    "author",
+    [
+        # Email address only, wrapped in angular brackets
+        "<john.doe@example.com>",
+        # Email address only
+        "john.doe@example.com",
+        # Non-RFC-conform cases with unquoted commas
+        "asf,dfu@t.b",
+        "asf,<dfu@t.b>",
+        "asf, dfu@t.b",
+    ],
+)
+def test_utils_helpers_parse_author_invalid(author: str) -> None:
+    """Test invalid inputs for the :func:`parse_author` function."""
+    with pytest.raises(ValueError):
+        parse_author(author)

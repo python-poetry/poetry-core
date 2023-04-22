@@ -13,6 +13,7 @@ from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
+from poetry.core.utils.helpers import parse_author
 from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.markers import parse_marker
 
@@ -34,6 +35,8 @@ if TYPE_CHECKING:
 
     T = TypeVar("T", bound="Package")
 
+# TODO: once poetry.console.commands.init.InitCommand._validate_author
+# uses poetry.core.utils.helpers.parse_author, this can be removed.
 AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"():&]+)(?: <(?P<email>.+?)>)?$")
 
 
@@ -239,34 +242,14 @@ class Package(PackageSpecification):
         if not self._authors:
             return {"name": None, "email": None}
 
-        m = AUTHOR_REGEX.match(self._authors[0])
-
-        if m is None:
-            raise ValueError(
-                "Invalid author string. Must be in the format: "
-                "John Smith <john@example.com>"
-            )
-
-        name = m.group("name")
-        email = m.group("email")
-
+        name, email = parse_author(self._authors[0])
         return {"name": name, "email": email}
 
     def _get_maintainer(self) -> dict[str, str | None]:
         if not self._maintainers:
             return {"name": None, "email": None}
 
-        m = AUTHOR_REGEX.match(self._maintainers[0])
-
-        if m is None:
-            raise ValueError(
-                "Invalid maintainer string. Must be in the format: "
-                "John Smith <john@example.com>"
-            )
-
-        name = m.group("name")
-        email = m.group("email")
-
+        name, email = parse_author(self._maintainers[0])
         return {"name": name, "email": email}
 
     @property

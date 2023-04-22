@@ -8,6 +8,7 @@ import unicodedata
 import warnings
 
 from contextlib import contextmanager
+from email.utils import parseaddr
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -105,3 +106,23 @@ def readme_content_type(path: str | Path) -> str:
         return "text/markdown"
     else:
         return "text/plain"
+
+
+def parse_author(address: str) -> tuple[str, str | None]:
+    """Parse name and address parts from an email address string.
+
+    >>> parse_author("John Doe <john.doe@example.com>")
+    ('John Doe', 'john.doe@example.com')
+
+    :param address: the email address string to parse.
+    :return: a 2-tuple with the parsed name and optional email address.
+    :raises ValueError: if the parsed string does not contain a name.
+    """
+    if "@" not in address:
+        return address, None
+    name, email = parseaddr(address)
+    if not name or (
+        email and address not in [f"{name} <{email}>", f'"{name}" <{email}>']
+    ):
+        raise ValueError(f"Invalid author string: {address!r}")
+    return name, email or None
