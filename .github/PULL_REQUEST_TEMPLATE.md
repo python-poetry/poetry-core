@@ -6,7 +6,7 @@ Resolves: python-poetry#<!-- add issue number/link here -->
 - [ ] Updated **documentation** for changed code.
 
 <!--
-**Note**: All Pull Request should be based on the `main` branch.
+**Note**: All Pull Requests must be based on the `main` branch.
 
 If you have *any* questions to *any* of the points above, just **submit and ask**!  This checklist is here to *help* you, not to deter you from contributing!
 -->
