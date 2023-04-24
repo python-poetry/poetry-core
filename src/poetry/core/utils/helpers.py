@@ -85,13 +85,6 @@ def _on_rm_error(func: Any, path: str | Path, exc_info: Any) -> None:
     func(path)
 
 
-def safe_rmtree(path: str | Path) -> None:
-    if Path(path).is_symlink():
-        return os.unlink(str(path))
-
-    shutil.rmtree(path, onerror=_on_rm_error)
-
-
 def robust_rmtree(path: str, max_timeout: float = 1) -> None:
     """
     Robustly tries to delete paths.
@@ -102,7 +95,12 @@ def robust_rmtree(path: str, max_timeout: float = 1) -> None:
     timeout = 0.001
     while timeout < max_timeout:
         try:
-            shutil.rmtree(path)
+            # both os.unlink and shutil.rmtree can throw exceptions on Windows
+            # if the files are in use when called
+            if Path(path).is_symlink():
+                os.unlink(str(path))
+            else:
+                shutil.rmtree(path)
             return  # Only hits this on success
         except OSError:
             # Increase the timeout and try again
@@ -110,7 +108,7 @@ def robust_rmtree(path: str, max_timeout: float = 1) -> None:
             timeout *= 2
 
     # Final attempt, pass any Exceptions up to caller.
-    safe_rmtree(path)
+    shutil.rmtree(path, onerror=_on_rm_error)
 
 
 def readme_content_type(path: str | Path) -> str:
