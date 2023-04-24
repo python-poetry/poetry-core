@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import os
 import tempfile
-
 from pathlib import Path
 from stat import S_IREAD
+from typing import TYPE_CHECKING
 
 import pytest
 
-from pytest_mock import MockerFixture
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
-from poetry.core.utils.helpers import combine_unicode
+from poetry.core.utils.helpers import combine_unicode, robust_rmtree
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
-from poetry.core.utils.helpers import robust_rmtree
 from poetry.core.utils.helpers import temporary_directory
 
 
