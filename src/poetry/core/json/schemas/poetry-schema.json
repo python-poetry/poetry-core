@@ -21,7 +21,7 @@
     "description": {
       "type": "string",
       "description": "Short package description.",
-      "pattern": "^[^\n]*$"
+      "pattern": "\\A[^\n]*\\Z"
     },
     "keywords": {
       "type": "array",
@@ -72,7 +72,7 @@
     },
     "classifiers": {
       "type": "array",
-      "description": "A list of trove classifers."
+      "description": "A list of trove classifiers."
     },
     "packages": {
       "type": "array",
@@ -155,7 +155,8 @@
         "^[a-zA-Z-_.0-9]+$": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-zA-Z-_.0-9]+$"
           }
         }
       }
@@ -504,6 +505,10 @@
           "type": "string",
           "description": "The url to the file."
         },
+        "subdirectory": {
+          "type": "string",
+          "description": "The relative path to the directory where the package is located."
+        },
         "python": {
           "type": "string",
           "description": "The python versions for which the dependency should be installed."
@@ -630,7 +635,7 @@
         "generate-setup-file": {
           "type": "boolean",
           "description": "Generate and include a setup.py file in sdist.",
-          "default": true
+          "default": false
         },
         "script": {
           "$ref": "#/definitions/build-script"

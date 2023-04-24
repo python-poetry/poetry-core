@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_union import VersionUnion
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionUnion
+from poetry.core.constraints.version import parse_constraint
 
 
 if TYPE_CHECKING:
-    from poetry.core.semver.version_constraint import VersionConstraint
+    from poetry.core.constraints.version import VersionConstraint
 
 PYTHON_VERSION = [
     "2.7.*",
@@ -23,6 +23,7 @@ PYTHON_VERSION = [
     "3.8.*",
     "3.9.*",
     "3.10.*",
+    "3.11.*",
 ]
 
 
@@ -33,7 +34,7 @@ def format_python_constraint(constraint: VersionConstraint) -> str:
     """
     if isinstance(constraint, Version):
         if constraint.precision >= 3:
-            return f"=={str(constraint)}"
+            return f"=={constraint}"
 
         # Transform 3.6 or 3
         if constraint.precision == 2:

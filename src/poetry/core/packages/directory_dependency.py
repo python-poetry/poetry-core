@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import functools
 
-from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
 
-from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.path_dependency import PathDependency
 from poetry.core.packages.utils.utils import is_python_project
-from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.pyproject.toml import PyProjectTOML
 
 
-class DirectoryDependency(Dependency):
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from pathlib import Path
+
+
+class DirectoryDependency(PathDependency):
     def __init__(
         self,
         name: str,
@@ -22,74 +25,40 @@ class DirectoryDependency(Dependency):
         develop: bool = False,
         extras: Iterable[str] | None = None,
     ) -> None:
-        self._path = path
-        self._base = base or Path.cwd()
-        self._full_path = path
-
-        if not self._path.is_absolute():
-            try:
-                self._full_path = self._base.joinpath(self._path).resolve()
-            except FileNotFoundError:
-                raise ValueError(f"Directory {self._path} does not exist")
-
-        self._develop = develop
-
-        if not self._full_path.exists():
-            raise ValueError(f"Directory {self._path} does not exist")
-
-        if self._full_path.is_file():
-            raise ValueError(f"{self._path} is a file, expected a directory")
-
-        if not is_python_project(self._full_path):
-            raise ValueError(
-                f"Directory {self._full_path} does not seem to be a Python package"
-            )
-
         super().__init__(
             name,
-            "*",
+            path,
+            source_type="directory",
             groups=groups,
             optional=optional,
-            allows_prereleases=True,
-            source_type="directory",
-            source_url=self._full_path.as_posix(),
+            base=base,
             extras=extras,
         )
+        self._develop = develop
 
         # cache this function to avoid multiple IO reads and parsing
         self.supports_poetry = functools.lru_cache(maxsize=1)(self._supports_poetry)
 
     @property
-    def path(self) -> Path:
-        return self._path
-
-    @property
-    def full_path(self) -> Path:
-        return self._full_path
-
-    @property
-    def base(self) -> Path:
-        return self._base
-
-    @property
     def develop(self) -> bool:
         return self._develop
 
+    def _validate(self) -> str:
+        message = super()._validate()
+        if message:
+            return message
+
+        if self._full_path.is_file():
+            return (
+                f"{self._full_path} for {self.pretty_name} is a file,"
+                " expected a directory"
+            )
+        if not is_python_project(self._full_path):
+            return (
+                f"Directory {self._full_path} for {self.pretty_name} does not seem"
+                " to be a Python package"
+            )
+        return ""
+
     def _supports_poetry(self) -> bool:
         return PyProjectTOML(self._full_path / "pyproject.toml").is_poetry_project()
-
-    def is_directory(self) -> bool:
-        return True
-
-    @property
-    def base_pep_508_name(self) -> str:
-        requirement = self.pretty_name
-
-        if self.extras:
-            extras = ",".join(sorted(self.extras))
-            requirement += f"[{extras}]"
-
-        path = path_to_url(self.path) if self.path.is_absolute() else self.path
-        requirement += f" @ {path}"
-
-        return requirement

@@ -8,6 +8,7 @@ import argparse
 import json
 import sys
 import traceback
+import warnings
 
 try:
     from importlib import metadata
@@ -24,13 +25,23 @@ import attr
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import RefResolver, validator_for
 
+warnings.warn(
+    (
+        "The jsonschema CLI is deprecated and will be removed in a future "
+        "version. Please use check-jsonschema instead, which can be installed "
+        "from https://pypi.org/project/check-jsonschema/"
+    ),
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 class _CannotLoadFile(Exception):
     pass
 
 
 @attr.s
-class _Outputter(object):
+class _Outputter:
 
     _formatter = attr.ib()
     _stdout = attr.ib()
@@ -72,7 +83,7 @@ class _Outputter(object):
 
 
 @attr.s
-class _PrettyFormatter(object):
+class _PrettyFormatter:
 
     _ERROR_MSG = dedent(
         """\
@@ -114,7 +125,7 @@ class _PrettyFormatter(object):
 
 
 @attr.s
-class _PlainFormatter(object):
+class _PlainFormatter:
 
     _error_format = attr.ib()
 

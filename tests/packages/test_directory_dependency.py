@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import cast
 
 import pytest
@@ -9,13 +10,60 @@ from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.directory_dependency import DirectoryDependency
 
 
-DIST_PATH = Path(__file__).parent.parent / "fixtures" / "git" / "github.com" / "demo"
+if TYPE_CHECKING:
+    from _pytest.logging import LogCaptureFixture
+    from pytest_mock import MockerFixture
+
+
+DIST_PATH = Path(__file__).parent.parent / "fixtures" / "distributions"
 SAMPLE_PROJECT = Path(__file__).parent.parent / "fixtures" / "sample_project"
 
 
-def test_directory_dependency_must_exist() -> None:
-    with pytest.raises(ValueError):
-        DirectoryDependency("demo", DIST_PATH / "invalid")
+def test_directory_dependency_does_not_exist(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_exists = mocker.patch.object(Path, "exists")
+    mock_exists.return_value = False
+    dep = DirectoryDependency("demo", DIST_PATH / "invalid")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "does not exist" in record.message
+
+    with pytest.raises(ValueError, match="does not exist"):
+        dep.validate(raise_error=True)
+
+    mock_exists.assert_called_once()
+
+
+def test_directory_dependency_is_file(
+    caplog: LogCaptureFixture, mocker: MockerFixture
+) -> None:
+    mock_is_file = mocker.patch.object(Path, "is_file")
+    mock_is_file.return_value = True
+    dep = DirectoryDependency("demo", DIST_PATH / "demo-0.1.0.tar.gz")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "is a file" in record.message
+
+    with pytest.raises(ValueError, match="is a file"):
+        dep.validate(raise_error=True)
+
+    mock_is_file.assert_called_once()
+
+
+def test_directory_dependency_is_not_a_python_project(
+    caplog: LogCaptureFixture,
+) -> None:
+    dep = DirectoryDependency("demo", DIST_PATH)
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "a Python package" in record.message
+
+    with pytest.raises(ValueError, match="not .* a Python package"):
+        dep.validate(raise_error=True)
 
 
 def _test_directory_dependency_pep_508(
@@ -26,10 +74,10 @@ def _test_directory_dependency_pep_508(
     )
 
     assert dep.is_directory()
-    dep = cast(DirectoryDependency, dep)
+    dep = cast("DirectoryDependency", dep)
     assert dep.name == name
     assert dep.path == path
-    assert dep.to_pep_508() == pep_508_output or pep_508_input
+    assert dep.to_pep_508() == (pep_508_output or pep_508_input)
 
 
 def test_directory_dependency_pep_508_local_absolute() -> None:
@@ -38,11 +86,13 @@ def test_directory_dependency_pep_508_local_absolute() -> None:
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
+    expected = f"demo @ {path.as_uri()}"
+
     requirement = f"demo @ file://{path.as_posix()}"
-    _test_directory_dependency_pep_508("demo", path, requirement)
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
     requirement = f"demo @ {path}"
-    _test_directory_dependency_pep_508("demo", path, requirement)
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 def test_directory_dependency_pep_508_localhost() -> None:
@@ -52,8 +102,8 @@ def test_directory_dependency_pep_508_localhost() -> None:
         / "project_with_multi_constraints_dependency"
     )
     requirement = f"demo @ file://localhost{path.as_posix()}"
-    requirement_expected = f"demo @ file://{path.as_posix()}"
-    _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
+    expected = f"demo @ {path.as_uri()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 def test_directory_dependency_pep_508_local_relative() -> None:
@@ -64,7 +114,9 @@ def test_directory_dependency_pep_508_local_relative() -> None:
         _test_directory_dependency_pep_508("demo", path, requirement)
 
     requirement = f"demo @ {path}"
-    _test_directory_dependency_pep_508("demo", path, requirement)
+    base = Path(__file__).parent
+    expected = f"demo @ {(base / path).resolve().as_uri()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 def test_directory_dependency_pep_508_extras() -> None:
@@ -74,8 +126,19 @@ def test_directory_dependency_pep_508_extras() -> None:
         / "project_with_multi_constraints_dependency"
     )
     requirement = f"demo[foo,bar] @ file://{path.as_posix()}"
-    requirement_expected = f"demo[bar,foo] @ file://{path.as_posix()}"
-    _test_directory_dependency_pep_508("demo", path, requirement, requirement_expected)
+    expected = f"demo[bar,foo] @ {path.as_uri()}"
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
+
+
+def test_directory_dependency_pep_508_with_marker() -> None:
+    path = (
+        Path(__file__).parent.parent
+        / "fixtures"
+        / "project_with_multi_constraints_dependency"
+    )
+    requirement = f'demo @ file://{path.as_posix()} ; sys_platform == "linux"'
+    expected = f'demo @ {path.as_uri()} ; sys_platform == "linux"'
+    _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
 @pytest.mark.parametrize(

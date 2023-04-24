@@ -15,22 +15,25 @@ from base64 import urlsafe_b64encode
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterator
 from typing import TextIO
 
 from packaging.tags import sys_tags
 
 from poetry.core import __version__
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.masonry.builders.builder import Builder
 from poetry.core.masonry.builders.sdist import SdistBuilder
-from poetry.core.masonry.utils.helpers import escape_name
-from poetry.core.masonry.utils.helpers import escape_version
+from poetry.core.masonry.utils.helpers import distribution_name
 from poetry.core.masonry.utils.helpers import normalize_file_permissions
 from poetry.core.masonry.utils.package_include import PackageInclude
-from poetry.core.semver.helpers import parse_constraint
+from poetry.core.utils.helpers import temporary_directory
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from packaging.utils import NormalizedName
+
     from poetry.core.poetry import Poetry
 
 wheel_file_template = """\
@@ -52,6 +55,7 @@ class WheelBuilder(Builder):
         original: Path | None = None,
         executable: Path | None = None,
         editable: bool = False,
+        metadata_directory: Path | None = None,
     ) -> None:
         super().__init__(poetry, executable=executable)
 
@@ -60,6 +64,7 @@ class WheelBuilder(Builder):
         if original:
             self._original_path = original.parent
         self._editable = editable
+        self._metadata_directory = metadata_directory
 
     @classmethod
     def make_in(
@@ -69,12 +74,14 @@ class WheelBuilder(Builder):
         original: Path | None = None,
         executable: Path | None = None,
         editable: bool = False,
+        metadata_directory: Path | None = None,
     ) -> str:
         wb = WheelBuilder(
             poetry,
             original=original,
             executable=executable,
             editable=editable,
+            metadata_directory=metadata_directory,
         )
         wb.build(target_dir=directory)
 
@@ -95,7 +102,7 @@ class WheelBuilder(Builder):
         if not target_dir.exists():
             target_dir.mkdir()
 
-        (fd, temp_path) = tempfile.mkstemp(suffix=".whl")
+        fd, temp_path = tempfile.mkstemp(suffix=".whl")
 
         st_mode = os.stat(temp_path).st_mode
         new_mode = normalize_file_permissions(st_mode)
@@ -104,19 +111,25 @@ class WheelBuilder(Builder):
         with os.fdopen(fd, "w+b") as fd_file, zipfile.ZipFile(
             fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
         ) as zip_file:
-            if not self._editable:
-                if not self._poetry.package.build_should_generate_setup():
-                    self._build(zip_file)
-                    self._copy_module(zip_file)
-                else:
-                    self._copy_module(zip_file)
-                    self._build(zip_file)
-            else:
+            if self._editable:
                 self._build(zip_file)
                 self._add_pth(zip_file)
+            elif self._poetry.package.build_should_generate_setup():
+                self._copy_module(zip_file)
+                self._build(zip_file)
+            else:
+                self._build(zip_file)
+                self._copy_module(zip_file)
 
             self._copy_file_scripts(zip_file)
-            self._write_metadata(zip_file)
+
+            if self._metadata_directory is None:
+                with temporary_directory() as temp_dir:
+                    metadata_directory = self.prepare_metadata(Path(temp_dir))
+                    self._copy_dist_info(zip_file, metadata_directory)
+            else:
+                self._copy_dist_info(zip_file, self._metadata_directory)
+
             self._write_record(zip_file)
 
         wheel_path = target_dir / self.wheel_filename
@@ -151,9 +164,9 @@ class WheelBuilder(Builder):
                 # we assume that the build script will build and copy the files
                 # directly.
                 # That way they will be picked up when adding files to the wheel.
-                current_path = os.getcwd()
+                current_path = Path.cwd()
                 try:
-                    os.chdir(str(self._path))
+                    os.chdir(self._path)
                     self._run_build_script(self._package.build_script)
                 finally:
                     os.chdir(current_path)
@@ -161,9 +174,9 @@ class WheelBuilder(Builder):
                 with SdistBuilder(poetry=self._poetry).setup_py() as setup:
                     # We need to place ourselves in the temporary
                     # directory in order to build the package
-                    current_path = os.getcwd()
+                    current_path = Path.cwd()
                     try:
-                        os.chdir(str(self._path))
+                        os.chdir(self._path)
                         self._run_build_command(setup)
                     finally:
                         os.chdir(current_path)
@@ -178,13 +191,13 @@ class WheelBuilder(Builder):
 
                     lib = libs[0]
 
-                    for pkg in lib.glob("**/*"):
+                    for pkg in sorted(lib.glob("**/*")):
                         if pkg.is_dir() or self.is_excluded(pkg):
                             continue
 
-                        rel_path = str(pkg.relative_to(lib))
+                        rel_path = pkg.relative_to(lib)
 
-                        if rel_path in wheel.namelist():
+                        if rel_path.as_posix() in wheel.namelist():
                             continue
 
                         logger.debug(f"Adding: {rel_path}")
@@ -198,7 +211,7 @@ class WheelBuilder(Builder):
             self._add_file(
                 wheel,
                 abs_path,
-                Path.joinpath(Path(self.wheel_data_folder), "scripts", abs_path.name),
+                Path(self.wheel_data_folder) / "scripts" / abs_path.name,
             )
 
     def _run_build_command(self, setup: Path) -> None:
@@ -224,33 +237,42 @@ class WheelBuilder(Builder):
         for file in sorted(to_add, key=lambda x: x.path):
             self._add_file(wheel, file.path, file.relative_to_source_root())
 
-    def _write_metadata(self, wheel: zipfile.ZipFile) -> None:
+    def prepare_metadata(self, metadata_directory: Path) -> Path:
+        dist_info = metadata_directory / self.dist_info
+        dist_info.mkdir(parents=True, exist_ok=True)
+
         if (
             "scripts" in self._poetry.local_config
             or "plugins" in self._poetry.local_config
         ):
-            with self._write_to_zip(wheel, self.dist_info + "/entry_points.txt") as f:
+            with (dist_info / "entry_points.txt").open(
+                "w", encoding="utf-8", newline="\n"
+            ) as f:
                 self._write_entry_points(f)
 
-        license_files_to_add = []
-        for base in ("COPYING", "LICENSE"):
-            license_files_to_add.append(self._path / base)
-            license_files_to_add.extend(self._path.glob(base + ".*"))
-
-        license_files_to_add.extend(self._path.joinpath("LICENSES").glob("**/*"))
-
-        for path in set(license_files_to_add):
-            if path.is_file():
-                relative_path = f"{self.dist_info}/{path.relative_to(self._path)}"
-                self._add_file(wheel, path, relative_path)
-            else:
-                logger.debug(f"Skipping: {path.as_posix()}")
-
-        with self._write_to_zip(wheel, self.dist_info + "/WHEEL") as f:
+        with (dist_info / "WHEEL").open("w", encoding="utf-8", newline="\n") as f:
             self._write_wheel_file(f)
 
-        with self._write_to_zip(wheel, self.dist_info + "/METADATA") as f:
+        with (dist_info / "METADATA").open("w", encoding="utf-8", newline="\n") as f:
             self._write_metadata_file(f)
+
+        license_files = set()
+        for base in ("COPYING", "LICENSE"):
+            license_files.add(self._path / base)
+            license_files.update(self._path.glob(base + ".*"))
+
+        license_files.update(self._path.joinpath("LICENSES").glob("**/*"))
+
+        for license_file in license_files:
+            if not license_file.is_file():
+                logger.debug(f"Skipping: {license_file.as_posix()}")
+                continue
+
+            dest = dist_info / license_file.relative_to(self._path)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(license_file, dest)
+
+        return dist_info
 
     def _write_record(self, wheel: zipfile.ZipFile) -> None:
         # Write a record of the files in the wheel
@@ -271,18 +293,29 @@ class WheelBuilder(Builder):
 
             f.write(record.getvalue())
 
+    def _copy_dist_info(self, wheel: zipfile.ZipFile, source: Path) -> None:
+        dist_info = Path(self.dist_info)
+        for file in sorted(source.glob("**/*")):
+            if not file.is_file():
+                continue
+
+            rel_path = file.relative_to(source)
+            target = dist_info / rel_path
+            self._add_file(wheel, file, target)
+
     @property
     def dist_info(self) -> str:
         return self.dist_info_name(self._package.name, self._meta.version)
 
     @property
     def wheel_data_folder(self) -> str:
-        return f"{self._package.name}-{self._meta.version}.data"
+        name = distribution_name(self._package.name)
+        return f"{name}-{self._meta.version}.data"
 
     @property
     def wheel_filename(self) -> str:
-        name = escape_name(self._package.pretty_name)
-        version = escape_version(self._meta.version)
+        name = distribution_name(self._package.name)
+        version = self._meta.version
         return f"{name}-{version}-{self.tag}.whl"
 
     def supports_python2(self) -> bool:
@@ -290,11 +323,9 @@ class WheelBuilder(Builder):
             parse_constraint(">=2.0.0 <3.0.0")
         )
 
-    def dist_info_name(self, distribution: str, version: str) -> str:
-        escaped_name = escape_name(distribution)
-        escaped_version = escape_version(version)
-
-        return f"{escaped_name}-{escaped_version}.dist-info"
+    def dist_info_name(self, name: NormalizedName, version: str) -> str:
+        escaped_name = distribution_name(name)
+        return f"{escaped_name}-{version}.dist-info"
 
     @property
     def tag(self) -> str:
@@ -303,11 +334,7 @@ class WheelBuilder(Builder):
             tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
             platform = "any"
-            if self.supports_python2():
-                impl = "py2.py3"
-            else:
-                impl = "py3"
-
+            impl = "py2.py3" if self.supports_python2() else "py3"
             tag = (impl, "none", platform)
 
         return "-".join(tag)
@@ -315,19 +342,15 @@ class WheelBuilder(Builder):
     def _add_file(
         self,
         wheel: zipfile.ZipFile,
-        full_path: Path | str,
-        rel_path: Path | str,
+        full_path: Path,
+        rel_path: Path,
     ) -> None:
-        full_path, rel_path = str(full_path), str(rel_path)
-        if os.sep != "/":
-            # We always want to have /-separated paths in the zip file and in
-            # RECORD
-            rel_path = rel_path.replace(os.sep, "/")
-
-        zinfo = zipfile.ZipInfo(rel_path)
+        # We always want to have /-separated paths in the zip file and in RECORD
+        rel_path_name = rel_path.as_posix()
+        zinfo = zipfile.ZipInfo(rel_path_name)
 
         # Normalize permission bits to either 755 (executable) or 644
-        st_mode = os.stat(full_path).st_mode
+        st_mode = full_path.stat().st_mode
         new_mode = normalize_file_permissions(st_mode)
         zinfo.external_attr = (new_mode & 0xFFFF) << 16  # Unix attributes
 
@@ -335,7 +358,7 @@ class WheelBuilder(Builder):
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
 
         hashsum = hashlib.sha256()
-        with open(full_path, "rb") as src:
+        with full_path.open("rb") as src:
             while True:
                 buf = src.read(1024 * 8)
                 if not buf:
@@ -345,10 +368,10 @@ class WheelBuilder(Builder):
             src.seek(0)
             wheel.writestr(zinfo, src.read(), compress_type=zipfile.ZIP_DEFLATED)
 
-        size = os.stat(full_path).st_size
+        size = full_path.stat().st_size
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode("ascii").rstrip("=")
 
-        self._records.append((rel_path, hash_digest, size))
+        self._records.append((rel_path_name, hash_digest, size))
 
     @contextlib.contextmanager
     def _write_to_zip(

@@ -6,15 +6,20 @@ import stat
 import tempfile
 import time
 import unicodedata
+import warnings
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Iterator
 
 from packaging.utils import canonicalize_name
 
 from poetry.core.version.pep440 import PEP440Version
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 def combine_unicode(string: str) -> str:
@@ -26,6 +31,11 @@ def module_name(name: str) -> str:
 
 
 def normalize_version(version: str) -> str:
+    warnings.warn(
+        "normalize_version() is deprecated. Use Version.parse().to_string() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return PEP440Version.parse(version).to_string()
 
 
@@ -40,14 +50,10 @@ def parse_requires(requires: str) -> list[str]:
     lines = requires.split("\n")
 
     requires_dist = []
-    in_section = False
     current_marker = None
     for line in lines:
         line = line.strip()
         if not line:
-            if in_section:
-                in_section = False
-
             continue
 
         if line.startswith("["):
@@ -115,7 +121,7 @@ def readme_content_type(path: str | Path) -> str:
     suffix = Path(path).suffix
     if suffix == ".rst":
         return "text/x-rst"
-    elif suffix in [".md", ".markdown"]:
+    elif suffix in (".md", ".markdown"):
         return "text/markdown"
     else:
         return "text/plain"

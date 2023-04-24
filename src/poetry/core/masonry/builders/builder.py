@@ -40,7 +40,7 @@ class Builder:
 
         self._poetry = poetry
         self._package = poetry.package
-        self._path: Path = poetry.file.parent
+        self._path: Path = poetry.pyproject_path.parent
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
 
@@ -98,7 +98,7 @@ class Builder:
         return self._path / "dist"
 
     def build(self, target_dir: Path | None) -> Path:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_excluded_files(self, fmt: str | None = None) -> set[str]:
         if self._excluded_files is None:
@@ -106,38 +106,31 @@ class Builder:
 
             # Checking VCS
             vcs = get_vcs(self._path)
-            if not vcs:
-                vcs_ignored_files = set()
-            else:
-                vcs_ignored_files = set(vcs.get_ignored_files())
+            vcs_ignored_files = set(vcs.get_ignored_files()) if vcs else set()
 
-            explicitely_excluded = set()
+            explicitly_excluded = set()
             for excluded_glob in self._package.exclude:
                 for excluded in self._path.glob(str(excluded_glob)):
-                    explicitely_excluded.add(
+                    explicitly_excluded.add(
                         Path(excluded).relative_to(self._path).as_posix()
                     )
 
-            explicitely_included = set()
+            explicitly_included = set()
             for inc in self._package.include:
                 if fmt and inc["format"] and fmt not in inc["format"]:
                     continue
 
                 included_glob = inc["path"]
                 for included in self._path.glob(str(included_glob)):
-                    explicitely_included.add(
+                    explicitly_included.add(
                         Path(included).relative_to(self._path).as_posix()
                     )
 
-            ignored = (vcs_ignored_files | explicitely_excluded) - explicitely_included
-            result = set()
-            for file in ignored:
-                result.add(file)
+            ignored = (vcs_ignored_files | explicitly_excluded) - explicitly_included
+            for ignored_file in ignored:
+                logger.debug(f"Ignoring: {ignored_file}")
 
-            # The list of excluded files might be big and we will do a lot
-            # containment check (x in excluded).
-            # Returning a set make those tests much much faster.
-            self._excluded_files = result
+            self._excluded_files = ignored
 
         return self._excluded_files
 
@@ -189,8 +182,11 @@ class Builder:
                                 source_root=source_root,
                             )
 
-                            if not current_file.is_dir() and not self.is_excluded(
-                                include_file.relative_to_source_root()
+                            if not (
+                                current_file.is_dir()
+                                or self.is_excluded(
+                                    include_file.relative_to_source_root()
+                                )
                             ):
                                 to_add.add(include_file)
                     continue
@@ -207,7 +203,7 @@ class Builder:
                 if file.suffix == ".pyc":
                     continue
 
-                logger.debug(f"Adding: {str(file)}")
+                logger.debug(f"Adding: {file}")
                 to_add.add(include_file)
 
         # add build script if it is specified and explicitly required
@@ -240,16 +236,16 @@ class Builder:
             content += f"Keywords: {self._meta.keywords}\n"
 
         if self._meta.author:
-            content += f"Author: {str(self._meta.author)}\n"
+            content += f"Author: {self._meta.author}\n"
 
         if self._meta.author_email:
-            content += f"Author-email: {str(self._meta.author_email)}\n"
+            content += f"Author-email: {self._meta.author_email}\n"
 
         if self._meta.maintainer:
-            content += f"Maintainer: {str(self._meta.maintainer)}\n"
+            content += f"Maintainer: {self._meta.maintainer}\n"
 
         if self._meta.maintainer_email:
-            content += f"Maintainer-email: {str(self._meta.maintainer_email)}\n"
+            content += f"Maintainer-email: {self._meta.maintainer_email}\n"
 
         if self._meta.requires_python:
             content += f"Requires-Python: {self._meta.requires_python}\n"
@@ -264,7 +260,7 @@ class Builder:
             content += f"Requires-Dist: {dep}\n"
 
         for url in sorted(self._meta.project_urls, key=lambda u: u[0]):
-            content += f"Project-URL: {str(url)}\n"
+            content += f"Project-URL: {url}\n"
 
         if self._meta.description_content_type:
             content += (
@@ -272,7 +268,7 @@ class Builder:
             )
 
         if self._meta.description is not None:
-            content += "\n" + str(self._meta.description) + "\n"
+            content += f"\n{self._meta.description}\n"
 
         return content
 
@@ -287,9 +283,12 @@ class Builder:
 
             if "callable" in specification:
                 warnings.warn(
-                    f"Use of callable in script specification ({name}) is deprecated."
-                    " Use reference instead.",
+                    (
+                        f"Use of callable in script specification ({name}) is"
+                        " deprecated. Use reference instead."
+                    ),
                     DeprecationWarning,
+                    stacklevel=2,
                 )
                 specification = {
                     "reference": specification["callable"],

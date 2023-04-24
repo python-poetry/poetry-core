@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import cast
 
+from poetry.core.constraints.version import Version
 from poetry.core.packages.dependency import Dependency
-from poetry.core.packages.url_dependency import URLDependency
-from poetry.core.packages.vcs_dependency import VCSDependency
-from poetry.core.semver.version import Version
+
+
+if TYPE_CHECKING:
+    from poetry.core.packages.url_dependency import URLDependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 def test_dependency_from_pep_508() -> None:
@@ -186,7 +190,7 @@ def test_dependency_from_pep_508_with_git_url() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.vcs == "git"
     assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
     assert dep.reference == "1.2"
@@ -202,7 +206,7 @@ def test_dependency_from_pep_508_with_git_url_and_subdirectory() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.vcs == "git"
     assert dep.source == "ssh://git@corp-gitlab.com/corp-utils.git"
     assert dep.reference == "1.2"
@@ -219,7 +223,7 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra() -> None:
 
     assert dep.name == "poetry"
     assert dep.is_vcs()
-    dep = cast(VCSDependency, dep)
+    dep = cast("VCSDependency", dep)
     assert dep.vcs == "git"
     assert dep.source == "https://github.com/python-poetry/poetry.git"
     assert dep.reference == "b;ar;"
@@ -233,8 +237,23 @@ def test_dependency_from_pep_508_with_url() -> None:
 
     assert dep.name == "django-utils"
     assert dep.is_url()
-    dep = cast(URLDependency, dep)
+    dep = cast("URLDependency", dep)
     assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
+
+
+def test_dependency_from_pep_508_with_url_and_subdirectory() -> None:
+    name = (
+        "django-utils @"
+        " https://example.com/django-utils-1.0.0.tar.gz#subdirectory=django"
+    )
+
+    dep = Dependency.create_from_pep_508(name)
+
+    assert dep.name == "django-utils"
+    assert dep.is_url()
+    dep = cast("URLDependency", dep)
+    assert dep.url == "https://example.com/django-utils-1.0.0.tar.gz"
+    assert dep.directory == "django"
 
 
 def test_dependency_from_pep_508_with_wheel_url() -> None:
@@ -259,11 +278,11 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5.4"
+    assert dep.python_versions == ">=2.7 <2.8 || >=3.4.0 <3.5.4"
     assert (
         str(dep.marker)
         == 'python_version >= "2.7" and python_version < "2.8" '
-        'or python_full_version >= "3.4" and python_full_version < "3.5.4"'
+        'or python_full_version >= "3.4.0" and python_full_version < "3.5.4"'
     )
 
 

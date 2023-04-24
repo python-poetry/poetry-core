@@ -3,11 +3,14 @@ from __future__ import annotations
 import copy
 
 from typing import TYPE_CHECKING
-from typing import Iterable
 from typing import TypeVar
+
+from packaging.utils import canonicalize_name
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from packaging.utils import NormalizedName
 
     T = TypeVar("T", bound="PackageSpecification")
@@ -37,7 +40,7 @@ class PackageSpecification:
         if not features:
             features = []
 
-        self._features = frozenset(features)
+        self._features = frozenset(canonicalize_name(feature) for feature in features)
 
     @property
     def name(self) -> NormalizedName:
@@ -78,7 +81,7 @@ class PackageSpecification:
         return self._source_subdirectory
 
     @property
-    def features(self) -> frozenset[str]:
+    def features(self) -> frozenset[NormalizedName]:
         return self._features
 
     def is_direct_origin(self) -> bool:
@@ -133,7 +136,7 @@ class PackageSpecification:
 
         if self._source_reference or other.source_reference:
             # special handling for packages with references
-            if not self._source_reference or not other.source_reference:
+            if not (self._source_reference and other.source_reference):
                 # case: one reference is defined and is non-empty, but other is not
                 return False
 
@@ -167,7 +170,9 @@ class PackageSpecification:
     def with_features(self: T, features: Iterable[str]) -> T:
         package = self.clone()
 
-        package._features = frozenset(features)
+        package._features = frozenset(
+            canonicalize_name(feature) for feature in features
+        )
 
         return package
 
@@ -195,4 +200,4 @@ class PackageSpecification:
         return result
 
     def __str__(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError

@@ -2,25 +2,32 @@ from __future__ import annotations
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
+from poetry.core.version.markers import InvalidMarker
 from poetry.core.version.markers import parse_marker
+from poetry.core.version.requirements import InvalidRequirement
 
 
 @pytest.mark.parametrize(
-    "constraint,result",
+    "constraint",
     [
-        ("^1.0", False),
-        ("^1.0.dev0", True),
-        ("^1.0.0", False),
-        ("^1.0.0.dev0", True),
-        ("^1.0.0.alpha0", True),
-        ("^1.0.0.alpha0+local", True),
-        ("^1.0.0.rc0+local", True),
-        ("^1.0.0-1", False),
+        "^1.0",
+        "^1.0.dev0",
+        "^1.0.0",
+        "^1.0.0.dev0",
+        "^1.0.0.alpha0",
+        "^1.0.0.alpha0+local",
+        "^1.0.0.rc0+local",
+        "^1.0.0-1",
     ],
 )
-def test_allows_prerelease(constraint: str, result: bool) -> None:
-    assert Dependency("A", constraint).allows_prereleases() == result
+@pytest.mark.parametrize("allows_prereleases", [False, True])
+def test_allows_prerelease(constraint: str, allows_prereleases: bool) -> None:
+    dependency = Dependency("A", constraint, allows_prereleases=allows_prereleases)
+    assert dependency.allows_prereleases() == allows_prereleases
 
 
 def test_to_pep_508() -> None:
@@ -35,7 +42,7 @@ def test_to_pep_508() -> None:
     result = dependency.to_pep_508()
     assert (
         result
-        == "Django (>=1.23,<2.0); "
+        == "Django (>=1.23,<2.0) ; "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -50,25 +57,25 @@ def test_to_pep_508_wilcard() -> None:
 
 def test_to_pep_508_in_extras() -> None:
     dependency = Dependency("Django", "^1.23")
-    dependency.in_extras.append("foo")
+    dependency.in_extras.append(canonicalize_name("foo"))
 
     result = dependency.to_pep_508()
-    assert result == 'Django (>=1.23,<2.0); extra == "foo"'
+    assert result == 'Django (>=1.23,<2.0) ; extra == "foo"'
 
     result = dependency.to_pep_508(with_extras=False)
     assert result == "Django (>=1.23,<2.0)"
 
-    dependency.in_extras.append("bar")
+    dependency.in_extras.append(canonicalize_name("bar"))
 
     result = dependency.to_pep_508()
-    assert result == 'Django (>=1.23,<2.0); extra == "foo" or extra == "bar"'
+    assert result == 'Django (>=1.23,<2.0) ; extra == "foo" or extra == "bar"'
 
     dependency.python_versions = "~2.7 || ^3.6"
 
     result = dependency.to_pep_508()
     assert (
         result
-        == "Django (>=1.23,<2.0); "
+        == "Django (>=1.23,<2.0) ; "
         "("
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
@@ -79,7 +86,7 @@ def test_to_pep_508_in_extras() -> None:
     result = dependency.to_pep_508(with_extras=False)
     assert (
         result
-        == "Django (>=1.23,<2.0); "
+        == "Django (>=1.23,<2.0) ; "
         'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.6" and python_version < "4.0"'
     )
@@ -91,7 +98,7 @@ def test_to_pep_508_in_extras_parsed() -> None:
     )
 
     result = dependency.to_pep_508()
-    assert result == 'foo[bar,baz] (>=1.23,<2.0); extra == "baz"'
+    assert result == 'foo[bar,baz] (>=1.23,<2.0) ; extra == "baz"'
 
     result = dependency.to_pep_508(with_extras=False)
     assert result == "foo[bar,baz] (>=1.23,<2.0)"
@@ -127,7 +134,7 @@ def test_to_pep_508_with_patch_python_version(
     dependency = Dependency("Django", "^1.23")
     dependency.python_versions = python_versions
 
-    expected = f"Django (>=1.23,<2.0); {marker}"
+    expected = f"Django (>=1.23,<2.0) ; {marker}"
 
     assert dependency.to_pep_508() == expected
     assert str(dependency.marker) == marker
@@ -177,6 +184,29 @@ def test_to_pep_508_combination() -> None:
     dependency = Dependency("foo", "~1.2,!=1.2.5")
 
     assert dependency.to_pep_508() == "foo (>=1.2,<1.3,!=1.2.5)"
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        "enum34; extra == ':python_version < \"3.4\"'",
+        "enum34; extra == \":python_version < '3.4'\"",
+    ],
+)
+def test_to_pep_508_with_invalid_marker(requirement: str) -> None:
+    with pytest.raises(InvalidMarker):
+        _ = Dependency.create_from_pep_508(requirement)
+
+
+@pytest.mark.parametrize(
+    "requirement",
+    [
+        'enum34; extra == ":python_version < "3.4""',
+    ],
+)
+def test_to_pep_508_with_invalid_requirement(requirement: str) -> None:
+    with pytest.raises(InvalidRequirement):
+        _ = Dependency.create_from_pep_508(requirement)
 
 
 def test_complete_name() -> None:
@@ -236,6 +266,12 @@ def test_set_constraint_sets_pretty_constraint() -> None:
     assert dependency.pretty_constraint == "^1.0"
     dependency.constraint = "^2.0"  # type: ignore[assignment]
     assert dependency.pretty_constraint == "^2.0"
+
+
+def test_set_bogus_constraint_raises_exception() -> None:
+    dependency = Dependency("A", "^1.0")
+    with pytest.raises(ParseConstraintError):
+        dependency.constraint = "^=4.5"  # type: ignore[assignment]
 
 
 def test_with_constraint() -> None:

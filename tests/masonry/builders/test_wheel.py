@@ -72,6 +72,18 @@ def test_wheel_prerelease() -> None:
     assert whl.exists()
 
 
+def test_wheel_epoch() -> None:
+    module_path = fixtures_dir / "epoch"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "epoch-1!2.0-py2.py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "epoch-1!2.0.dist-info/METADATA" in z.namelist()
+
+
 def test_wheel_excluded_data() -> None:
     module_path = fixtures_dir / "default_with_excluded_data_toml"
     WheelBuilder.make(Factory().create_poetry(module_path))
@@ -168,17 +180,20 @@ def test_dist_info_file_permissions() -> None:
 
     with zipfile.ZipFile(str(whl)) as z:
         assert (
-            z.getinfo("my_package-1.2.3.dist-info/WHEEL").external_attr == 0o644 << 16
-        )
-        assert (
-            z.getinfo("my_package-1.2.3.dist-info/METADATA").external_attr
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").external_attr & 0x1FF0000
             == 0o644 << 16
         )
         assert (
-            z.getinfo("my_package-1.2.3.dist-info/RECORD").external_attr == 0o644 << 16
+            z.getinfo("my_package-1.2.3.dist-info/METADATA").external_attr & 0x1FF0000
+            == 0o644 << 16
+        )
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/RECORD").external_attr & 0x1FF0000
+            == 0o644 << 16
         )
         assert (
             z.getinfo("my_package-1.2.3.dist-info/entry_points.txt").external_attr
+            & 0x1FF0000
             == 0o644 << 16
         )
 
@@ -272,24 +287,28 @@ def test_wheel_with_file_with_comma() -> None:
 
 
 def test_default_src_with_excluded_data(mocker: MockerFixture) -> None:
-    # Patch git module to return specific excluded files
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = [
-        (
-            (
-                Path(__file__).parent
-                / "fixtures"
-                / "default_src_with_excluded_data"
-                / "src"
-                / "my_package"
-                / "data"
-                / "sub_data"
-                / "data2.txt"
-            )
-            .relative_to(project("default_src_with_excluded_data"))
-            .as_posix()
-        )
-    ]
+    class MockGit:
+        def get_ignored_files(self, folder: Path | None = None) -> list[str]:
+            # Patch git module to return specific excluded files
+            return [
+                (
+                    (
+                        Path(__file__).parent
+                        / "fixtures"
+                        / "default_src_with_excluded_data"
+                        / "src"
+                        / "my_package"
+                        / "data"
+                        / "sub_data"
+                        / "data2.txt"
+                    )
+                    .relative_to(project("default_src_with_excluded_data"))
+                    .as_posix()
+                )
+            ]
+
+    p = mocker.patch("poetry.core.vcs.get_vcs")
+    p.return_value = MockGit()
     poetry = Factory().create_poetry(project("default_src_with_excluded_data"))
 
     builder = WheelBuilder(poetry)

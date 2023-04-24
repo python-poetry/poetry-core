@@ -7,16 +7,18 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Mapping
 from typing import Union
-from typing import cast
 from warnings import warn
+
+from packaging.utils import canonicalize_name
 
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
@@ -56,8 +58,10 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        name = cast(str, local_config["name"])
-        version = cast(str, local_config["version"])
+        name = local_config["name"]
+        assert isinstance(name, str)
+        version = local_config["version"]
+        assert isinstance(version, str)
         package = self.get_package(name, version)
         package = self.configure_package(
             package, local_config, poetry_file.parent, with_groups=with_groups
@@ -69,7 +73,7 @@ class Factory:
     def get_package(cls, name: str, version: str) -> ProjectPackage:
         from poetry.core.packages.project_package import ProjectPackage
 
-        return ProjectPackage(name, version, version)
+        return ProjectPackage(name, version)
 
     @classmethod
     def _add_package_group_dependencies(
@@ -149,9 +153,6 @@ class Factory:
             else:
                 package.readmes = tuple(root / readme for readme in config["readme"])
 
-        if "platform" in config:
-            package.platform = config["platform"]
-
         if "dependencies" in config:
             cls._add_package_group_dependencies(
                 package=package, group=MAIN_GROUP, dependencies=config["dependencies"]
@@ -175,6 +176,7 @@ class Factory:
 
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
+            extra_name = canonicalize_name(extra_name)
             package.extras[extra_name] = []
 
             # Checking for dependency
@@ -185,8 +187,6 @@ class Factory:
                     if dep.name == req.name:
                         dep.in_extras.append(extra_name)
                         package.extras[extra_name].append(dep)
-
-                        break
 
         if "build" in config:
             build = config["build"]
@@ -228,8 +228,11 @@ class Factory:
         groups: list[str] | None = None,
         root_dir: Path | None = None,
     ) -> Dependency:
-        from poetry.core.packages.constraints import (
+        from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
+        )
+        from poetry.core.constraints.version import (
+            parse_constraint as parse_version_constraint,
         )
         from poetry.core.packages.dependency import Dependency
         from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -238,7 +241,6 @@ class Factory:
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.utils import create_nested_marker
         from poetry.core.packages.vcs_dependency import VCSDependency
-        from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import AnyMarker
         from poetry.core.version.markers import parse_marker
 
@@ -259,7 +261,7 @@ class Factory:
                     'the "allows-prereleases" property, which is deprecated. '
                     'Use "allow-prereleases" instead.'
                 )
-                warn(message, DeprecationWarning)
+                warn(message, DeprecationWarning, stacklevel=2)
                 logger.warning(message)
 
             allows_prereleases = constraint.get(
@@ -323,6 +325,7 @@ class Factory:
                 dependency = URLDependency(
                     name,
                     constraint["url"],
+                    directory=constraint.get("subdirectory", None),
                     groups=groups,
                     optional=optional,
                     extras=constraint.get("extras", []),
@@ -345,7 +348,7 @@ class Factory:
                 marker = marker.intersect(
                     parse_marker(
                         create_nested_marker(
-                            "python_version", parse_constraint(python_versions)
+                            "python_version", parse_version_constraint(python_versions)
                         )
                     )
                 )
@@ -403,6 +406,22 @@ class Factory:
                             'the "allows-prereleases" property, which is deprecated. '
                             'Use "allow-prereleases" instead.'
                         )
+
+            if "extras" in config:
+                for extra_name, requirements in config["extras"].items():
+                    extra_name = canonicalize_name(extra_name)
+
+                    for req in requirements:
+                        req_name = canonicalize_name(req)
+                        for dependency in config.get("dependencies", {}):
+                            dep_name = canonicalize_name(dependency)
+                            if req_name == dep_name:
+                                break
+                        else:
+                            result["errors"].append(
+                                f'Cannot find dependency "{req}" for extra '
+                                f'"{extra_name}" in main dependencies.'
+                            )
 
             # Checking for scripts with extras
             if "scripts" in config:

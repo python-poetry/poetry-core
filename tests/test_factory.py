@@ -7,14 +7,20 @@ from typing import cast
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
-from poetry.core.packages.vcs_dependency import VCSDependency
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.toml import TOMLFile
+from poetry.core.packages.url_dependency import URLDependency
+from poetry.core.utils._compat import tomllib
+from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
+    from _pytest.logging import LogCaptureFixture
+
     from poetry.core.packages.dependency import Dependency
+    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -53,7 +59,7 @@ def test_create_poetry() -> None:
     pendulum = dependencies["pendulum"]
     assert pendulum.pretty_constraint == "branch 2.0"
     assert pendulum.is_vcs()
-    pendulum = cast(VCSDependency, pendulum)
+    pendulum = cast("VCSDependency", pendulum)
     assert pendulum.vcs == "git"
     assert pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
@@ -63,7 +69,7 @@ def test_create_poetry() -> None:
     tomlkit = dependencies["tomlkit"]
     assert tomlkit.pretty_constraint == "rev 3bff550"
     assert tomlkit.is_vcs()
-    tomlkit = cast(VCSDependency, tomlkit)
+    tomlkit = cast("VCSDependency", tomlkit)
     assert tomlkit.vcs == "git"
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
@@ -139,6 +145,7 @@ def test_create_poetry() -> None:
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Build Tools",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
@@ -178,16 +185,18 @@ def test_create_poetry_with_multi_constraints_dependency() -> None:
 
 
 def test_validate() -> None:
-    complete = TOMLFile(fixtures_dir / "complete.toml")
-    doc: dict[str, Any] = complete.read()
+    complete = fixtures_dir / "complete.toml"
+    with complete.open("rb") as f:
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
 def test_validate_fails() -> None:
-    complete = TOMLFile(fixtures_dir / "complete.toml")
-    doc: dict[str, Any] = complete.read()
+    complete = fixtures_dir / "complete.toml"
+    with complete.open("rb") as f:
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
     content["authors"] = "this is not a valid array"
 
@@ -197,10 +206,11 @@ def test_validate_fails() -> None:
 
 
 def test_validate_without_strict_fails_only_non_strict() -> None:
-    project_failing_strict_validation = TOMLFile(
+    project_failing_strict_validation = (
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
     )
-    doc: dict[str, Any] = project_failing_strict_validation.read()
+    with project_failing_strict_validation.open("rb") as f:
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content) == {
@@ -215,10 +225,11 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
 
 
 def test_validate_strict_fails_strict_and_non_strict() -> None:
-    project_failing_strict_validation = TOMLFile(
+    project_failing_strict_validation = (
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
     )
-    doc: dict[str, Any] = project_failing_strict_validation.read()
+    with project_failing_strict_validation.open("rb") as f:
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content, strict=True) == {
@@ -227,31 +238,49 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             "'version' is a required property",
             "'description' is a required property",
             "'authors' is a required property",
-            'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
-            " defined.",
-            "Declared README files must be of same type: found text/markdown,"
-            " text/x-rst",
+            (
+                'Cannot find dependency "missing_extra" for extra "some-extras" in '
+                "main dependencies."
+            ),
+            (
+                'Cannot find dependency "another_missing_extra" for extra '
+                '"some-extras" in main dependencies.'
+            ),
+            (
+                'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
+                " defined."
+            ),
+            (
+                "Declared README files must be of same type: found text/markdown,"
+                " text/x-rst"
+            ),
         ],
         "warnings": [
-            "A wildcard Python dependency is ambiguous. Consider specifying a more"
-            " explicit one.",
-            'The "pathlib2" dependency specifies the "allows-prereleases" property,'
-            ' which is deprecated. Use "allow-prereleases" instead.',
+            (
+                "A wildcard Python dependency is ambiguous. Consider specifying a more"
+                " explicit one."
+            ),
+            (
+                'The "pathlib2" dependency specifies the "allows-prereleases" property,'
+                ' which is deprecated. Use "allow-prereleases" instead.'
+            ),
         ],
     }
 
 
 def test_strict_validation_success_on_multiple_readme_files() -> None:
-    with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
-    doc: dict[str, Any] = with_readme_files.read()
+    with_readme_files = fixtures_dir / "with_readme_files" / "pyproject.toml"
+    with with_readme_files.open("rb") as f:
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
 
     assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
 
 
 def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None:
-    with_readme_files = TOMLFile(fixtures_dir / "with_readme_files" / "pyproject.toml")
-    doc: dict[str, Any] = with_readme_files.read()
+    with_readme_files = fixtures_dir / "with_readme_files" / "pyproject.toml"
+    with with_readme_files.open("rb") as f:
+        doc = tomllib.load(f)
     content = doc["tool"]["poetry"]
     content["readme"][0] = "README.md"
 
@@ -285,16 +314,19 @@ def test_create_poetry_omits_dev_dependencies_iff_with_dev_is_false() -> None:
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_fails_with_invalid_dev_dependencies_iff_with_dev_is_true() -> (
-    None
-):
-    with pytest.raises(ValueError) as err:
-        Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
-    assert "does not exist" in str(err.value)
-
-    Factory().create_poetry(
+def test_create_poetry_with_invalid_dev_dependencies(caplog: LogCaptureFixture) -> None:
+    poetry = Factory().create_poetry(
         fixtures_dir / "project_with_invalid_dev_deps", with_groups=False
     )
+    assert not any("dev" in r.groups for r in poetry.package.all_requires)
+
+    assert not caplog.records
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_invalid_dev_deps")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert "does not exist" in record.message
+    assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
 def test_create_poetry_with_groups_and_legacy_dev() -> None:
@@ -321,6 +353,26 @@ def test_create_poetry_with_groups_and_explicit_main() -> None:
     assert {dependency.name for dependency in dependencies} == {
         "aiohttp",
     }
+
+
+def test_create_poetry_with_markers_and_extras() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_markers_and_extras")
+
+    package = poetry.package
+    dependencies = package.requires
+    extras = package.extras
+
+    assert len(dependencies) == 2
+    assert {dependency.name for dependency in dependencies} == {"orjson"}
+    assert set(extras[canonicalize_name("all")]) == set(dependencies)
+    for dependency in dependencies:
+        assert dependency.in_extras == ["all"]
+        assert isinstance(dependency, URLDependency)
+        assert isinstance(dependency.marker, SingleMarker)
+        assert dependency.marker.name == "sys_platform"
+        assert dependency.marker.value == (
+            "darwin" if "macosx" in dependency.url else "linux"
+        )
 
 
 @pytest.mark.parametrize(
@@ -351,8 +403,10 @@ def test_create_poetry_with_groups_and_explicit_main() -> None:
                 "markers": 'platform_machine == "x86_64"',
             },
             "~3.7",
-            'platform_machine == "x86_64" and python_version == "3.7" and sys_platform'
-            ' == "linux"',
+            (
+                'platform_machine == "x86_64" and python_version == "3.7" and'
+                ' sys_platform == "linux"'
+            ),
         ),
         (
             {"python": ">=3.7", "markers": 'python_version < "4.0"'},

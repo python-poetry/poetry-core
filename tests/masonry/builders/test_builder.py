@@ -101,6 +101,7 @@ def test_get_metadata_content() -> None:
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Build Tools",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
@@ -112,8 +113,10 @@ def test_get_metadata_content() -> None:
     assert requires == [
         "cachy[msgpack] (>=0.2.0,<0.3.0)",
         "cleo (>=0.6,<0.7)",
-        'pendulum (>=1.4,<2.0); (python_version ~= "2.7" and sys_platform == "win32" or'
-        ' python_version in "3.4 3.5") and (extra == "time")',
+        (
+            'pendulum (>=1.4,<2.0) ; (python_version ~= "2.7" and sys_platform =='
+            ' "win32" or python_version in "3.4 3.5") and (extra == "time")'
+        ),
     ]
 
     urls = parsed.get_all("Project-URL")

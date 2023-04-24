@@ -48,7 +48,7 @@ def test_pep517_build_sdist(
         outdir=str(temporary_directory),
         distributions=["sdist"],
     )
-    distributions = list(temporary_directory.glob("poetry-core-*.tar.gz"))
+    distributions = list(temporary_directory.glob("poetry_core-*.tar.gz"))
     assert len(distributions) == 1
 
 

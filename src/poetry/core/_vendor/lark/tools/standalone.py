@@ -29,7 +29,7 @@ from collections.abc import Sequence
 from types import ModuleType
 from typing import (
     TypeVar, Generic, Type, Tuple, List, Dict, Iterator, Collection, Callable, Optional, FrozenSet, Any,
-    Union, Iterable, IO, TYPE_CHECKING,
+    Union, Iterable, IO, TYPE_CHECKING, overload,
     Pattern as REPattern, ClassVar, Set, Mapping
 )
 ###}
@@ -185,6 +185,10 @@ def main():
 
     lark_inst, out = build_lalr(ns)
     gen_standalone(lark_inst, out=out, compress=ns.compress)
+
+    ns.out.close()
+    ns.grammar_file.close()
+
 
 if __name__ == '__main__':
     main()

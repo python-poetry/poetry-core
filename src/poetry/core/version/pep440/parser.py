@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import functools
 import re
 
 from typing import TYPE_CHECKING
-from typing import Match
 from typing import TypeVar
 
 from packaging.version import VERSION_PATTERN
@@ -25,19 +25,19 @@ class PEP440Parser:
     _local_version_separators = re.compile(r"[._-]")
 
     @classmethod
-    def _get_release(cls, match: Match[str] | None) -> Release:
+    def _get_release(cls, match: re.Match[str] | None) -> Release:
         if not match or match.group("release") is None:
             return Release(0)
         return Release.from_parts(*(int(i) for i in match.group("release").split(".")))
 
     @classmethod
-    def _get_prerelease(cls, match: Match[str] | None) -> ReleaseTag | None:
+    def _get_prerelease(cls, match: re.Match[str] | None) -> ReleaseTag | None:
         if not match or match.group("pre") is None:
             return None
         return ReleaseTag(match.group("pre_l"), int(match.group("pre_n") or 0))
 
     @classmethod
-    def _get_postrelease(cls, match: Match[str] | None) -> ReleaseTag | None:
+    def _get_postrelease(cls, match: re.Match[str] | None) -> ReleaseTag | None:
         if not match or match.group("post") is None:
             return None
 
@@ -47,13 +47,13 @@ class PEP440Parser:
         )
 
     @classmethod
-    def _get_devrelease(cls, match: Match[str] | None) -> ReleaseTag | None:
+    def _get_devrelease(cls, match: re.Match[str] | None) -> ReleaseTag | None:
         if not match or match.group("dev") is None:
             return None
         return ReleaseTag(match.group("dev_l"), int(match.group("dev_n") or 0))
 
     @classmethod
-    def _get_local(cls, match: Match[str] | None) -> LocalSegmentType | None:
+    def _get_local(cls, match: re.Match[str] | None) -> LocalSegmentType | None:
         if not match or match.group("local") is None:
             return None
 
@@ -63,6 +63,7 @@ class PEP440Parser:
         )
 
     @classmethod
+    @functools.lru_cache(maxsize=None)
     def parse(cls, value: str, version_class: type[T]) -> T:
         match = cls._regex.search(value) if value else None
         if not match:
@@ -80,4 +81,4 @@ class PEP440Parser:
 
 
 def parse_pep440(value: str, version_class: type[T]) -> T:
-    return PEP440Parser.parse(value, version_class)
+    return PEP440Parser.parse(value, version_class)  # type: ignore[arg-type]

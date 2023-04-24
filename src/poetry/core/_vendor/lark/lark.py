@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
-import sys, os, pickle, hashlib
+import getpass
+import sys, os, pickle
 import tempfile
+import types
+import re
 from typing import (
     TypeVar, Type, List, Dict, Iterator, Callable, Union, Optional, Sequence,
     Tuple, Iterable, IO, Any, TYPE_CHECKING, Collection
@@ -13,10 +16,11 @@ if TYPE_CHECKING:
         from typing import Literal
     else:
         from typing_extensions import Literal
-        
+    from .parser_frontends import ParsingFrontend
+
 from .exceptions import ConfigurationError, assert_config, UnexpectedInput
 from .utils import Serialize, SerializeMemoizer, FS, isascii, logger
-from .load_grammar import load_grammar, FromPackageLoader, Grammar, verify_used_files, PackageResource
+from .load_grammar import load_grammar, FromPackageLoader, Grammar, verify_used_files, PackageResource, md5_digest
 from .tree import Tree
 from .common import LexerConf, ParserConf, _ParserArgType, _LexerArgType
 
@@ -25,11 +29,12 @@ from .parse_tree_builder import ParseTreeBuilder
 from .parser_frontends import _validate_frontend_args, _get_lexer_callbacks, _deserialize_parsing_frontend, _construct_parsing_frontend
 from .grammar import Rule
 
-import re
+
 try:
-    import regex  # type: ignore
+    import regex
+    _has_regex = True
 except ImportError:
-    regex = None
+    _has_regex = False
 
 
 ###{standalone
@@ -173,7 +178,7 @@ class LarkOptions(Serialize):
         '_plugins': {},
     }
 
-    def __init__(self, options_dict):
+    def __init__(self, options_dict: Dict[str, Any]) -> None:
         o = dict(options_dict)
 
         options = {}
@@ -202,21 +207,21 @@ class LarkOptions(Serialize):
         if o:
             raise ConfigurationError("Unknown options: %s" % o.keys())
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         try:
             return self.__dict__['options'][name]
         except KeyError as e:
             raise AttributeError(e)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: str) -> None:
         assert_config(name, self.options.keys(), "%r isn't a valid option. Expected one of: %s")
         self.options[name] = value
 
-    def serialize(self, memo):
+    def serialize(self, memo = None) -> Dict[str, Any]:
         return self.options
 
     @classmethod
-    def deserialize(cls, data, memo):
+    def deserialize(cls, data: Dict[str, Any], memo: Dict[int, Union[TerminalDef, Rule]]) -> "LarkOptions":
         return cls(data)
 
 
@@ -249,15 +254,16 @@ class Lark(Serialize):
     grammar: 'Grammar'
     options: LarkOptions
     lexer: Lexer
-    terminals: List[TerminalDef]
+    terminals: Collection[TerminalDef]
 
     def __init__(self, grammar: 'Union[Grammar, str, IO[str]]', **options) -> None:
         self.options = LarkOptions(options)
+        re_module: types.ModuleType
 
         # Set regex or re module
         use_regex = self.options.regex
         if use_regex:
-            if regex:
+            if _has_regex:
                 re_module = regex
             else:
                 raise ImportError('`regex` module must be installed if calling `Lark(regex=True)`.')
@@ -267,7 +273,7 @@ class Lark(Serialize):
         # Some, but not all file-like objects have a 'name' attribute
         if self.options.source_path is None:
             try:
-                self.source_path = grammar.name
+                self.source_path = grammar.name  # type: ignore[union-attr]
             except AttributeError:
                 self.source_path = '<string>'
         else:
@@ -275,7 +281,7 @@ class Lark(Serialize):
 
         # Drain file-like objects to get their contents
         try:
-            read = grammar.read
+            read = grammar.read  # type: ignore[union-attr]
         except AttributeError:
             pass
         else:
@@ -297,36 +303,46 @@ class Lark(Serialize):
                 options_str = ''.join(k+str(v) for k, v in options.items() if k not in unhashable)
                 from . import __version__
                 s = grammar + options_str + __version__ + str(sys.version_info[:2])
-                cache_md5 = hashlib.md5(s.encode('utf8')).hexdigest()
+                cache_md5 = md5_digest(s)
 
                 if isinstance(self.options.cache, str):
                     cache_fn = self.options.cache
                 else:
                     if self.options.cache is not True:
                         raise ConfigurationError("cache argument must be bool or str")
-                        
-                    cache_fn = tempfile.gettempdir() + '/.lark_cache_%s_%s_%s.tmp' % (cache_md5, *sys.version_info[:2])
 
-                if FS.exists(cache_fn):
-                    logger.debug('Loading grammar from cache: %s', cache_fn)
-                    # Remove options that aren't relevant for loading from cache
-                    for name in (set(options) - _LOAD_ALLOWED_OPTIONS):
-                        del options[name]
+                    try:
+                        username = getpass.getuser()
+                    except Exception:
+                        # The exception raised may be ImportError or OSError in
+                        # the future.  For the cache, we don't care about the
+                        # specific reason - we just want a username.
+                        username = "unknown"
+
+                    cache_fn = tempfile.gettempdir() + "/.lark_cache_%s_%s_%s_%s.tmp" % (username, cache_md5, *sys.version_info[:2])
+
+                old_options = self.options
+                try:
                     with FS.open(cache_fn, 'rb') as f:
-                        old_options = self.options
-                        try:
-                            file_md5 = f.readline().rstrip(b'\n')
-                            cached_used_files = pickle.load(f)
-                            if file_md5 == cache_md5.encode('utf8') and verify_used_files(cached_used_files):
-                                cached_parser_data = pickle.load(f)
-                                self._load(cached_parser_data, **options)
-                                return
-                        except Exception: # We should probably narrow done which errors we catch here.
-                            logger.exception("Failed to load Lark from cache: %r. We will try to carry on." % cache_fn)
-                            
-                            # In theory, the Lark instance might have been messed up by the call to `_load`.
-                            # In practice the only relevant thing that might have been overriden should be `options`
-                            self.options = old_options
+                        logger.debug('Loading grammar from cache: %s', cache_fn)
+                        # Remove options that aren't relevant for loading from cache
+                        for name in (set(options) - _LOAD_ALLOWED_OPTIONS):
+                            del options[name]
+                        file_md5 = f.readline().rstrip(b'\n')
+                        cached_used_files = pickle.load(f)
+                        if file_md5 == cache_md5.encode('utf8') and verify_used_files(cached_used_files):
+                            cached_parser_data = pickle.load(f)
+                            self._load(cached_parser_data, **options)
+                            return
+                except FileNotFoundError:
+                    # The cache file doesn't exist; parse and compose the grammar as normal
+                    pass
+                except Exception: # We should probably narrow done which errors we catch here.
+                    logger.exception("Failed to load Lark from cache: %r. We will try to carry on.", cache_fn)
+
+                    # In theory, the Lark instance might have been messed up by the call to `_load`.
+                    # In practice the only relevant thing that might have been overwritten should be `options`
+                    self.options = old_options
 
 
             # Parse the grammar file and compose the grammars
@@ -418,18 +434,21 @@ class Lark(Serialize):
 
         if cache_fn:
             logger.debug('Saving grammar to cache: %s', cache_fn)
-            with FS.open(cache_fn, 'wb') as f:
-                assert cache_md5 is not None
-                f.write(cache_md5.encode('utf8') + b'\n')
-                pickle.dump(used_files, f)
-                self.save(f, _LOAD_ALLOWED_OPTIONS)
+            try:
+                with FS.open(cache_fn, 'wb') as f:
+                    assert cache_md5 is not None
+                    f.write(cache_md5.encode('utf8') + b'\n')
+                    pickle.dump(used_files, f)
+                    self.save(f, _LOAD_ALLOWED_OPTIONS)
+            except IOError as e:
+                logger.exception("Failed to save Lark to cache: %r.", cache_fn, e)
 
     if __doc__:
         __doc__ += "\n\n" + LarkOptions.OPTIONS_DOC
 
     __serialize_fields__ = 'parser', 'rules', 'options'
 
-    def _build_lexer(self, dont_ignore=False):
+    def _build_lexer(self, dont_ignore: bool=False) -> BasicLexer:
         lexer_conf = self.lexer_conf
         if dont_ignore:
             from copy import copy
@@ -437,7 +456,7 @@ class Lark(Serialize):
             lexer_conf.ignore = ()
         return BasicLexer(lexer_conf)
 
-    def _prepare_callbacks(self):
+    def _prepare_callbacks(self) -> None:
         self._callbacks = {}
         # we don't need these callbacks if we aren't building a tree
         if self.options.ambiguity != 'forest':
@@ -451,7 +470,7 @@ class Lark(Serialize):
             self._callbacks = self._parse_tree_builder.create_callback(self.options.transformer)
         self._callbacks.update(_get_lexer_callbacks(self.options.transformer, self.terminals))
 
-    def _build_parser(self):
+    def _build_parser(self) -> "ParsingFrontend":
         self._prepare_callbacks()
         _validate_frontend_args(self.options.parser, self.options.lexer)
         parser_conf = ParserConf(self.rules, self._callbacks, self.options.start)
@@ -463,7 +482,7 @@ class Lark(Serialize):
             options=self.options
         )
 
-    def save(self, f, exclude_options: Collection[str] = ()):
+    def save(self, f, exclude_options: Collection[str] = ()) -> None:
         """Saves the instance into the given file object
 
         Useful for caching and multiprocessing.
@@ -474,7 +493,7 @@ class Lark(Serialize):
         pickle.dump({'data': data, 'memo': m}, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     @classmethod
-    def load(cls, f):
+    def load(cls: Type[_T], f) -> _T:
         """Loads an instance from the given file object
 
         Useful for caching and multiprocessing.
@@ -482,7 +501,7 @@ class Lark(Serialize):
         inst = cls.__new__(cls)
         return inst._load(f)
 
-    def _deserialize_lexer_conf(self, data, memo, options):
+    def _deserialize_lexer_conf(self, data: Dict[str, Any], memo: Dict[int, Union[TerminalDef, Rule]], options: LarkOptions) -> LexerConf:
         lexer_conf = LexerConf.deserialize(data['lexer_conf'], memo)
         lexer_conf.callbacks = options.lexer_callbacks or {}
         lexer_conf.re_module = regex if options.regex else re
@@ -492,7 +511,7 @@ class Lark(Serialize):
         lexer_conf.postlex = options.postlex
         return lexer_conf
 
-    def _load(self, f, **kwargs):
+    def _load(self: _T, f: Any, **kwargs) -> _T:
         if isinstance(f, dict):
             d = f
         else:
@@ -576,6 +595,7 @@ class Lark(Serialize):
 
         :raises UnexpectedCharacters: In case the lexer cannot find a suitable match.
         """
+        lexer: Lexer
         if not hasattr(self, 'lexer') or dont_ignore:
             lexer = self._build_lexer(dont_ignore)
         else:
@@ -589,7 +609,7 @@ class Lark(Serialize):
     def get_terminal(self, name: str) -> TerminalDef:
         """Get information about a terminal"""
         return self._terminals_dict[name]
-    
+
     def parse_interactive(self, text: Optional[str]=None, start: Optional[str]=None) -> 'InteractiveParser':
         """Start an interactive parsing session.
 

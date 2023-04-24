@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 from typing import Generator
 
-from poetry.core.toml import TOMLFile
+import tomli_w
+
+from poetry.core.utils._compat import tomllib
 
 
 __toml_build_backend_patch__ = {
@@ -43,10 +45,12 @@ def temporary_project_directory(
     with tempfile.TemporaryDirectory(prefix="poetry-core-pep517") as tmp:
         dst = Path(tmp) / path.name
         shutil.copytree(str(path), dst)
-        toml = TOMLFile(str(dst / "pyproject.toml"))
-        data = toml.read()
+        toml = dst / "pyproject.toml"
+        with toml.open("rb") as f:
+            data = tomllib.load(f)
         data.update(toml_patch or __toml_build_backend_patch__)
-        toml.write(data)
+        with toml.open("wb") as f:
+            tomli_w.dump(data, f)
         yield str(dst)
 
 
@@ -75,7 +79,8 @@ def validate_wheel_contents(
 def validate_sdist_contents(
     name: str, version: str, path: str, files: list[str]
 ) -> None:
+    escaped_name = name.replace("-", "_")
     with tarfile.open(path) as tar:
         namelist = tar.getnames()
         for filename in files:
-            assert f"{name}-{version}/{filename}" in namelist
+            assert f"{escaped_name}-{version}/{filename}" in namelist

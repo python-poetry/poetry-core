@@ -22,6 +22,10 @@ class _DiscardType:
     """When the Discard value is returned from a transformer callback,
     that node is discarded and won't appear in the parent.
 
+    Note:
+        This feature is disabled when the transformer is provided to Lark
+        using the ``transformer`` keyword (aka Tree-less LALR mode).
+
     Example:
         ::
 
@@ -68,19 +72,24 @@ class _Decoratable:
 
 
 class Transformer(_Decoratable, ABC, Generic[_Leaf_T, _Return_T]):
-    """Transformers visit each node of the tree, and run the appropriate method on it according to the node's data.
+    """Transformers work bottom-up (or depth-first), starting with visiting the leaves and working
+    their way up until ending at the root of the tree.
 
-    Methods are provided by the user via inheritance, and called according to ``tree.data``.
-    The returned value from each method replaces the node in the tree structure.
+    For each node visited, the transformer will call the appropriate method (callbacks), according to the
+    node's ``data``, and use the returned value to replace the node, thereby creating a new tree structure.
 
-    Transformers work bottom-up (or depth-first), starting with the leaves and ending at the root of the tree.
     Transformers can be used to implement map & reduce patterns. Because nodes are reduced from leaf to root,
     at any point the callbacks may assume the children have already been transformed (if applicable).
+
+    If the transformer cannot find a method with the right name, it will instead call ``__default__``, which by
+    default creates a copy of the node.
+
+    To discard a node, return Discard (``lark.visitors.Discard``).
 
     ``Transformer`` can do anything ``Visitor`` can do, but because it reconstructs the tree,
     it is slightly less efficient.
 
-    To discard a node, return Discard (``lark.visitors.Discard``).
+    A transformer without methods essentially performs a non-memoized partial deepcopy.
 
     All these classes implement the transformer interface:
 
@@ -93,7 +102,6 @@ class Transformer(_Decoratable, ABC, Generic[_Leaf_T, _Return_T]):
                                        Setting this to ``False`` is slightly faster. Defaults to ``True``.
                                        (For processing ignored tokens, use the ``lexer_callbacks`` options)
 
-    NOTE: A transformer without methods essentially performs a non-memoized partial deepcopy.
     """
     __visit_tokens__ = True   # For backwards compatibility
 
@@ -472,19 +480,21 @@ class _VArgsWrapper:
 
     def __get__(self, instance, owner=None):
         try:
-            g = self.base_func.__get__
+            # Use the __get__ attribute of the type instead of the instance
+            # to fully mirror the behavior of getattr
+            g = type(self.base_func).__get__
         except AttributeError:
             return self
         else:
-            return _VArgsWrapper(g(instance, owner), self.visit_wrapper)
+            return _VArgsWrapper(g(self.base_func, instance, owner), self.visit_wrapper)
 
     def __set_name__(self, owner, name):
         try:
-            f = self.base_func.__set_name__
+            f = type(self.base_func).__set_name__
         except AttributeError:
             return
         else:
-            f(owner, name)
+            f(self.base_func, owner, name)
 
 
 def _vargs_inline(f, _data, children, _meta):

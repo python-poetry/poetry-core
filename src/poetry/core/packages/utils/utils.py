@@ -5,6 +5,7 @@ import posixpath
 import re
 import sys
 
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Dict
@@ -14,17 +15,17 @@ from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version import Version
-from poetry.core.semver.version_range import VersionRange
+from poetry.core.version.markers import SingleMarkerLike
 from poetry.core.version.markers import dnf
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.constraints import BaseConstraint
-    from poetry.core.semver.version_constraint import VersionConstraint
-    from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.constraints.generic import BaseConstraint
+    from poetry.core.constraints.version import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
@@ -39,20 +40,16 @@ TAR_EXTENSIONS = (".tar.gz", ".tgz", ".tar")
 ARCHIVE_EXTENSIONS = ZIP_EXTENSIONS + BZ2_EXTENSIONS + TAR_EXTENSIONS + XZ_EXTENSIONS
 SUPPORTED_EXTENSIONS: tuple[str, ...] = ZIP_EXTENSIONS + TAR_EXTENSIONS
 
-try:
+with suppress(ImportError):
     import bz2  # noqa: F401
 
     SUPPORTED_EXTENSIONS += BZ2_EXTENSIONS
-except ImportError:
-    pass
 
-try:
+with suppress(ImportError):
     # Only for Python 3.3+
     import lzma  # noqa: F401
 
     SUPPORTED_EXTENSIONS += XZ_EXTENSIONS
-except ImportError:
-    pass
 
 
 def path_to_url(path: str | Path) -> str:
@@ -180,10 +177,18 @@ def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
     for i, sub_marker in enumerate(conjunctions):
         if isinstance(sub_marker, MultiMarker):
             for m in sub_marker.markers:
+                assert isinstance(m, SingleMarkerLike)
                 if isinstance(m, SingleMarker):
                     add_constraint(m.name, (m.operator, m.value), i)
-        elif isinstance(sub_marker, SingleMarker):
-            add_constraint(sub_marker.name, (sub_marker.operator, sub_marker.value), i)
+                else:
+                    add_constraint(m.name, ("", str(m.constraint)), i)
+        elif isinstance(sub_marker, SingleMarkerLike):
+            if isinstance(sub_marker, SingleMarker):
+                add_constraint(
+                    sub_marker.name, (sub_marker.operator, sub_marker.value), i
+                )
+            else:
+                add_constraint(sub_marker.name, ("", str(sub_marker.constraint)), i)
 
     for group_name in requirements:
         # remove duplicates
@@ -202,12 +207,12 @@ def contains_group_without_marker(markers: ConvertedMarkers, marker_name: str) -
 
 def create_nested_marker(
     name: str,
-    constraint: BaseConstraint | VersionUnion | Version | VersionConstraint,
+    constraint: BaseConstraint | VersionConstraint,
 ) -> str:
-    from poetry.core.packages.constraints.constraint import Constraint
-    from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-    from poetry.core.packages.constraints.union_constraint import UnionConstraint
-    from poetry.core.semver.version_union import VersionUnion
+    from poetry.core.constraints.generic import Constraint
+    from poetry.core.constraints.generic import MultiConstraint
+    from poetry.core.constraints.generic import UnionConstraint
+    from poetry.core.constraints.version import VersionUnion
 
     if constraint.is_any():
         return ""
@@ -227,7 +232,7 @@ def create_nested_marker(
 
         marker = glue.join(parts)
     elif isinstance(constraint, Constraint):
-        marker = f'{name} {constraint.operator} "{constraint.version}"'
+        marker = f'{name} {constraint.operator} "{constraint.value}"'
     elif isinstance(constraint, VersionUnion):
         parts = [create_nested_marker(name, c) for c in constraint.ranges]
         glue = " or "
@@ -240,44 +245,57 @@ def create_nested_marker(
         marker = f'{name} == "{constraint.text}"'
     else:
         assert isinstance(constraint, VersionRange)
+        min_name = max_name = name
+
+        parts = []
+
+        # `python_version` is a special case: to keep the constructed marker equivalent
+        # to the constraint we need to be careful with the precision.
+        #
+        # PEP 440 tells us that when we come to make the comparison the release
+        # segment will be zero padded: eg "<= 3.10" is equivalent to "<= 3.10.0".
+        #
+        # But "python_version <= 3.10" is _not_ equivalent to "python_version <= 3.10.0"
+        # - see normalize_python_version_markers.
+        #
+        # A similar issue arises for a constraint like "> 3.6".
         if constraint.min is not None:
-            op = ">="
-            if not constraint.include_min:
-                op = ">"
-
+            op = ">=" if constraint.include_min else ">"
             version = constraint.min
-            if constraint.max is not None:
-                min_name = max_name = name
-                if min_name == "python_version" and constraint.min.precision >= 3:
-                    min_name = "python_full_version"
+            if min_name == "python_version" and version.precision >= 3:
+                min_name = "python_full_version"
 
-                if max_name == "python_version" and constraint.max.precision >= 3:
-                    max_name = "python_full_version"
+            if (
+                min_name == "python_version"
+                and not constraint.include_min
+                and version.precision < 3
+            ):
+                padding = ".0" * (3 - version.precision)
+                part = f'python_full_version > "{version}{padding}"'
+            else:
+                part = f'{min_name} {op} "{version}"'
 
-                text = f'{min_name} {op} "{version}"'
+            parts.append(part)
 
-                op = "<="
-                if not constraint.include_max:
-                    op = "<"
-
-                version = constraint.max
-
-                text += f' and {max_name} {op} "{version}"'
-
-                return text
-        elif constraint.max is not None:
-            op = "<="
-            if not constraint.include_max:
-                op = "<"
-
+        if constraint.max is not None:
+            op = "<=" if constraint.include_max else "<"
             version = constraint.max
-        else:
-            return ""
+            if max_name == "python_version" and version.precision >= 3:
+                max_name = "python_full_version"
 
-        if name == "python_version" and version.precision >= 3:
-            name = "python_full_version"
+            if (
+                max_name == "python_version"
+                and constraint.include_max
+                and version.precision < 3
+            ):
+                padding = ".0" * (3 - version.precision)
+                part = f'python_full_version <= "{version}{padding}"'
+            else:
+                part = f'{max_name} {op} "{version}"'
 
-        marker = f'{name} {op} "{version}"'
+            parts.append(part)
+
+        marker = " and ".join(parts)
 
     return marker
 
@@ -285,8 +303,8 @@ def create_nested_marker(
 def get_python_constraint_from_marker(
     marker: BaseMarker,
 ) -> VersionConstraint:
-    from poetry.core.semver.empty_constraint import EmptyConstraint
-    from poetry.core.semver.version_range import VersionRange
+    from poetry.core.constraints.version import EmptyConstraint
+    from poetry.core.constraints.version import VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():
@@ -358,7 +376,7 @@ def normalize_python_version_markers(  # NOSONAR
                 versions = []
                 for v in re.split("[ ,]+", version):
                     split = v.split(".")
-                    if len(split) in [1, 2]:
+                    if len(split) in (1, 2):
                         split.append("*")
                         op_ = "" if op == "in" else "!="
                     else:

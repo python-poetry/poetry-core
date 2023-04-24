@@ -1,57 +1,48 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import cast
 
-from tomlkit.container import Container
+from poetry.core.pyproject.tables import BuildSystem
+from poetry.core.utils._compat import tomllib
 
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tomlkit.toml_document import TOMLDocument
-
-    from poetry.core.pyproject.tables import BuildSystem
-    from poetry.core.toml import TOMLFile
-
 
 class PyProjectTOML:
-    def __init__(self, path: str | Path) -> None:
-        from poetry.core.toml import TOMLFile
-
-        self._file = TOMLFile(path=path)
-        self._data: TOMLDocument | None = None
+    def __init__(self, path: Path) -> None:
+        self._path = path
+        self._data: dict[str, Any] | None = None
         self._build_system: BuildSystem | None = None
 
     @property
-    def file(self) -> TOMLFile:
-        return self._file
+    def path(self) -> Path:
+        return self._path
 
     @property
-    def data(self) -> TOMLDocument:
-        from tomlkit.toml_document import TOMLDocument
-
+    def data(self) -> dict[str, Any]:
         if self._data is None:
-            if not self._file.exists():
-                self._data = TOMLDocument()
+            if not self.path.exists():
+                self._data = {}
             else:
-                self._data = self._file.read()
+                with self.path.open("rb") as f:
+                    self._data = tomllib.load(f)
 
         return self._data
 
     def is_build_system_defined(self) -> bool:
-        return self._file.exists() and "build-system" in self.data
+        return "build-system" in self.data
 
     @property
     def build_system(self) -> BuildSystem:
-        from poetry.core.pyproject.tables import BuildSystem
-
         if self._build_system is None:
             build_backend = None
             requires = None
 
-            if not self._file.exists():
+            if not self.path.exists():
                 build_backend = "poetry.core.masonry.api"
                 requires = ["poetry-core"]
 
@@ -64,48 +55,26 @@ class PyProjectTOML:
         return self._build_system
 
     @property
-    def poetry_config(self) -> Container:
-        from tomlkit.exceptions import NonExistentKey
-
+    def poetry_config(self) -> dict[str, Any]:
         try:
-            return cast(Container, self.data["tool"]["poetry"])
-        except NonExistentKey as e:
+            tool = self.data["tool"]
+            assert isinstance(tool, dict)
+            config = tool["poetry"]
+            assert isinstance(config, dict)
+            return config
+        except KeyError as e:
             from poetry.core.pyproject.exceptions import PyProjectException
 
             raise PyProjectException(
-                f"[tool.poetry] section not found in {self._file}"
+                f"[tool.poetry] section not found in {self._path.as_posix()}"
             ) from e
 
     def is_poetry_project(self) -> bool:
         from poetry.core.pyproject.exceptions import PyProjectException
 
-        if self.file.exists():
-            try:
+        if self.path.exists():
+            with suppress(PyProjectException):
                 _ = self.poetry_config
                 return True
-            except PyProjectException:
-                pass
 
         return False
-
-    def __getattr__(self, item: str) -> Any:
-        return getattr(self.data, item)
-
-    def save(self) -> None:
-        from tomlkit.container import Container
-
-        data = self.data
-
-        if self._build_system is not None:
-            if "build-system" not in data:
-                data["build-system"] = Container()
-
-            build_system = cast(Container, data["build-system"])
-            build_system["requires"] = self._build_system.requires
-            build_system["build-backend"] = self._build_system.build_backend
-
-        self.file.write(data=data)
-
-    def reload(self) -> None:
-        self._data = None
-        self._build_system = None

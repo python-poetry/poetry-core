@@ -7,28 +7,28 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterable
 from typing import TypeVar
 
-from poetry.core.packages.constraints import (
-    parse_constraint as parse_generic_constraint,
-)
+from packaging.utils import canonicalize_name
+
+from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker
+from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.packages.utils.utils import normalize_python_version_markers
-from poetry.core.semver.helpers import parse_constraint
-from poetry.core.semver.version_range_constraint import VersionRangeConstraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from packaging.utils import NormalizedName
 
-    from poetry.core.packages.constraints import BaseConstraint
+    from poetry.core.constraints.version import VersionConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
-    from poetry.core.semver.version_constraint import VersionConstraint
     from poetry.core.version.markers import BaseMarker
 
     T = TypeVar("T", bound="Dependency")
@@ -71,15 +71,6 @@ class Dependency(PackageSpecification):
             groups = [MAIN_GROUP]
 
         self._groups = frozenset(groups)
-
-        if (
-            isinstance(self._constraint, VersionRangeConstraint)
-            and self._constraint.min
-        ):
-            allows_prereleases = (
-                allows_prereleases or self._constraint.min.is_unstable()
-            )
-
         self._allows_prereleases = allows_prereleases
 
         self._python_versions = "*"
@@ -88,7 +79,7 @@ class Dependency(PackageSpecification):
         self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
 
-        self._in_extras: list[str] = []
+        self._in_extras: list[NormalizedName] = []
 
         self._activated = not self._optional
 
@@ -106,21 +97,19 @@ class Dependency(PackageSpecification):
 
     @constraint.setter
     def constraint(self, constraint: str | VersionConstraint) -> None:
-        from poetry.core.semver.version_constraint import VersionConstraint
+        if isinstance(constraint, str):
+            self._constraint = parse_constraint(constraint)
+        else:
+            self._constraint = constraint
 
-        try:
-            if not isinstance(constraint, VersionConstraint):
-                self._constraint = parse_constraint(constraint)
-            else:
-                self._constraint = constraint
-        except ValueError:
-            self._constraint = parse_constraint("*")
         self._pretty_constraint = str(constraint)
 
     def set_constraint(self, constraint: str | VersionConstraint) -> None:
         warnings.warn(
-            "Calling method 'set_constraint' is deprecated and will be removed. "
-            "It has been replaced by the property 'constraint' for consistency.",
+            (
+                "Calling method 'set_constraint' is deprecated and will be removed. "
+                "It has been replaced by the property 'constraint' for consistency."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )
@@ -149,9 +138,7 @@ class Dependency(PackageSpecification):
         if not self._python_constraint.is_any():
             self._marker = self._marker.intersect(
                 parse_marker(
-                    self._create_nested_marker(
-                        "python_version", self._python_constraint
-                    )
+                    create_nested_marker("python_version", self._python_constraint)
                 )
             )
 
@@ -173,8 +160,8 @@ class Dependency(PackageSpecification):
 
     @marker.setter
     def marker(self, marker: str | BaseMarker) -> None:
+        from poetry.core.constraints.version import parse_constraint
         from poetry.core.packages.utils.utils import convert_markers
-        from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import BaseMarker
         from poetry.core.version.markers import parse_marker
 
@@ -190,8 +177,12 @@ class Dependency(PackageSpecification):
             self.deactivate()
 
             for or_ in markers["extra"]:
-                for _, extra in or_:
-                    self.in_extras.append(extra)
+                for op, extra in or_:
+                    if op == "==":
+                        self.in_extras.append(canonicalize_name(extra))
+                    elif op == "" and "||" in extra:
+                        for _extra in extra.split(" || "):
+                            self.in_extras.append(canonicalize_name(_extra))
 
         # Recalculate python versions.
         self._python_versions = "*"
@@ -226,18 +217,18 @@ class Dependency(PackageSpecification):
         return self._transitive_python_constraint
 
     @property
-    def extras(self) -> frozenset[str]:
+    def extras(self) -> frozenset[NormalizedName]:
         # extras activated in a dependency is the same as features
         return self._features
 
     @property
-    def in_extras(self) -> list[str]:
+    def in_extras(self) -> list[NormalizedName]:
         return self._in_extras
 
     @property
     def base_pep_508_name(self) -> str:
-        from poetry.core.semver.version import Version
-        from poetry.core.semver.version_union import VersionUnion
+        from poetry.core.constraints.version import Version
+        from poetry.core.constraints.version import VersionUnion
 
         requirement = self.pretty_name
 
@@ -254,7 +245,7 @@ class Dependency(PackageSpecification):
                 # This branch is a short-circuit logic for special cases and
                 # avoids having to split and parse constraint again. This has
                 # no functional difference with the logic in the else branch.
-                requirement += f" ({str(constraint)})"
+                requirement += f" ({constraint})"
             else:
                 constraints = ",".join(
                     str(parse_constraint(c)) for c in self.pretty_constraint.split(",")
@@ -302,7 +293,7 @@ class Dependency(PackageSpecification):
 
             # we re-check for any marker here since the without extra marker might
             # return an any marker again
-            if not marker.is_empty() and not marker.is_any():
+            if not (marker.is_empty() or marker.is_any()):
                 markers.append(str(marker))
 
             has_extras = "extra" in convert_markers(marker)
@@ -312,109 +303,23 @@ class Dependency(PackageSpecification):
                 python_constraint = self.python_constraint
 
                 markers.append(
-                    self._create_nested_marker("python_version", python_constraint)
+                    create_nested_marker("python_version", python_constraint)
                 )
 
         in_extras = " || ".join(self._in_extras)
         if in_extras and with_extras and not has_extras:
             markers.append(
-                self._create_nested_marker("extra", parse_generic_constraint(in_extras))
+                create_nested_marker("extra", parse_generic_constraint(in_extras))
             )
 
         if markers:
-            if self.is_vcs() or self.is_url() or self.is_file():
-                requirement += " "
-
             if len(markers) > 1:
                 marker_str = " and ".join(f"({m})" for m in markers)
-                requirement += f"; {marker_str}"
             else:
-                requirement += f"; {markers[0]}"
+                marker_str = markers[0]
+            requirement += f" ; {marker_str}"
 
         return requirement
-
-    def _create_nested_marker(
-        self, name: str, constraint: BaseConstraint | VersionConstraint
-    ) -> str:
-        from poetry.core.packages.constraints.constraint import Constraint
-        from poetry.core.packages.constraints.multi_constraint import MultiConstraint
-        from poetry.core.packages.constraints.union_constraint import UnionConstraint
-        from poetry.core.semver.version import Version
-        from poetry.core.semver.version_union import VersionUnion
-
-        if isinstance(constraint, (MultiConstraint, UnionConstraint)):
-            multi_parts = []
-            for c in constraint.constraints:
-                multi = isinstance(c, (MultiConstraint, UnionConstraint))
-                multi_parts.append((multi, self._create_nested_marker(name, c)))
-
-            glue = " and "
-            if isinstance(constraint, UnionConstraint):
-                parts = [f"({part[1]})" if part[0] else part[1] for part in multi_parts]
-                glue = " or "
-            else:
-                parts = [part[1] for part in multi_parts]
-
-            marker = glue.join(parts)
-        elif isinstance(constraint, Constraint):
-            marker = f'{name} {constraint.operator} "{constraint.version}"'
-        elif isinstance(constraint, VersionUnion):
-            parts = [self._create_nested_marker(name, c) for c in constraint.ranges]
-            glue = " or "
-            parts = [f"({part})" for part in parts]
-
-            marker = glue.join(parts)
-        elif isinstance(constraint, Version):
-            if constraint.precision >= 3 and name == "python_version":
-                name = "python_full_version"
-
-            marker = f'{name} == "{constraint.text}"'
-        else:
-            assert isinstance(constraint, VersionRangeConstraint)
-            if constraint.min is not None:
-                min_name = name
-                if constraint.min.precision >= 3 and name == "python_version":
-                    min_name = "python_full_version"
-
-                    if constraint.max is None:
-                        name = min_name
-
-                op = ">="
-                if not constraint.include_min:
-                    op = ">"
-
-                version = constraint.min.text
-                if constraint.max is not None:
-                    max_name = name
-                    if constraint.max.precision >= 3 and name == "python_version":
-                        max_name = "python_full_version"
-
-                    text = f'{min_name} {op} "{version}"'
-
-                    op = "<="
-                    if not constraint.include_max:
-                        op = "<"
-
-                    version = constraint.max.text
-
-                    text += f' and {max_name} {op} "{version}"'
-
-                    return text
-            elif constraint.max is not None:
-                if constraint.max.precision >= 3 and name == "python_version":
-                    name = "python_full_version"
-
-                op = "<="
-                if not constraint.include_max:
-                    op = "<"
-
-                version = constraint.max.text
-            else:
-                return ""
-
-            marker = f'{name} {op} "{version}"'
-
-        return marker
 
     def activate(self) -> None:
         """
@@ -441,9 +346,9 @@ class Dependency(PackageSpecification):
         cls, name: str, relative_to: Path | None = None
     ) -> Dependency:
         """
-        Resolve a PEP-508 requirement string to a `Dependency` instance. If a `relative_to`
-        path is specified, this is used as the base directory if the identified dependency is
-        of file or directory type.
+        Resolve a PEP-508 requirement string to a `Dependency` instance. If a
+        `relative_to` path is specified, this is used as the base directory if the
+        identified dependency is of file or directory type.
         """
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.link import Link
@@ -525,8 +430,13 @@ class Dependency(PackageSpecification):
                 dep = VCSDependency(
                     name, "git", link.url_without_fragment, extras=req.extras
                 )
-            elif link.scheme in ["http", "https"]:
-                dep = URLDependency(name, link.url, extras=req.extras)
+            elif link.scheme in ("http", "https"):
+                dep = URLDependency(
+                    name,
+                    link.url_without_fragment,
+                    directory=link.subdirectory_fragment,
+                    extras=req.extras,
+                )
             elif is_file_uri:
                 # handle RFC 8089 references
                 path = url_to_path(req.url)
@@ -550,10 +460,7 @@ class Dependency(PackageSpecification):
                 dep._constraint = parse_constraint(version)
         else:
             constraint: VersionConstraint | str
-            if req.pretty_constraint:
-                constraint = req.constraint
-            else:
-                constraint = "*"
+            constraint = req.constraint if req.pretty_constraint else "*"
             dep = Dependency(name, constraint, extras=req.extras)
 
         if req.marker:
@@ -588,7 +495,7 @@ class Dependency(PackageSpecification):
         return self.base_pep_508_name
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} {str(self)}>"
+        return f"<{self.__class__.__name__} {self}>"
 
 
 def _make_file_or_dir_dep(
@@ -598,8 +505,8 @@ def _make_file_or_dir_dep(
     extras: list[str] | None = None,
 ) -> FileDependency | DirectoryDependency | None:
     """
-    Helper function to create a file or directoru dependency with the given arguments. If
-    path is not a file or directory that exists, `None` is returned.
+    Helper function to create a file or directoru dependency with the given arguments.
+    If path is not a file or directory that exists, `None` is returned.
     """
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency

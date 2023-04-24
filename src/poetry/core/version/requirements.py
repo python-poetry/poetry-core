@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import urllib.parse as urlparse
 
-from poetry.core.semver.exceptions import ParseConstraintError
-from poetry.core.semver.helpers import parse_constraint
+from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.grammars import GRAMMAR_PEP_508_CONSTRAINTS
 from poetry.core.version.markers import _compact_markers
 from poetry.core.version.parser import Parser
@@ -53,7 +53,6 @@ class Requirement:
                     )
             elif (
                 not (parsed_url.scheme and parsed_url.netloc)
-                or (not parsed_url.scheme and not parsed_url.netloc)
             ) and not parsed_url.path:
                 raise InvalidRequirement(
                     f'The requirement is invalid: invalid URL "{url}"'
@@ -64,10 +63,7 @@ class Requirement:
 
         self.extras = [e.value for e in parsed.scan_values(lambda t: t.type == "EXTRA")]
         constraint = next(parsed.find_data("version_specification"), None)
-        if not constraint:
-            constraint = "*"
-        else:
-            constraint = ",".join(constraint.children)
+        constraint = ",".join(constraint.children) if constraint else "*"
 
         try:
             self.constraint = parse_constraint(constraint)

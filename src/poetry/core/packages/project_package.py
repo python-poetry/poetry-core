@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import warnings
+
 from typing import TYPE_CHECKING
 from typing import Any
 
-from poetry.core.semver.helpers import parse_constraint
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
-    from poetry.core.semver.version import Version
+    from poetry.core.constraints.version import Version
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
@@ -22,7 +24,17 @@ class ProjectPackage(Package):
         version: str | Version,
         pretty_version: str | None = None,
     ) -> None:
-        super().__init__(name, version, pretty_version)
+        if pretty_version is not None:
+            warnings.warn(
+                (
+                    "The `pretty_version` parameter is deprecated and will be removed"
+                    " in a future release."
+                ),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        super().__init__(name, version)
 
         self.build_config: dict[str, Any] = {}
         self.packages: list[dict[str, Any]] = []
@@ -87,4 +99,4 @@ class ProjectPackage(Package):
         return super(Package, self).__hash__()
 
     def build_should_generate_setup(self) -> bool:
-        return self.build_config.get("generate-setup-file", True)
+        return self.build_config.get("generate-setup-file", False)

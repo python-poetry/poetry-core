@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import json
-import os
 
+from pathlib import Path
 from typing import Any
 
 
-SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "schemas")
+SCHEMA_DIR = Path(__file__).parent / "schemas"
 
 
 class ValidationError(ValueError):
@@ -14,13 +14,13 @@ class ValidationError(ValueError):
 
 
 def validate_object(obj: dict[str, Any], schema_name: str) -> list[str]:
-    schema_file = os.path.join(SCHEMA_DIR, f"{schema_name}.json")
+    schema_file = SCHEMA_DIR / f"{schema_name}.json"
 
-    if not os.path.exists(schema_file):
+    if not schema_file.exists():
         raise ValueError(f"Schema {schema_name} does not exist.")
 
-    with open(schema_file, encoding="utf-8") as f:
-        schema = json.loads(f.read())
+    with schema_file.open(encoding="utf-8") as f:
+        schema = json.load(f)
 
     from jsonschema import Draft7Validator
 
@@ -32,7 +32,7 @@ def validate_object(obj: dict[str, Any], schema_name: str) -> list[str]:
     for error in validation_errors:
         message = error.message
         if error.path:
-            path = ".".join(str(x) for x in error.absolute_path)
+            path = ".".join(map(str, error.absolute_path))
             message = f"[{path}] {message}"
 
         errors.append(message)

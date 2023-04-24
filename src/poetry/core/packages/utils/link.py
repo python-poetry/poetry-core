@@ -216,7 +216,7 @@ class Link:
         Determines if this points to an actual artifact (e.g. a tarball) or if
         it points to an "abstract" thing like a path or a VCS location.
         """
-        if self.scheme in ["ssh", "git", "hg", "bzr", "sftp", "svn"]:
+        if self.scheme in ("ssh", "git", "hg", "bzr", "sftp", "svn"):
             return False
 
         return True
