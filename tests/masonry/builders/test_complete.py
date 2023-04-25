@@ -118,17 +118,15 @@ def test_complete(no_vcs: bool) -> None:
     if sys.platform != "win32":
         assert (os.stat(str(whl)).st_mode & 0o777) == 0o644
 
-    expected_name_list = (
-        [
-            "my_package/__init__.py",
-            "my_package/data1/test.json",
-            "my_package/sub_pkg1/__init__.py",
-            "my_package/sub_pkg2/__init__.py",
-            "my_package/sub_pkg2/data2/data.json",
-            "my_package/sub_pkg3/foo.py",
-            "my_package-1.2.3.data/scripts/script.sh",
-        ]
-        + sorted(
+    expected_name_list = [
+        "my_package/__init__.py",
+        "my_package/data1/test.json",
+        "my_package/sub_pkg1/__init__.py",
+        "my_package/sub_pkg2/__init__.py",
+        "my_package/sub_pkg2/data2/data.json",
+        "my_package/sub_pkg3/foo.py",
+        "my_package-1.2.3.data/scripts/script.sh",
+        *sorted(
             [
                 "my_package-1.2.3.dist-info/entry_points.txt",
                 "my_package-1.2.3.dist-info/LICENSE",
@@ -136,9 +134,8 @@ def test_complete(no_vcs: bool) -> None:
                 "my_package-1.2.3.dist-info/WHEEL",
             ],
             key=lambda x: Path(x),
-        )
-        + ["my_package-1.2.3.dist-info/RECORD"]
-    )
+        ),
+    ] + ["my_package-1.2.3.dist-info/RECORD"]
 
     with zipfile.ZipFile(str(whl)) as zipf:
         assert zipf.namelist() == expected_name_list
@@ -149,32 +146,24 @@ def test_complete(no_vcs: bool) -> None:
 
         entry_points = zipf.read("my_package-1.2.3.dist-info/entry_points.txt")
 
-        assert (
-            entry_points.decode()
-            == """\
+        assert entry_points.decode() == """\
 [console_scripts]
 extra-script=my_package.extra:main[time]
 my-2nd-script=my_package:main2
 my-script=my_package:main
 
 """
-        )
         wheel_data = zipf.read("my_package-1.2.3.dist-info/WHEEL").decode()
 
-        assert (
-            wheel_data
-            == f"""\
+        assert wheel_data == f"""\
 Wheel-Version: 1.0
 Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """
-        )
         wheel_data = zipf.read("my_package-1.2.3.dist-info/METADATA").decode()
 
-        assert (
-            wheel_data
-            == """\
+        assert wheel_data == """\
 Metadata-Version: 2.1
 Name: my-package
 Version: 1.2.3
@@ -211,7 +200,6 @@ My Package
 ==========
 
 """
-        )
         actual_records = zipf.read("my_package-1.2.3.dist-info/RECORD").decode()
 
         # The SHA hashes vary per operating systems.

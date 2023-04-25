@@ -23,7 +23,8 @@ def test_pip_install(
     temporary_directory: Path, project_source_root: Path, python: str
 ) -> None:
     """
-    Ensure that a project using the repository version of poetry-core as a PEP 517 backend can be built.
+    Ensure that a project using the repository version of poetry-core as
+    a PEP 517 backend can be built.
     """
     temp_pep_517_backend_path = temporary_directory / "pep_517_backend"
 

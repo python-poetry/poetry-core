@@ -251,7 +251,7 @@ def test_complete_name() -> None:
         # non-semver version test is ignored due to existing bug in wildcard
         # constraint parsing that ignores non-semver versions
         # TODO: re-enable for verification once fixed
-        # ("A", ">=1.8.0.0,!=2.0.0.*", None, "A (>=1.8.0.0,!=2.0.0.*)"),  # noqa: E800
+        # ("A", ">=1.8.0.0,!=2.0.0.*", None, "A (>=1.8.0.0,!=2.0.0.*)"),  # noqa: ERA001
     ],
 )
 def test_dependency_string_representation(

@@ -14,7 +14,9 @@ if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
 
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
+AUTHOR_REGEX = re.compile(
+    r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$"  # noqa: RUF001
+)
 
 METADATA_BASE = """\
 Metadata-Version: 2.1
