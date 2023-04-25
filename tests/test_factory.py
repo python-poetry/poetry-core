@@ -411,20 +411,32 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             "'version' is a required property",
             "'description' is a required property",
             "'authors' is a required property",
-            'Cannot find dependency "missing_extra" for extra "some-extras" in '
-            "main dependencies.",
-            'Cannot find dependency "another_missing_extra" for extra '
-            '"some-extras" in main dependencies.',
-            'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
-            " defined.",
-            "Declared README files must be of same type: found text/markdown,"
-            " text/x-rst",
+            (
+                'Cannot find dependency "missing_extra" for extra "some-extras" in '
+                "main dependencies."
+            ),
+            (
+                'Cannot find dependency "another_missing_extra" for extra '
+                '"some-extras" in main dependencies.'
+            ),
+            (
+                'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
+                " defined."
+            ),
+            (
+                "Declared README files must be of same type: found text/markdown,"
+                " text/x-rst"
+            ),
         ],
         "warnings": [
-            "A wildcard Python dependency is ambiguous. Consider specifying a more"
-            " explicit one.",
-            'The "pathlib2" dependency specifies the "allows-prereleases" property,'
-            ' which is deprecated. Use "allow-prereleases" instead.',
+            (
+                "A wildcard Python dependency is ambiguous. Consider specifying a more"
+                " explicit one."
+            ),
+            (
+                'The "pathlib2" dependency specifies the "allows-prereleases" property,'
+                ' which is deprecated. Use "allow-prereleases" instead.'
+            ),
         ],
     }
 
@@ -564,8 +576,10 @@ def test_create_poetry_with_markers_and_extras() -> None:
                 "markers": 'platform_machine == "x86_64"',
             },
             "~3.7",
-            'platform_machine == "x86_64" and python_version == "3.7" and'
-            ' sys_platform == "linux"',
+            (
+                'platform_machine == "x86_64" and python_version == "3.7" and'
+                ' sys_platform == "linux"'
+            ),
         ),
         (
             {"python": ">=3.7", "markers": 'python_version < "4.0"'},
