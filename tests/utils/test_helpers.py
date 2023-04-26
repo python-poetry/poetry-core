@@ -149,4 +149,6 @@ def test_robust_rmtree(mocker: MockerFixture) -> None:
         robust_rmtree(name, max_timeout=0.04)
 
     # clear the side effect (breaks the tear-down otherwise)
-    mocked_rmtree.side_effect = None
+    mocker.stop(mocked_rmtree)
+    # use the real method to remove the temp folder we created for this test
+    robust_rmtree(name)

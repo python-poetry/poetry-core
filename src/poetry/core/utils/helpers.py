@@ -91,20 +91,21 @@ def _on_rm_error(func: Any, path: str | Path, exc_info: Any) -> None:
     func(path)
 
 
-def robust_rmtree(path: str, max_timeout: float = 1) -> None:
+def robust_rmtree(path: str | Path, max_timeout: float = 1) -> None:
     """
     Robustly tries to delete paths.
     Retries several times if an OSError occurs.
     If the final attempt fails, the Exception is propagated
     to the caller.
     """
+    path = Path(path)  # make sure this is a Path object, not str
     timeout = 0.001
     while timeout < max_timeout:
         try:
             # both os.unlink and shutil.rmtree can throw exceptions on Windows
             # if the files are in use when called
-            if Path(path).is_symlink():
-                os.unlink(str(path))
+            if path.is_symlink():
+                path.unlink()
             else:
                 shutil.rmtree(path)
             return  # Only hits this on success
