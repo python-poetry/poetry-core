@@ -43,7 +43,9 @@ def normalize_version(version: str) -> str:
 @contextmanager
 def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
     if sys.version_info >= (3, 10):
-        with tempfile.TemporaryDirectory(*args, **kwargs, ignore_cleanup_errors=True) as name:
+        with tempfile.TemporaryDirectory(
+            *args, **kwargs, ignore_cleanup_errors=True
+        ) as name:
             yield name
     else:
         name = tempfile.mkdtemp(*args, **kwargs)
