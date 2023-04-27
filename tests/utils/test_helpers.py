@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 
 from pathlib import Path
@@ -125,6 +126,36 @@ def test_utils_helpers_readme_content_type(
     readme: str | Path, content_type: str
 ) -> None:
     assert readme_content_type(readme) == content_type
+
+
+def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
+    mocked_rmtree = mocker.patch("shutil.rmtree")
+    mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
+
+    mocker.patch.object(sys, "version_info", (3, 10))
+    with temporary_directory() as tmp:
+        assert tmp
+
+    assert not mocked_rmtree.called
+    assert not mocked_mkdtemp.called
+    mocked_temp_dir.assert_called_with(ignore_cleanup_errors=True)
+
+
+def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None:
+    mocked_rmtree = mocker.patch("shutil.rmtree")
+    mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
+
+    mocked_mkdtemp.return_value = "hello from test"
+
+    mocker.patch.object(sys, "version_info", (3, 9))
+    with temporary_directory() as tmp:
+        assert tmp == "hello from test"
+
+    assert mocked_rmtree.called
+    assert mocked_mkdtemp.called
+    assert not mocked_temp_dir.called
 
 
 def test_robust_rmtree(mocker: MockerFixture) -> None:
