@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shutil
 import stat
+import sys
 import tempfile
 import time
 import unicodedata
@@ -41,9 +42,13 @@ def normalize_version(version: str) -> str:
 
 @contextmanager
 def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[str]:
-    name = tempfile.mkdtemp(*args, **kwargs)
-    yield name
-    robust_rmtree(name)
+    if sys.version_info >= (3, 10):
+        with tempfile.TemporaryDirectory(*args, **kwargs, ignore_cleanup_errors=True) as name:
+            yield name
+    else:
+        name = tempfile.mkdtemp(*args, **kwargs)
+        yield name
+        robust_rmtree(name)
 
 
 def parse_requires(requires: str) -> list[str]:
