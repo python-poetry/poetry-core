@@ -128,7 +128,7 @@ def test_utils_helpers_readme_content_type(
     assert readme_content_type(readme) == content_type
 
 
-def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
+def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None:
     mocked_rmtree = mocker.patch("shutil.rmtree")
     mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
@@ -142,7 +142,7 @@ def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
     mocked_temp_dir.assert_called_with(ignore_cleanup_errors=True)
 
 
-def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None:
+def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
     mocked_rmtree = mocker.patch("shutil.rmtree")
     mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
