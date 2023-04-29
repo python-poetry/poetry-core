@@ -172,7 +172,6 @@ def test_robust_rmtree(mocker: MockerFixture) -> None:
     robust_rmtree(name)
 
     # this should give up after retrying multiple times
-    name = tempfile.mkdtemp()
     mocked_rmtree.side_effect = OSError(
         "Couldn't delete file yet, this error won't go away after first attempt"
     )
@@ -183,3 +182,4 @@ def test_robust_rmtree(mocker: MockerFixture) -> None:
     mocker.stop(mocked_rmtree)
     # use the real method to remove the temp folder we created for this test
     robust_rmtree(name)
+    assert not Path(name).exists()
