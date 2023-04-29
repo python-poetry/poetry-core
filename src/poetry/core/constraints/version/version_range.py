@@ -4,6 +4,10 @@ from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.empty_constraint import EmptyConstraint
+from poetry.core.constraints.version.version_constraint import _is_wildcard_candidate
+from poetry.core.constraints.version.version_constraint import (
+    _single_wildcard_range_string,
+)
 from poetry.core.constraints.version.version_range_constraint import (
     VersionRangeConstraint,
 )
@@ -339,23 +343,9 @@ class VersionRange(VersionRangeConstraint):
         if not self.is_single_wildcard_range():
             raise ValueError("Not a valid wildcard range")
 
-        if self.min.is_postrelease():
-            assert self.min is not None
-            base_version = str(self.min.without_devrelease())
-
-        else:
-            assert self.max is not None
-            parts = list(self.max.parts)
-
-            # remove trailing zeros from max
-            while parts and parts[-1] == 0:
-                del parts[-1]
-
-            parts[-1] = parts[-1] - 1
-
-            base_version = ".".join(str(part) for part in parts)
-
-        return f"=={base_version}.*"
+        assert self.min is not None
+        assert self.max is not None
+        return f"=={_single_wildcard_range_string(self.min, self.max)}"
 
     def is_single_wildcard_range(self) -> bool:
         # e.g.
@@ -367,31 +357,10 @@ class VersionRange(VersionRangeConstraint):
             or self.max is None
             or not self.include_min
             or self.include_max
-            or self.min.is_local()
-            or self.max.is_local()
-            or self.max.is_prerelease()
-            or self.min.is_postrelease() is not self.max.is_postrelease()
-            or self.min.first_devrelease() != self.min
-            or (self.max.is_devrelease() and self.max.first_devrelease() != self.max)
         ):
             return False
 
-        parts_min = list(self.min.parts)
-        parts_max = list(self.max.parts)
-
-        # remove trailing zeros from max
-        while parts_max and parts_max[-1] == 0:
-            del parts_max[-1]
-
-        # fill up min with zeros
-        parts_min += [0] * (len(parts_max) - len(parts_min))
-
-        if set(parts_min[len(parts_max) :]) not in [set(), {0}]:
-            return False
-        parts_min = parts_min[: len(parts_max)]
-        if self.min.is_postrelease():
-            return parts_min == parts_max and self.min.post.next() == self.max.post
-        return parts_min[:-1] == parts_max[:-1] and parts_min[-1] + 1 == parts_max[-1]
+        return _is_wildcard_candidate(self.min, self.max)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionRangeConstraint):
