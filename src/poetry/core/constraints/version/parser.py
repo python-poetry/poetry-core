@@ -205,11 +205,14 @@ def _make_x_constraint_range(
         raise RuntimeError("version is neither stable, nor pre-release nor dev-release")
 
     _min = version
+    _max = _next
 
-    if not is_marker_constraint and not _next.is_unstable():
+    if not is_marker_constraint:
         _min = _min.first_devrelease()
+        if not _max.is_devrelease():
+            _max = _max.first_devrelease()
 
-    result = VersionRange(_min, _next, include_min=True)
+    result = VersionRange(_min, _max, include_min=True)
 
     if invert:
         return VersionRange().difference(result)
