@@ -328,7 +328,9 @@ class PEP440Version:
         return self.replace(local=None)
 
     def without_postrelease(self: T) -> T:
-        return self.replace(post=None, dev=None)
+        if self.is_postrelease():
+            return self.replace(post=None, dev=None)
+        return self
 
     def without_devrelease(self: T) -> T:
         return self.replace(dev=None)
