@@ -478,3 +478,19 @@ def test_create_dependency_marker_variants(
     assert dep.python_versions == exp_python
     assert dep.python_constraint == parse_constraint(exp_python)
     assert str(dep.marker) == exp_marker
+
+
+def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:
+    poetry = Factory().create_poetry(
+        fixtures_dir / "project_with_duplicated_classifiers"
+    )
+    package = poetry.package
+    assert package.all_classifiers == [
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development :: Build Tools",
+    ]
