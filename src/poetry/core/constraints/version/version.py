@@ -93,19 +93,20 @@ class Version(PEP440Version, VersionRangeConstraint):
         )
 
     def allows_any(self, other: VersionConstraint) -> bool:
+        intersection = self.intersect(other)
+        return not intersection.is_empty()
+
+    def intersect(self, other: VersionConstraint) -> VersionConstraint:
         if isinstance(other, Version):
-            return self.allows(other)
+            if self.allows(other):
+                return other
 
-        return other.allows(self)
+            if other.allows(self):
+                return self
 
-    def intersect(self, other: VersionConstraint) -> Version | EmptyConstraint:
-        if other.allows(self):
-            return self
+            return EmptyConstraint()
 
-        if isinstance(other, Version) and self.allows(other):
-            return other
-
-        return EmptyConstraint()
+        return other.intersect(self)
 
     def union(self, other: VersionConstraint) -> VersionConstraint:
         from poetry.core.constraints.version.version_range import VersionRange
