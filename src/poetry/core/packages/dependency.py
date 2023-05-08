@@ -441,7 +441,11 @@ class Dependency(PackageSpecification):
                 # handle RFC 8089 references
                 path = url_to_path(req.url)
                 dep = _make_file_or_dir_dep(
-                    name=name, path=path, base=relative_to, extras=req.extras
+                    name=name,
+                    path=path,
+                    base=relative_to,
+                    subdirectory=link.subdirectory_fragment,
+                    extras=req.extras,
                 )
             else:
                 with suppress(ValueError):
@@ -502,6 +506,7 @@ def _make_file_or_dir_dep(
     name: str,
     path: Path,
     base: Path | None = None,
+    subdirectory: str | None = None,
     extras: list[str] | None = None,
 ) -> FileDependency | DirectoryDependency | None:
     """
@@ -517,8 +522,12 @@ def _make_file_or_dir_dep(
         _path = Path(base) / path
 
     if _path.is_file():
-        return FileDependency(name, path, base=base, extras=extras)
+        return FileDependency(
+            name, path, base=base, directory=subdirectory, extras=extras
+        )
     elif _path.is_dir():
+        if subdirectory:
+            path = path / subdirectory
         return DirectoryDependency(name, path, base=base, extras=extras)
 
     return None

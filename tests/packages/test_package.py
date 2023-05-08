@@ -368,6 +368,7 @@ def test_to_dependency_for_file() -> None:
         "1.2.3",
         source_type="file",
         source_url=path.as_posix(),
+        source_subdirectory="qux",
         features=["baz", "bar"],
     )
     dep = package.to_dependency()
@@ -380,6 +381,7 @@ def test_to_dependency_for_file() -> None:
     assert dep.path == path
     assert dep.source_type == "file"
     assert dep.source_url == path.as_posix()
+    assert dep.source_subdirectory == "qux"
 
 
 def test_to_dependency_for_url() -> None:
