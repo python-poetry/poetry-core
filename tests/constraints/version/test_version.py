@@ -375,9 +375,14 @@ def test_allows_all() -> None:
             True,
         ),
         (
+            Version.parse("1.2.3"),
+            VersionRange(Version.parse("1.2.3+local"), include_min=True),
+            True,
+        ),
+        (
             Version.parse("1.2.3+cpu"),
             Version.parse("1.2.3"),
-            False,
+            True,
         ),
         (
             Version.parse("1.2.3"),
@@ -437,6 +442,16 @@ def test_allows_any(
             Version.parse("1.2.3"),
             Version.parse("1.2.3+local"),
             Version.parse("1.2.3+local"),
+        ),
+        (
+            Version.parse("1.2.3"),
+            VersionRange(Version.parse("1.2.3+local"), include_min=True),
+            VersionRange(
+                Version.parse("1.2.3+local"),
+                Version.parse("1.2.4"),
+                include_min=True,
+                include_max=False,
+            ),
         ),
     ],
 )

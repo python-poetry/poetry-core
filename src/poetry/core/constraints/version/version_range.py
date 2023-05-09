@@ -124,7 +124,14 @@ class VersionRange(VersionRangeConstraint):
             return False
 
         if isinstance(other, Version):
-            return self.allows(other)
+            if self.allows(other):
+                return True
+
+            # Although `>=1.2.3+local` does not allow the exact version `1.2.3`, both of
+            # those versions do allow `1.2.3+local`.
+            return (
+                self.min is not None and self.min.is_local() and other.allows(self.min)
+            )
 
         if isinstance(other, VersionUnion):
             return any(self.allows_any(constraint) for constraint in other.ranges)
@@ -143,10 +150,20 @@ class VersionRange(VersionRangeConstraint):
         if isinstance(other, VersionUnion):
             return other.intersect(self)
 
-        # A range and a Version just yields the version if it's in the range.
         if isinstance(other, Version):
+            # A range and a Version just yields the version if it's in the range.
             if self.allows(other):
                 return other
+
+            # `>=1.2.3+local` intersects `1.2.3` to return `>=1.2.3+local,<1.2.4`.
+            if self.min is not None and self.min.is_local() and other.allows(self.min):
+                upper = other.stable.next_patch()
+                return VersionRange(
+                    min=self.min,
+                    max=upper,
+                    include_min=self.include_min,
+                    include_max=False,
+                )
 
             return EmptyConstraint()
 
