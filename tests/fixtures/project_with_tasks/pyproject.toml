@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "project-with-tasks"
+version = "0.1.0"
+description = ""
+authors = ["Sébastien Eustace <sebastien@eustace.io>"]
+
+[tool.poetry.tasks]
+test = "pytest --cov folder tests"
+lint = "fancylinter folder1 folder2"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -494,3 +494,11 @@ def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:
         "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Build Tools",
     ]
+
+
+def test_create_poetry_with_tasks() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_tasks")
+
+    assert "tasks" in poetry.local_config
+    assert poetry.local_config["tasks"]["test"] == "pytest --cov folder tests"
+    assert poetry.local_config["tasks"]["lint"] == "fancylinter folder1 folder2"

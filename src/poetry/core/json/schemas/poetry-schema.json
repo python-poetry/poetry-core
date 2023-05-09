@@ -206,6 +206,15 @@
         }
       }
     },
+    "tasks": {
+      "type": "object",
+      "description": "A hash of tasks to run",
+      "patternProperties": {
+        "^[a-zA-Z-_.0-9]+$": {
+          "type": "string"
+        }
+      }
+    },
     "plugins": {
       "type": "object",
       "description": "A hash of hashes representing plugins",
