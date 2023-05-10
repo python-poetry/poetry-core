@@ -66,19 +66,19 @@ def test_single_marker() -> None:
 
     assert isinstance(m, SingleMarker)
     assert m.name == "python_version"
-    assert str(m.constraint) == ">=2.7.0,<2.8.0 || >=3.0.0,<3.2.0"
+    assert str(m.constraint) == ">=2.7,<2.8 || >=3.0,<3.2"
 
     m = parse_marker('"2.7" in python_version')
 
     assert isinstance(m, SingleMarker)
     assert m.name == "python_version"
-    assert str(m.constraint) == ">=2.7.0,<2.8.0"
+    assert str(m.constraint) == ">=2.7,<2.8"
 
     m = parse_marker('python_version not in "2.7, 3.0, 3.1"')
 
     assert isinstance(m, SingleMarker)
     assert m.name == "python_version"
-    assert str(m.constraint) == "<2.7.0 || >=2.8.0,<3.0.0 || >=3.2.0"
+    assert str(m.constraint) == "<2.7 || >=2.8,<3.0 || >=3.2"
 
     m = parse_marker(
         "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64"

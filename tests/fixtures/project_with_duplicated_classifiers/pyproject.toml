@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "project_with_duplicated_classifiers"
+version = "1.2.3"
+description = "This is a description"
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+classifiers = [
+    # Duplicated classifiers
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Build Tools",
+    # The following classifiers are automatically generated
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"

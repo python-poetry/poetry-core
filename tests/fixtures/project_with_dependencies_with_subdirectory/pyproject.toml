@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
+license = "MIT"
+
+readme = "README.rst"
+
+homepage = "https://python-poetry.org"
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs"
+
+keywords = ["packaging", "dependency", "poetry"]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+# Requirements
+[tool.poetry.dependencies]
+python = "^3.6"
+
+# Git dependency with subdirectory
+pendulum = { git = "https://github.com/sdispater/pendulum.git", subdirectory = "sub", branch = "2.0" }
+
+# File dependency with subdirectory
+demo = [
+    { path = "../distributions/demo-0.1.0-in-subdir.zip", subdirectory = "sub", platform = "linux" },
+    { file = "../distributions/demo-0.1.0-in-subdir.zip", subdirectory = "sub", platform = "win32" }
+]
+
+# Dir dependency with subdirectory (same as path "../simple_project" without subdirectory)
+simple-project = { path = "..", subdirectory = "simple_project" }
+
+# Url dependency with subdirectory
+foo = { url = "https://example.com/foo.zip", subdirectory = "sub" }

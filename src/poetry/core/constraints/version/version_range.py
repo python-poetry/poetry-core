@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.empty_constraint import EmptyConstraint
+from poetry.core.constraints.version.version_constraint import _is_wildcard_candidate
+from poetry.core.constraints.version.version_constraint import (
+    _single_wildcard_range_string,
+)
 from poetry.core.constraints.version.version_range_constraint import (
     VersionRangeConstraint,
 )
@@ -21,22 +26,9 @@ class VersionRange(VersionRangeConstraint):
         max: Version | None = None,
         include_min: bool = False,
         include_max: bool = False,
-        always_include_max_prerelease: bool = False,
     ) -> None:
-        full_max = max
-        if (
-            not always_include_max_prerelease
-            and not include_max
-            and full_max is not None
-            and full_max.is_stable()
-            and not full_max.is_postrelease()
-            and (min is None or min.is_stable() or min.release != full_max.release)
-        ):
-            full_max = full_max.first_prerelease()
-
-        self._min = min
         self._max = max
-        self._full_max = full_max
+        self._min = min
         self._include_min = include_min
         self._include_max = include_max
 
@@ -47,10 +39,6 @@ class VersionRange(VersionRangeConstraint):
     @property
     def max(self) -> Version | None:
         return self._max
-
-    @property
-    def full_max(self) -> Version | None:
-        return self._full_max
 
     @property
     def include_min(self) -> bool:
@@ -71,27 +59,43 @@ class VersionRange(VersionRangeConstraint):
 
     def allows(self, other: Version) -> bool:
         if self._min is not None:
-            if other < self._min:
+            _this, _other = self.allowed_min, other
+
+            assert _this is not None
+
+            if not _this.is_postrelease() and _other.is_postrelease():
+                # The exclusive ordered comparison >V MUST NOT allow a post-release
+                # of the given version unless V itself is a post release.
+                # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
+                # e.g. "2.0.post1" does not match ">2"
+                _other = _other.without_postrelease()
+
+            if not _this.is_local() and _other.is_local():
+                # The exclusive ordered comparison >V MUST NOT match
+                # a local version of the specified version.
+                # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
+                # e.g. "2.0+local.version" does not match ">2"
+                _other = other.without_local()
+
+            if _other < _this:
                 return False
 
-            if not self._include_min and other == self._min:
+            if not self._include_min and (_other == self._min or _other == _this):
                 return False
 
-        if self.full_max is not None:
-            _this, _other = self.full_max, other
+        if self.max is not None:
+            _this, _other = self.allowed_max, other
+
+            assert _this is not None
 
             if not _this.is_local() and _other.is_local():
                 # allow weak equality to allow `3.0.0+local.1` for `<=3.0.0`
                 _other = _other.without_local()
 
-            if not _this.is_postrelease() and _other.is_postrelease():
-                # allow weak equality to allow `3.0.0-1` for `<=3.0.0`
-                _other = _other.without_postrelease()
-
             if _other > _this:
                 return False
 
-            if not self._include_max and _other == _this:
+            if not self._include_max and (_other == self._max or _other == _this):
                 return False
 
         return True
@@ -120,7 +124,14 @@ class VersionRange(VersionRangeConstraint):
             return False
 
         if isinstance(other, Version):
-            return self.allows(other)
+            if self.allows(other):
+                return True
+
+            # Although `>=1.2.3+local` does not allow the exact version `1.2.3`, both of
+            # those versions do allow `1.2.3+local`.
+            return (
+                self.min is not None and self.min.is_local() and other.allows(self.min)
+            )
 
         if isinstance(other, VersionUnion):
             return any(self.allows_any(constraint) for constraint in other.ranges)
@@ -139,10 +150,20 @@ class VersionRange(VersionRangeConstraint):
         if isinstance(other, VersionUnion):
             return other.intersect(self)
 
-        # A range and a Version just yields the version if it's in the range.
         if isinstance(other, Version):
+            # A range and a Version just yields the version if it's in the range.
             if self.allows(other):
                 return other
+
+            # `>=1.2.3+local` intersects `1.2.3` to return `>=1.2.3+local,<1.2.4`.
+            if self.min is not None and self.min.is_local() and other.allows(self.min):
+                upper = other.stable.next_patch()
+                return VersionRange(
+                    min=self.min,
+                    max=upper,
+                    include_min=self.include_min,
+                    include_max=False,
+                )
 
             return EmptyConstraint()
 
@@ -335,6 +356,29 @@ class VersionRange(VersionRangeConstraint):
     def flatten(self) -> list[VersionRangeConstraint]:
         return [self]
 
+    def _single_wildcard_range_string(self) -> str:
+        if not self.is_single_wildcard_range():
+            raise ValueError("Not a valid wildcard range")
+
+        assert self.min is not None
+        assert self.max is not None
+        return f"=={_single_wildcard_range_string(self.min, self.max)}"
+
+    def is_single_wildcard_range(self) -> bool:
+        # e.g.
+        # - "1.*" equals ">=1.0.dev0, <2" (equivalent to ">=1.0.dev0, <2.0.dev0")
+        # - "1.0.*" equals ">=1.0.dev0, <1.1"
+        # - "1.2.*" equals ">=1.2.dev0, <1.3"
+        if (
+            self.min is None
+            or self.max is None
+            or not self.include_min
+            or self.include_max
+        ):
+            return False
+
+        return _is_wildcard_candidate(self.min, self.max)
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionRangeConstraint):
             return False
@@ -391,6 +435,9 @@ class VersionRange(VersionRangeConstraint):
         return 0
 
     def __str__(self) -> str:
+        with suppress(ValueError):
+            return self._single_wildcard_range_string()
+
         text = ""
 
         if self.min is not None:

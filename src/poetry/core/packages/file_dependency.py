@@ -19,6 +19,8 @@ class FileDependency(PathDependency):
         self,
         name: str,
         path: Path,
+        *,
+        directory: str | None = None,
         groups: Iterable[str] | None = None,
         optional: bool = False,
         base: Path | None = None,
@@ -31,8 +33,22 @@ class FileDependency(PathDependency):
             groups=groups,
             optional=optional,
             base=base,
+            subdirectory=directory,
             extras=extras,
         )
+
+    @property
+    def directory(self) -> str | None:
+        return self.source_subdirectory
+
+    @property
+    def base_pep_508_name(self) -> str:
+        requirement = super().base_pep_508_name
+
+        if self.directory:
+            requirement += f"#subdirectory={self.directory}"
+
+        return requirement
 
     def _validate(self) -> str:
         message = super()._validate()

@@ -348,7 +348,7 @@ class Package(PackageSpecification):
         # it like this so that 3.10 is sorted after 3.9.
         sorted_classifiers = []
         python_classifiers_inserted = False
-        for classifier in sorted(set(classifiers)):
+        for classifier in sorted(set(classifiers) - set(python_classifiers)):
             if (
                 not python_classifiers_inserted
                 and classifier > python_classifier_prefix
@@ -538,6 +538,7 @@ class Package(PackageSpecification):
             dep = FileDependency(
                 self._name,
                 Path(self._source_url),
+                directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,
