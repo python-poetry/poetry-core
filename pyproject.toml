@@ -94,19 +94,11 @@ ban-relative-imports = "all"
 
 [tool.ruff.isort]
 force-single-line = true
-combine-as-imports = true
 lines-between-types = 1
 lines-after-imports = 2
 known-first-party = ["poetry.core"]
 known-third-party = ["poetry.core._vendor"]
 required-imports = ["from __future__ import annotations"]
-section-order = [
-    "future",
-    "standard-library",
-    "third-party",
-    "first-party",
-    "local-folder"
-]
 
 
 [tool.black]
