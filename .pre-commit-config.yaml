@@ -33,7 +33,7 @@ repos:
       - id: python-check-blanket-noqa
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.2
+    rev: v3.4.0
     hooks:
       - id: pyupgrade
         args:
@@ -62,6 +62,6 @@ repos:
       - id: black
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.263
+    rev: v0.0.265
     hooks:
     -   id: ruff
