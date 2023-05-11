@@ -74,6 +74,9 @@ extend-select = [
     "TCH",  # flake8-type-checking
     "N",  # pep8-naming
     "RUF",  # ruff checks
+    "UP",  # pyupgrade
+    "I",  # isort
+    "PGH",  # pygrep
 ]
 ignore = [
     "B904",  # use 'raise ... from err'
@@ -89,6 +92,14 @@ extend-exclude = [
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
 
+[tool.ruff.isort]
+force-single-line = true
+lines-between-types = 1
+lines-after-imports = 2
+known-first-party = ["poetry.core"]
+known-third-party = ["poetry.core._vendor"]
+required-imports = ["from __future__ import annotations"]
+
 
 [tool.black]
 line-length = 88
@@ -96,19 +107,6 @@ preview = true
 include = '\.pyi?$'
 extend-exclude = "src/poetry/core/_vendor/*"
 
-[tool.isort]
-profile = "black"
-force_single_line = true
-atomic = true
-include_trailing_comma = true
-lines_after_imports = 2
-lines_between_types = 1
-use_parentheses = true
-skip_glob = ["*/setup.py", "*/poetry/core/_vendor/*"]
-filter_files = true
-
-known_first_party = "poetry.core"
-known_third_party = ["poetry.core._vendor"]
 
 [tool.mypy]
 strict = true

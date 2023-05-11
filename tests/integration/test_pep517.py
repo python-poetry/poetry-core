@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+
 # noinspection PyProtectedMember
 from build.__main__ import build_package
 from build.util import project_wheel_metadata
