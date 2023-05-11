@@ -4,6 +4,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.version_constraint import VersionConstraint
+from poetry.core.utils._compat import cached_property
 
 
 if TYPE_CHECKING:
@@ -33,9 +34,6 @@ class VersionRangeConstraint(VersionConstraint):
 
     @property
     def allowed_min(self) -> Version | None:
-        if self.min is None:
-            return None
-
         # That is a bit inaccurate because
         # 1) The exclusive ordered comparison >V MUST NOT allow a post-release
         #    of the given version unless V itself is a post release.
@@ -47,7 +45,7 @@ class VersionRangeConstraint(VersionConstraint):
         # the callers of allowed_min.
         return self.min
 
-    @property
+    @cached_property
     def allowed_max(self) -> Version | None:
         if self.max is None:
             return None

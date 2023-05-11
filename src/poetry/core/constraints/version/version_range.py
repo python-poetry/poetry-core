@@ -12,6 +12,7 @@ from poetry.core.constraints.version.version_range_constraint import (
     VersionRangeConstraint,
 )
 from poetry.core.constraints.version.version_union import VersionUnion
+from poetry.core.utils._compat import cached_property
 
 
 if TYPE_CHECKING:
@@ -356,14 +357,16 @@ class VersionRange(VersionRangeConstraint):
     def flatten(self) -> list[VersionRangeConstraint]:
         return [self]
 
+    @cached_property
     def _single_wildcard_range_string(self) -> str:
-        if not self.is_single_wildcard_range():
+        if not self.is_single_wildcard_range:
             raise ValueError("Not a valid wildcard range")
 
         assert self.min is not None
         assert self.max is not None
         return f"=={_single_wildcard_range_string(self.min, self.max)}"
 
+    @cached_property
     def is_single_wildcard_range(self) -> bool:
         # e.g.
         # - "1.*" equals ">=1.0.dev0, <2" (equivalent to ">=1.0.dev0, <2.0.dev0")
@@ -436,7 +439,7 @@ class VersionRange(VersionRangeConstraint):
 
     def __str__(self) -> str:
         with suppress(ValueError):
-            return self._single_wildcard_range_string()
+            return self._single_wildcard_range_string
 
         text = ""
 

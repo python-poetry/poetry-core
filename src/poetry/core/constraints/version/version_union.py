@@ -14,6 +14,7 @@ from poetry.core.constraints.version.version_constraint import (
 from poetry.core.constraints.version.version_range_constraint import (
     VersionRangeConstraint,
 )
+from poetry.core.utils._compat import cached_property
 
 
 if TYPE_CHECKING:
@@ -92,19 +93,17 @@ class VersionUnion(VersionConstraint):
         return False
 
     def is_simple(self) -> bool:
-        return self.excludes_single_version()
+        return self.excludes_single_version
 
     def allows(self, version: Version) -> bool:
-        if self.excludes_single_version():
+        if self.excludes_single_version:
             # when excluded version is local, special handling is required
             # to ensure that a constraint (!=2.0+deadbeef) will allow the
             # provided version (2.0)
-            from poetry.core.constraints.version.version import Version
-            from poetry.core.constraints.version.version_range import VersionRange
 
-            excluded = VersionRange().difference(self)
+            excluded = self._excluded_single_version
 
-            if isinstance(excluded, Version) and excluded.is_local():
+            if excluded.is_local():
                 return excluded != version
 
         return any(constraint.allows(version) for constraint in self._ranges)
@@ -252,12 +251,13 @@ class VersionUnion(VersionConstraint):
     def flatten(self) -> list[VersionRangeConstraint]:
         return self.ranges
 
+    @cached_property
     def _exclude_single_wildcard_range_string(self) -> str:
         """
         Helper method to convert this instance into a wild card range
         string.
         """
-        if not self.excludes_single_wildcard_range():
+        if not self.excludes_single_wildcard_range:
             raise ValueError("Not a valid wildcard range")
 
         idx_order = (0, 1) if self._ranges[0].max else (1, 0)
@@ -268,6 +268,7 @@ class VersionUnion(VersionConstraint):
         assert two.min is not None
         return f"!={_single_wildcard_range_string(one.max, two.min)}"
 
+    @cached_property
     def excludes_single_wildcard_range(self) -> bool:
         if len(self._ranges) != 2:
             return False
@@ -288,11 +289,25 @@ class VersionUnion(VersionConstraint):
 
         return _is_wildcard_candidate(two.min, one.max, inverted=True)
 
+    @cached_property
     def excludes_single_version(self) -> bool:
         from poetry.core.constraints.version.version import Version
+
+        return isinstance(self._inverted, Version)
+
+    @cached_property
+    def _excluded_single_version(self) -> Version:
+        from poetry.core.constraints.version.version import Version
+
+        excluded = self._inverted
+        assert isinstance(excluded, Version)
+        return excluded
+
+    @cached_property
+    def _inverted(self) -> VersionConstraint:
         from poetry.core.constraints.version.version_range import VersionRange
 
-        return isinstance(VersionRange().difference(self), Version)
+        return VersionRange().difference(self)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionUnion):
@@ -304,12 +319,10 @@ class VersionUnion(VersionConstraint):
         return reduce(op.xor, map(hash, self._ranges))
 
     def __str__(self) -> str:
-        from poetry.core.constraints.version.version_range import VersionRange
-
-        if self.excludes_single_version():
-            return f"!={VersionRange().difference(self)}"
+        if self.excludes_single_version:
+            return f"!={self._excluded_single_version}"
 
         try:
-            return self._exclude_single_wildcard_range_string()
+            return self._exclude_single_wildcard_range_string
         except ValueError:
             return " || ".join([str(r) for r in self._ranges])
