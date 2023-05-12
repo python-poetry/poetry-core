@@ -1,6 +1,34 @@
 # Change Log
 
 
+## [1.6.0] - 2023-05-14
+
+### Added
+
+- Improve error message for invalid markers ([#569](https://github.com/python-poetry/poetry-core/pull/569)).
+- Increase robustness when deleting temporary directories on Windows ([#460](https://github.com/python-poetry/poetry-core/pull/460)).
+- Add support for file dependencies with subdirectories ([#467](https://github.com/python-poetry/poetry-core/pull/467)).
+
+### Changed
+
+- Replace `tomlkit` with `tomli`, which changes the interface of some _internal_ classes ([#483](https://github.com/python-poetry/poetry-core/pull/483)).
+- Deprecate `Package.category` ([#561](https://github.com/python-poetry/poetry-core/pull/561)).
+
+### Fixed
+
+- Fix a performance regression in marker handling ([#568](https://github.com/python-poetry/poetry-core/pull/568)).
+- Fix an issue where wildcard version constraints were not handled correctly ([#402](https://github.com/python-poetry/poetry-core/pull/402)).
+- Fix an issue where `poetry build` created duplicate Python classifiers if they were specified manually ([#578](https://github.com/python-poetry/poetry-core/pull/578)).
+- Fix an issue where local versions where not handled correctly ([#579](https://github.com/python-poetry/poetry-core/pull/579)).
+
+### Vendoring
+
+- [`attrs==23.1.0`](https://github.com/python-attrs/attrs/blob/main/CHANGELOG.md)
+- [`packaging==23.1`](https://github.com/pypa/packaging/blob/main/CHANGELOG.rst)
+- [`tomli==2.0.1`](https://github.com/hukkin/tomli/blob/master/CHANGELOG.md)
+- [`typing-extensions==4.5.0`](https://github.com/python/typing_extensions/blob/main/CHANGELOG.md)
+
+
 ## [1.5.2] - 2023-03-13
 
 ### Fixed
@@ -503,7 +531,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.5.2...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.6.0...main
+[1.6.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.0
 [1.5.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.2
 [1.5.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.1
 [1.5.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.0
