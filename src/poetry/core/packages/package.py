@@ -107,7 +107,7 @@ class Package(PackageSpecification):
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
 
-        self.extras: dict[NormalizedName, list[Dependency]] = {}
+        self.extras: dict[NormalizedName, set[Dependency]] = {}
 
         self._dependency_groups: dict[str, DependencyGroup] = {}
 

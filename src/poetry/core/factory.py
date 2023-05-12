@@ -177,7 +177,7 @@ class Factory:
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
             extra_name = canonicalize_name(extra_name)
-            package.extras[extra_name] = []
+            package.extras[extra_name] = set()
 
             # Checking for dependency
             for req in requirements:
@@ -186,7 +186,7 @@ class Factory:
                 for dep in package.requires:
                     if dep.name == req.name:
                         dep.in_extras.append(extra_name)
-                        package.extras[extra_name].append(dep)
+                        package.extras[extra_name].add(dep)
 
         if "build" in config:
             build = config["build"]

@@ -75,7 +75,7 @@ def test_convert_dependencies() -> None:
     assert result == (main, extras)
 
     package = ProjectPackage("foo", "1.2.3")
-    package.extras = {canonicalize_name("bar"): [Dependency("A", "*")]}
+    package.extras = {canonicalize_name("bar"): {Dependency("A", "*")}}
 
     result = SdistBuilder.convert_dependencies(
         package,
@@ -95,7 +95,7 @@ def test_convert_dependencies() -> None:
     d = Dependency("D", "3.4.5", optional=True)
     d.python_versions = "~2.7 || ^3.4"
 
-    package.extras = {canonicalize_name("baz"): [Dependency("D", "*")]}
+    package.extras = {canonicalize_name("baz"): {Dependency("D", "*")}}
 
     result = SdistBuilder.convert_dependencies(
         package,
