@@ -672,7 +672,7 @@ def test_is_single_wildcard_range_include_min_include_max(
     version_range = VersionRange(
         Version.parse("1.2.dev0"), Version.parse("1.3"), include_min, include_max
     )
-    assert version_range.is_single_wildcard_range() is expected
+    assert version_range.is_single_wildcard_range is expected
 
 
 @pytest.mark.parametrize(
@@ -721,7 +721,7 @@ def test_is_single_wildcard_range(
         Version.parse(max) if max else None,
         include_min=True,
     )
-    assert version_range.is_single_wildcard_range() is expected
+    assert version_range.is_single_wildcard_range is expected
 
 
 @pytest.mark.parametrize(

@@ -83,7 +83,7 @@ from poetry.core.constraints.version import parse_constraint
 def test_excludes_single_wildcard_range_basics(
     ranges: list[VersionRange], expected: bool
 ) -> None:
-    assert VersionUnion(*ranges).excludes_single_wildcard_range() is expected
+    assert VersionUnion(*ranges).excludes_single_wildcard_range is expected
 
 
 @pytest.mark.parametrize(
@@ -126,7 +126,7 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
         VersionRange(max=Version.parse(max)),
         VersionRange(Version.parse(min), include_min=True),
     )
-    assert version_union.excludes_single_wildcard_range() is expected
+    assert version_union.excludes_single_wildcard_range is expected
 
 
 @pytest.mark.parametrize(
