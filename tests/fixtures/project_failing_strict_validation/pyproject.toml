@@ -1,0 +1,15 @@
+[tool.poetry]
+readme = ["README.rst", "README_WITH_ANOTHER_EXTENSION.md"]
+
+[tool.poetry.dependencies]
+python = "*"
+pathlib2 = { version = "^2.2", python = "3.7", allows-prereleases = true }
+
+[tool.poetry.extras]
+some_extras = ["missing_extra", "another_missing_extra"]
+
+[tool.poetry.scripts]
+a_script_with_unknown_extra = { reference = "a_script_with_unknown_extra.py", type = "file", extras = ["foo"] }
+a_script_without_extras = { reference = "a_script_without_extras.py", type = "file" }
+a_script_with_empty_extras = { reference = "a_script_with_empty_extras.py", type = "file", extras = [] }
+another_script = "another_script:main"

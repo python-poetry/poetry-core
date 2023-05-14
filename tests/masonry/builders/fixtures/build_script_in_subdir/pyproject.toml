@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "build_script_in_subdir"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Brandon Chinn <brandonchinn178@gmail.com>"
+]
+license = "MIT"
+homepage = "https://python-poetry.org/"
+packages = [
+    { include = "*", from = "src" },
+]
+
+build = "scripts/build.py"

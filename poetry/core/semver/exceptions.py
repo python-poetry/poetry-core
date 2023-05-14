@@ -1,2 +1,0 @@
-class ParseConstraintError(ValueError):
-    pass

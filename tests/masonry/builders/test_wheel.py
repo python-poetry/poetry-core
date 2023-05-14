@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import os
 import shutil
 import zipfile
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Iterator
+from typing import TextIO
 
 import pytest
 
@@ -11,11 +17,15 @@ from poetry.core.masonry.builders.wheel import WheelBuilder
 from tests.masonry.builders.test_sdist import project
 
 
+if TYPE_CHECKING:
+    from _pytest.monkeypatch import MonkeyPatch
+    from pytest_mock import MockerFixture
+
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup() -> Iterator[None]:
     clear_samples_dist()
 
     yield
@@ -23,13 +33,13 @@ def setup():
     clear_samples_dist()
 
 
-def clear_samples_dist():
+def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
 
 
-def test_wheel_module():
+def test_wheel_module() -> None:
     module_path = fixtures_dir / "module1"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -41,7 +51,7 @@ def test_wheel_module():
         assert "module1.py" in z.namelist()
 
 
-def test_wheel_package():
+def test_wheel_package() -> None:
     module_path = fixtures_dir / "complete"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -53,7 +63,7 @@ def test_wheel_package():
         assert "my_package/sub_pkg1/__init__.py" in z.namelist()
 
 
-def test_wheel_prerelease():
+def test_wheel_prerelease() -> None:
     module_path = fixtures_dir / "prerelease"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -62,7 +72,19 @@ def test_wheel_prerelease():
     assert whl.exists()
 
 
-def test_wheel_excluded_data():
+def test_wheel_epoch() -> None:
+    module_path = fixtures_dir / "epoch"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "epoch-1!2.0-py2.py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "epoch-1!2.0.dist-info/METADATA" in z.namelist()
+
+
+def test_wheel_excluded_data() -> None:
     module_path = fixtures_dir / "default_with_excluded_data_toml"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -77,7 +99,7 @@ def test_wheel_excluded_data():
         assert "my_package/data/data1.txt" not in z.namelist()
 
 
-def test_wheel_excluded_nested_data():
+def test_wheel_excluded_nested_data() -> None:
     module_path = fixtures_dir / "exclude_nested_data_toml"
     poetry = Factory().create_poetry(module_path)
     WheelBuilder.make(poetry)
@@ -98,7 +120,7 @@ def test_wheel_excluded_nested_data():
         assert "my_package/public/item2/itemdata2.txt" not in z.namelist()
 
 
-def test_include_excluded_code():
+def test_include_excluded_code() -> None:
     module_path = fixtures_dir / "include_excluded_code"
     poetry = Factory().create_poetry(module_path)
     wb = WheelBuilder(poetry)
@@ -112,7 +134,7 @@ def test_include_excluded_code():
         assert "lib/my_package/generated.py" not in z.namelist()
 
 
-def test_wheel_localversionlabel():
+def test_wheel_localversionlabel() -> None:
     module_path = fixtures_dir / "localversionlabel"
     project = Factory().create_poetry(module_path)
     WheelBuilder.make(project)
@@ -125,7 +147,7 @@ def test_wheel_localversionlabel():
         assert local_version_string + ".dist-info/METADATA" in z.namelist()
 
 
-def test_wheel_package_src():
+def test_wheel_package_src() -> None:
     module_path = fixtures_dir / "source_package"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -138,7 +160,7 @@ def test_wheel_package_src():
         assert "package_src/module.py" in z.namelist()
 
 
-def test_wheel_module_src():
+def test_wheel_module_src() -> None:
     module_path = fixtures_dir / "source_file"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -150,7 +172,7 @@ def test_wheel_module_src():
         assert "module_src.py" in z.namelist()
 
 
-def test_dist_info_file_permissions():
+def test_dist_info_file_permissions() -> None:
     module_path = fixtures_dir / "complete"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -158,22 +180,25 @@ def test_dist_info_file_permissions():
 
     with zipfile.ZipFile(str(whl)) as z:
         assert (
-            z.getinfo("my_package-1.2.3.dist-info/WHEEL").external_attr == 0o644 << 16
-        )
-        assert (
-            z.getinfo("my_package-1.2.3.dist-info/METADATA").external_attr
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").external_attr & 0x1FF0000
             == 0o644 << 16
         )
         assert (
-            z.getinfo("my_package-1.2.3.dist-info/RECORD").external_attr == 0o644 << 16
+            z.getinfo("my_package-1.2.3.dist-info/METADATA").external_attr & 0x1FF0000
+            == 0o644 << 16
+        )
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/RECORD").external_attr & 0x1FF0000
+            == 0o644 << 16
         )
         assert (
             z.getinfo("my_package-1.2.3.dist-info/entry_points.txt").external_attr
+            & 0x1FF0000
             == 0o644 << 16
         )
 
 
-def test_wheel_includes_inline_table():
+def test_wheel_includes_inline_table() -> None:
     module_path = fixtures_dir / "with_include_inline_table"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -191,7 +216,7 @@ def test_wheel_includes_inline_table():
     "package",
     ["pep_561_stub_only", "pep_561_stub_only_partial", "pep_561_stub_only_src"],
 )
-def test_wheel_package_pep_561_stub_only(package):
+def test_wheel_package_pep_561_stub_only(package: str) -> None:
     root = fixtures_dir / package
     WheelBuilder.make(Factory().create_poetry(root))
 
@@ -205,7 +230,21 @@ def test_wheel_package_pep_561_stub_only(package):
         assert "pkg-stubs/subpkg/__init__.pyi" in z.namelist()
 
 
-def test_wheel_package_pep_561_stub_only_includes_typed_marker():
+def test_wheel_package_pep_561_stub_only_partial_namespace() -> None:
+    root = fixtures_dir / "pep_561_stub_only_partial_namespace"
+    WheelBuilder.make(Factory().create_poetry(root))
+
+    whl = root / "dist" / "pep_561_stubs-0.1-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "pkg-stubs/module.pyi" in z.namelist()
+        assert "pkg-stubs/subpkg/__init__.pyi" in z.namelist()
+        assert "pkg-stubs/subpkg/py.typed" in z.namelist()
+
+
+def test_wheel_package_pep_561_stub_only_includes_typed_marker() -> None:
     root = fixtures_dir / "pep_561_stub_only_partial"
     WheelBuilder.make(Factory().create_poetry(root))
 
@@ -217,7 +256,7 @@ def test_wheel_package_pep_561_stub_only_includes_typed_marker():
         assert "pkg-stubs/py.typed" in z.namelist()
 
 
-def test_wheel_includes_licenses_in_correct_paths():
+def test_wheel_includes_licenses_in_correct_paths() -> None:
     root = fixtures_dir / "licenses_and_copying"
     WheelBuilder.make(Factory().create_poetry(root))
 
@@ -234,7 +273,7 @@ def test_wheel_includes_licenses_in_correct_paths():
         assert "my_package-1.2.3.dist-info/LICENSES/MIT.txt" in z.namelist()
 
 
-def test_wheel_with_file_with_comma():
+def test_wheel_with_file_with_comma() -> None:
     root = fixtures_dir / "comma_file"
     WheelBuilder.make(Factory().create_poetry(root))
 
@@ -247,25 +286,29 @@ def test_wheel_with_file_with_comma():
         assert '\n"comma_file/a,b.py"' in records.decode()
 
 
-def test_default_src_with_excluded_data(mocker):
-    # Patch git module to return specific excluded files
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = [
-        (
-            (
-                Path(__file__).parent
-                / "fixtures"
-                / "default_src_with_excluded_data"
-                / "src"
-                / "my_package"
-                / "data"
-                / "sub_data"
-                / "data2.txt"
-            )
-            .relative_to(project("default_src_with_excluded_data"))
-            .as_posix()
-        )
-    ]
+def test_default_src_with_excluded_data(mocker: MockerFixture) -> None:
+    class MockGit:
+        def get_ignored_files(self, folder: Path | None = None) -> list[str]:
+            # Patch git module to return specific excluded files
+            return [
+                (
+                    (
+                        Path(__file__).parent
+                        / "fixtures"
+                        / "default_src_with_excluded_data"
+                        / "src"
+                        / "my_package"
+                        / "data"
+                        / "sub_data"
+                        / "data2.txt"
+                    )
+                    .relative_to(project("default_src_with_excluded_data"))
+                    .as_posix()
+                )
+            ]
+
+    p = mocker.patch("poetry.core.vcs.get_vcs")
+    p.return_value = MockGit()
     poetry = Factory().create_poetry(project("default_src_with_excluded_data"))
 
     builder = WheelBuilder(poetry)
@@ -288,15 +331,15 @@ def test_default_src_with_excluded_data(mocker):
         assert "my_package/data/sub_data/data3.txt" in names
 
 
-def test_wheel_file_is_closed(monkeypatch):
+def test_wheel_file_is_closed(monkeypatch: MonkeyPatch) -> None:
     """Confirm that wheel zip files are explicitly closed."""
 
     # Using a list is a hack for Python 2.7 compatibility.
-    fd_file = [None]
+    fd_file: list[TextIO | None] = [None]
 
     real_fdopen = os.fdopen
 
-    def capturing_fdopen(*args, **kwargs):
+    def capturing_fdopen(*args: Any, **kwargs: Any) -> TextIO | None:
         fd_file[0] = real_fdopen(*args, **kwargs)
         return fd_file[0]
 

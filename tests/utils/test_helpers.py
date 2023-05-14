@@ -1,15 +1,27 @@
-import os
+from __future__ import annotations
 
+import os
+import sys
+import tempfile
+
+from pathlib import Path
 from stat import S_IREAD
+from typing import TYPE_CHECKING
 
 import pytest
 
-from poetry.core.utils.helpers import canonicalize_name
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
+from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import parse_requires
+from poetry.core.utils.helpers import readme_content_type
+from poetry.core.utils.helpers import robust_rmtree
 from poetry.core.utils.helpers import temporary_directory
 
 
-def test_parse_requires():
+def test_parse_requires() -> None:
     requires = """\
 jsonschema>=2.6.0.0,<3.0.0.0
 lockfile>=0.12.0.0,<0.13.0.0
@@ -37,7 +49,7 @@ zipfile36>=0.1.0.0,<0.2.0.0
 
 [dev]
 isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
-"""
+"""  # noqa: E501
     result = parse_requires(requires)
     expected = [
         "jsonschema>=2.6.0.0,<3.0.0.0",
@@ -53,21 +65,42 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
         "msgpack-python>=0.5.0.0,<0.6.0.0",
         "pyparsing>=2.2.0.0,<3.0.0.0",
         "requests-toolbelt>=0.8.0.0,<0.9.0.0",
-        'typing>=3.6.0.0,<4.0.0.0 ; (python_version >= "2.7.0.0" and python_version < "2.8.0.0") or (python_version >= "3.4.0.0" and python_version < "3.5.0.0")',
-        'virtualenv>=15.2.0.0,<16.0.0.0 ; python_version >= "2.7.0.0" and python_version < "2.8.0.0"',
-        'pathlib2>=2.3.0.0,<3.0.0.0 ; python_version >= "2.7.0.0" and python_version < "2.8.0.0"',
-        'zipfile36>=0.1.0.0,<0.2.0.0 ; python_version >= "3.4.0.0" and python_version < "3.6.0.0"',
-        'isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort ; extra == "dev"',
+        (
+            'typing>=3.6.0.0,<4.0.0.0 ; (python_version >= "2.7.0.0" and python_version'
+            ' < "2.8.0.0") or (python_version >= "3.4.0.0" and python_version <'
+            ' "3.5.0.0")'
+        ),
+        (
+            'virtualenv>=15.2.0.0,<16.0.0.0 ; python_version >= "2.7.0.0" and'
+            ' python_version < "2.8.0.0"'
+        ),
+        (
+            'pathlib2>=2.3.0.0,<3.0.0.0 ; python_version >= "2.7.0.0" and'
+            ' python_version < "2.8.0.0"'
+        ),
+        (
+            'zipfile36>=0.1.0.0,<0.2.0.0 ; python_version >= "3.4.0.0" and'
+            ' python_version < "3.6.0.0"'
+        ),
+        (
+            "isort@"
+            " git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort"
+            ' ; extra == "dev"'
+        ),
     ]
     assert result == expected
 
 
-@pytest.mark.parametrize("raw", ["a-b-c", "a_b-c", "a_b_c", "a-b_c"])
-def test_utils_helpers_canonical_names(raw):
-    assert canonicalize_name(raw) == "a-b-c"
+def test_utils_helpers_combine_unicode() -> None:
+    combined_expected = "é"
+    decomposed = "é"
+    assert combined_expected != decomposed
+
+    combined = combine_unicode(decomposed)
+    assert combined == combined_expected
 
 
-def test_utils_helpers_temporary_directory_readonly_file():
+def test_utils_helpers_temporary_directory_readonly_file() -> None:
     with temporary_directory() as temp_dir:
         readonly_filename = os.path.join(temp_dir, "file.txt")
         with open(readonly_filename, "w+") as readonly_file:
@@ -76,3 +109,77 @@ def test_utils_helpers_temporary_directory_readonly_file():
 
     assert not os.path.exists(temp_dir)
     assert not os.path.exists(readonly_filename)
+
+
+@pytest.mark.parametrize(
+    "readme, content_type",
+    [
+        ("README.rst", "text/x-rst"),
+        ("README.md", "text/markdown"),
+        ("README", "text/plain"),
+        (Path("README.rst"), "text/x-rst"),
+        (Path("README.md"), "text/markdown"),
+        (Path("README"), "text/plain"),
+    ],
+)
+def test_utils_helpers_readme_content_type(
+    readme: str | Path, content_type: str
+) -> None:
+    assert readme_content_type(readme) == content_type
+
+
+def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None:
+    mocked_rmtree = mocker.patch("shutil.rmtree")
+    mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
+
+    mocker.patch.object(sys, "version_info", (3, 10))
+    with temporary_directory() as tmp:
+        assert tmp
+
+    assert not mocked_rmtree.called
+    assert not mocked_mkdtemp.called
+    mocked_temp_dir.assert_called_with(ignore_cleanup_errors=True)
+
+
+def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
+    mocked_rmtree = mocker.patch("shutil.rmtree")
+    mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
+    mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
+
+    mocked_mkdtemp.return_value = "hello from test"
+
+    mocker.patch.object(sys, "version_info", (3, 9))
+    with temporary_directory() as tmp:
+        assert tmp == "hello from test"
+
+    assert mocked_rmtree.called
+    assert mocked_mkdtemp.called
+    assert not mocked_temp_dir.called
+
+
+def test_robust_rmtree(mocker: MockerFixture) -> None:
+    mocked_rmtree = mocker.patch("shutil.rmtree")
+
+    # this should work after an initial exception
+    name = tempfile.mkdtemp()
+    mocked_rmtree.side_effect = [
+        OSError(
+            "Couldn't delete file yet, waiting for references to clear", "mocked path"
+        ),
+        None,
+    ]
+    robust_rmtree(name)
+
+    # this should give up after retrying multiple times
+    mocked_rmtree.side_effect = OSError(
+        "Couldn't delete file yet, this error won't go away after first attempt"
+    )
+    with pytest.raises(OSError):
+        robust_rmtree(name, max_timeout=0.04)
+
+    # clear the side effect (breaks the tear-down otherwise)
+    mocker.stop(mocked_rmtree)
+    # use the real method to remove the temp folder we created for this test
+    robust_rmtree(name)
+    assert not Path(name).exists()

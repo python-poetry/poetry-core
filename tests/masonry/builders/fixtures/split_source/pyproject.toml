@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "split-source"
+version = "0.1"
+description = "Combine packages from different locations."
+authors = [
+    "Jan Harkes <jaharkes@cs.cmu.edu>"
+]
+license = "MIT"
+packages = [
+    { include = "module_a", from = "lib_a" },
+    { include = "module_b", from = "lib_b" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"

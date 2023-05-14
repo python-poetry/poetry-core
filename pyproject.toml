@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.1.0a6"
+version = "1.6.0"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 
@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 packages = [
-    {include = "poetry"},
+    { include = "poetry", from = "src" },
 ]
 include = [
     { path = "tests", format = "sdist" },
@@ -29,71 +29,115 @@ exclude = [
     "**/*.pyi",
 ]
 
+[tool.poetry.build]
+generate-setup-file = false
+
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 # required for compatibility
 importlib-metadata = {version = ">=1.7.0", python = "<3.8"}
-dataclasses = {version = ">=0.8", python = "~3.6"}
 
 [tool.poetry.dev-dependencies]
-pre-commit = {version = "^2.10.0", python = "^3.6.1"}
-pyrsistent = "^0.16.0"
-pytest = "^6.2"
-pytest-cov = "^2.8"
-pytest-mock = "^3.5"
-tox = "^3.0"
-vendoring = {version = "^0.3", python = "^3.8"}
-pep517 = "^0.8.2"
-black = {version = "^20.8b1", markers = "python_version >= '3.6' and python_version < '4.0' and implementation_name != 'pypy'"}
-isort = "^5.8.0"
+pre-commit = ">=2.15.0"
+pyrsistent = ">=0.18.0"
+pytest = ">=7.1.2"
+pytest-cov = ">=3.0.0"
+pytest-mock = ">=3.5"
+tox = ">=3.0"
+vendoring = {version = ">=1.0", python = "^3.8"}
+build = ">=0.10.0"
+mypy = ">=1.0"
+setuptools = ">=60"
+tomli-w = "^1.0.0"
+types-jsonschema = ">=4.4.4"
+types-setuptools = ">=57.4.14"
+
+
+[tool.ruff]
+fix = true
+unfixable = [
+    "ERA",  # do not autoremove commented out code
+]
+target-version = "py37"
+line-length = 88
+extend-select = [
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "ERA",  # flake8-eradicate/eradicate
+    "PIE",  # flake8-pie
+    "SIM",  # flake8-simplify
+    "TID",  # flake8-tidy-imports
+    "TCH",  # flake8-type-checking
+    "N",  # pep8-naming
+    "RUF",  # ruff checks
+    "UP",  # pyupgrade
+    "I",  # isort
+    "PGH",  # pygrep
+]
+ignore = [
+    "B904",  # use 'raise ... from err'
+    "B905",  # use explicit 'strict=' parameter with 'zip()'
+    "N818"  #  Exception name should be named with an Error suffix
+]
+extend-exclude = [
+    "src/poetry/core/_vendor/*",
+    "tests/fixtures/*",
+    "tests/**/fixtures/*"
+]
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.isort]
+force-single-line = true
+lines-between-types = 1
+lines-after-imports = 2
+known-first-party = ["poetry.core"]
+known-third-party = ["poetry.core._vendor"]
+required-imports = ["from __future__ import annotations"]
+
 
 [tool.black]
 line-length = 88
+preview = true
 include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-  | poetry/core/_vendor/*
-)/
-'''
+extend-exclude = "src/poetry/core/_vendor/*"
 
-[tool.isort]
-profile = "black"
-force_single_line = true
-atomic = true
-include_trailing_comma = true
-lines_after_imports = 2
-lines_between_types = 1
-use_parentheses = true
-skip_glob = ["*/setup.py", "*/poetry/core/_vendor/*"]
-filter_files = true
 
-known_first_party = "poetry.core"
-known_third_party = ["poetry.core._vendor"]
+[tool.mypy]
+strict = true
+explicit_package_bases = true
+namespace_packages = true
+show_error_codes = true
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+]
+mypy_path = "src"
+files = "src, tests"
+exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+
+[[tool.mypy.overrides]]
+module = [
+  'lark.*',
+  'virtualenv.*',
+]
+ignore_missing_imports = true
 
 [tool.vendoring]
-destination = "poetry/core/_vendor/"
-requirements = "poetry/core/_vendor/vendor.txt"
+destination = "src/poetry/core/_vendor/"
+requirements = "src/poetry/core/_vendor/vendor.txt"
 namespace = ""
 
-protected-files = ["__init__.py", "README.md", "vendor.txt"]
+protected-files = ["vendor.txt"]
 patches-dir = "vendors/patches"
 
 [tool.vendoring.transformations]
-substitute = []
 drop = [
     "bin/",
     "*.so",
@@ -101,17 +145,10 @@ drop = [
     "*/tests/"
 ]
 
-[tool.vendoring.typing-stubs]
-six = ["six.__init__", "six.moves.__init__", "six.moves.configparser"]
-appdirs = []
-
-[tool.vendoring.license.directories]
-
-
 [tool.vendoring.license.fallback-urls]
 pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"
 
 [build-system]
-requires = ["dataclasses>=0.6;python_version < '3.7'"]
+requires = []
 build-backend = "poetry.core.masonry.api"
-backend-path = ["."]
+backend-path = ["src"]

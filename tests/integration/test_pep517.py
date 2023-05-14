@@ -1,13 +1,23 @@
+from __future__ import annotations
+
+import sys
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-from pep517.build import build
-from pep517.check import check
+
+# noinspection PyProtectedMember
+from build.__main__ import build_package
+from build.util import project_wheel_metadata
 
 from tests.testutils import subprocess_run
 from tests.testutils import temporary_project_directory
 
+
+if TYPE_CHECKING:
+    from _pytest.fixtures import FixtureRequest
 
 pytestmark = pytest.mark.integration
 
@@ -20,32 +30,42 @@ pytestmark = pytest.mark.integration
         ("masonry_project", "disable_setup_py"),
     ],
 )
-def test_pep517_check_poetry_managed(request, getter, project):
+def test_pep517_check_poetry_managed(
+    request: FixtureRequest, getter: str, project: str
+) -> None:
     with temporary_project_directory(request.getfixturevalue(getter)(project)) as path:
-        assert check(path)
+        assert project_wheel_metadata(path)
 
 
-def test_pep517_check(project_source_root):
-    assert check(str(project_source_root))
+def test_pep517_check(project_source_root: Path) -> None:
+    assert project_wheel_metadata(str(project_source_root))
 
 
-def test_pep517_build_sdist(temporary_directory, project_source_root):
-    build(
-        source_dir=str(project_source_root), dist="sdist", dest=str(temporary_directory)
+def test_pep517_build_sdist(
+    temporary_directory: Path, project_source_root: Path
+) -> None:
+    build_package(
+        srcdir=str(project_source_root),
+        outdir=str(temporary_directory),
+        distributions=["sdist"],
     )
-    distributions = list(temporary_directory.glob("poetry-core-*.tar.gz"))
+    distributions = list(temporary_directory.glob("poetry_core-*.tar.gz"))
     assert len(distributions) == 1
 
 
-def test_pep517_build_wheel(temporary_directory, project_source_root):
-    build(
-        source_dir=str(project_source_root), dist="wheel", dest=str(temporary_directory)
+def test_pep517_build_wheel(
+    temporary_directory: Path, project_source_root: Path
+) -> None:
+    build_package(
+        srcdir=str(project_source_root),
+        outdir=str(temporary_directory),
+        distributions=["wheel"],
     )
     distributions = list(temporary_directory.glob("poetry_core-*-none-any.whl"))
     assert len(distributions) == 1
 
 
-def test_pip_wheel_build(temporary_directory, project_source_root):
+def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path) -> None:
     tmp = str(temporary_directory)
     pip = subprocess_run(
         "pip", "wheel", "--use-pep517", "-w", tmp, str(project_source_root)
@@ -58,7 +78,13 @@ def test_pip_wheel_build(temporary_directory, project_source_root):
     assert len(wheels) == 1
 
 
-def test_pip_install_no_binary(python, project_source_root):
+@pytest.mark.xfail(
+    sys.version_info < (3, 8),
+    # see https://github.com/python/importlib_metadata/issues/392
+    reason="importlib-metadata can't be installed with --no-binary anymore",
+    strict=True,
+)
+def test_pip_install_no_binary(python: str, project_source_root: Path) -> None:
     subprocess_run(
         python,
         "-m",

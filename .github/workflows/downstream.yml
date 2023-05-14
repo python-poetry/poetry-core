@@ -3,68 +3,74 @@ name: Poetry Downstream Tests
 on:
   pull_request: {}
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
-  Tests:
-    name: ${{ matrix.os }} / ${{ matrix.python-version }}
+  tests:
+    name: ${{ matrix.ref }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        os: [Ubuntu]
-        python-version: [3.9]
-        experimental: [false]
+        ref: ["master"]
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: poetry-core
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
-          repository: python-poetry/poetry
           path: poetry
+          repository: python-poetry/poetry
+          ref: ${{ matrix.ref }}
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.10"
 
       - name: Get full python version
         id: full-python-version
-        shell: bash
-        run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+        run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
-      - name: Install poetry
-        shell: bash
-        run: pip install poetry
-
-      - name: Configure poetry
-        shell: bash
-        run: poetry config virtualenvs.in-project true
+      - name: Set up Poetry
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache
         with:
           path: ./poetry/.venv
-          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Ensure cache is healthy
         if: steps.cache.outputs.cache-hit == 'true'
-        shell: bash
         working-directory: ./poetry
         run: timeout 10s poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
 
-      - name: Update poetry-core version
-        shell: bash
+      - name: Switch downstream to development poetry-core
         working-directory: ./poetry
         run: |
-          poetry add ../poetry-core
-          git diff
+          # remove poetry-core from main group to avoid version conflicts
+          # with a potential entry in the test group
+          poetry remove poetry-core
+          # add to test group to overwrite a potential entry in that group
+          poetry add --lock --group test ../poetry-core
+
+      - name: Install downstream dependencies
+        working-directory: ./poetry
+        run: |
+          # force update of directory dependency in cached venv
+          # (even if directory dependency with same version is already installed)
+          poetry run pip uninstall -y poetry-core
+          poetry install
 
       # TODO: mark run as success even when this fails and add comment to PR instead
-      - name: Run poetry test suite
-        shell: bash
+      - name: Run downstream test suite
         working-directory: ./poetry
         run: poetry run pytest

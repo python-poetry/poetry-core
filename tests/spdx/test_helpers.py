@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import pytest
 
 from poetry.core.spdx.helpers import license_by_id
 
 
-def test_license_by_id():
+def test_license_by_id() -> None:
     license = license_by_id("MIT")
 
     assert license.id == "MIT"
@@ -19,7 +21,7 @@ def test_license_by_id():
     assert not license.is_deprecated
 
 
-def test_license_by_id_is_case_insensitive():
+def test_license_by_id_is_case_insensitive() -> None:
     license = license_by_id("mit")
 
     assert license.id == "MIT"
@@ -29,7 +31,7 @@ def test_license_by_id_is_case_insensitive():
     assert license.id == "MIT"
 
 
-def test_license_by_id_with_full_name():
+def test_license_by_id_with_full_name() -> None:
     license = license_by_id("GNU Lesser General Public License v3.0 or later")
 
     assert license.id == "LGPL-3.0-or-later"
@@ -38,12 +40,12 @@ def test_license_by_id_with_full_name():
     assert not license.is_deprecated
 
 
-def test_license_by_id_invalid():
+def test_license_by_id_invalid() -> None:
     with pytest.raises(ValueError):
         license_by_id("")
 
 
-def test_license_by_id_custom():
+def test_license_by_id_custom() -> None:
     license = license_by_id("Custom")
 
     assert license.id == "Custom"

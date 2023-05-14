@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import subprocess
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+from typing import Any
 
 import pytest
 
@@ -10,6 +14,10 @@ from poetry.core.vcs.git import GitError
 from poetry.core.vcs.git import GitUrl
 from poetry.core.vcs.git import ParsedUrl
 from poetry.core.vcs.git import _reset_executable
+
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 @pytest.mark.parametrize(
@@ -28,8 +36,10 @@ from poetry.core.vcs.git import _reset_executable
             GitUrl("https://user@hostname/project/blah.git", None, None),
         ),
         (
-            "git+https://user@hostname/project~_-.foo/blah~_-.bar.git",
-            GitUrl("https://user@hostname/project~_-.foo/blah~_-.bar.git", None, None),
+            "git+https://user@hostname/project%20~_-.foo/blah%20~_-.bar.git",
+            GitUrl(
+                "https://user@hostname/project%20~_-.foo/blah%20~_-.bar.git", None, None
+            ),
         ),
         (
             "git+https://user@hostname:project/blah.git",
@@ -78,6 +88,12 @@ from poetry.core.vcs.git import _reset_executable
             "git+file://C:\\Users\\hello\\testing.git#zkat/windows-files",
             GitUrl("file://C:\\Users\\hello\\testing.git", "zkat/windows-files", None),
         ),
+        # hidden directories on Windows use $ in their path
+        # python-poetry/poetry#5493
+        (
+            "git+file://C:\\Users\\hello$\\testing.git#zkat/windows-files",
+            GitUrl("file://C:\\Users\\hello$\\testing.git", "zkat/windows-files", None),
+        ),
         (
             "git+https://git.example.com/sdispater/project/my_repo.git",
             GitUrl("https://git.example.com/sdispater/project/my_repo.git", None, None),
@@ -94,10 +110,50 @@ from poetry.core.vcs.git import _reset_executable
                 "project",
             ),
         ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@commit#subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git#commit&subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git#commit#subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@commit&subdirectory=project",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "commit",
+                "project",
+            ),
+        ),
+        (
+            "git+https://github.com/demo/pyproject-demo-subdirectory.git@subdirectory#subdirectory=subdirectory",
+            GitUrl(
+                "https://github.com/demo/pyproject-demo-subdirectory.git",
+                "subdirectory",
+                "subdirectory",
+            ),
+        ),
     ],
 )
-def test_normalize_url(url, normalized):
-    assert normalized == Git.normalize_url(url)
+def test_normalize_url(url: str, normalized: GitUrl) -> None:
+    assert Git.normalize_url(url) == normalized
 
 
 @pytest.mark.parametrize(
@@ -122,14 +178,14 @@ def test_normalize_url(url, normalized):
             ),
         ),
         (
-            "git+https://user@hostname/project~_-.foo/blah~_-.bar.git",
+            "git+https://user@hostname/project%20~_-.foo/blah%20~_-.bar.git",
             ParsedUrl(
                 "https",
                 "hostname",
-                "/project~_-.foo/blah~_-.bar.git",
+                "/project%20~_-.foo/blah%20~_-.bar.git",
                 "user",
                 None,
-                "blah~_-.bar",
+                "blah%20~_-.bar",
                 None,
             ),
         ),
@@ -338,48 +394,52 @@ def test_normalize_url(url, normalized):
         ),
     ],
 )
-def test_parse_url(url, parsed):
+def test_parse_url(url: str, parsed: ParsedUrl) -> None:
     result = ParsedUrl.parse(url)
-    assert parsed.name == result.name
-    assert parsed.pathname == result.pathname
-    assert parsed.port == result.port
-    assert parsed.protocol == result.protocol
-    assert parsed.resource == result.resource
-    assert parsed.rev == result.rev
-    assert parsed.url == result.url
-    assert parsed.user == result.user
+    assert result.name == parsed.name
+    assert result.pathname == parsed.pathname
+    assert result.port == parsed.port
+    assert result.protocol == parsed.protocol
+    assert result.resource == parsed.resource
+    assert result.rev == parsed.rev
+    assert result.url == parsed.url
+    assert result.user == parsed.user
+    assert result.subdirectory == parsed.subdirectory
 
 
-def test_parse_url_should_fail():
+def test_parse_url_should_fail() -> None:
     url = "https://" + "@" * 64 + "!"
 
     with pytest.raises(ValueError):
         ParsedUrl.parse(url)
 
 
-def test_git_clone_raises_error_on_invalid_repository():
+def test_git_clone_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().clone("-u./payload", Path("foo"))
 
 
-def test_git_checkout_raises_error_on_invalid_repository():
+def test_git_checkout_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().checkout("-u./payload")
 
 
-def test_git_rev_parse_raises_error_on_invalid_repository():
+def test_git_rev_parse_raises_error_on_invalid_repository() -> None:
     with pytest.raises(GitError):
         Git().rev_parse("-u./payload")
 
 
 @pytest.mark.skipif(
     not WINDOWS,
-    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+    reason=(
+        "Retrieving the complete path to git is only necessary on Windows, for security"
+        " reasons"
+    ),
 )
-def test_ensure_absolute_path_to_git(mocker):
+def test_ensure_absolute_path_to_git(mocker: MockerFixture) -> None:
     _reset_executable()
 
-    def checkout_output(cmd, *args, **kwargs):
+    def checkout_output(cmd: list[str], *args: Any, **kwargs: Any) -> str | bytes:
         if Path(cmd[0]).name == "where.exe":
             return "\n".join(
                 [
@@ -402,9 +462,12 @@ def test_ensure_absolute_path_to_git(mocker):
 
 @pytest.mark.skipif(
     not WINDOWS,
-    reason="Retrieving the complete path to git is only necessary on Windows, for security reasons",
+    reason=(
+        "Retrieving the complete path to git is only necessary on Windows, for security"
+        " reasons"
+    ),
 )
-def test_ensure_existing_git_executable_is_found(mocker):
+def test_ensure_existing_git_executable_is_found(mocker: MockerFixture) -> None:
     mock = mocker.patch.object(subprocess, "check_output", return_value=b"")
 
     Git().run("config")

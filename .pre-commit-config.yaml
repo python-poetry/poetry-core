@@ -1,55 +1,36 @@
+exclude: |
+          (?x)(
+              ^tests/.*/fixtures/.*
+              | ^src/poetry/core/_vendor
+          )
+
 repos:
-  - repo: https://github.com/psf/black
-    rev: 20.8b1
-    hooks:
-      - id: black
-        exclude: ^poetry/core/_vendor
-
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.1
-    hooks:
-      - id: flake8
-        exclude: |
-          (?x)(
-              ^poetry/core/utils/_typing.py$
-              | ^poetry/core/utils/_compat.py$
-              | ^poetry/core/_vendor
-          )
-
-  - repo: https://github.com/timothycrosley/isort
-    rev: 5.8.0
-    hooks:
-      - id: isort
-        additional_dependencies: [toml]
-        exclude: |
-          (?x)(
-              ^.*/?setup\.py$
-              | ^poetry/core/_vendor
-          )
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: |
-          (?x)(
-              ^tests/.*/fixtures/.*
-              | ^poetry/core/_vendor
-          )
+        exclude: "vendors/patches/jsonschema.patch"
       - id: end-of-file-fixer
-        exclude: |
-          (?x)(
-              ^tests/.*/fixtures/.*
-              | ^poetry/core/_vendor
-          )
-      - id: debug-statements
-        exclude: ^poetry/core/_vendor
-
+      - id: check-merge-conflict
+      - id: check-case-conflict
       - id: check-json
-        exclude: ^poetry/core/_vendor
-
+      - id: check-toml
+      - id: check-yaml
       - id: pretty-format-json
-        exclude: ^poetry/core/_vendor
         args:
-          - --no-sort-keys
           - --autofix
+          - --no-ensure-ascii
+          - --no-sort-keys
+      - id: check-ast
+      - id: debug-statements
+      - id: check-docstring-first
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.265
+    hooks:
+    -   id: ruff
