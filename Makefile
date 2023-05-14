@@ -16,7 +16,7 @@ vendor/lock: $(VENDOR_LOCK)
 vendor/sync:
 	# regenerate vendor.txt file (exported from lockfile)
 	@pushd $(VENDOR_SRC) && $(POETRY_BIN) export --without-hashes 2> /dev/null \
-			| grep -E -v "(importlib|zipp)" \
+			| grep -E -v "(importlib|zipp|pkgutil-resolve-name)" \
 			| sort > $(VENDOR_TXT)
 
 	# vendor packages
