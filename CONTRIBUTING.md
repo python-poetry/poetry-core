@@ -4,7 +4,7 @@
 
 1. Install and configured Python versions however is appropriate for your operating system
    (try [`pyenv`](https://github.com/pyenv/pyenv)).
-2. Ensure you are working with the latest release version of Poetry, to start. 
+2. Ensure you are working with the latest release version of Poetry, to start.
    Follow the instructions the installer outputs in order to ensure that `poetry` is on your `PATH`.
 
        curl -sL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
