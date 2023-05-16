@@ -5,6 +5,7 @@ import csv
 import hashlib
 import logging
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -376,7 +377,15 @@ for t in packaging_tags.sys_tags():
     @property
     def tag(self) -> str:
         if self._package.build_script:
-            return self.get_tags()[0]
+            tags = self.get_tags()
+            wheel_tag_pattern = re.compile(self._poetry.package.build_wheel_tag_regex())
+            for tag in tags:
+                if wheel_tag_pattern.search(tag) is not None:
+                    return tag
+            raise RuntimeError(
+                "no sys tags matched regex"
+                f" '{self._poetry.package.build_wheel_tag_regex()}': {','.join(tags)}"
+            )
         else:
             platform = "any"
             impl = "py2.py3" if self.supports_python2() else "py3"
