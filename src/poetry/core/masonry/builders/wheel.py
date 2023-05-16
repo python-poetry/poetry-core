@@ -10,6 +10,7 @@ import stat
 import subprocess
 import tempfile
 import zipfile
+import packaging.tags
 
 from base64 import urlsafe_b64encode
 from io import StringIO
@@ -17,7 +18,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from poetry.core import __vendor_site__
 from poetry.core import __version__
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.masonry.builders.builder import Builder
@@ -328,22 +328,33 @@ class WheelBuilder(Builder):
 
     def get_tags(self) -> list[str]:
         env = os.environ
-        pythonpath = env.get("PYTHONPATH", "").strip()
-        if pythonpath == "":
-            env["PYTHONPATH"] = __vendor_site__
-        else:
-            env["PYTHONPATH"] = os.pathsep.join([__vendor_site__, pythonpath])
         try:
             tags = (
                 subprocess.check_output(
                     [
                         self.executable.as_posix(),
                         "-c",
-                        """
-from packaging.tags import sys_tags
-for tag in sys_tags():
-  print(tag)
-                        """,
+                        f"""
+import importlib.util
+import sys
+
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location(
+    "packaging", Path(r"{packaging.__file__}")
+)
+
+packaging = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = packaging
+
+spec = importlib.util.spec_from_file_location(
+    "packaging.tags", Path(r"{packaging.tags.__file__}")
+)
+packaging_tags = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(packaging_tags)
+for t in packaging_tags.sys_tags():
+    print(t.interpreter, t.abi, t.platform, sep="-")
+""",
                     ],
                     env=env,
                     stderr=subprocess.STDOUT,
@@ -353,6 +364,7 @@ for tag in sys_tags():
                 .splitlines()
             )
         except subprocess.CalledProcessError as cpe:
+            pythonpath = env.get("PYTHONPATH", "").strip()
             raise RuntimeError(
                 "get_tags failed to get sys_tags for python interpreter"
                 f" '{self.executable.as_posix()}' using PYTHONPATH='{pythonpath}'"
