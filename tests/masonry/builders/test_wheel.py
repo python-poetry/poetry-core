@@ -151,12 +151,10 @@ def test_wheel_get_tags(mocker: MockerFixture) -> None:
     class MockGetTags:
         def get_tags(self) -> list[str]:
             return [
-                (
-                    'cp311-cp311-manylinux_2_37_x86_64'
-                    'cp311-abi3-manylinux_2_36_x86_64'
-                    'cp311-none-manylinux_2_35_x86_64'
-                    'cp311-abi3-linux_x86_64'
-                )
+                "cp311-cp311-manylinux_2_37_x86_64"
+                "cp311-abi3-manylinux_2_36_x86_64"
+                "cp311-none-manylinux_2_35_x86_64"
+                "cp311-abi3-linux_x86_64"
             ]
 
     p = mocker.patch("packaging.tags")

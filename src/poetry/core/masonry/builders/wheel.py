@@ -11,13 +11,14 @@ import stat
 import subprocess
 import tempfile
 import zipfile
-import packaging.tags
 
 from base64 import urlsafe_b64encode
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import TextIO
+
+import packaging.tags
 
 from poetry.core import __version__
 from poetry.core.constraints.version import parse_constraint
