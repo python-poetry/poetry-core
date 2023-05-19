@@ -177,7 +177,15 @@ def test_file_dependency_pep_508_local_file_relative_path(
     _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
-def test_absolute_file_dependency_to_pep_508_with_marker(mocker: MockerFixture) -> None:
+def test_file_dependency_pep_508_with_subdirectory(mocker: MockerFixture) -> None:
+    path = DIST_PATH / "demo.zip"
+    expected = f"demo @ {path.as_uri()}#subdirectory=sub"
+
+    requirement = f"demo @ file://{path.as_posix()}#subdirectory=sub"
+    _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
+
+
+def test_to_pep_508_with_marker(mocker: MockerFixture) -> None:
     wheel = "demo-0.1.0-py2.py3-none-any.whl"
 
     abs_path = DIST_PATH / wheel

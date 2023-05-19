@@ -63,10 +63,7 @@ class Requirement:
 
         self.extras = [e.value for e in parsed.scan_values(lambda t: t.type == "EXTRA")]
         constraint = next(parsed.find_data("version_specification"), None)
-        if not constraint:
-            constraint = "*"
-        else:
-            constraint = ",".join(constraint.children)
+        constraint = ",".join(constraint.children) if constraint else "*"
 
         try:
             self.constraint = parse_constraint(constraint)

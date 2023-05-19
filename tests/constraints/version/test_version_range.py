@@ -5,6 +5,7 @@ import pytest
 from poetry.core.constraints.version import EmptyConstraint
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import parse_constraint
 
 
 @pytest.fixture()
@@ -80,7 +81,7 @@ def v300b1() -> Version:
 @pytest.mark.parametrize(
     "base,other",
     [
-        pytest.param(Version.parse("3.0.0"), Version.parse("3.0.0-1"), id="post"),
+        pytest.param(Version.parse("3.0.0-1"), Version.parse("3.0.0-1"), id="post"),
         pytest.param(
             Version.parse("3.0.0"), Version.parse("3.0.0+local.1"), id="local"
         ),
@@ -111,7 +112,7 @@ def test_allows_post_releases_with_post_and_local_min() -> None:
     three = Version.parse("3.0.0-1+local.1")
     four = Version.parse("3.0.0+local.2")
 
-    assert VersionRange(min=one, include_min=True).allows(two)
+    assert not VersionRange(min=one, include_min=True).allows(two)
     assert VersionRange(min=one, include_min=True).allows(three)
     assert VersionRange(min=one, include_min=True).allows(four)
 
@@ -124,8 +125,8 @@ def test_allows_post_releases_with_post_and_local_min() -> None:
     assert not VersionRange(min=three, include_min=True).allows(four)
 
     assert not VersionRange(min=four, include_min=True).allows(one)
-    assert VersionRange(min=four, include_min=True).allows(two)
-    assert VersionRange(min=four, include_min=True).allows(three)
+    assert not VersionRange(min=four, include_min=True).allows(two)
+    assert not VersionRange(min=four, include_min=True).allows(three)
 
 
 def test_allows_post_releases_with_post_and_local_max() -> None:
@@ -134,8 +135,8 @@ def test_allows_post_releases_with_post_and_local_max() -> None:
     three = Version.parse("3.0.0-1+local.1")
     four = Version.parse("3.0.0+local.2")
 
-    assert VersionRange(max=one, include_max=True).allows(two)
-    assert VersionRange(max=one, include_max=True).allows(three)
+    assert not VersionRange(max=one, include_max=True).allows(two)
+    assert not VersionRange(max=one, include_max=True).allows(three)
     assert not VersionRange(max=one, include_max=True).allows(four)
 
     assert VersionRange(max=two, include_max=True).allows(one)
@@ -147,8 +148,8 @@ def test_allows_post_releases_with_post_and_local_max() -> None:
     assert VersionRange(max=three, include_max=True).allows(four)
 
     assert VersionRange(max=four, include_max=True).allows(one)
-    assert VersionRange(max=four, include_max=True).allows(two)
-    assert VersionRange(max=four, include_max=True).allows(three)
+    assert not VersionRange(max=four, include_max=True).allows(two)
+    assert not VersionRange(max=four, include_max=True).allows(three)
 
 
 @pytest.mark.parametrize(
@@ -345,7 +346,7 @@ def test_allows_any(
     # pre-release min does not allow lesser than itself
     range = VersionRange(Version.parse("1.9b1"), include_min=True)
     assert not range.allows_any(
-        VersionRange(Version.parse("1.8.0"), Version.parse("1.9.0"), include_min=True)
+        VersionRange(Version.parse("1.8.0"), Version.parse("1.9.0b0"), include_min=True)
     )
 
 
@@ -446,15 +447,302 @@ def test_union(
     assert result == VersionRange(v003, v200)
 
 
-def test_include_max_prerelease(v200: Version, v300: Version, v300b1: Version) -> None:
-    result = VersionRange(v200, v300)
+@pytest.mark.parametrize(
+    ("version", "spec", "expected"),
+    [
+        (v, s, True)
+        for v, s in [
+            # Test the equality operation
+            ("2.0", "==2"),
+            ("2.0", "==2.0"),
+            ("2.0", "==2.0.0"),
+            ("2.0+deadbeef", "==2"),
+            ("2.0+deadbeef", "==2.0"),
+            ("2.0+deadbeef", "==2.0.0"),
+            ("2.0+deadbeef", "==2+deadbeef"),
+            ("2.0+deadbeef", "==2.0+deadbeef"),
+            ("2.0+deadbeef", "==2.0.0+deadbeef"),
+            ("2.0+deadbeef.0", "==2.0.0+deadbeef.00"),
+            # Test the equality operation with a prefix
+            ("2.dev1", "==2.*"),
+            ("2a1", "==2.*"),
+            ("2a1.post1", "==2.*"),
+            ("2b1", "==2.*"),
+            ("2b1.dev1", "==2.*"),
+            ("2c1", "==2.*"),
+            ("2c1.post1.dev1", "==2.*"),
+            ("2rc1", "==2.*"),
+            ("2", "==2.*"),
+            ("2.0", "==2.*"),
+            ("2.0.0", "==2.*"),
+            ("2.0.post1", "==2.0.post1.*"),
+            ("2.0.post1.dev1", "==2.0.post1.*"),
+            ("2.1+local.version", "==2.1.*"),
+            # Test the in-equality operation
+            ("2.1", "!=2"),
+            ("2.1", "!=2.0"),
+            ("2.0.1", "!=2"),
+            ("2.0.1", "!=2.0"),
+            ("2.0.1", "!=2.0.0"),
+            ("2.0", "!=2.0+deadbeef"),
+            # Test the in-equality operation with a prefix
+            ("2.0", "!=3.*"),
+            ("2.1", "!=2.0.*"),
+            # Test the greater than equal operation
+            ("2.0", ">=2"),
+            ("2.0", ">=2.0"),
+            ("2.0", ">=2.0.0"),
+            ("2.0.post1", ">=2"),
+            ("2.0.post1.dev1", ">=2"),
+            ("3", ">=2"),
+            # Test the less than equal operation
+            ("2.0", "<=2"),
+            ("2.0", "<=2.0"),
+            ("2.0", "<=2.0.0"),
+            ("2.0.dev1", "<=2"),
+            ("2.0a1", "<=2"),
+            ("2.0a1.dev1", "<=2"),
+            ("2.0b1", "<=2"),
+            ("2.0b1.post1", "<=2"),
+            ("2.0c1", "<=2"),
+            ("2.0c1.post1.dev1", "<=2"),
+            ("2.0rc1", "<=2"),
+            ("1", "<=2"),
+            # Test the greater than operation
+            ("3", ">2"),
+            ("2.1", ">2.0"),
+            ("2.0.1", ">2"),
+            ("2.1.post1", ">2"),
+            ("2.1+local.version", ">2"),
+            # Test the less than operation
+            ("1", "<2"),
+            ("2.0", "<2.1"),
+            ("2.0.dev0", "<2.1"),
+            # Test the compatibility operation
+            ("1", "~=1.0"),
+            ("1.0.1", "~=1.0"),
+            ("1.1", "~=1.0"),
+            ("1.9999999", "~=1.0"),
+            ("1.1", "~=1.0a1"),
+            # Test that epochs are handled sanely
+            ("2!1.0", "~=2!1.0"),
+            ("2!1.0", "==2!1.*"),
+            ("2!1.0", "==2!1.0"),
+            ("2!1.0", "!=1.0"),
+            ("1.0", "!=2!1.0"),
+            ("1.0", "<=2!0.1"),
+            ("2!1.0", ">=2.0"),
+            ("1.0", "<2!0.1"),
+            ("2!1.0", ">2.0"),
+            # Test some normalization rules
+            ("2.0.5", ">2.0dev"),
+        ]
+    ]
+    + [
+        (v, s, False)
+        for v, s in [
+            # Test the equality operation
+            ("2.1", "==2"),
+            ("2.1", "==2.0"),
+            ("2.1", "==2.0.0"),
+            ("2.0", "==2.0+deadbeef"),
+            # Test the equality operation with a prefix
+            ("2.0", "==3.*"),
+            ("2.1", "==2.0.*"),
+            # Test the in-equality operation
+            ("2.0", "!=2"),
+            ("2.0", "!=2.0"),
+            ("2.0", "!=2.0.0"),
+            ("2.0+deadbeef", "!=2"),
+            ("2.0+deadbeef", "!=2.0"),
+            ("2.0+deadbeef", "!=2.0.0"),
+            ("2.0+deadbeef", "!=2+deadbeef"),
+            ("2.0+deadbeef", "!=2.0+deadbeef"),
+            ("2.0+deadbeef", "!=2.0.0+deadbeef"),
+            ("2.0+deadbeef.0", "!=2.0.0+deadbeef.00"),
+            # Test the in-equality operation with a prefix
+            ("2.dev1", "!=2.*"),
+            ("2a1", "!=2.*"),
+            ("2a1.post1", "!=2.*"),
+            ("2b1", "!=2.*"),
+            ("2b1.dev1", "!=2.*"),
+            ("2c1", "!=2.*"),
+            ("2c1.post1.dev1", "!=2.*"),
+            ("2rc1", "!=2.*"),
+            ("2", "!=2.*"),
+            ("2.0", "!=2.*"),
+            ("2.0.0", "!=2.*"),
+            ("2.0.post1", "!=2.0.post1.*"),
+            ("2.0.post1.dev1", "!=2.0.post1.*"),
+            # Test the greater than equal operation
+            ("2.0.dev1", ">=2"),
+            ("2.0a1", ">=2"),
+            ("2.0a1.dev1", ">=2"),
+            ("2.0b1", ">=2"),
+            ("2.0b1.post1", ">=2"),
+            ("2.0c1", ">=2"),
+            ("2.0c1.post1.dev1", ">=2"),
+            ("2.0rc1", ">=2"),
+            ("1", ">=2"),
+            # Test the less than equal operation
+            ("2.0.post1", "<=2"),
+            ("2.0.post1.dev1", "<=2"),
+            ("3", "<=2"),
+            # Test the greater than operation
+            ("1", ">2"),
+            ("2.0.dev1", ">2"),
+            ("2.0a1", ">2"),
+            ("2.0a1.post1", ">2"),
+            ("2.0b1", ">2"),
+            ("2.0b1.dev1", ">2"),
+            ("2.0c1", ">2"),
+            ("2.0c1.post1.dev1", ">2"),
+            ("2.0rc1", ">2"),
+            ("2.0", ">2"),
+            ("2.0.post1", ">2"),
+            ("2.0.post1.dev1", ">2"),
+            ("2.0+local.version", ">2"),
+            # Test the less than operation
+            ("2.0.dev1", "<2"),
+            ("2.0a1", "<2"),
+            ("2.0a1.post1", "<2"),
+            ("2.0b1", "<2"),
+            ("2.0b2.dev1", "<2"),
+            ("2.0c1", "<2"),
+            ("2.0c1.post1.dev1", "<2"),
+            ("2.0rc1", "<2"),
+            ("2.0", "<2"),
+            ("2.post1", "<2"),
+            ("2.post1.dev1", "<2"),
+            ("3", "<2"),
+            # Test the compatibility operation
+            ("2.0", "~=1.0"),
+            ("1.1.0", "~=1.0.0"),
+            ("1.1.post1", "~=1.0.0"),
+            # Test that epochs are handled sanely
+            ("1.0", "~=2!1.0"),
+            ("2!1.0", "~=1.0"),
+            ("2!1.0", "==1.0"),
+            ("1.0", "==2!1.0"),
+            ("2!1.0", "==1.*"),
+            ("1.0", "==2!1.*"),
+            ("2!1.0", "!=2!1.0"),
+        ]
+    ],
+)
+def test_specifiers(version: str, spec: str, expected: bool) -> None:
+    """
+    Test derived from
+    https://github.com/pypa/packaging/blob/8b86d85797b9f26d98ecfbe0271ce4dc9495d98c/tests/test_specifiers.py#L469
+    """
+    constraint = parse_constraint(spec)
 
-    assert not result.allows(v300b1)
-    assert not result.allows_any(VersionRange(v300b1))
-    assert not result.allows_all(VersionRange(v200, v300b1))
+    v = Version.parse(version)
 
-    result = VersionRange(v200, v300, always_include_max_prerelease=True)
+    if expected:
+        # Test that the plain string form works
+        # assert version in spec
+        assert constraint.allows(v)
 
-    assert result.allows(v300b1)
-    assert result.allows_any(VersionRange(v300b1))
-    assert result.allows_all(VersionRange(v200, v300b1))
+        # Test that the version instance form works
+        # assert version in spec
+        assert constraint.allows(v)
+    else:
+        # Test that the plain string form works
+        # assert version not in spec
+        assert not constraint.allows(v)
+
+        # Test that the version instance form works
+        # assert version not in spec
+        assert not constraint.allows(v)
+
+
+@pytest.mark.parametrize(
+    ("include_min", "include_max", "expected"),
+    [
+        (True, False, True),
+        (False, False, False),
+        (False, True, False),
+        (True, True, False),
+    ],
+)
+def test_is_single_wildcard_range_include_min_include_max(
+    include_min: bool, include_max: bool, expected: bool
+) -> None:
+    version_range = VersionRange(
+        Version.parse("1.2.dev0"), Version.parse("1.3"), include_min, include_max
+    )
+    assert version_range.is_single_wildcard_range is expected
+
+
+@pytest.mark.parametrize(
+    ("min", "max", "expected"),
+    [
+        # simple wildcard ranges
+        ("1.2.dev0", "1.3", True),
+        ("1.2.dev0", "1.3.dev0", True),
+        ("1.dev0", "2", True),
+        ("1.2.3.4.5.dev0", "1.2.3.4.6", True),
+        # simple non wilcard ranges
+        (None, "1.3", False),
+        ("1.2.dev0", None, False),
+        (None, None, False),
+        ("1.2a0", "1.3", False),
+        ("1.2.post0", "1.3", False),
+        ("1.2.dev0+local", "1.3", False),
+        ("1.2", "1.3", False),
+        ("1.2.dev1", "1.3", False),
+        ("1.2.dev0", "1.3.post0.dev0", False),
+        ("1.2.dev0", "1.3a0.dev0", False),
+        ("1.2.dev0", "1.3.dev0+local", False),
+        ("1.2.dev0", "1.3.dev1", False),
+        # more complicated ranges
+        ("1.dev0", "1.0.0.1", True),
+        ("1.2.dev0", "1.3.0.0", True),
+        ("1.2.dev0", "1.3.0.0.dev0", True),
+        ("1.2.0.dev0", "1.3", True),
+        ("1.2.1.dev0", "1.3.0.0", False),
+        ("1.2.dev0", "1.4", False),
+        ("1.2.dev0", "2.3", False),
+        # post releases
+        ("2.0.post1.dev0", "2.0.post2", True),
+        ("2.0.post1.dev0", "2.0.post2.dev0", True),
+        ("2.0.post1.dev1", "2.0.post2", False),
+        ("2.0.post1.dev0", "2.0.post2.dev1", False),
+        ("2.0.post1.dev0", "2.0.post3", False),
+        ("2.0.post1.dev0", "2.0.post1", False),
+    ],
+)
+def test_is_single_wildcard_range(
+    min: str | None, max: str | None, expected: bool
+) -> None:
+    version_range = VersionRange(
+        Version.parse(min) if min else None,
+        Version.parse(max) if max else None,
+        include_min=True,
+    )
+    assert version_range.is_single_wildcard_range is expected
+
+
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [
+        # simple ranges
+        ("*", "*"),
+        (">1.2", ">1.2"),
+        (">=1.2", ">=1.2"),
+        ("<1.3", "<1.3"),
+        ("<=1.3", "<=1.3"),
+        (">=1.2,<1.3", ">=1.2,<1.3"),
+        # wildcard ranges
+        ("1.*", "==1.*"),
+        ("1.0.*", "==1.0.*"),
+        ("1.2.*", "==1.2.*"),
+        ("1.2.3.4.5.*", "==1.2.3.4.5.*"),
+        ("2.0.post1.*", "==2.0.post1.*"),
+        ("2.1.post0.*", "==2.1.post0.*"),
+        (">=1.dev0,<2", "==1.*"),
+    ],
+)
+def test_str(version: str, expected: str) -> None:
+    assert str(parse_constraint(version)) == expected

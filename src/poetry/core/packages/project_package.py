@@ -10,8 +10,8 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
-    from poetry.core.packages.dependency import Dependency
     from poetry.core.constraints.version import Version
+    from poetry.core.packages.dependency import Dependency
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker

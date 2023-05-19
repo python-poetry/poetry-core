@@ -17,7 +17,7 @@ from urllib.request import url2pathname
 
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
-from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version import parse_marker_version_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
 from poetry.core.version.markers import SingleMarkerLike
 from poetry.core.version.markers import dnf
@@ -322,7 +322,7 @@ def get_python_constraint_from_marker(
 
     python_version_markers = markers["python_version"]
     normalized = normalize_python_version_markers(python_version_markers)
-    constraint = parse_constraint(normalized)
+    constraint = parse_marker_version_constraint(normalized)
     return constraint
 
 

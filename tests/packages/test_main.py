@@ -41,7 +41,7 @@ def test_dependency_from_pep_508_with_constraint() -> None:
     dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
-    assert str(dep.constraint) == ">=2.12.0,<2.17.0 || >=2.18.0,<3.0"
+    assert str(dep.constraint) == ">=2.12.0,<2.17.dev0 || >=2.18.dev0,<3.0"
 
 
 def test_dependency_from_pep_508_with_extras() -> None:
@@ -286,7 +286,7 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     )
 
 
-def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix() -> (
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix() -> (  # noqa: E501
     None
 ):
     name = 'pathlib2 ; python_version == "3.4.*" or python_version < "3"'
@@ -297,7 +297,7 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.python_versions == "==3.4.* || <3"
 
 
-def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde() -> (
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde() -> (  # noqa: E501
     None
 ):
     name = 'pathlib2 ; python_version ~= "3.4" or python_version < "3"'
@@ -308,7 +308,7 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.python_versions == "~=3.4 || <3"
 
 
-def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers() -> (
+def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers() -> (  # noqa: E501
     None
 ):
     name = (

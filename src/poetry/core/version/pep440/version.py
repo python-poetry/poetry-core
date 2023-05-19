@@ -6,6 +6,7 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Sequence
 from typing import TypeVar
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_ALPHA
@@ -139,9 +140,12 @@ class PEP440Version:
         return self.release.patch
 
     @property
-    def non_semver_parts(self) -> tuple[int, ...]:
-        assert isinstance(self.release.extra, tuple)
+    def non_semver_parts(self) -> Sequence[int]:
         return self.release.extra
+
+    @property
+    def parts(self) -> Sequence[int]:
+        return self.release.to_parts()
 
     def to_string(self, short: bool = False) -> str:
         if short:
@@ -231,7 +235,11 @@ class PEP440Version:
             release = release.next_patch()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_prerelease(self: T, next_phase: bool = False) -> PEP440Version:
+    def next_stable(self: T) -> T:
+        release = self.release.next() if self.is_stable() else self.release
+        return self.__class__(epoch=self.epoch, release=release, local=self.local)
+
+    def next_prerelease(self: T, next_phase: bool = False) -> T:
         if self.is_stable():
             warnings.warn(
                 (
@@ -309,9 +317,9 @@ class PEP440Version:
             **{
                 **{
                     k: getattr(self, k)
-                    for k in self.__dataclass_fields__.keys()
+                    for k in self.__dataclass_fields__
                     if k not in ("_compare_key", "text")
-                },  # setup defaults with current values, excluding compare keys and text
+                },  # setup defaults with current values, excluding compare keys and text  # noqa: E501
                 **kwargs,  # keys to replace
             }
         )
@@ -320,4 +328,9 @@ class PEP440Version:
         return self.replace(local=None)
 
     def without_postrelease(self: T) -> T:
-        return self.replace(post=None)
+        if self.is_postrelease():
+            return self.replace(post=None, dev=None)
+        return self
+
+    def without_devrelease(self: T) -> T:
+        return self.replace(dev=None)

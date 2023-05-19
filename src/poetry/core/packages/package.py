@@ -5,11 +5,7 @@ import re
 import warnings
 
 from contextlib import contextmanager
-from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Collection
-from typing import Iterable
-from typing import Iterator
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
@@ -22,6 +18,11 @@ from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+    from collections.abc import Iterable
+    from collections.abc import Iterator
+    from pathlib import Path
+
     from packaging.utils import NormalizedName
 
     from poetry.core.constraints.version import Version
@@ -33,7 +34,9 @@ if TYPE_CHECKING:
 
     T = TypeVar("T", bound="Package")
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"():&]+)(?: <(?P<email>.+?)>)?$")
+AUTHOR_REGEX = re.compile(
+    r"(?u)^(?P<name>[- .,\w\d'’\"():&]+)(?: <(?P<email>.+?)>)?$"  # noqa: RUF001
+)
 
 
 class Package(PackageSpecification):
@@ -345,7 +348,7 @@ class Package(PackageSpecification):
         # it like this so that 3.10 is sorted after 3.9.
         sorted_classifiers = []
         python_classifiers_inserted = False
-        for classifier in sorted(set(classifiers)):
+        for classifier in sorted(set(classifiers) - set(python_classifiers)):
             if (
                 not python_classifiers_inserted
                 and classifier > python_classifier_prefix
@@ -535,6 +538,7 @@ class Package(PackageSpecification):
             dep = FileDependency(
                 self._name,
                 Path(self._source_url),
+                directory=self.source_subdirectory,
                 groups=list(self._dependency_groups.keys()),
                 optional=self.optional,
                 base=self.root_dir,

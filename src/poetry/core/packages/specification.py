@@ -3,13 +3,14 @@ from __future__ import annotations
 import copy
 
 from typing import TYPE_CHECKING
-from typing import Iterable
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from packaging.utils import NormalizedName
 
     T = TypeVar("T", bound="PackageSpecification")

@@ -5,10 +5,14 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
-from typing import Iterable
+from typing import TYPE_CHECKING
 
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.utils.utils import path_to_url
+
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +29,7 @@ class PathDependency(Dependency, ABC):
         groups: Iterable[str] | None = None,
         optional: bool = False,
         base: Path | None = None,
+        subdirectory: str | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         assert source_type in ("file", "directory")
@@ -43,6 +48,7 @@ class PathDependency(Dependency, ABC):
             allows_prereleases=True,
             source_type=source_type,
             source_url=self._full_path.as_posix(),
+            source_subdirectory=subdirectory,
             extras=extras,
         )
         # cache validation result to avoid unnecessary file system access

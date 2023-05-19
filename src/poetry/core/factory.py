@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Mapping
 from typing import Union
 from warnings import warn
 
@@ -18,6 +17,8 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
@@ -260,7 +261,7 @@ class Factory:
                     'the "allows-prereleases" property, which is deprecated. '
                     'Use "allow-prereleases" instead.'
                 )
-                warn(message, DeprecationWarning)
+                warn(message, DeprecationWarning, stacklevel=2)
                 logger.warning(message)
 
             allows_prereleases = constraint.get(
@@ -289,6 +290,7 @@ class Factory:
                 dependency = FileDependency(
                     name,
                     file_path,
+                    directory=constraint.get("subdirectory", None),
                     groups=groups,
                     base=root_dir,
                     extras=constraint.get("extras", []),
@@ -305,12 +307,16 @@ class Factory:
                     dependency = FileDependency(
                         name,
                         path,
+                        directory=constraint.get("subdirectory", None),
                         groups=groups,
                         optional=optional,
                         base=root_dir,
                         extras=constraint.get("extras", []),
                     )
                 else:
+                    subdirectory = constraint.get("subdirectory", None)
+                    if subdirectory:
+                        path = path / subdirectory
                     dependency = DirectoryDependency(
                         name,
                         path,

@@ -57,7 +57,7 @@ def test_package_authors_invalid() -> None:
 
     package.authors.insert(0, "<John Doe")
     with pytest.raises(ValueError) as e:
-        package.author_name
+        package.author_name  # noqa: B018
 
     assert (
         str(e.value)
@@ -73,7 +73,7 @@ def test_package_authors_invalid() -> None:
         ("'Jane Doe'", None),
         ('"Jane Doe"', None),
         ("MyCompany", None),
-        ("Some Company’s", None),
+        ("Some Company’s", None),  # noqa: RUF001
         ("MyCompany's R&D", "rnd@MyCompanyName.MyTLD"),
         ("Doe, John", None),
         ("(Doe, John)", None),
@@ -88,10 +88,7 @@ def test_package_authors_invalid() -> None:
 def test_package_authors_valid(name: str, email: str | None) -> None:
     package = Package("foo", "0.1.0")
 
-    if email is None:
-        author = name
-    else:
-        author = f"{name} <{email}>"
+    author = name if email is None else f"{name} <{email}>"
     package.authors.insert(0, author)
     assert package.author_name == name
     assert package.author_email == email
@@ -114,7 +111,7 @@ def test_package_author_names_invalid(name: str) -> None:
 
     package.authors.insert(0, name)
     with pytest.raises(ValueError):
-        package.author_name
+        package.author_name  # noqa: B018
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])
@@ -233,7 +230,7 @@ def test_package_equality_source_reference() -> None:
     assert a2 != a4
 
 
-def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> (
+def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> (  # noqa: E501
     None
 ):
     a1 = Package(
@@ -371,6 +368,7 @@ def test_to_dependency_for_file() -> None:
         "1.2.3",
         source_type="file",
         source_url=path.as_posix(),
+        source_subdirectory="qux",
         features=["baz", "bar"],
     )
     dep = package.to_dependency()
@@ -383,6 +381,7 @@ def test_to_dependency_for_file() -> None:
     assert dep.path == path
     assert dep.source_type == "file"
     assert dep.source_url == path.as_posix()
+    assert dep.source_subdirectory == "qux"
 
 
 def test_to_dependency_for_url() -> None:

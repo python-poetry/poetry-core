@@ -30,14 +30,15 @@ def temporary_project_directory(
 ) -> Generator[str, None, None]:
     """
     Context manager that takes a project source directory, copies content to a temporary
-    directory, patches the `pyproject.toml` using the provided patch, or using the default
-    patch if one is not given. The default path replaces `build-system` section in order
-    to use the working copy of poetry-core as the backend.
+    directory, patches the `pyproject.toml` using the provided patch, or using the
+    default patch if one is not given. The default path replaces `build-system` section
+    in order to use the working copy of poetry-core as the backend.
 
     Once the context, exists, the temporary directory is cleaned up.
 
     :param path: Source project root directory to copy from.
-    :param toml_patch: Patch to use for the pyproject.toml, defaults to build system patching.
+    :param toml_patch: Patch to use for the pyproject.toml,
+                        defaults to build system patching.
     :return: A temporary copy
     """
     assert (path / "pyproject.toml").exists()
@@ -72,7 +73,7 @@ def validate_wheel_contents(
     with zipfile.ZipFile(path) as z:
         namelist = z.namelist()
         # we use concatenation here for PY2 compat
-        for filename in ["WHEEL", "METADATA", "RECORD"] + files:
+        for filename in ["WHEEL", "METADATA", "RECORD", *files]:
             assert f"{dist_info}/{filename}" in namelist
 
 

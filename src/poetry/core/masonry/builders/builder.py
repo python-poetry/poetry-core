@@ -14,7 +14,9 @@ if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
 
 
-AUTHOR_REGEX = re.compile(r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$")
+AUTHOR_REGEX = re.compile(
+    r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$"  # noqa: RUF001
+)
 
 METADATA_BASE = """\
 Metadata-Version: 2.1
@@ -106,10 +108,7 @@ class Builder:
 
             # Checking VCS
             vcs = get_vcs(self._path)
-            if not vcs:
-                vcs_ignored_files = set()
-            else:
-                vcs_ignored_files = set(vcs.get_ignored_files())
+            vcs_ignored_files = set(vcs.get_ignored_files()) if vcs else set()
 
             explicitly_excluded = set()
             for excluded_glob in self._package.exclude:
