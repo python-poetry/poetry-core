@@ -46,14 +46,14 @@ def clear_samples_dist() -> None:
     platform.python_implementation().lower() == "pypy", reason="Disable test for PyPy"
 )
 @pytest.mark.parametrize(
-    ["project", "exptected_c_dir"],
+    ["project", "expected_c_dir"],
     [
         ("extended", "extended"),
         ("extended_with_no_setup", "extended"),
         ("src_extended", "src/extended"),
     ],
 )
-def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
+def test_wheel_c_extension(project: str, expected_c_dir: str) -> None:
     module_path = fixtures_dir / project
     builder = Builder(Factory().create_poetry(module_path))
     builder.build(fmt="all")
@@ -63,7 +63,7 @@ def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
 
     with tarfile.open(sdist, "r") as tar:
         assert "extended-0.1/build.py" in tar.getnames()
-        assert f"extended-0.1/{exptected_c_dir}/extended.c" in tar.getnames()
+        assert f"extended-0.1/{expected_c_dir}/extended.c" in tar.getnames()
 
     whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
     assert whl.exists()
