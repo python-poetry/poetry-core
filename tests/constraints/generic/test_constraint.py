@@ -219,6 +219,15 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             EmptyConstraint(),
         ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
+            MultiConstraint(
+                Constraint("win32", "!="),
+                Constraint("linux", "!="),
+                Constraint("darwin", "!="),
+            ),
+        ),
     ],
 )
 def test_intersect(
@@ -392,6 +401,11 @@ def test_intersect(
                 Constraint("linux"),
                 MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             ),
+        ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
+            MultiConstraint(Constraint("win32", "!=")),
         ),
     ],
 )
