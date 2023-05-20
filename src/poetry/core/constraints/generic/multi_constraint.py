@@ -74,6 +74,13 @@ class MultiConstraint(BaseConstraint):
         return UnionConstraint(*(c.invert() for c in self._constraints))
 
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
+        if isinstance(other, MultiConstraint):
+            ours = set(self.constraints)
+            union = list(self.constraints) + [
+                c for c in other.constraints if c not in ours
+            ]
+            return MultiConstraint(*union)
+
         if not isinstance(other, Constraint):
             return other.intersect(self)
 
@@ -90,6 +97,11 @@ class MultiConstraint(BaseConstraint):
         return MultiConstraint(*self._constraints, other)
 
     def union(self, other: BaseConstraint) -> BaseConstraint:
+        if isinstance(other, MultiConstraint):
+            theirs = set(other.constraints)
+            common = [c for c in self.constraints if c in theirs]
+            return MultiConstraint(*common)
+
         if not isinstance(other, Constraint):
             return other.union(self)
 
