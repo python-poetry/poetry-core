@@ -8,6 +8,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import zipfile
 
@@ -26,6 +27,7 @@ from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.helpers import distribution_name
 from poetry.core.masonry.utils.helpers import normalize_file_permissions
 from poetry.core.masonry.utils.package_include import PackageInclude
+from poetry.core.utils.helpers import decode
 from poetry.core.utils.helpers import temporary_directory
 
 
@@ -327,15 +329,16 @@ class WheelBuilder(Builder):
         escaped_name = distribution_name(name)
         return f"{escaped_name}-{version}.dist-info"
 
-    def get_tags(self) -> list[str]:
-        env = os.environ
+    def _get_sys_tags(self) -> list[str]:
+        """Get sys_tags via subprocess.
+        Required if poetry-core is not run inside the build environment.
+        """
         try:
-            tags = (
-                subprocess.check_output(
-                    [
-                        self.executable.as_posix(),
-                        "-c",
-                        f"""
+            output = subprocess.check_output(
+                [
+                    self.executable.as_posix(),
+                    "-c",
+                    f"""
 import importlib.util
 import sys
 
@@ -356,28 +359,25 @@ spec.loader.exec_module(packaging_tags)
 for t in packaging_tags.sys_tags():
     print(t.interpreter, t.abi, t.platform, sep="-")
 """,
-                    ],
-                    env=env,
-                    stderr=subprocess.STDOUT,
-                )
-                .decode("utf-8")
-                .strip()
-                .splitlines()
+                ],
+                stderr=subprocess.STDOUT,
             )
-        except subprocess.CalledProcessError as cpe:
-            pythonpath = env.get("PYTHONPATH", "").strip()
+        except subprocess.CalledProcessError as e:
             raise RuntimeError(
-                "get_tags failed to get sys_tags for python interpreter"
-                f" '{self.executable.as_posix()}' using PYTHONPATH='{pythonpath}'"
-                " to supply packaging.tags package: script exited"
-                f" {cpe.returncode} with output '{cpe.output}'"
+                "Failed to get sys_tags for python interpreter"
+                f" '{self.executable.as_posix()}':\n{decode(e.output)}"
             )
-        return tags
+        return decode(output).strip().splitlines()
 
     @property
     def tag(self) -> str:
         if self._package.build_script:
-            return self.get_tags()[0]
+            if self.executable != Path(sys.executable):
+                # poetry-core is not run in the build environment
+                # -> this is probably not a PEP 517 build but a poetry build
+                return self._get_sys_tags()[0]
+            sys_tag = next(packaging.tags.sys_tags())
+            tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
             platform = "any"
             impl = "py2.py3" if self.supports_python2() else "py3"
