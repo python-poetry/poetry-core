@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import zipfile
 
@@ -350,3 +351,22 @@ def test_wheel_file_is_closed(monkeypatch: MonkeyPatch) -> None:
 
     assert fd_file[0] is not None
     assert fd_file[0].closed
+
+
+@pytest.mark.parametrize("in_venv_build", [True, False])
+def test_tag(in_venv_build: bool, mocker: MockerFixture) -> None:
+    """Tests that tag returns a valid tag if a build script is used,
+    no matter if poetry-core lives inside the build environment or not.
+    """
+    root = fixtures_dir / "extended"
+    builder = WheelBuilder(Factory().create_poetry(root))
+
+    get_sys_tags_spy = mocker.spy(builder, "_get_sys_tags")
+    if not in_venv_build:
+        mocker.patch("sys.executable", "other/python")
+
+    assert re.match("^cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+$", builder.tag)
+    if in_venv_build:
+        get_sys_tags_spy.assert_not_called()
+    else:
+        get_sys_tags_spy.assert_called()
