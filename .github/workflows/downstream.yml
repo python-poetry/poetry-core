@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ref: ["master"]
+        ref: ["master", "1.5"]
       fail-fast: false
     defaults:
       run:
