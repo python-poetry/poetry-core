@@ -1,6 +1,15 @@
 # Change Log
 
 
+## [1.6.1] - 2023-05-29
+
+### Fixed
+
+- Fix an endless recursion in marker handling ([#593](https://github.com/python-poetry/poetry-core/pull/593)).
+- Fix an issue where the wheel tag was not built correctly under certain circumstances ([#591](https://github.com/python-poetry/poetry-core/pull/591)).
+- Fix an issue where the tests included in the sdist failed due to missing files ([#589](https://github.com/python-poetry/poetry-core/pull/589)).
+
+
 ## [1.6.0] - 2023-05-14
 
 ### Added
@@ -531,7 +540,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.6.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.6.1...main
+[1.6.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.1
 [1.6.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.0
 [1.5.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.2
 [1.5.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.1
