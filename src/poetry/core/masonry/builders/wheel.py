@@ -67,7 +67,7 @@ class WheelBuilder(Builder):
             self._original_path = original.parent
         self._editable = editable
         self._metadata_directory = metadata_directory
-        self._has_libs : bool | None = None
+        self._has_libs: bool | None = None
 
     @classmethod
     def make_in(
