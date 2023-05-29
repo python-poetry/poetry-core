@@ -19,6 +19,7 @@ import pytest
 from poetry.core import __version__
 from poetry.core.factory import Factory
 from poetry.core.masonry.builder import Builder
+from tests.masonry.builders.test_wheel import WHEEL_TAG_REGEX
 
 
 if TYPE_CHECKING:
@@ -82,7 +83,7 @@ def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
 Wheel-Version: 1.0
 Generator: poetry-core {__version__}
 Root-Is-Purelib: false
-Tag: cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+
+Tag: {WHEEL_TAG_REGEX}
 $""",
                 wheel_data,
             )
