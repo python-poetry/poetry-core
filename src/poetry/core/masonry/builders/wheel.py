@@ -67,7 +67,7 @@ class WheelBuilder(Builder):
             self._original_path = original.parent
         self._editable = editable
         self._metadata_directory = metadata_directory
-        self._has_libs = None        
+        self._has_libs = None
 
     @classmethod
     def make_in(
@@ -190,7 +190,7 @@ class WheelBuilder(Builder):
                         # The result of building the extensions
                         # does not exist, this may due to conditional
                         # builds, so we assume that it's okay
-                        self._has_libs = False                        
+                        self._has_libs = False
                         return
 
                     lib = libs[0]
@@ -373,8 +373,8 @@ for t in packaging_tags.sys_tags():
 
     @property
     def is_pure_lib(self) -> bool:
-        return self._package.build_script is None or self._has_libs == False
-    
+        return self._package.build_script is None or self._has_libs is False
+
     @property
     def tag(self) -> str:
         if not self.is_pure_lib:
