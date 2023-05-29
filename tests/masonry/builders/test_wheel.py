@@ -25,6 +25,9 @@ if TYPE_CHECKING:
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
+WHEEL_TAG_REGEX = "[cp]p[23]_?\\d+-(?:cp[23]_?\\d+m?u?|pypy[23]_?\\d+_pp\\d+)-.+"
+
+
 @pytest.fixture(autouse=True)
 def setup() -> Iterator[None]:
     clear_samples_dist()
@@ -365,7 +368,7 @@ def test_tag(in_venv_build: bool, mocker: MockerFixture) -> None:
     if not in_venv_build:
         mocker.patch("sys.executable", "other/python")
 
-    assert re.match("^cp[23]_?\\d+-cp[23]_?\\d+m?u?-.+$", builder.tag)
+    assert re.match(f"^{WHEEL_TAG_REGEX}$", builder.tag)
     if in_venv_build:
         get_sys_tags_spy.assert_not_called()
     else:
