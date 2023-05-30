@@ -136,7 +136,8 @@ def test_complete(no_vcs: bool) -> None:
             ],
             key=lambda x: Path(x),
         ),
-    ] + ["my_package-1.2.3.dist-info/RECORD"]
+        "my_package-1.2.3.dist-info/RECORD",
+    ]
 
     with zipfile.ZipFile(str(whl)) as zipf:
         assert zipf.namelist() == expected_name_list
