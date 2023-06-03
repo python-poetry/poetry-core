@@ -27,7 +27,6 @@ python = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=2.15.0"
-tox = ">=3.0"
 vendoring = ">=1.0"
 
 [tool.poetry.group.test.dependencies]
@@ -37,12 +36,12 @@ pytest-mock = ">=3.10"
 build = ">=0.10.0"
 setuptools = ">=60"
 tomli-w = "^1.0.0"
+virtualenv = ">=20.21"
 
 [tool.poetry.group.typing.dependencies]
 mypy = ">=1.0"
 types-jsonschema = ">=4.4.4"
 types-setuptools = ">=57.4.14"
-
 
 [tool.ruff]
 fix = true
