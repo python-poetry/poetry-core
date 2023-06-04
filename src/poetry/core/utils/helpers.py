@@ -10,7 +10,6 @@ import unicodedata
 import warnings
 
 from contextlib import contextmanager
-from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -26,19 +25,6 @@ if TYPE_CHECKING:
 
 def combine_unicode(string: str) -> str:
     return unicodedata.normalize("NFC", string)
-
-
-def decode(string: bytes | str, encodings: list[str] | None = None) -> str:
-    if not isinstance(string, bytes):
-        return string
-
-    encodings = encodings or ["utf-8", "latin1", "ascii"]
-
-    for encoding in encodings:
-        with suppress(UnicodeEncodeError, UnicodeDecodeError):
-            return string.decode(encoding)
-
-    return string.decode(encodings[0], errors="ignore")
 
 
 def module_name(name: str) -> str:
