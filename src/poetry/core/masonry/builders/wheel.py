@@ -361,13 +361,14 @@ for t in packaging_tags.sys_tags():
 """,
                 ],
                 stderr=subprocess.STDOUT,
+                text=True,
             )
         except subprocess.CalledProcessError as e:
             raise RuntimeError(
                 "Failed to get sys_tags for python interpreter"
                 f" '{self.executable.as_posix()}':\n{decode(e.output)}"
             )
-        return decode(output).strip().splitlines()
+        return output.strip().splitlines()
 
     @property
     def tag(self) -> str:
