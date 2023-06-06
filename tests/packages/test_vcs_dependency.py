@@ -54,6 +54,51 @@ def test_to_pep_508(kwargs: dict[str, Any], expected: str) -> None:
     assert dependency.to_pep_508() == expected
 
 
+@pytest.mark.parametrize(
+    "kwargs, expected",
+    [
+        ({}, "poetry @ git+https://github.com/python-poetry/poetry.git"),
+        (
+            {"extras": ["foo"]},
+            "poetry[foo] @ git+https://github.com/python-poetry/poetry.git",
+        ),
+        (
+            {"extras": ["foo", "bar"]},
+            "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git",
+        ),
+        (
+            {"branch": "main", "resolved_rev": "aaaa"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git@aaaa",
+        ),
+        (
+            {"tag": "1.0", "resolved_rev": "aaaa"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git@aaaa",
+        ),
+        (
+            {"rev": "12345", "resolved_rev": "aaaa"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git@aaaa",
+        ),
+        (
+            {"directory": "sub"},
+            "poetry @ git+https://github.com/python-poetry/poetry.git#subdirectory=sub",
+        ),
+        (
+            {"branch": "main", "directory": "sub", "resolved_rev": "aaaa"},
+            (
+                "poetry @ git+https://github.com/python-poetry/poetry.git"
+                "@aaaa#subdirectory=sub"
+            ),
+        ),
+    ],
+)
+def test_to_pep_508_resolved(kwargs: dict[str, Any], expected: str) -> None:
+    dependency = VCSDependency(
+        "poetry", "git", "https://github.com/python-poetry/poetry.git", **kwargs
+    )
+
+    assert dependency.to_pep_508(resolved=True) == expected
+
+
 def test_to_pep_508_ssh() -> None:
     dependency = VCSDependency("poetry", "git", "git@github.com:sdispater/poetry.git")
 

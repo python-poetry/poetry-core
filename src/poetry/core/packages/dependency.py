@@ -279,10 +279,13 @@ class Dependency(PackageSpecification):
     def is_url(self) -> bool:
         return False
 
-    def to_pep_508(self, with_extras: bool = True) -> str:
+    def to_pep_508(self, with_extras: bool = True, resolved: bool = False) -> str:
         from poetry.core.packages.utils.utils import convert_markers
 
-        requirement = self.base_pep_508_name
+        if resolved and hasattr(self, "base_pep_508_name_resolved"):
+            requirement: str = self.base_pep_508_name_resolved
+        else:
+            requirement = self.base_pep_508_name
 
         markers = []
         has_extras = False
