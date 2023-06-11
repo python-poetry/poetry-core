@@ -258,6 +258,10 @@ class Dependency(PackageSpecification):
 
         return requirement
 
+    @property
+    def base_pep_508_name_resolved(self) -> str:
+        return self.base_pep_508_name
+
     def allows_prereleases(self) -> bool:
         return self._allows_prereleases
 
@@ -282,8 +286,8 @@ class Dependency(PackageSpecification):
     def to_pep_508(self, with_extras: bool = True, *, resolved: bool = False) -> str:
         from poetry.core.packages.utils.utils import convert_markers
 
-        if resolved and hasattr(self, "base_pep_508_name_resolved"):
-            requirement: str = self.base_pep_508_name_resolved
+        if resolved:
+            requirement = self.base_pep_508_name_resolved
         else:
             requirement = self.base_pep_508_name
 

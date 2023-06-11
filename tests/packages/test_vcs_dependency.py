@@ -22,6 +22,10 @@ from poetry.core.packages.vcs_dependency import VCSDependency
             "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git",
         ),
         (
+            {"extras": ["foo", "bar"], "branch": "main"},
+            "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git@main",
+        ),
+        (
             {"branch": "main"},
             "poetry @ git+https://github.com/python-poetry/poetry.git@main",
         ),
@@ -65,6 +69,10 @@ def test_to_pep_508(kwargs: dict[str, Any], expected: str) -> None:
         (
             {"extras": ["foo", "bar"]},
             "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git",
+        ),
+        (
+            {"extras": ["foo", "bar"], "branch": "main", "resolved_rev": "aaaa"},
+            "poetry[bar,foo] @ git+https://github.com/python-poetry/poetry.git@aaaa",
         ),
         (
             {"branch": "main", "resolved_rev": "aaaa"},
