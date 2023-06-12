@@ -137,6 +137,7 @@ def test_to_pep_508_with_patch_python_version(
     expected = f"Django (>=1.23,<2.0) ; {marker}"
 
     assert dependency.to_pep_508() == expected
+    assert dependency.to_pep_508(resolved=True) == expected
     assert str(dependency.marker) == marker
 
 
