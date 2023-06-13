@@ -101,7 +101,7 @@ class VCSDependency(Dependency):
 
         return f"{what} {version}"
 
-    def _base_pep_508_name(self, resolved: bool = False) -> str:
+    def _base_pep_508_name(self, *, resolved: bool = False) -> str:
         from poetry.core.vcs import git
 
         requirement = self.pretty_name
