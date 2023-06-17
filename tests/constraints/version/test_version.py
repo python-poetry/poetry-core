@@ -570,3 +570,21 @@ def test_difference() -> None:
 )
 def test_to_string_normalizes(version: str, normalized_version: str) -> None:
     assert Version.parse(version).to_string() == normalized_version
+
+
+@pytest.mark.parametrize(
+    "unsorted, sorted_",
+    [
+        (["1.0.3", "1.0.2", "1.0.1"], ["1.0.1", "1.0.2", "1.0.3"]),
+        (["1.0.0.2", "1.0.0.0rc2"], ["1.0.0.0rc2", "1.0.0.2"]),
+        (["1.0.0.0", "1.0.0.0rc2"], ["1.0.0.0rc2", "1.0.0.0"]),
+        (["1.0.0.0.0", "1.0.0.0rc2"], ["1.0.0.0rc2", "1.0.0.0.0"]),
+        (["1.0.0rc2", "1.0.0rc1"], ["1.0.0rc1", "1.0.0rc2"]),
+        (["1.0.0rc2", "1.0.0b1"], ["1.0.0b1", "1.0.0rc2"]),
+    ],
+)
+def test_versions_are_sortable(unsorted: list[str], sorted_: list[str]) -> None:
+    unsorted_parsed = [Version.parse(u) for u in unsorted]
+    sorted_parsed = [Version.parse(s) for s in sorted_]
+
+    assert sorted(unsorted_parsed) == sorted_parsed
