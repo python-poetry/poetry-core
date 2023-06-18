@@ -8,7 +8,7 @@ from packaging.version import VERSION_PATTERN
 COMPLETE_VERSION = re.compile(VERSION_PATTERN, re.VERBOSE | re.IGNORECASE)
 
 CARET_CONSTRAINT = re.compile(
-    rf"^\^(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE
+    rf"^\^\s*(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE
 )
 TILDE_CONSTRAINT = re.compile(
     rf"^~(?!=)\s*(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE

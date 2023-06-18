@@ -38,7 +38,7 @@ def _parse_constraint(
         # standard-compliant it seems to occur in some packages)
         constraints = constraints.rstrip(",").rstrip()
         and_constraints = re.split(
-            "(?<!^)(?<![~=>< ,]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
+            r"(?<!^)(?<![\^~=>< ,]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
         )
         constraint_objects = []
 
