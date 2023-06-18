@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionConstraint
 from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import VersionUnion
 from poetry.core.constraints.version import parse_constraint
@@ -26,7 +27,12 @@ from poetry.core.version.pep440 import ReleaseTag
         ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
         ("=1.0", Version.from_parts(1, 0, 0)),
         ("1.2.3b5", Version.from_parts(1, 2, 3, pre=ReleaseTag("beta", 5))),
-        (">= 1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),
+        (
+            "1.0.0a1.dev0",
+            Version.from_parts(
+                1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+            ),
+        ),
         (
             ">dev",
             VersionRange(min=Version.from_parts(0, 0, dev=ReleaseTag("dev"))),
@@ -75,6 +81,33 @@ def test_parse_constraint(input: str, constraint: Version | VersionRange) -> Non
         ("0.*", VersionRange(Version.parse("0.dev0"), Version.parse("1.dev0"), True)),
         ("0.*.*", VersionRange(Version.parse("0.dev0"), Version.parse("1.dev0"), True)),
         ("0.x", VersionRange(Version.parse("0.dev0"), Version.parse("1.dev0"), True)),
+        (
+            "2.0.post1.*",
+            VersionRange(
+                min=Version.parse("2.0.post1.dev0"),
+                max=Version.parse("2.0.post2.dev0"),
+                include_min=True,
+                include_max=False,
+            ),
+        ),
+        (
+            "2.0a1.*",
+            VersionRange(
+                min=Version.parse("2.0a1.dev0"),
+                max=Version.parse("2.0a2.dev0"),
+                include_min=True,
+                include_max=False,
+            ),
+        ),
+        (
+            "2.0dev0.*",
+            VersionRange(
+                min=Version.parse("2.0dev0"),
+                max=Version.parse("2.0dev1"),
+                include_min=True,
+                include_max=False,
+            ),
+        ),
     ],
 )
 def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None:
@@ -112,6 +145,24 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
             "~1.2.3",
             VersionRange(
                 Version.from_parts(1, 2, 3), Version.from_parts(1, 3, 0), True
+            ),
+        ),
+        (
+            "~1.0.0a1",
+            VersionRange(
+                min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
+                max=Version.from_parts(1, 1, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            "~1.0.0a1.dev0",
+            VersionRange(
+                min=Version.from_parts(
+                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+                ),
+                max=Version.from_parts(1, 1, 0),
+                include_min=True,
             ),
         ),
         (
@@ -252,29 +303,32 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
                 True,
             ),
         ),
+        (
+            "^1.0.0a1",
+            VersionRange(
+                min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
+                max=Version.from_parts(2, 0, 0),
+                include_min=True,
+            ),
+        ),
+        (
+            "^1.0.0a1.dev0",
+            VersionRange(
+                min=Version.from_parts(
+                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
+                ),
+                max=Version.from_parts(2, 0, 0),
+                include_min=True,
+            ),
+        ),
     ],
 )
 def test_parse_constraint_caret(input: str, constraint: VersionRange) -> None:
     assert parse_constraint(input) == constraint
 
 
-@pytest.mark.parametrize(
-    "input",
-    [
-        ">2.0,<=3.0",
-        ">2.0 <=3.0",
-        ">2.0  <=3.0",
-        ">2.0, <=3.0",
-        ">2.0 ,<=3.0",
-        ">2.0 , <=3.0",
-        ">2.0   , <=3.0",
-        "> 2.0   <=  3.0",
-        "> 2.0  ,  <=  3.0",
-        "  > 2.0  ,  <=  3.0 ",
-    ],
-)
-def test_parse_constraint_multi(input: str) -> None:
-    assert parse_constraint(input) == VersionRange(
+def test_parse_constraint_multi() -> None:
+    assert parse_constraint(">2.0,<=3.0") == VersionRange(
         Version.from_parts(2, 0, 0),
         Version.from_parts(3, 0, 0),
         include_min=False,
@@ -309,12 +363,8 @@ def test_parse_constraint_multi_with_epochs(input: str, output: VersionRange) ->
     assert parse_constraint(input) == output
 
 
-@pytest.mark.parametrize(
-    "input",
-    [">=2.7,!=3.0.*,!=3.1.*", ">=2.7, !=3.0.*, !=3.1.*", ">= 2.7, != 3.0.*, != 3.1.*"],
-)
-def test_parse_constraint_multi_wilcard(input: str) -> None:
-    assert parse_constraint(input) == VersionUnion(
+def test_parse_constraint_multi_wildcard() -> None:
+    assert parse_constraint(">=2.7,!=3.0.*,!=3.1.*") == VersionUnion(
         VersionRange(Version.parse("2.7"), Version.parse("3.0.dev0"), True, False),
         VersionRange(Version.parse("3.2.dev0"), None, True, False),
     )
@@ -427,10 +477,17 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "constraint,version",
+    "constraint_parts,expected",
     [
+        (["3.8"], Version.from_parts(3, 8)),
+        (["=", "3.8"], Version.from_parts(3, 8)),
+        (["==", "3.8"], Version.from_parts(3, 8)),
+        ([">", "3.8"], VersionRange(min=Version.from_parts(3, 8))),
+        ([">=", "3.8"], VersionRange(min=Version.from_parts(3, 8), include_min=True)),
+        (["<", "3.8"], VersionRange(max=Version.from_parts(3, 8))),
+        (["<=", "3.8"], VersionRange(max=Version.from_parts(3, 8), include_max=True)),
         (
-            "~=3.8",
+            ["^", "3.8"],
             VersionRange(
                 min=Version.from_parts(3, 8),
                 max=Version.from_parts(4, 0),
@@ -438,23 +495,15 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             ),
         ),
         (
-            "== 3.8.*",
+            ["~", "3.8"],
             VersionRange(
-                min=Version.parse("3.8.0.dev0"),
-                max=Version.parse("3.9.0.dev0"),
+                min=Version.from_parts(3, 8),
+                max=Version.from_parts(3, 9),
                 include_min=True,
             ),
         ),
         (
-            "== 3.8.x",
-            VersionRange(
-                min=Version.parse("3.8.0.dev0"),
-                max=Version.parse("3.9.0.dev0"),
-                include_min=True,
-            ),
-        ),
-        (
-            "~= 3.8",
+            ["~=", "3.8"],
             VersionRange(
                 min=Version.from_parts(3, 8),
                 max=Version.from_parts(4, 0),
@@ -462,26 +511,29 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             ),
         ),
         (
-            "~3.8",
+            ["3.8.*"],
             VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(3, 9),
+                min=Version.parse("3.8.0.dev0"),
+                max=Version.parse("3.9.0.dev0"),
                 include_min=True,
             ),
         ),
         (
-            "~ 3.8",
+            ["==", "3.8.*"],
             VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(3, 9),
+                min=Version.parse("3.8.0.dev0"),
+                max=Version.parse("3.9.0.dev0"),
                 include_min=True,
             ),
         ),
-        (">3.8", VersionRange(min=Version.from_parts(3, 8))),
-        (">=3.8", VersionRange(min=Version.from_parts(3, 8), include_min=True)),
-        (">= 3.8", VersionRange(min=Version.from_parts(3, 8), include_min=True)),
         (
-            ">3.8,<=6.5",
+            ["!=", "3.8.*"],
+            VersionRange(max=Version.parse("3.8.dev0")).union(
+                VersionRange(Version.parse("3.9.dev0"), include_min=True)
+            ),
+        ),
+        (
+            [">", "3.8", ",", "<=", "6.5"],
             VersionRange(
                 min=Version.from_parts(3, 8),
                 max=Version.from_parts(6, 5),
@@ -489,73 +541,16 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             ),
         ),
         (
-            ">3.8,<= 6.5",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(6, 5),
-                include_max=True,
+            [">=", "2.7", ",", "!=", "3.0.*", ",", "!=", "3.1.*"],
+            VersionUnion(
+                VersionRange(
+                    Version.parse("2.7"), Version.parse("3.0.dev0"), True, False
+                ),
+                VersionRange(Version.parse("3.2.dev0"), None, True, False),
             ),
         ),
         (
-            "> 3.8,<= 6.5",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(6, 5),
-                include_max=True,
-            ),
-        ),
-        (
-            "> 3.8,<=6.5",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(6, 5),
-                include_max=True,
-            ),
-        ),
-        (
-            ">3.8 ,<=6.5",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(6, 5),
-                include_max=True,
-            ),
-        ),
-        (
-            ">3.8, <=6.5",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(6, 5),
-                include_max=True,
-            ),
-        ),
-        (
-            ">3.8 , <=6.5",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(6, 5),
-                include_max=True,
-            ),
-        ),
-        (
-            "==3.8",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(3, 8),
-                include_min=True,
-                include_max=True,
-            ),
-        ),
-        (
-            "== 3.8",
-            VersionRange(
-                min=Version.from_parts(3, 8),
-                max=Version.from_parts(3, 8),
-                include_min=True,
-                include_max=True,
-            ),
-        ),
-        (
-            "~2.7 || ~3.8",
+            ["~", "2.7", "||", "~", "3.8"],
             VersionUnion(
                 VersionRange(
                     min=Version.from_parts(2, 7),
@@ -570,7 +565,7 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             ),
         ),
         (
-            "~2.7||~3.8",
+            ["~", "2.7", "||", "~", "3.8", "|", ">=", "3.10", ",", "<", "3.12"],
             VersionUnion(
                 VersionRange(
                     min=Version.from_parts(2, 7),
@@ -582,119 +577,21 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
                     max=Version.from_parts(3, 9),
                     include_min=True,
                 ),
-            ),
-        ),
-        (
-            "~ 2.7||~ 3.8",
-            VersionUnion(
                 VersionRange(
-                    min=Version.from_parts(2, 7),
-                    max=Version.from_parts(2, 8),
+                    min=Version.from_parts(3, 10),
+                    max=Version.from_parts(3, 12),
                     include_min=True,
                 ),
-                VersionRange(
-                    min=Version.from_parts(3, 8),
-                    max=Version.from_parts(3, 9),
-                    include_min=True,
-                ),
-            ),
-        ),
-        (
-            "^1.0.0a1",
-            VersionRange(
-                min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
-                max=Version.from_parts(2, 0, 0),
-                include_min=True,
-            ),
-        ),
-        (
-            "^1.0.0a1.dev0",
-            VersionRange(
-                min=Version.from_parts(
-                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
-                ),
-                max=Version.from_parts(2, 0, 0),
-                include_min=True,
-            ),
-        ),
-        (
-            "1.0.0a1.dev0",
-            VersionRange(
-                min=Version.from_parts(
-                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
-                ),
-                max=Version.from_parts(
-                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
-                ),
-                include_min=True,
-            ),
-        ),
-        (
-            "~1.0.0a1",
-            VersionRange(
-                min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
-                max=Version.from_parts(1, 1, 0),
-                include_min=True,
-            ),
-        ),
-        (
-            "~1.0.0a1.dev0",
-            VersionRange(
-                min=Version.from_parts(
-                    1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
-                ),
-                max=Version.from_parts(1, 1, 0),
-                include_min=True,
-            ),
-        ),
-        (
-            "^0",
-            VersionRange(
-                min=Version.from_parts(0),
-                max=Version.from_parts(1),
-                include_min=True,
-            ),
-        ),
-        (
-            "^0.0",
-            VersionRange(
-                min=Version.from_parts(0, 0),
-                max=Version.from_parts(0, 1),
-                include_min=True,
-            ),
-        ),
-        (
-            "2.0.post1.*",
-            VersionRange(
-                min=Version.parse("2.0.post1.dev0"),
-                max=Version.parse("2.0.post2.dev0"),
-                include_min=True,
-                include_max=False,
-            ),
-        ),
-        (
-            "2.0a1.*",
-            VersionRange(
-                min=Version.parse("2.0a1.dev0"),
-                max=Version.parse("2.0a2.dev0"),
-                include_min=True,
-                include_max=False,
-            ),
-        ),
-        (
-            "2.0dev0.*",
-            VersionRange(
-                min=Version.parse("2.0dev0"),
-                max=Version.parse("2.0dev1"),
-                include_min=True,
-                include_max=False,
             ),
         ),
     ],
 )
 @pytest.mark.parametrize(("with_whitespace_padding",), [(True,), (False,)])
 def test_parse_constraint_with_white_space_padding(
-    constraint: str, version: VersionRange | VersionUnion, with_whitespace_padding: bool
+    constraint_parts: list[str],
+    expected: VersionConstraint,
+    with_whitespace_padding: bool,
 ) -> None:
     padding = " " * (4 if with_whitespace_padding else 0)
-    assert parse_constraint(f"{padding}{constraint}{padding}") == version
+    constraint = padding.join(["", *constraint_parts, ""])
+    assert parse_constraint(constraint) == expected
