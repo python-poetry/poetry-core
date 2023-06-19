@@ -291,6 +291,7 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
 
 class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
     _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
+    VALUE_SEPARATOR_RE = re.compile("[ ,|]+")
     _VERSION_LIKE_MARKER_NAME = {
         "python_version",
         "python_full_version",
@@ -326,7 +327,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
 
             if self._operator in {"in", "not in"}:
                 versions = []
-                for v in re.split("[ ,]+", self._value):
+                for v in self.VALUE_SEPARATOR_RE.split(self._value):
                     split = v.split(".")
                     if len(split) in (1, 2):
                         split.append("*")
@@ -346,7 +347,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
             # into a union/multi-constraint of single constraint
             if self._operator in {"in", "not in"}:
                 op, glue = ("==", " || ") if self._operator == "in" else ("!=", ", ")
-                values = re.split("[ ,]+", self._value)
+                values = self.VALUE_SEPARATOR_RE.split(self._value)
                 constraint_string = glue.join(f"{op} {value}" for value in values)
 
         try:
