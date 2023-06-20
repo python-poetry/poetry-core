@@ -356,6 +356,11 @@ def test_create_from_pep_508_url_with_activated_extras() -> None:
     assert dependency.extras == {"fred", "bar"}
 
 
+def test_create_from_pep_508_starting_with_digit() -> None:
+    dependency = Dependency.create_from_pep_508("2captcha-python")
+    assert dependency.name == "2captcha-python"
+
+
 @pytest.mark.parametrize(
     "dependency1, dependency2, expected",
     [
