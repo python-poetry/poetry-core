@@ -125,7 +125,7 @@ class MultiConstraint(BaseConstraint):
         if not isinstance(other, MultiConstraint):
             return False
 
-        return set(self._constraints) == set(other._constraints)
+        return self._constraints == other._constraints
 
     def __hash__(self) -> int:
         h = hash("multi")

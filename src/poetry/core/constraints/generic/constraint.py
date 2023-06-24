@@ -123,9 +123,9 @@ class Constraint(BaseConstraint):
         return other.intersect(self)
 
     def union(self, other: BaseConstraint) -> BaseConstraint:
-        if isinstance(other, Constraint):
-            from poetry.core.constraints.generic.union_constraint import UnionConstraint
+        from poetry.core.constraints.generic.union_constraint import UnionConstraint
 
+        if isinstance(other, Constraint):
             if other == self:
                 return self
 
@@ -139,6 +139,10 @@ class Constraint(BaseConstraint):
                 return UnionConstraint(self, other)
 
             return AnyConstraint()
+
+        # to preserve order (functionally not necessary)
+        if isinstance(other, UnionConstraint):
+            return UnionConstraint(self).union(other)
 
         return other.union(self)
 
