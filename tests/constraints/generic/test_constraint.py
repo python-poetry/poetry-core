@@ -159,7 +159,10 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
         (
             Constraint("win32", "!="),
             Constraint("linux", "!="),
-            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            (
+                MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+                MultiConstraint(Constraint("linux", "!="), Constraint("win32", "!=")),
+            ),
         ),
         (
             Constraint("win32", "!="),
@@ -222,10 +225,17 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
         (
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
-            MultiConstraint(
-                Constraint("win32", "!="),
-                Constraint("linux", "!="),
-                Constraint("darwin", "!="),
+            (
+                MultiConstraint(
+                    Constraint("win32", "!="),
+                    Constraint("linux", "!="),
+                    Constraint("darwin", "!="),
+                ),
+                MultiConstraint(
+                    Constraint("win32", "!="),
+                    Constraint("darwin", "!="),
+                    Constraint("linux", "!="),
+                ),
             ),
         ),
     ],
@@ -233,10 +243,12 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
 def test_intersect(
     constraint1: BaseConstraint,
     constraint2: BaseConstraint,
-    expected: BaseConstraint,
+    expected: BaseConstraint | tuple[BaseConstraint, BaseConstraint],
 ) -> None:
-    assert constraint1.intersect(constraint2) == expected
-    assert constraint2.intersect(constraint1) == expected
+    if not isinstance(expected, tuple):
+        expected = (expected, expected)
+    assert constraint1.intersect(constraint2) == expected[0]
+    assert constraint2.intersect(constraint1) == expected[1]
 
 
 @pytest.mark.parametrize(
@@ -295,7 +307,10 @@ def test_intersect(
         (
             Constraint("win32"),
             Constraint("linux"),
-            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            (
+                UnionConstraint(Constraint("win32"), Constraint("linux")),
+                UnionConstraint(Constraint("linux"), Constraint("win32")),
+            ),
         ),
         (
             Constraint("win32"),
@@ -324,8 +339,13 @@ def test_intersect(
         (
             Constraint("win32"),
             UnionConstraint(Constraint("linux"), Constraint("linux2")),
-            UnionConstraint(
-                Constraint("win32"), Constraint("linux"), Constraint("linux2")
+            (
+                UnionConstraint(
+                    Constraint("win32"), Constraint("linux"), Constraint("linux2")
+                ),
+                UnionConstraint(
+                    Constraint("linux"), Constraint("linux2"), Constraint("win32")
+                ),
             ),
         ),
         (
@@ -366,8 +386,13 @@ def test_intersect(
         (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
             UnionConstraint(Constraint("win32"), Constraint("darwin")),
-            UnionConstraint(
-                Constraint("win32"), Constraint("linux"), Constraint("darwin")
+            (
+                UnionConstraint(
+                    Constraint("win32"), Constraint("linux"), Constraint("darwin")
+                ),
+                UnionConstraint(
+                    Constraint("win32"), Constraint("darwin"), Constraint("linux")
+                ),
             ),
         ),
         (
@@ -377,11 +402,19 @@ def test_intersect(
             UnionConstraint(
                 Constraint("win32"), Constraint("cygwin"), Constraint("darwin")
             ),
-            UnionConstraint(
-                Constraint("win32"),
-                Constraint("linux"),
-                Constraint("darwin"),
-                Constraint("cygwin"),
+            (
+                UnionConstraint(
+                    Constraint("win32"),
+                    Constraint("linux"),
+                    Constraint("darwin"),
+                    Constraint("cygwin"),
+                ),
+                UnionConstraint(
+                    Constraint("win32"),
+                    Constraint("cygwin"),
+                    Constraint("darwin"),
+                    Constraint("linux"),
+                ),
             ),
         ),
         (
@@ -412,10 +445,12 @@ def test_intersect(
 def test_union(
     constraint1: BaseConstraint,
     constraint2: BaseConstraint,
-    expected: BaseConstraint,
+    expected: BaseConstraint | tuple[BaseConstraint, BaseConstraint],
 ) -> None:
-    assert constraint1.union(constraint2) == expected
-    assert constraint2.union(constraint1) == expected
+    if not isinstance(expected, tuple):
+        expected = (expected, expected)
+    assert constraint1.union(constraint2) == expected[0]
+    assert constraint2.union(constraint1) == expected[1]
 
 
 def test_difference() -> None:

@@ -413,6 +413,15 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
 
         return parse_marker(f"{self._name} {operator} '{self._value}'")
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SingleMarker):
+            return NotImplemented
+
+        return str(self) == str(other)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def __str__(self) -> str:
         return f'{self._name} {self._operator} "{self._value}"'
 
@@ -645,7 +654,7 @@ class MultiMarker(BaseMarker):
         if not isinstance(other, MultiMarker):
             return False
 
-        return set(self._markers) == set(other.markers)
+        return self._markers == other.markers
 
     def __hash__(self) -> int:
         h = hash("multi")
@@ -825,7 +834,7 @@ class MarkerUnion(BaseMarker):
         if not isinstance(other, MarkerUnion):
             return False
 
-        return set(self._markers) == set(other.markers)
+        return self._markers == other.markers
 
     def __hash__(self) -> int:
         h = hash("union")
@@ -898,6 +907,7 @@ def _compact_markers(
     return union(*sub_markers)
 
 
+@functools.lru_cache(maxsize=None)
 def cnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into CNF (conjunctive normal form)."""
     if isinstance(marker, MarkerUnion):
@@ -915,6 +925,7 @@ def cnf(marker: BaseMarker) -> BaseMarker:
     return marker
 
 
+@functools.lru_cache(maxsize=None)
 def dnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into DNF (disjunctive normal form)."""
     if isinstance(marker, MultiMarker):
@@ -957,6 +968,7 @@ def union(*markers: BaseMarker) -> BaseMarker:
     return min(disjunction, conjunction, unnormalized, key=lambda x: x.complexity)
 
 
+@functools.lru_cache(maxsize=None)
 def _merge_single_markers(
     marker1: SingleMarkerLike[SingleMarkerConstraint],
     marker2: SingleMarkerLike[SingleMarkerConstraint],

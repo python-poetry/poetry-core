@@ -1314,8 +1314,8 @@ def test_union_should_drop_markers_if_their_complement_is_present(
                 ),
                 MarkerUnion(
                     SingleMarker("python_version", "<3.7"),
-                    SingleMarker("sys_platform", "!=linux"),
                     SingleMarker("python_version", ">=3.9"),
+                    SingleMarker("sys_platform", "!=linux"),
                 ),
             ),
         ),
