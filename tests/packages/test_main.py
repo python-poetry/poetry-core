@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import cast
 
+import pytest
+
 from poetry.core.constraints.version import Version
 from poetry.core.packages.dependency import Dependency
 
@@ -108,33 +110,39 @@ def test_dependency_from_pep_508_complex() -> None:
     )
 
 
-def test_dependency_python_version_in() -> None:
-    name = "requests (==2.18.0); python_version in '3.3 3.4 3.5'"
+@pytest.mark.parametrize(
+    "marker_value",
+    [
+        "3.3 3.4 3.5",  # space
+        "3.3, 3.4, 3.5",  # comma
+        "3.3|3.4|3.5",  # pipe
+    ],
+)
+def test_dependency_python_version_in_(marker_value: str) -> None:
+    name = f"requests (==2.18.0); python_version in '{marker_value}'"
     dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.python_versions == "3.3.* || 3.4.* || 3.5.*"
-    assert str(dep.marker) == 'python_version in "3.3 3.4 3.5"'
+    assert str(dep.marker) == f'python_version in "{marker_value}"'
 
 
-def test_dependency_python_version_in_comma() -> None:
-    name = "requests (==2.18.0); python_version in '3.3, 3.4, 3.5'"
+@pytest.mark.parametrize(
+    "marker_value",
+    [
+        "win32 darwin",  # space
+        "win32, darwin",  # comma
+        "win32|darwin",  # pipe
+    ],
+)
+def test_dependency_platform_in(marker_value: str) -> None:
+    name = f"requests (==2.18.0); sys_platform in '{marker_value}'"
     dep = Dependency.create_from_pep_508(name)
 
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
-    assert dep.python_versions == "3.3.* || 3.4.* || 3.5.*"
-    assert str(dep.marker) == 'python_version in "3.3, 3.4, 3.5"'
-
-
-def test_dependency_platform_in() -> None:
-    name = "requests (==2.18.0); sys_platform in 'win32 darwin'"
-    dep = Dependency.create_from_pep_508(name)
-
-    assert dep.name == "requests"
-    assert str(dep.constraint) == "2.18.0"
-    assert str(dep.marker) == 'sys_platform in "win32 darwin"'
+    assert str(dep.marker) == f'sys_platform in "{marker_value}"'
 
 
 def test_dependency_with_extra() -> None:

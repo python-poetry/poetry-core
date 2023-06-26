@@ -19,6 +19,7 @@ from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import parse_marker_version_constraint
 from poetry.core.pyproject.toml import PyProjectTOML
+from poetry.core.version.markers import SingleMarker
 from poetry.core.version.markers import SingleMarkerLike
 from poetry.core.version.markers import dnf
 
@@ -374,7 +375,7 @@ def normalize_python_version_markers(  # NOSONAR
 
             elif op in ("in", "not in"):
                 versions = []
-                for v in re.split("[ ,]+", version):
+                for v in SingleMarker.VALUE_SEPARATOR_RE.split(version):
                     split = v.split(".")
                     if len(split) in (1, 2):
                         split.append("*")

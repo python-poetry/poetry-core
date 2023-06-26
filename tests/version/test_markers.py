@@ -55,56 +55,58 @@ def test_parse_marker(marker: str) -> None:
     assert str(parse_marker(marker)) == marker
 
 
-def test_single_marker() -> None:
-    m = parse_marker('sys_platform == "darwin"')
+@pytest.mark.parametrize(
+    ("marker", "expected_name", "expected_constraint"),
+    [
+        ('sys_platform == "darwin"', "sys_platform", "darwin"),
+        (
+            'python_version in "2.7, 3.0, 3.1"',
+            "python_version",
+            ">=2.7,<2.8 || >=3.0,<3.2",
+        ),
+        ('"2.7" in python_version', "python_version", ">=2.7,<2.8"),
+        (
+            'python_version not in "2.7, 3.0, 3.1"',
+            "python_version",
+            "<2.7 || >=2.8,<3.0 || >=3.2",
+        ),
+        (
+            (
+                "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+                " amd64 AMD64 win32 WIN32'"
+            ),
+            "platform_machine",
+            (
+                "x86_64 || X86_64 || aarch64 || AARCH64 || ppc64le || PPC64LE || amd64"
+                " || AMD64 || win32 || WIN32"
+            ),
+        ),
+        (
+            (
+                "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE"
+                " amd64 AMD64 win32 WIN32'"
+            ),
+            "platform_machine",
+            (
+                "!=x86_64, !=X86_64, !=aarch64, !=AARCH64, !=ppc64le, !=PPC64LE,"
+                " !=amd64, !=AMD64, !=win32, !=WIN32"
+            ),
+        ),
+        (
+            'platform_machine not in "aarch64|loongarch64"',
+            "platform_machine",
+            "!=aarch64, !=loongarch64",
+        ),
+    ],
+)
+def test_parse_single_marker(
+    marker: str, expected_name: str, expected_constraint: str
+) -> None:
+    m = parse_marker(marker)
 
     assert isinstance(m, SingleMarker)
-    assert m.name == "sys_platform"
-    assert str(m.constraint) == "darwin"
-
-    m = parse_marker('python_version in "2.7, 3.0, 3.1"')
-
-    assert isinstance(m, SingleMarker)
-    assert m.name == "python_version"
-    assert str(m.constraint) == ">=2.7,<2.8 || >=3.0,<3.2"
-
-    m = parse_marker('"2.7" in python_version')
-
-    assert isinstance(m, SingleMarker)
-    assert m.name == "python_version"
-    assert str(m.constraint) == ">=2.7,<2.8"
-
-    m = parse_marker('python_version not in "2.7, 3.0, 3.1"')
-
-    assert isinstance(m, SingleMarker)
-    assert m.name == "python_version"
-    assert str(m.constraint) == "<2.7 || >=2.8,<3.0 || >=3.2"
-
-    m = parse_marker(
-        "platform_machine in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64 AMD64"
-        " win32 WIN32'"
-    )
-
-    assert isinstance(m, SingleMarker)
-    assert m.name == "platform_machine"
-    assert (
-        str(m.constraint)
-        == "x86_64 || X86_64 || aarch64 || AARCH64 || ppc64le || PPC64LE || amd64 ||"
-        " AMD64 || win32 || WIN32"
-    )
-
-    m = parse_marker(
-        "platform_machine not in 'x86_64 X86_64 aarch64 AARCH64 ppc64le PPC64LE amd64"
-        " AMD64 win32 WIN32'"
-    )
-
-    assert isinstance(m, SingleMarker)
-    assert m.name == "platform_machine"
-    assert (
-        str(m.constraint)
-        == "!=x86_64, !=X86_64, !=aarch64, !=AARCH64, !=ppc64le, !=PPC64LE, !=amd64,"
-        " !=AMD64, !=win32, !=WIN32"
-    )
+    assert m.name == expected_name
+    assert str(m.constraint) == expected_constraint
 
 
 def test_single_marker_normalisation() -> None:
