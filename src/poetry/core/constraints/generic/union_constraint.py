@@ -178,11 +178,7 @@ class UnionConstraint(BaseConstraint):
         return self._constraints == other._constraints
 
     def __hash__(self) -> int:
-        h = hash("union")
-        for constraint in self._constraints:
-            h ^= hash(constraint)
-
-        return h
+        return hash(("union", *self._constraints))
 
     def __str__(self) -> str:
         constraints = [str(constraint) for constraint in self._constraints]
