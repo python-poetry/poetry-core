@@ -376,10 +376,10 @@ def test_multi_marker() -> None:
     m = parse_marker('sys_platform == "darwin" and implementation_name == "cpython"')
 
     assert isinstance(m, MultiMarker)
-    assert m.markers == [
+    assert m.markers == (
         parse_marker('sys_platform == "darwin"'),
         parse_marker('implementation_name == "cpython"'),
-    ]
+    )
 
 
 def test_multi_marker_is_empty_is_contradictory() -> None:
@@ -652,10 +652,10 @@ def test_marker_union() -> None:
     m = parse_marker('sys_platform == "darwin" or implementation_name == "cpython"')
 
     assert isinstance(m, MarkerUnion)
-    assert m.markers == [
+    assert m.markers == (
         parse_marker('sys_platform == "darwin"'),
         parse_marker('implementation_name == "cpython"'),
-    ]
+    )
 
 
 def test_marker_union_deduplicate() -> None:
