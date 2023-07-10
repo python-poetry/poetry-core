@@ -44,5 +44,12 @@ class ContentFormat(ABC):
         """
         ...
 
+    @abstractmethod
+    def metadata(self, name: str, default: Any = None) -> Any:
+        """
+        Find a standard metadata section in the content.
+        """
+        ...
+
     def is_empty(self) -> bool:
         return not self._content

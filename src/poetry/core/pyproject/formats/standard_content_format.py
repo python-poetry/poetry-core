@@ -158,6 +158,11 @@ class StandardContentFormat(ContentFormat):
 
         return package
 
+    def metadata(self, name: str, default: Any = None) -> Any:
+        config = self._content["project"]
+
+        return config.get(name, default)
+
     @property
     def hash_content(self) -> dict[str, Any]:
         project_keys = ["dependencies", "optional-dependencies"]

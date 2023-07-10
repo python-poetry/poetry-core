@@ -388,6 +388,11 @@ class LegacyContentFormat(ContentFormat):
 
         return dependency
 
+    def metadata(self, name: str, default: Any = None) -> Any:
+        config = self._content["tool"]["poetry"]
+
+        return config.get(name, default)
+
     @property
     def hash_content(self) -> dict[str, Any]:
         legacy_keys = ["dependencies", "source", "extras", "dev-dependencies"]
