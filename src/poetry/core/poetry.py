@@ -38,4 +38,4 @@ class Poetry:
         return self._pyproject.poetry_config
 
     def get_project_config(self, config: str, default: Any = None) -> Any:
-        return self._local_config.get("config", {}).get(config, default)
+        return self.local_config.get("config", {}).get(config, default)

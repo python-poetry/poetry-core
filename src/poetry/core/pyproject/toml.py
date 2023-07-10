@@ -46,7 +46,7 @@ class PyProjectTOML:
         return self._data
 
     @property
-    def content(self) -> ContentFormat | None:
+    def content(self) -> ContentFormat:
         if self._content is not None:
             return self._content
 
