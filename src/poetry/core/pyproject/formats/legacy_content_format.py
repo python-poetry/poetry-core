@@ -251,9 +251,10 @@ class LegacyContentFormat(ContentFormat):
     ) -> Dependency:
         from pathlib import Path
 
-        from poetry.core.packages.constraints import (
+        from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
+        from poetry.core.constraints.version import parse_constraint
         from poetry.core.packages.dependency import Dependency
         from poetry.core.packages.dependency_group import MAIN_GROUP
         from poetry.core.packages.directory_dependency import DirectoryDependency
@@ -261,7 +262,6 @@ class LegacyContentFormat(ContentFormat):
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.utils import create_nested_marker
         from poetry.core.packages.vcs_dependency import VCSDependency
-        from poetry.core.semver.helpers import parse_constraint
         from poetry.core.version.markers import AnyMarker
         from poetry.core.version.markers import parse_marker
 
