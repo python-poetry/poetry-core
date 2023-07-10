@@ -3,9 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Any
 
-from poetry.core.pyproject.formats.content_format import ContentFormat
-from poetry.core.pyproject.formats.legacy_content_format import LegacyContentFormat
-from poetry.core.pyproject.formats.standard_content_format import StandardContentFormat
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 
@@ -13,17 +10,24 @@ from poetry.core.utils._compat import tomllib
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from poetry.core.pyproject.formats.content_format import ContentFormat
+
 
 class PyProjectTOML:
-    SUPPORTED_FORMATS: list[type[ContentFormat]] = [
-        LegacyContentFormat,
-        StandardContentFormat,
-    ]
+    def __init__(
+        self, path: Path, content_format: type[ContentFormat] | None = None
+    ) -> None:
+        if content_format is None:
+            from poetry.core.pyproject.formats.legacy_content_format import (
+                LegacyContentFormat,
+            )
 
-    def __init__(self, path: Path) -> None:
+            content_format = LegacyContentFormat
+
         self._path = path
+        self._content_format: type[ContentFormat] = content_format
         self._data: dict[str, Any] | None = None
-        self._content_format: ContentFormat | None = None
+        self._content: ContentFormat | None = None
         self._build_system: BuildSystem | None = None
 
     @property
@@ -39,16 +43,16 @@ class PyProjectTOML:
                 with self.path.open("rb") as f:
                     self._data = tomllib.load(f)
 
-                self._content_format = self.guess_format(self._data)
-
         return self._data
 
     @property
-    def content_format(self) -> ContentFormat | None:
-        if self.data:
-            return self._content_format
+    def content(self) -> ContentFormat | None:
+        if self._content is not None:
+            return self._content
 
-        return None
+        self._content = self._content_format(self.data)
+
+        return self._content
 
     def is_build_system_defined(self) -> bool:
         return "build-system" in self.data
@@ -59,7 +63,7 @@ class PyProjectTOML:
             build_backend = None
             requires = None
 
-            if not self.path.exists():
+            if not self._path.exists():
                 build_backend = "poetry.core.masonry.api"
                 requires = ["poetry-core"]
 
@@ -78,20 +82,7 @@ class PyProjectTOML:
 
             raise PyProjectException(f"{self._path} is not a Poetry pyproject file")
 
-        assert isinstance(self._content_format, ContentFormat)
-
-        return self._content_format.poetry_config
+        return self.content.poetry_config
 
     def is_poetry_project(self) -> bool:
-        if not self.data:
-            return False
-
-        return self._content_format is not None
-
-    @classmethod
-    def guess_format(cls, data: dict[str, Any]) -> ContentFormat | None:
-        for fmt in cls.SUPPORTED_FORMATS:
-            if fmt.supports(data):
-                return fmt(data)
-
-        return None
+        return not self.content.is_empty()

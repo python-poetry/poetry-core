@@ -39,6 +39,10 @@ class ContentFormat(ABC):
     @abstractmethod
     def poetry_config(self) -> dict[str, Any]:
         """
-        The custom poetry configuration (i.e. the parts in [tool.poetry] that are not related to the package)
+        The custom poetry configuration (i.e. the parts in [tool.poetry]
+        that are not related to the package)
         """
         ...
+
+    def is_empty(self) -> bool:
+        return not self._content

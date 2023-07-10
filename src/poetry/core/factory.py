@@ -12,7 +12,6 @@ from warnings import warn
 
 from packaging.utils import canonicalize_name
 
-from poetry.core.pyproject.formats.content_format import ContentFormat
 from poetry.core.utils.helpers import readme_content_type
 
 
@@ -22,6 +21,8 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.poetry import Poetry
+    from poetry.core.pyproject.formats.content_format import ContentFormat
+    from poetry.core.pyproject.toml import PyProjectTOML
 
     DependencyConstraint = Union[str, Dict[str, Any]]
     DependencyConfig = Mapping[
@@ -37,23 +38,38 @@ class Factory:
     Factory class to create various elements needed by Poetry.
     """
 
+    def __init__(self) -> None:
+        from poetry.core.pyproject.formats.legacy_content_format import (
+            LegacyContentFormat,
+        )
+        from poetry.core.pyproject.formats.standard_content_format import (
+            StandardContentFormat,
+        )
+
+        self._default_format: type[ContentFormat] = LegacyContentFormat
+        self._content_formats: dict[str, type[ContentFormat]] = {
+            "legacy": LegacyContentFormat,
+            "standard": StandardContentFormat,
+        }
+
+    def register_content_format(
+        self, name: str, content_format: type[ContentFormat]
+    ) -> None:
+        self._content_formats[name] = content_format
+
     def create_poetry(
         self, cwd: Path | None = None, with_groups: bool = True
     ) -> Poetry:
         from poetry.core.poetry import Poetry
-        from poetry.core.pyproject.toml import PyProjectTOML
 
         poetry_file = self.locate(cwd)
-        pyproject = PyProjectTOML(path=poetry_file)
+        pyproject = self.create_pyproject(poetry_file)
 
         if not pyproject.is_poetry_project():
             raise RuntimeError(f"The project at {poetry_file} is not a Poetry project")
 
-        content_format = pyproject.content_format
-        assert isinstance(content_format, ContentFormat)
-
         # Checking validity
-        check_result = content_format.validate(strict=False)
+        check_result = pyproject.content.validate(strict=False)
         if check_result.errors:
             message = ""
             for error in check_result.errors:
@@ -62,7 +78,7 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        package = content_format.to_package(
+        package = pyproject.content.to_package(
             root=poetry_file.parent, with_groups=with_groups
         )
 
@@ -73,6 +89,32 @@ class Factory:
         from poetry.core.packages.project_package import ProjectPackage
 
         return ProjectPackage(name, version)
+
+    def create_pyproject(self, path: Path) -> PyProjectTOML:
+        from poetry.core.pyproject.toml import PyProjectTOML
+
+        content_format = self.guess_content_format(path)
+
+        pyproject = PyProjectTOML(path, content_format)
+
+        return pyproject
+
+    def guess_content_format(self, path: Path) -> type[ContentFormat]:
+        if not path.exists():
+            return self._default_format
+
+        from poetry.core.utils._compat import tomllib
+
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+
+        for name, fmt in self._content_formats.items():
+            if fmt.supports(data):
+                logger.debug("Using the %s format", name)
+                return fmt
+
+        raise RuntimeError(
+            "Unable to determine the content format of the pyproject.toml file"
+        )
 
     @classmethod
     def create_dependency(
