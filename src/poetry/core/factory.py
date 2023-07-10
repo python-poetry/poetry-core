@@ -45,12 +45,15 @@ class Factory:
         from poetry.core.pyproject.formats.standard_content_format import (
             StandardContentFormat,
         )
+        from poetry.core.pyproject.toml import PyProjectTOML
 
         self._default_format: type[ContentFormat] = LegacyContentFormat
         self._content_formats: dict[str, type[ContentFormat]] = {
             "legacy": LegacyContentFormat,
             "standard": StandardContentFormat,
         }
+
+        self._pyproject_class = PyProjectTOML
 
     def register_content_format(
         self, name: str, content_format: type[ContentFormat]
@@ -82,7 +85,7 @@ class Factory:
             root=poetry_file.parent, with_groups=with_groups
         )
 
-        return Poetry(poetry_file, pyproject.poetry_config, package)
+        return Poetry(poetry_file, pyproject, package)
 
     @classmethod
     def get_package(cls, name: str, version: str) -> ProjectPackage:
@@ -91,11 +94,9 @@ class Factory:
         return ProjectPackage(name, version)
 
     def create_pyproject(self, path: Path) -> PyProjectTOML:
-        from poetry.core.pyproject.toml import PyProjectTOML
-
         content_format = self.guess_content_format(path)
 
-        pyproject = PyProjectTOML(path, content_format)
+        pyproject = self._pyproject_class(path, content_format)
 
         return pyproject
 
