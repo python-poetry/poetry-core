@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from packaging.utils import canonicalize_name
 
 from poetry.core.json import validate_object
+from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.project_package import ProjectPackage
 from poetry.core.pyproject.formats.content_format import ContentFormat
 from poetry.core.pyproject.formats.validation_result import ValidationResult
@@ -15,7 +16,6 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Any
 
-    from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.spdx.license import License
 
 
@@ -187,7 +187,8 @@ class StandardContentFormat(ContentFormat):
     @property
     def poetry_config(self) -> dict[str, Any]:
         """
-        The custom poetry configuration (i.e. the parts in [tool.poetry] that are not related to the package)
+        The custom poetry configuration
+        (i.e. the parts in [tool.poetry] that are not related to the package)
         """
         relevant_keys: list[str] = ["packages", "include", "exclude", "source"]
 

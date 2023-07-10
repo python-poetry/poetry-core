@@ -4,18 +4,24 @@ import functools
 import posixpath
 import re
 import sys
+
 from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Tuple
-from urllib.parse import unquote, urlsplit
+from typing import TYPE_CHECKING
+from typing import Dict
+from typing import List
+from typing import Tuple
+from urllib.parse import unquote
+from urllib.parse import urlsplit
 from urllib.request import url2pathname
 
-from poetry.core.constraints.version import (
-    Version,
-    VersionRange,
-    parse_marker_version_constraint,
-)
-from poetry.core.version.markers import SingleMarker, SingleMarkerLike, dnf
+from poetry.core.constraints.version import Version
+from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import parse_marker_version_constraint
+from poetry.core.version.markers import SingleMarker
+from poetry.core.version.markers import SingleMarkerLike
+from poetry.core.version.markers import dnf
+
 
 if TYPE_CHECKING:
     from poetry.core.constraints.generic import BaseConstraint
@@ -149,7 +155,9 @@ def splitext(path: str) -> tuple[str, str]:
 
 
 def convert_markers(marker: BaseMarker) -> ConvertedMarkers:
-    from poetry.core.version.markers import MarkerUnion, MultiMarker, SingleMarker
+    from poetry.core.version.markers import MarkerUnion
+    from poetry.core.version.markers import MultiMarker
+    from poetry.core.version.markers import SingleMarker
 
     requirements: ConvertedMarkers = {}
     marker = dnf(marker)
@@ -202,11 +210,9 @@ def create_nested_marker(
     name: str,
     constraint: BaseConstraint | VersionConstraint,
 ) -> str:
-    from poetry.core.constraints.generic import (
-        Constraint,
-        MultiConstraint,
-        UnionConstraint,
-    )
+    from poetry.core.constraints.generic import Constraint
+    from poetry.core.constraints.generic import MultiConstraint
+    from poetry.core.constraints.generic import UnionConstraint
     from poetry.core.constraints.version import VersionUnion
 
     if constraint.is_any():
@@ -298,7 +304,8 @@ def create_nested_marker(
 def get_python_constraint_from_marker(
     marker: BaseMarker,
 ) -> VersionConstraint:
-    from poetry.core.constraints.version import EmptyConstraint, VersionRange
+    from poetry.core.constraints.version import EmptyConstraint
+    from poetry.core.constraints.version import VersionRange
 
     python_marker = marker.only("python_version", "python_full_version")
     if python_marker.is_any():
