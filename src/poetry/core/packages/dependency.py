@@ -106,10 +106,8 @@ class Dependency(PackageSpecification):
 
     def set_constraint(self, constraint: str | VersionConstraint) -> None:
         warnings.warn(
-            (
-                "Calling method 'set_constraint' is deprecated and will be removed. "
-                "It has been replaced by the property 'constraint' for consistency."
-            ),
+            "Calling method 'set_constraint' is deprecated and will be removed. "
+            "It has been replaced by the property 'constraint' for consistency.",
             DeprecationWarning,
             stacklevel=2,
         )

@@ -52,10 +52,8 @@ def escape_name(name: str) -> str:
     and not to normalize or filter existing artifact names.
     """
     warnings.warn(
-        (
-            "escape_name() is deprecated. Use packaging.utils.canonicalize_name() and"
-            " distribution_name() instead."
-        ),
+        "escape_name() is deprecated. Use packaging.utils.canonicalize_name() and"
+        " distribution_name() instead.",
         DeprecationWarning,
         stacklevel=2,
     )
