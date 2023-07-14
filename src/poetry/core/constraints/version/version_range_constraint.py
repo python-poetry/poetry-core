@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.version_constraint import VersionConstraint
-from poetry.core.utils._compat import cached_property
 
 
 if TYPE_CHECKING:

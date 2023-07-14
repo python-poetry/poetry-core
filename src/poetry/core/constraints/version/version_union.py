@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import operator as op
 
+from functools import cached_property
 from functools import reduce
 from typing import TYPE_CHECKING
 
@@ -14,7 +15,6 @@ from poetry.core.constraints.version.version_constraint import (
 from poetry.core.constraints.version.version_range_constraint import (
     VersionRangeConstraint,
 )
-from poetry.core.utils._compat import cached_property
 
 
 if TYPE_CHECKING:
