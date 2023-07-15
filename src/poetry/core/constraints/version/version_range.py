@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.empty_constraint import EmptyConstraint
@@ -12,7 +13,6 @@ from poetry.core.constraints.version.version_range_constraint import (
     VersionRangeConstraint,
 )
 from poetry.core.constraints.version.version_union import VersionUnion
-from poetry.core.utils._compat import cached_property
 
 
 if TYPE_CHECKING:
