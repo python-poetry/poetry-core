@@ -8,6 +8,7 @@ from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import ClassVar
 from typing import Generic
 from typing import TypeVar
 from typing import Union
@@ -292,7 +293,7 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
 class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
     _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
     VALUE_SEPARATOR_RE = re.compile("[ ,|]+")
-    _VERSION_LIKE_MARKER_NAME = {
+    _VERSION_LIKE_MARKER_NAME: ClassVar[set[str]] = {
         "python_version",
         "python_full_version",
         "platform_release",

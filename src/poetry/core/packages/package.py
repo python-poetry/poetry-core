@@ -6,6 +6,7 @@ import warnings
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from typing import ClassVar
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
@@ -40,7 +41,7 @@ AUTHOR_REGEX = re.compile(
 
 
 class Package(PackageSpecification):
-    AVAILABLE_PYTHONS = {
+    AVAILABLE_PYTHONS: ClassVar[set[str]] = {
         "2",
         "2.7",
         "3",

@@ -3,18 +3,29 @@ from __future__ import annotations
 import operator
 import warnings
 
+from typing import Any
+from typing import Callable
+from typing import ClassVar
+
 from poetry.core.constraints.generic.any_constraint import AnyConstraint
 from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
+
+
+OperatorType = Callable[[object, object], Any]
 
 
 class Constraint(BaseConstraint):
     OP_EQ = operator.eq
     OP_NE = operator.ne
 
-    _trans_op_str = {"=": OP_EQ, "==": OP_EQ, "!=": OP_NE}
+    _trans_op_str: ClassVar[dict[str, OperatorType]] = {
+        "=": OP_EQ,
+        "==": OP_EQ,
+        "!=": OP_NE,
+    }
 
-    _trans_op_int = {OP_EQ: "==", OP_NE: "!="}
+    _trans_op_int: ClassVar[dict[OperatorType, str]] = {OP_EQ: "==", OP_NE: "!="}
 
     def __init__(self, value: str, operator: str = "==") -> None:
         if operator == "=":
