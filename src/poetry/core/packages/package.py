@@ -6,6 +6,7 @@ import warnings
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from typing import ClassVar
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
@@ -40,7 +41,7 @@ AUTHOR_REGEX = re.compile(
 
 
 class Package(PackageSpecification):
-    AVAILABLE_PYTHONS = {
+    AVAILABLE_PYTHONS: ClassVar[set[str]] = {
         "2",
         "2.7",
         "3",
@@ -75,10 +76,8 @@ class Package(PackageSpecification):
 
         if pretty_version is not None:
             warnings.warn(
-                (
-                    "The `pretty_version` parameter is deprecated and will be removed"
-                    " in a future release."
-                ),
+                "The `pretty_version` parameter is deprecated and will be removed"
+                " in a future release.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -398,10 +397,8 @@ class Package(PackageSpecification):
     @property
     def readme(self) -> Path | None:
         warnings.warn(
-            (
-                "`readme` is deprecated: you are getting only the first readme file."
-                " Please use the plural form `readmes`."
-            ),
+            "`readme` is deprecated: you are getting only the first readme file."
+            " Please use the plural form `readmes`.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -410,10 +407,8 @@ class Package(PackageSpecification):
     @readme.setter
     def readme(self, path: Path) -> None:
         warnings.warn(
-            (
-                "`readme` is deprecated. Please assign a tuple to the plural form"
-                " `readmes`."
-            ),
+            "`readme` is deprecated. Please assign a tuple to the plural form"
+            " `readmes`.",
             DeprecationWarning,
             stacklevel=2,
         )

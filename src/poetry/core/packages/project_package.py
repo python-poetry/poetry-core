@@ -26,10 +26,8 @@ class ProjectPackage(Package):
     ) -> None:
         if pretty_version is not None:
             warnings.warn(
-                (
-                    "The `pretty_version` parameter is deprecated and will be removed"
-                    " in a future release."
-                ),
+                "The `pretty_version` parameter is deprecated and will be removed"
+                " in a future release.",
                 DeprecationWarning,
                 stacklevel=2,
             )

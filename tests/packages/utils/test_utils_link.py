@@ -28,10 +28,8 @@ def make_url(
 ) -> Link:
     file_checksum = file_checksum or make_checksum()
     return Link(
-        (
-            "https://files.pythonhosted.org/packages/16/52/dead/"
-            f"demo-1.0.0.{ext}#sha256={file_checksum}"
-        ),
+        "https://files.pythonhosted.org/packages/16/52/dead/"
+        f"demo-1.0.0.{ext}#sha256={file_checksum}",
         metadata=f"sha256={metadata_checksum}" if metadata_checksum else None,
     )
 
@@ -106,10 +104,8 @@ def test_package_link_pep653_non_hash_metadata_value(
     file_checksum: str, metadata: str | bool, has_metadata: bool
 ) -> None:
     link = Link(
-        (
-            "https://files.pythonhosted.org/packages/16/52/dead/"
-            f"demo-1.0.0.whl#sha256={file_checksum}"
-        ),
+        "https://files.pythonhosted.org/packages/16/52/dead/"
+        f"demo-1.0.0.whl#sha256={file_checksum}",
         metadata=metadata,
     )
 

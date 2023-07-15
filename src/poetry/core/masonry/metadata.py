@@ -36,14 +36,14 @@ class Metadata:
     maintainer_email: str | None = None
     requires_python: str | None = None
     requires_external: tuple[str, ...] = ()
-    requires_dist: list[str] = []
+    requires_dist: list[str] = []  # noqa: RUF012
     provides_dist: tuple[str, ...] = ()
     obsoletes_dist: tuple[str, ...] = ()
     project_urls: tuple[str, ...] = ()
 
     # Version 2.1
     description_content_type: str | None = None
-    provides_extra: list[str] = []
+    provides_extra: list[str] = []  # noqa: RUF012
 
     @classmethod
     def from_package(cls, package: Package) -> Metadata:

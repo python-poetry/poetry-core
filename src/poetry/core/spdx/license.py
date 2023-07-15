@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import namedtuple
+from typing import ClassVar
 
 
 class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
@@ -9,7 +10,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
     is_osi_approved: bool
     is_deprecated: bool
 
-    CLASSIFIER_SUPPORTED = {
+    CLASSIFIER_SUPPORTED: ClassVar[set[str]] = {
         # Not OSI Approved
         "Aladdin",
         "CC0-1.0",
@@ -74,7 +75,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
         "ZPL-2.1",
     }
 
-    CLASSIFIER_NAMES = {
+    CLASSIFIER_NAMES: ClassVar[dict[str, str]] = {
         # Not OSI Approved
         "AFPL": "Aladdin Free Public License (AFPL)",
         "CC0-1.0": "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
