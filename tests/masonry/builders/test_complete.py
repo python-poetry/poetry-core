@@ -66,7 +66,7 @@ def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
         assert "extended-0.1/build.py" in tar.getnames()
         assert f"extended-0.1/{exptected_c_dir}/extended.c" in tar.getnames()
 
-    whl = list((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl"))[0]
+    whl = next(iter((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl")))
     assert whl.exists()
 
     with zipfile.ZipFile(whl) as zipf:

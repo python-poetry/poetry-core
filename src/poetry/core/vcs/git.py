@@ -356,7 +356,7 @@ class Git:
     def remote_url(self, folder: Path | None = None) -> str:
         urls = self.remote_urls(folder=folder)
 
-        return urls.get("remote.origin.url", urls[list(urls.keys())[0]])
+        return urls.get("remote.origin.url", urls[next(iter(urls.keys()))])
 
     def run(self, *args: Any, **kwargs: Any) -> str:
         folder = kwargs.pop("folder", None)
