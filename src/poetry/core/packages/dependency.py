@@ -342,7 +342,7 @@ class Dependency(PackageSpecification):
         self._activated = False
 
     def with_constraint(self: T, constraint: str | VersionConstraint) -> T:
-        dependency = self.clone()
+        dependency = self.clone_shallow()
         dependency.constraint = constraint  # type: ignore[assignment]
         return dependency
 

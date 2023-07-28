@@ -468,7 +468,7 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
-        package = self.clone()
+        package = self.clone_shallow()
 
         for group_name in groups:
             if group_name in package._dependency_groups:
@@ -480,7 +480,8 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package without optional dependency groups.
         """
-        package = self.clone()
+        package = self.clone_shallow()
+        package._dependency_groups = package._dependency_groups.copy()
 
         for group_name, group in self._dependency_groups.items():
             if group.is_optional():
@@ -499,7 +500,8 @@ class Package(PackageSpecification):
 
         If `only` is set to True, then only the given groups will be selected.
         """
-        package = self.clone()
+        package = self.clone_shallow()
+        package._dependency_groups = package._dependency_groups.copy()
 
         for group_name, group in self._dependency_groups.items():
             if (only or group.is_optional()) and group_name not in groups:

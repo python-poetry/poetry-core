@@ -167,8 +167,11 @@ class PackageSpecification:
     def clone(self: T) -> T:
         return copy.deepcopy(self)
 
+    def clone_shallow(self: T) -> T:
+        return copy.copy(self)
+
     def with_features(self: T, features: Iterable[str]) -> T:
-        package = self.clone()
+        package = self.clone_shallow()
 
         package._features = frozenset(
             canonicalize_name(feature) for feature in features
