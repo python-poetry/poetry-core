@@ -17,13 +17,20 @@ def get_vcs(directory: Path) -> Git | None:
     try:
         from poetry.core.vcs.git import executable
 
-        git_dir = subprocess.check_output(
-            [executable(), "rev-parse", "--show-toplevel"],
-            stderr=subprocess.STDOUT,
-            text=True,
-        ).strip()
+        check_ignore = subprocess.run(
+            [executable(), "check-ignore", "."],
+        ).returncode
 
-        vcs = Git(Path(git_dir))
+        if check_ignore == 0:
+            vcs = None
+        else:
+            git_dir = subprocess.check_output(
+                [executable(), "rev-parse", "--show-toplevel"],
+                stderr=subprocess.STDOUT,
+                text=True,
+            ).strip()
+
+            vcs = Git(Path(git_dir))
 
     except (subprocess.CalledProcessError, OSError, RuntimeError):
         vcs = None
