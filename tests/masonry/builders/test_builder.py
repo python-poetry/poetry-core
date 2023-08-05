@@ -127,6 +127,16 @@ def test_get_metadata_content() -> None:
     ]
 
 
+def test_metadata_pretty_name() -> None:
+    builder = Builder(
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "Pretty.Name")
+    )
+
+    metadata = Parser().parsestr(builder.get_metadata_content())
+
+    assert metadata["Name"] == "Pretty.Name"
+
+
 def test_metadata_homepage_default() -> None:
     builder = Builder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "simple_version")
