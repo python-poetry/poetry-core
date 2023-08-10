@@ -1,11 +1,14 @@
 import sys
 from copy import deepcopy
 
-from typing import List, Callable, Iterator, Union, Optional, Generic, TypeVar, Any, TYPE_CHECKING
+from typing import List, Callable, Iterator, Union, Optional, Generic, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .lexer import TerminalDef, Token
-    import rich
+    try:
+        import rich
+    except ImportError:
+        pass
     if sys.version_info >= (3, 8):
         from typing import Literal
     else:
@@ -44,7 +47,12 @@ class Tree(Generic[_Leaf_T]):
         data: The name of the rule or alias
         children: List of matched sub-rules and terminals
         meta: Line & Column numbers (if ``propagate_positions`` is enabled).
-            meta attributes: line, column, start_pos, end_line, end_column, end_pos
+            meta attributes: (line, column, end_line, end_column, start_pos, end_pos,
+                              container_line, container_column, container_end_line, container_end_column)
+            container_* attributes consider all symbols, including those that have been inlined in the tree.
+            For example, in the rule 'a: _A B _C', the regular attributes will mark the start and end of B,
+            but the container_* attributes will also include _A and _C in the range. However, rules that
+            contain 'a' will consider it in full, including _A and _C for all attributes.
     """
 
     data: str
@@ -86,7 +94,7 @@ class Tree(Generic[_Leaf_T]):
         """
         return ''.join(self._pretty(0, indent_str))
 
-    def __rich__(self, parent:'rich.tree.Tree'=None) -> 'rich.tree.Tree':
+    def __rich__(self, parent:Optional['rich.tree.Tree']=None) -> 'rich.tree.Tree':
         """Returns a tree widget for the 'rich' library.
 
         Example:

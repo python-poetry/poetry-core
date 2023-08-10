@@ -7,15 +7,15 @@ from typing import Dict, Any
 from ..lexer import Token
 from ..utils import Serialize
 
-from .lalr_analysis import LALR_Analyzer, Shift, Reduce, IntParseTable
+from .lalr_analysis import LALR_Analyzer, Shift, IntParseTable
 from .lalr_interactive_parser import InteractiveParser
 from lark.exceptions import UnexpectedCharacters, UnexpectedInput, UnexpectedToken
 
 ###{standalone
 
 class LALR_Parser(Serialize):
-    def __init__(self, parser_conf, debug=False):
-        analysis = LALR_Analyzer(parser_conf, debug=debug)
+    def __init__(self, parser_conf, debug=False, strict=False):
+        analysis = LALR_Analyzer(parser_conf, debug=debug, strict=strict)
         analysis.compute_lalr()
         callbacks = parser_conf.callbacks
 
