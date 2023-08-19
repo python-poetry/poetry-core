@@ -1,6 +1,33 @@
 # Change Log
 
 
+## [1.7.0] - 2023-08-20
+
+### Added
+
+- Optionally use resolved references when converting a VCS dependency to a PEP 508 dependency specification ([#603](https://github.com/python-poetry/poetry-core/pull/603)).
+- Improve performance of marker handling ([#609](https://github.com/python-poetry/poetry-core/pull/609)).
+
+### Changed
+
+- Drop support for Python 3.7 ([#566](https://github.com/python-poetry/poetry-core/pull/566)).
+- Remove deprecated `poetry.core.constraints.generic` and `poetry.core.semver` ([#601](https://github.com/python-poetry/poetry-core/pull/601)).
+- Allow `|` as a value separator in markers with the operators `in` and `not in` ([#608](https://github.com/python-poetry/poetry-core/pull/608)).
+- Put pretty name (instead of normalized name) in metadata ([#620](https://github.com/python-poetry/poetry-core/pull/620)).
+- Update list of supported licenses ([#623](https://github.com/python-poetry/poetry-core/pull/623)).
+
+### Fixed
+
+- Fix an issue where the encoding was not handled correctly when calling a subprocess ([#602](https://github.com/python-poetry/poetry-core/pull/602)).
+- Fix an issue where caret constraints with additional whitespace could not be parsed ([#606](https://github.com/python-poetry/poetry-core/pull/606)).
+- Fix an issue where PEP 508 dependency specifications with names starting with a digit could not be parsed ([#607](https://github.com/python-poetry/poetry-core/pull/607)).
+- Fix an issue where Poetry considered an unrelated `.gitignore` file resulting in an empty wheel ([#611](https://github.com/python-poetry/poetry-core/pull/611)).
+
+### Vendoring
+
+- [`lark==1.1.7`](https://github.com/lark-parser/lark/releases/tag/1.1.7)
+
+
 ## [1.6.1] - 2023-05-29
 
 ### Fixed
@@ -540,7 +567,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.6.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.7.0...main
+[1.7.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.7.0
 [1.6.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.1
 [1.6.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.0
 [1.5.2]: https://github.com/python-poetry/poetry-core/releases/tag/1.5.2
