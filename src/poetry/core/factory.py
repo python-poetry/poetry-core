@@ -10,10 +10,19 @@ from typing import List
 from typing import Union
 from warnings import warn
 
+from packaging.utils import NormalizedName
 from packaging.utils import canonicalize_name
 
+from poetry.core.constraints.generic import BaseConstraint
+from poetry.core.constraints.generic import Constraint
+from poetry.core.constraints.generic import MultiConstraint
+from poetry.core.constraints.generic import UnionConstraint
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import readme_content_type
+from poetry.core.version.markers import BaseMarker
+from poetry.core.version.markers import MarkerUnion
+from poetry.core.version.markers import MultiMarker
+from poetry.core.version.markers import SingleMarkerLike
 
 
 if TYPE_CHECKING:
@@ -114,6 +123,38 @@ class Factory:
         package.add_dependency_group(group)
 
     @classmethod
+    def _get_extras_from_constraint(
+        cls, constraint: BaseConstraint
+    ) -> set[NormalizedName]:
+        if isinstance(constraint, Constraint):
+            if constraint.operator == "==":
+                return {canonicalize_name(constraint.value)}
+            else:
+                return set()
+        elif isinstance(constraint, (UnionConstraint, MultiConstraint)):
+            extras = set()
+            for c in constraint.constraints:
+                extras.update(cls._get_extras_from_constraint(c))
+            return extras
+        else:
+            return set()
+
+    @classmethod
+    def _get_extras_from_marker(cls, marker: BaseMarker) -> set[NormalizedName]:
+        if isinstance(marker, SingleMarkerLike):
+            if marker.name == "extra":
+                return cls._get_extras_from_constraint(marker.constraint)
+            else:
+                return set()
+        elif isinstance(marker, (MarkerUnion, MultiMarker)):
+            extras = set()
+            for m in marker.markers:
+                extras.update(cls._get_extras_from_marker(m))
+            return extras
+        else:
+            return set()
+
+    @classmethod
     def configure_package(
         cls,
         package: ProjectPackage,
@@ -187,6 +228,18 @@ class Factory:
                     if dep.name == req.name:
                         dep.in_extras.append(extra_name)
                         package.extras[extra_name].append(dep)
+
+        for dep in package.requires:
+            extras = cls._get_extras_from_marker(dep.marker)
+            for extra in extras:
+                if extra not in dep.in_extras:
+                    dep.in_extras.append(extra)
+
+                if extra not in package.extras:
+                    package.extras[extra] = []
+
+                if dep not in package.extras[extra]:
+                    package.extras[extra].append(dep)
 
         if "build" in config:
             build = config["build"]

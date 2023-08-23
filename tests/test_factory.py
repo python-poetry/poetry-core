@@ -494,3 +494,55 @@ def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:
         "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Build Tools",
     ]
+
+
+def test_extra_in_markers() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "project_with_extra_in_markers")
+
+    package = poetry.package
+    requires = package.requires
+    extras = package.extras
+
+    assert package.name == "extra-package"
+    assert package.version.text == "1.2.3"
+    assert package.description == "Some description."
+    assert package.authors == ["Your Name <you@example.com>"]
+    assert package.license
+    assert package.license.id == "MIT"
+
+    assert package.python_versions == "^3.10"
+
+    assert len(requires) == 3
+    assert len(extras) == 3
+
+    def find(name: str, extras: set[str]) -> Dependency:
+        return next(
+            iter(
+                filter(
+                    lambda dep: dep.name == name and dep.extras == frozenset(extras),
+                    requires,
+                )
+            )
+        )
+
+    psycopg = find("psycopg", set())
+    assert all(psycopg not in extra for extra in extras.values())
+    assert psycopg.pretty_constraint == "^3.1.9"
+    assert not psycopg.is_optional()
+    assert len(psycopg.extras) == 0
+    assert len(psycopg.in_extras) == 0
+
+    psycopg_binary = find("psycopg", {"binary"})
+    assert [psycopg_binary] == extras[canonicalize_name("extra-binary")]
+    assert psycopg_binary.pretty_constraint == "^3.1.9"
+    assert psycopg_binary.is_optional()
+    assert len(psycopg_binary.extras) == 1
+    assert len(psycopg_binary.in_extras) == 1
+
+    psycopg_c = find("psycopg", {"c"})
+    assert [psycopg_c] == extras[canonicalize_name("extra-c")]
+    assert [psycopg_c] == extras[canonicalize_name("extra-pool")]
+    assert psycopg_c.pretty_constraint == "^3.1.9"
+    assert psycopg_c.is_optional()
+    assert len(psycopg_c.extras) == 1
+    assert len(psycopg_c.in_extras) == 2
