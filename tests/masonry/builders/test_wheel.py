@@ -191,6 +191,21 @@ def test_wheel_module_src() -> None:
         assert "module_src.py" in z.namelist()
 
 
+def test_wheel_build_script_creates_package() -> None:
+    module_path = fixtures_dir / "build_script_creates_package"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    # Currently, if a  build.py script is used,
+    # poetry just assumes the most specific tags
+    whl = next((module_path / "dist").glob("my_package-0.1-*.whl"))
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "my_package/__init__.py" in z.namelist()
+        assert "my_package/foo.py" in z.namelist()
+
+
 def test_dist_info_file_permissions() -> None:
     module_path = fixtures_dir / "complete"
     WheelBuilder.make(Factory().create_poetry(module_path))
