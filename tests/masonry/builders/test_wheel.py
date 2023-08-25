@@ -205,6 +205,8 @@ def test_wheel_build_script_creates_package() -> None:
         assert "my_package/__init__.py" in z.namelist()
         assert "my_package/foo.py" in z.namelist()
 
+    shutil.rmtree(module_path / "my_package")
+
 
 def test_dist_info_file_permissions() -> None:
     module_path = fixtures_dir / "complete"
