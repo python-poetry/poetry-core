@@ -7,14 +7,14 @@
 [![](https://github.com/python-poetry/poetry-core/workflows/Tests/badge.svg)](https://github.com/python-poetry/poetry-core/actions?query=workflow%3ATests)
 
 A [PEP 517](https://www.python.org/dev/peps/pep-0517/) build backend implementation developed for
-[Poetry](https://github.com/python-poetry/poetry). This project is intended to be a light weight, fully compliant,
-self-contained package allowing PEP 517 compatible build frontends to build Poetry managed projects.
+[Poetry](https://github.com/python-poetry/poetry). This project is intended to be a lightweight, fully compliant,
+self-contained package allowing PEP 517-compatible build frontends to build Poetry-managed projects.
 
 ## Usage
-In most cases, the usage of this package is transparent to the end-user as it is either made use by Poetry itself
+In most cases, the usage of this package is transparent to the end-user as it is either used by Poetry itself
 or a PEP 517 frontend (eg: `pip`).
 
-In order to enable the use `poetry-core` as your build backend, the following snippet must be present in your
+In order to enable the use of `poetry-core` as your build backend, the following snippet must be present in your
 project's `pyproject.toml` file.
 
 ```toml
@@ -43,4 +43,4 @@ project.
 
 In order to improve the above situation, `poetry-core` was created. Shared functionality pertaining to PEP 517 build
 backends, including reading `pyproject.toml` and building wheel/sdist, were implemented in this package. This
-makes PEP 517 builds extremely fast for Poetry managed packages.
+makes PEP 517 builds extremely fast for Poetry-managed packages.
