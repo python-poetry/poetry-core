@@ -6,15 +6,13 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
-    from packaging.utils import NormalizedName
-
     from poetry.core.packages.package import Package
 
 
 class Metadata:
     metadata_version = "2.1"
     # version 1.0
-    name: NormalizedName | None = None
+    name: str | None = None
     version: str
     platforms: tuple[str, ...] = ()
     supported_platforms: tuple[str, ...] = ()
@@ -51,7 +49,7 @@ class Metadata:
 
         meta = cls()
 
-        meta.name = package.name
+        meta.name = package.pretty_name
         meta.version = package.version.to_string()
         meta.summary = package.description
         if package.readmes:

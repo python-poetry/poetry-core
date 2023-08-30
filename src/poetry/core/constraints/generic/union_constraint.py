@@ -134,13 +134,19 @@ class UnionConstraint(BaseConstraint):
             our_new_constraints: list[BaseConstraint] = []
             their_new_constraints: list[BaseConstraint] = []
             merged_new_constraints: list[BaseConstraint] = []
-            for our_constraint in self._constraints:
-                for their_constraint in other.constraints:
+            for their_constraint in other.constraints:
+                for our_constraint in self._constraints:
                     union = our_constraint.union(their_constraint)
                     if union.is_any():
                         return AnyConstraint()
                     if isinstance(union, Constraint):
-                        if union not in merged_new_constraints:
+                        if union == our_constraint:
+                            if union not in our_new_constraints:
+                                our_new_constraints.append(union)
+                        elif union == their_constraint:
+                            if union not in their_new_constraints:
+                                their_new_constraints.append(their_constraint)
+                        elif union not in merged_new_constraints:
                             merged_new_constraints.append(union)
                     else:
                         if our_constraint not in our_new_constraints:
@@ -169,14 +175,10 @@ class UnionConstraint(BaseConstraint):
         if not isinstance(other, UnionConstraint):
             return False
 
-        return set(self._constraints) == set(other._constraints)
+        return self._constraints == other._constraints
 
     def __hash__(self) -> int:
-        h = hash("union")
-        for constraint in self._constraints:
-            h ^= hash(constraint)
-
-        return h
+        return hash(("union", *self._constraints))
 
     def __str__(self) -> str:
         constraints = [str(constraint) for constraint in self._constraints]

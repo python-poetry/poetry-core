@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 from .exceptions import ConfigurationError, assert_config, UnexpectedInput
 from .utils import Serialize, SerializeMemoizer, FS, isascii, logger
-from .load_grammar import load_grammar, FromPackageLoader, Grammar, verify_used_files, PackageResource, md5_digest
+from .load_grammar import load_grammar, FromPackageLoader, Grammar, verify_used_files, PackageResource, sha256_digest
 from .tree import Tree
 from .common import LexerConf, ParserConf, _ParserArgType, _LexerArgType
 
@@ -54,6 +54,7 @@ class LarkOptions(Serialize):
 
     start: List[str]
     debug: bool
+    strict: bool
     transformer: 'Optional[Transformer]'
     propagate_positions: Union[bool, str]
     maybe_placeholders: bool
@@ -81,10 +82,14 @@ class LarkOptions(Serialize):
     debug
             Display debug information and extra warnings. Use only when debugging (Default: ``False``)
             When used with Earley, it generates a forest graph as "sppf.png", if 'dot' is installed.
+    strict
+            Throw an exception on any potential ambiguity, including shift/reduce conflicts, and regex collisions.
     transformer
             Applies the transformer to every parse tree (equivalent to applying it after the parse, but faster)
     propagate_positions
-            Propagates (line, column, end_line, end_column) attributes into all tree branches.
+            Propagates positional attributes into the 'meta' attribute of all tree branches.
+            Sets attributes: (line, column, end_line, end_column, start_pos, end_pos,
+                              container_line, container_column, container_end_line, container_end_column)
             Accepts ``False``, ``True``, or a callable, which will filter which nodes to ignore when propagating.
     maybe_placeholders
             When ``True``, the ``[]`` operator returns ``None`` when not matched.
@@ -156,6 +161,7 @@ class LarkOptions(Serialize):
     # - Potentially in `lark.tools.__init__`, if it makes sense, and it can easily be passed as a cmd argument
     _defaults: Dict[str, Any] = {
         'debug': False,
+        'strict': False,
         'keep_all_tokens': False,
         'tree_class': None,
         'cache': False,
@@ -254,6 +260,7 @@ class Lark(Serialize):
     grammar: 'Grammar'
     options: LarkOptions
     lexer: Lexer
+    parser: 'ParsingFrontend'
     terminals: Collection[TerminalDef]
 
     def __init__(self, grammar: 'Union[Grammar, str, IO[str]]', **options) -> None:
@@ -288,7 +295,7 @@ class Lark(Serialize):
             grammar = read()
 
         cache_fn = None
-        cache_md5 = None
+        cache_sha256 = None
         if isinstance(grammar, str):
             self.source_grammar = grammar
             if self.options.use_bytes:
@@ -303,7 +310,7 @@ class Lark(Serialize):
                 options_str = ''.join(k+str(v) for k, v in options.items() if k not in unhashable)
                 from . import __version__
                 s = grammar + options_str + __version__ + str(sys.version_info[:2])
-                cache_md5 = md5_digest(s)
+                cache_sha256 = sha256_digest(s)
 
                 if isinstance(self.options.cache, str):
                     cache_fn = self.options.cache
@@ -319,7 +326,7 @@ class Lark(Serialize):
                         # specific reason - we just want a username.
                         username = "unknown"
 
-                    cache_fn = tempfile.gettempdir() + "/.lark_cache_%s_%s_%s_%s.tmp" % (username, cache_md5, *sys.version_info[:2])
+                    cache_fn = tempfile.gettempdir() + "/.lark_cache_%s_%s_%s_%s.tmp" % (username, cache_sha256, *sys.version_info[:2])
 
                 old_options = self.options
                 try:
@@ -328,9 +335,9 @@ class Lark(Serialize):
                         # Remove options that aren't relevant for loading from cache
                         for name in (set(options) - _LOAD_ALLOWED_OPTIONS):
                             del options[name]
-                        file_md5 = f.readline().rstrip(b'\n')
+                        file_sha256 = f.readline().rstrip(b'\n')
                         cached_used_files = pickle.load(f)
-                        if file_md5 == cache_md5.encode('utf8') and verify_used_files(cached_used_files):
+                        if file_sha256 == cache_sha256.encode('utf8') and verify_used_files(cached_used_files):
                             cached_parser_data = pickle.load(f)
                             self._load(cached_parser_data, **options)
                             return
@@ -424,7 +431,7 @@ class Lark(Serialize):
         # TODO Deprecate lexer_callbacks?
         self.lexer_conf = LexerConf(
                 self.terminals, re_module, self.ignore_tokens, self.options.postlex,
-                self.options.lexer_callbacks, self.options.g_regex_flags, use_bytes=self.options.use_bytes
+                self.options.lexer_callbacks, self.options.g_regex_flags, use_bytes=self.options.use_bytes, strict=self.options.strict
             )
 
         if self.options.parser:
@@ -436,8 +443,8 @@ class Lark(Serialize):
             logger.debug('Saving grammar to cache: %s', cache_fn)
             try:
                 with FS.open(cache_fn, 'wb') as f:
-                    assert cache_md5 is not None
-                    f.write(cache_md5.encode('utf8') + b'\n')
+                    assert cache_sha256 is not None
+                    f.write(cache_sha256.encode('utf8') + b'\n')
                     pickle.dump(used_files, f)
                     self.save(f, _LOAD_ALLOWED_OPTIONS)
             except IOError as e:
