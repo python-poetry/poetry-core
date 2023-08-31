@@ -9,6 +9,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import zipfile
 
@@ -187,15 +188,12 @@ class WheelBuilder(Builder):
                         # in-place - so there's no need to copy them into the zip
                         return
 
-                    build_dir = self._path / "build"
-                    libs: list[Path] = list(build_dir.glob("lib.*"))
-                    if not libs:
+                    lib = self._get_build_lib_dir()
+                    if lib is None:
                         # The result of building the extensions
                         # does not exist, this may due to conditional
                         # builds, so we assume that it's okay
                         return
-
-                    lib = libs[0]
 
                     for pkg in sorted(lib.glob("**/*")):
                         if pkg.is_dir() or self.is_excluded(pkg):
@@ -209,6 +207,25 @@ class WheelBuilder(Builder):
                         logger.debug(f"Adding: {rel_path}")
 
                         self._add_file(wheel, pkg, rel_path)
+
+    def _get_build_purelib_dir(self) -> Path:
+        return self._path / "build/lib"
+
+    def _get_build_platlib_dir(self) -> Path:
+        # Roughly equivalent to the naming convention in used by distutils, see:
+        # distutils.command.build.build.finalize_options
+        plat_specifier = f"{sysconfig.get_platform()}-{sys.implementation.cache_tag}"
+        return self._path / f"build/lib.{plat_specifier}"
+
+    def _get_build_lib_dir(self) -> Path | None:
+        # Either the purelib or platlib path will have been used when building
+        build_platlib = self._get_build_platlib_dir()
+        build_purelib = self._get_build_purelib_dir()
+        if build_platlib.exists():
+            return build_platlib
+        elif build_purelib.exists():
+            return build_purelib
+        return None
 
     def _copy_file_scripts(self, wheel: zipfile.ZipFile) -> None:
         file_scripts = self.convert_script_files()
@@ -237,6 +254,10 @@ class WheelBuilder(Builder):
                 "build",
                 "-b",
                 str(self._path / "build"),
+                "--build-purelib",
+                str(self._get_build_purelib_dir()),
+                "--build-platlib",
+                str(self._get_build_platlib_dir()),
             ]
         )
 
