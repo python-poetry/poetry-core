@@ -182,6 +182,11 @@ class WheelBuilder(Builder):
                     finally:
                         os.chdir(current_path)
 
+                    if self._editable:
+                        # For an editable install, the extension modules will be built
+                        # in-place - so there's no need to copy them into the zip
+                        return
+
                     build_dir = self._path / "build"
                     libs: list[Path] = list(build_dir.glob("lib.*"))
                     if not libs:
@@ -216,6 +221,15 @@ class WheelBuilder(Builder):
             )
 
     def _run_build_command(self, setup: Path) -> None:
+        if self._editable:
+            subprocess.check_call(
+                [
+                    self.executable.as_posix(),
+                    str(setup),
+                    "build_ext",
+                    "--inplace",
+                ]
+            )
         subprocess.check_call(
             [
                 self.executable.as_posix(),
