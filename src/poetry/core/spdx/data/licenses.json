@@ -870,7 +870,7 @@
     false
   ],
   "DL-DE-BY-2.0": [
-    "Data licence Germany – attribution – version 2.0",
+    "Data licence Germany \u2013 attribution \u2013 version 2.0",
     false,
     false
   ],
@@ -1136,6 +1136,11 @@
   ],
   "GLWTPL": [
     "Good Luck With That Public License",
+    false,
+    false
+  ],
+  "GNU-compiler-exception": [
+    "GNU Compiler Exception",
     false,
     false
   ],
@@ -1555,17 +1560,17 @@
     false
   ],
   "LiLiQ-P-1.1": [
-    "Licence Libre du Québec – Permissive version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 Permissive version 1.1",
     true,
     false
   ],
   "LiLiQ-R-1.1": [
-    "Licence Libre du Québec – Réciprocité version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 version 1.1",
     true,
     false
   ],
   "LiLiQ-Rplus-1.1": [
-    "Licence Libre du Québec – Réciprocité forte version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 forte version 1.1",
     true,
     false
   ],
@@ -1649,8 +1654,18 @@
     false,
     false
   ],
+  "MIT-testregex": [
+    "MIT testregex Variant",
+    false,
+    false
+  ],
   "MITNFA": [
     "MIT +no-false-attribs license",
+    false,
+    false
+  ],
+  "MMIXware": [
+    "MMIXware License",
     false,
     false
   ],
@@ -2229,6 +2244,11 @@
     false,
     false
   ],
+  "SANE-exception": [
+    "SANE Exception",
+    false,
+    false
+  ],
   "SAX-PD": [
     "Sax Public Domain Notice",
     false,
@@ -2439,6 +2459,11 @@
     false,
     false
   ],
+  "TTYP0": [
+    "TTYP0 License",
+    false,
+    false
+  ],
   "TU-Berlin-1.0": [
     "Technische Universitaet Berlin License 1.0",
     false,
@@ -2472,6 +2497,11 @@
   "UPL-1.0": [
     "Universal Permissive License v1.0",
     true,
+    false
+  ],
+  "URT-RLE": [
+    "Utah Raster Toolkit Run Length Encoded License",
+    false,
     false
   ],
   "Unicode-DFS-2015": [
@@ -2781,6 +2811,11 @@
   ],
   "snprintf": [
     "snprintf License",
+    false,
+    false
+  ],
+  "stunnel-exception": [
+    "stunnel Exception",
     false,
     false
   ],
