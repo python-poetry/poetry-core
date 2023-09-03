@@ -1139,6 +1139,11 @@
     false,
     false
   ],
+  "GNU-compiler-exception": [
+    "GNU Compiler Exception",
+    false,
+    false
+  ],
   "GPL-1.0": [
     "GNU General Public License v1.0 only",
     false,
@@ -1649,8 +1654,18 @@
     false,
     false
   ],
+  "MIT-testregex": [
+    "MIT testregex Variant",
+    false,
+    false
+  ],
   "MITNFA": [
     "MIT +no-false-attribs license",
+    false,
+    false
+  ],
+  "MMIXware": [
+    "MMIXware License",
     false,
     false
   ],
@@ -2229,6 +2244,11 @@
     false,
     false
   ],
+  "SANE-exception": [
+    "SANE Exception",
+    false,
+    false
+  ],
   "SAX-PD": [
     "Sax Public Domain Notice",
     false,
@@ -2439,6 +2459,11 @@
     false,
     false
   ],
+  "TTYP0": [
+    "TTYP0 License",
+    false,
+    false
+  ],
   "TU-Berlin-1.0": [
     "Technische Universitaet Berlin License 1.0",
     false,
@@ -2472,6 +2497,11 @@
   "UPL-1.0": [
     "Universal Permissive License v1.0",
     true,
+    false
+  ],
+  "URT-RLE": [
+    "Utah Raster Toolkit Run Length Encoded License",
+    false,
     false
   ],
   "Unicode-DFS-2015": [
@@ -2781,6 +2811,11 @@
   ],
   "snprintf": [
     "snprintf License",
+    false,
+    false
+  ],
+  "stunnel-exception": [
+    "stunnel Exception",
     false,
     false
   ],
