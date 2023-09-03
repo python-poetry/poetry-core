@@ -49,6 +49,18 @@ EMPTY = "<empty>"
             ' "linux" and python_version < "3.6" and python_version >= "3.3" or'
             ' sys_platform == "darwin" and python_version < "3.3"'
         ),
+        # "extra" is a special marker that can have multiple values at the same time.
+        # Thus, "extra == 'a' and extra == 'b'" is not empty.
+        # Further, "extra == 'a' and extra != 'b'" cannot be simplified
+        # because it has the meaning "extra 'a' must and extra 'b' must not be active"
+        'extra == "a" and extra == "b"',
+        'extra == "a" and extra != "b"',
+        'extra != "a" and extra == "b"',
+        'extra != "a" and extra != "b"',
+        'extra == "a" or extra == "b"',
+        'extra == "a" or extra != "b"',
+        'extra != "a" or extra == "b"',
+        'extra != "a" or extra != "b"',
     ],
 )
 def test_parse_marker(marker: str) -> None:
@@ -197,6 +209,27 @@ def test_single_marker_not_in_python_intersection() -> None:
         parse_marker('python_version not in "2.7, 3.0, 3.1, 3.2"')
     )
     assert str(intersection) == 'python_version not in "2.7, 3.0, 3.1, 3.2"'
+
+
+@pytest.mark.parametrize(
+    ("marker1", "marker2", "expected"),
+    [
+        # same value
+        ('extra == "a"', 'extra == "a"', 'extra == "a"'),
+        ('extra == "a"', 'extra != "a"', "<empty>"),
+        ('extra != "a"', 'extra == "a"', "<empty>"),
+        ('extra != "a"', 'extra != "a"', 'extra != "a"'),
+        # different values
+        ('extra == "a"', 'extra == "b"', 'extra == "a" and extra == "b"'),
+        ('extra == "a"', 'extra != "b"', 'extra == "a" and extra != "b"'),
+        ('extra != "a"', 'extra == "b"', 'extra != "a" and extra == "b"'),
+        ('extra != "a"', 'extra != "b"', 'extra != "a" and extra != "b"'),
+    ],
+)
+def test_single_marker_intersect_extras(
+    marker1: str, marker2: str, expected: str
+) -> None:
+    assert str(parse_marker(marker1).intersect(parse_marker(marker2))) == expected
 
 
 def test_single_marker_union() -> None:
@@ -370,6 +403,25 @@ def test_single_marker_union_with_inverse() -> None:
     m = parse_marker('sys_platform == "darwin"')
     union = m.union(parse_marker('sys_platform != "darwin"'))
     assert union.is_any()
+
+
+@pytest.mark.parametrize(
+    ("marker1", "marker2", "expected"),
+    [
+        # same value
+        ('extra == "a"', 'extra == "a"', 'extra == "a"'),
+        ('extra == "a"', 'extra != "a"', ""),
+        ('extra != "a"', 'extra == "a"', ""),
+        ('extra != "a"', 'extra != "a"', 'extra != "a"'),
+        # different values
+        ('extra == "a"', 'extra == "b"', 'extra == "a" or extra == "b"'),
+        ('extra == "a"', 'extra != "b"', 'extra == "a" or extra != "b"'),
+        ('extra != "a"', 'extra == "b"', 'extra != "a" or extra == "b"'),
+        ('extra != "a"', 'extra != "b"', 'extra != "a" or extra != "b"'),
+    ],
+)
+def test_single_marker_union_extras(marker1: str, marker2: str, expected: str) -> None:
+    assert str(parse_marker(marker1).union(parse_marker(marker2))) == expected
 
 
 def test_multi_marker() -> None:
@@ -858,8 +910,6 @@ def test_multi_marker_removes_duplicates() -> None:
             {"os_name": "other", "python_version": "2.7.4"},
             False,
         ),
-        ("extra == 'security'", {"extra": "quux"}, False),
-        ("extra == 'security'", {"extra": "security"}, True),
         (f"os.name == '{os.name}'", None, True),
         ("sys.platform == 'win32'", {"sys_platform": "linux2"}, False),
         ("platform.version in 'Ubuntu'", {"platform_version": "#39"}, False),
@@ -906,6 +956,49 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_machine": "x86_64"},
             False,
         ),
+        # extras
+        # single extra
+        ("extra == 'security'", {"extra": "quux"}, False),
+        ("extra == 'security'", {"extra": "security"}, True),
+        ("extra != 'security'", {"extra": "quux"}, True),
+        ("extra != 'security'", {"extra": "security"}, False),
+        # normalization
+        ("extra == 'Security.1'", {"extra": "security-1"}, True),
+        # extra unknown
+        ("extra == 'a'", {}, True),
+        ("extra != 'a'", {}, True),
+        ("extra == 'a' and extra == 'b'", {}, True),
+        # extra explicitly not set
+        ("extra == 'a'", {"extra": ()}, False),
+        ("extra != 'b'", {"extra": ()}, True),
+        ("extra == 'a' and extra == 'b'", {"extra": ()}, False),
+        ("extra == 'a' or extra == 'b'", {"extra": ()}, False),
+        ("extra != 'a' and extra != 'b'", {"extra": ()}, True),
+        ("extra != 'a' or extra != 'b'", {"extra": ()}, True),
+        ("extra != 'a' and extra == 'b'", {"extra": ()}, False),
+        ("extra != 'a' or extra == 'b'", {"extra": ()}, True),
+        # multiple extras
+        ("extra == 'a'", {"extra": ("a", "b")}, True),
+        ("extra == 'a'", {"extra": ("b", "c")}, False),
+        ("extra != 'a'", {"extra": ("a", "b")}, False),
+        ("extra != 'a'", {"extra": ("b", "c")}, True),
+        ("extra == 'a' and extra == 'b'", {"extra": ("a", "b", "c")}, True),
+        ("extra == 'a' and extra == 'b'", {"extra": ("a", "c")}, False),
+        ("extra == 'a' or extra == 'b'", {"extra": ("a", "c")}, True),
+        ("extra == 'a' or extra == 'b'", {"extra": ("b", "c")}, True),
+        ("extra == 'a' or extra == 'b'", {"extra": ("c", "d")}, False),
+        ("extra != 'a' and extra != 'b'", {"extra": ("a", "c")}, False),
+        ("extra != 'a' and extra != 'b'", {"extra": ("b", "c")}, False),
+        ("extra != 'a' and extra != 'b'", {"extra": ("c", "d")}, True),
+        ("extra != 'a' or extra != 'b'", {"extra": ("a", "b", "c")}, False),
+        ("extra != 'a' or extra != 'b'", {"extra": ("a", "c")}, True),
+        ("extra != 'a' or extra != 'b'", {"extra": ("b", "c")}, True),
+        ("extra != 'a' and extra == 'b'", {"extra": ("a", "b")}, False),
+        ("extra != 'a' and extra == 'b'", {"extra": ("b", "c")}, True),
+        ("extra != 'a' and extra == 'b'", {"extra": ("c", "d")}, False),
+        ("extra != 'a' or extra == 'b'", {"extra": ("a", "b")}, True),
+        ("extra != 'a' or extra == 'b'", {"extra": ("c", "d")}, True),
+        ("extra != 'a' or extra == 'b'", {"extra": ("a", "c")}, False),
     ],
 )
 def test_validate(
@@ -959,7 +1052,7 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
                 'python_version >= "3.6" or extra == "foo" and implementation_name =='
                 ' "pypy" or extra == "bar"'
             ),
-            "",
+            'python_version >= "3.6" or implementation_name == "pypy"',
         ),
         ('extra == "foo"', ""),
         ('extra == "foo" or extra == "bar"', ""),
