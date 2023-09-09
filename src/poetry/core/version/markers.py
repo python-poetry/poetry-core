@@ -66,7 +66,7 @@ _parser = Parser(GRAMMAR_PEP_508_MARKERS, "lalr")
 
 class BaseMarker(ABC):
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         """
         first element: number of single markers, where SingleMarkerLike count as
                        actual number
@@ -441,7 +441,7 @@ class AtomicMultiMarker(SingleMarkerLike[MultiConstraint]):
         self._values: list[str] = []
 
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         return len(self._constraint.constraints), 1
 
     def invert(self) -> BaseMarker:
@@ -467,7 +467,7 @@ class AtomicMarkerUnion(SingleMarkerLike[UnionConstraint]):
         super().__init__(name, constraint)
 
     @property
-    def complexity(self) -> tuple[int, int]:
+    def complexity(self) -> tuple[int, ...]:
         return len(self._constraint.constraints), 1
 
     def invert(self) -> BaseMarker:
@@ -518,10 +518,8 @@ class MultiMarker(BaseMarker):
         return self._markers
 
     @property
-    def complexity(self) -> tuple[int, int]:
-        return tuple(  # type: ignore[return-value]
-            sum(c) for c in zip(*(m.complexity for m in self._markers))
-        )
+    def complexity(self) -> tuple[int, ...]:
+        return tuple(sum(c) for c in zip(*(m.complexity for m in self._markers)))
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
@@ -687,10 +685,8 @@ class MarkerUnion(BaseMarker):
         return self._markers
 
     @property
-    def complexity(self) -> tuple[int, int]:
-        return tuple(  # type: ignore[return-value]
-            sum(c) for c in zip(*(m.complexity for m in self._markers))
-        )
+    def complexity(self) -> tuple[int, ...]:
+        return tuple(sum(c) for c in zip(*(m.complexity for m in self._markers)))
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
