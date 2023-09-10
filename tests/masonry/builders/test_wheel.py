@@ -417,3 +417,18 @@ def test_extended_editable_build_inplace() -> None:
     assert any(
         (root / "extended" / f"extended{ext}").exists() for ext in shared_lib_extensions
     )
+
+
+def test_build_py_only_included() -> None:
+    """Tests that a build.py that only defined the command build_py (which generates a
+    lib folder) will have its artifacts included.
+    """
+    root = fixtures_dir / "build_with_build_py_only"
+    WheelBuilder.make(Factory().create_poetry(root))
+
+    whl = next((root / "dist").glob("build_with_build_py_only-0.1-*.whl"))
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "build_with_build_py_only/generated/file.py" in z.namelist()
