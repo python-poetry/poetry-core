@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.machinery
 import os
 import re
 import shutil
@@ -28,19 +29,33 @@ fixtures_dir = Path(__file__).parent / "fixtures"
 WHEEL_TAG_REGEX = "[cp]p[23]_?\\d+-(?:cp[23]_?\\d+m?u?|pypy[23]_?\\d+_pp\\d+)-.+"
 
 
+shared_lib_extensions = importlib.machinery.EXTENSION_SUFFIXES
+
+
 @pytest.fixture(autouse=True)
 def setup() -> Iterator[None]:
     clear_samples_dist()
+    clear_samples_build()
 
     yield
 
     clear_samples_dist()
+    clear_samples_build()
 
 
 def clear_samples_dist() -> None:
     for dist in fixtures_dir.glob("**/dist"):
         if dist.is_dir():
             shutil.rmtree(str(dist))
+
+
+def clear_samples_build() -> None:
+    for build in fixtures_dir.glob("**/build"):
+        if build.is_dir():
+            shutil.rmtree(str(build))
+    for suffix in shared_lib_extensions:
+        for shared_lib in fixtures_dir.glob(f"**/*{suffix}"):
+            shared_lib.unlink()
 
 
 def test_wheel_module() -> None:
@@ -373,3 +388,47 @@ def test_tag(in_venv_build: bool, mocker: MockerFixture) -> None:
         get_sys_tags_spy.assert_not_called()
     else:
         get_sys_tags_spy.assert_called()
+
+
+def test_extended_editable_wheel_build() -> None:
+    """Tests that an editable wheel made from a project with extensions includes
+    the .pth, but does not include the built package itself.
+    """
+    root = fixtures_dir / "extended"
+    WheelBuilder.make_in(Factory().create_poetry(root), editable=True)
+
+    whl = next((root / "dist").glob("extended-0.1-*.whl"))
+
+    assert whl.exists()
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "extended.pth" in z.namelist()
+        # Ensure the directory "extended/" does not exist in the whl
+        assert all(not n.startswith("extended/") for n in z.namelist())
+
+
+def test_extended_editable_build_inplace() -> None:
+    """Tests that a project with extensions builds the extension modules in-place
+    when ran for an editable install.
+    """
+    root = fixtures_dir / "extended"
+    WheelBuilder.make_in(Factory().create_poetry(root), editable=True)
+
+    # Check that an extension with any of the allowed extensions was built in-place
+    assert any(
+        (root / "extended" / f"extended{ext}").exists() for ext in shared_lib_extensions
+    )
+
+
+def test_build_py_only_included() -> None:
+    """Tests that a build.py that only defined the command build_py (which generates a
+    lib folder) will have its artifacts included.
+    """
+    root = fixtures_dir / "build_with_build_py_only"
+    WheelBuilder.make(Factory().create_poetry(root))
+
+    whl = next((root / "dist").glob("build_with_build_py_only-0.1-*.whl"))
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "build_with_build_py_only/generated/file.py" in z.namelist()
