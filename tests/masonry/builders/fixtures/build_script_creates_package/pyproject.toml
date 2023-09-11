@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "my_package"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Rodrigo Agundez <rragundez@gmail.com>"
+]
+license = "MIT"
+homepage = "https://python-poetry.org/"
+packages = [
+    { include = "my_package" },
+]
+
+build = "build.py"
