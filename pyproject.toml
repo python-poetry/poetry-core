@@ -72,10 +72,10 @@ extend-select = [
     "UP",  # pyupgrade
     "I",  # isort
     "PGH",  # pygrep
+    "PTH"  # flake8-use-pathlib
 ]
 ignore = [
     "B904",  # use 'raise ... from err'
-    "B905",  # use explicit 'strict=' parameter with 'zip()'
     "N818"  #  Exception name should be named with an Error suffix
 ]
 
