@@ -141,7 +141,7 @@ class SdistBuilder(Builder):
                         pkg_root = os.path.relpath(pkg_dir, str(self._path))
                         if "" in package_dir:
                             package_dir.update(
-                                (p, os.path.join(pkg_root, p.replace(".", "/")))
+                                (p, (Path(pkg_root) / p.replace(".", "/")).as_posix())
                                 for p in _packages
                             )
                         else:
@@ -258,18 +258,18 @@ class SdistBuilder(Builder):
         subpkg_paths = set()
 
         def find_nearest_pkg(rel_path: str) -> tuple[str, str]:
-            parts = rel_path.split(os.sep)
+            parts = Path(rel_path).parts
             for i in reversed(range(1, len(parts))):
                 ancestor = "/".join(parts[:i])
                 if ancestor in subpkg_paths:
-                    pkg = ".".join([pkg_name] + parts[:i])
+                    pkg = ".".join([pkg_name, *parts[:i]])
                     return pkg, "/".join(parts[i:])
 
             # Relative to the top-level package
             return pkg_name, Path(rel_path).as_posix()
 
-        for path, _dirnames, filenames in os.walk(str(base), topdown=True):
-            if os.path.basename(path) == "__pycache__":
+        for path, _dirnames, filenames in os.walk(base, topdown=True):
+            if Path(path).name == "__pycache__":
                 continue
 
             from_top_level = os.path.relpath(path, base)
@@ -285,7 +285,7 @@ class SdistBuilder(Builder):
             )
             if is_subpkg:
                 subpkg_paths.add(from_top_level)
-                parts = from_top_level.split(os.sep)
+                parts = Path(from_top_level).parts
                 packages.append(".".join([pkg_name, *parts]))
             else:
                 pkg, from_nearest_pkg = find_nearest_pkg(from_top_level)

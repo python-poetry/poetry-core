@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 import tempfile
 
@@ -102,13 +101,13 @@ def test_utils_helpers_combine_unicode() -> None:
 
 def test_utils_helpers_temporary_directory_readonly_file() -> None:
     with temporary_directory() as temp_dir:
-        readonly_filename = os.path.join(temp_dir, "file.txt")
-        with open(readonly_filename, "w+", encoding="utf-8") as readonly_file:
+        readonly_filename = temp_dir / "file.txt"
+        with readonly_filename.open(mode="w+", encoding="utf-8") as readonly_file:
             readonly_file.write("Poetry rocks!")
-        os.chmod(str(readonly_filename), S_IREAD)
+        readonly_filename.chmod(S_IREAD)
 
-    assert not os.path.exists(temp_dir)
-    assert not os.path.exists(readonly_filename)
+    assert not temp_dir.exists()
+    assert not readonly_filename.exists()
 
 
 @pytest.mark.parametrize(
@@ -133,9 +132,11 @@ def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None
     mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
 
+    mocked_temp_dir.return_value.__enter__.return_value = "hello from test"
+
     mocker.patch.object(sys, "version_info", (3, 10))
     with temporary_directory() as tmp:
-        assert tmp
+        assert tmp == Path("hello from test")
 
     assert not mocked_rmtree.called
     assert not mocked_mkdtemp.called
@@ -151,7 +152,7 @@ def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
 
     mocker.patch.object(sys, "version_info", (3, 9))
     with temporary_directory() as tmp:
-        assert tmp == "hello from test"
+        assert tmp == Path("hello from test")
 
     assert mocked_rmtree.called
     assert mocked_mkdtemp.called

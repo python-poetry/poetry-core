@@ -104,11 +104,12 @@ class WheelBuilder(Builder):
         if not target_dir.exists():
             target_dir.mkdir(parents=True)
 
-        fd, temp_path = tempfile.mkstemp(suffix=".whl")
+        fd, temp = tempfile.mkstemp(suffix=".whl")
 
-        st_mode = os.stat(temp_path).st_mode
+        temp_path = Path(temp)
+        st_mode = temp_path.stat().st_mode
         new_mode = normalize_file_permissions(st_mode)
-        os.chmod(temp_path, new_mode)
+        temp_path.chmod(new_mode)
 
         with os.fdopen(fd, "w+b") as fd_file, zipfile.ZipFile(
             fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
@@ -137,7 +138,7 @@ class WheelBuilder(Builder):
         wheel_path = target_dir / self.wheel_filename
         if wheel_path.exists():
             wheel_path.unlink()
-        shutil.move(temp_path, str(wheel_path))
+        shutil.move(str(temp_path), str(wheel_path))
 
         logger.info(f"Built {self.wheel_filename}")
         return wheel_path

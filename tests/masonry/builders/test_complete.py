@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import os
 import platform
 import re
 import shutil
@@ -121,7 +120,7 @@ def test_complete(project: str, no_vcs: bool) -> None:
 
     assert whl.exists()
     if sys.platform != "win32":
-        assert (os.stat(str(whl)).st_mode & 0o777) == 0o644
+        assert (whl.stat().st_mode & 0o777) == 0o644
 
     expected_name_list = [
         "my_package/__init__.py",

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import posixpath
 import re
 import sys
 
@@ -106,7 +105,7 @@ def is_url(name: str) -> bool:
     ]
 
 
-def strip_extras(path: str) -> tuple[str, str | None]:
+def strip_extras(path: str) -> tuple[Path, str | None]:
     m = re.match(r"^(.+)(\[[^\]]+\])$", path)
     extras = None
     if m:
@@ -115,7 +114,7 @@ def strip_extras(path: str) -> tuple[str, str | None]:
     else:
         path_no_extras = path
 
-    return path_no_extras, extras
+    return Path(path_no_extras), extras
 
 
 @functools.lru_cache(maxsize=None)
@@ -133,17 +132,19 @@ def is_python_project(path: Path) -> bool:
     return pyproject or setuptools_project
 
 
-def is_archive_file(name: str) -> bool:
+def is_archive_file(name: str | Path) -> bool:
     """Return True if `name` is a considered as an archive file."""
     ext = splitext(name)[1].lower()
     return ext in ARCHIVE_EXTENSIONS
 
 
-def splitext(path: str) -> tuple[str, str]:
-    """Like os.path.splitext, but take off .tar too"""
-    base, ext = posixpath.splitext(path)
+def splitext(path: str | Path) -> tuple[str, str]:
+    """Like pathlib.Path.stem and suffix, but take off .tar too"""
+    if isinstance(path, str):
+        path = Path(path)
+    base, ext = path.stem, path.suffix
     if base.lower().endswith(".tar"):
-        ext = base[-4:] + ext
+        ext = f"{base[-4:]}{ext}"
         base = base[:-4]
     return base, ext
 
