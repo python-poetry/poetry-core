@@ -63,8 +63,8 @@ def test_multiline_description(
 
     assert len(errors) == 1
 
-    regex = r"\\A[^\n]*\\Z"
-    assert errors[0] == f"[description] {bad_description!r} does not match '{regex}'"
+    regex = r"\A[^\n]*\Z"
+    assert errors[0] == f"data.description must match pattern {regex}"
 
 
 def test_bad_extra(base_object: dict[str, Any]) -> None:
@@ -74,6 +74,4 @@ def test_bad_extra(base_object: dict[str, Any]) -> None:
 
     errors = validate_object(base_object, "poetry-schema")
     assert len(errors) == 1
-    assert (
-        errors[0] == f"[extras.test.0] {bad_extra!r} does not match '^[a-zA-Z-_.0-9]+$'"
-    )
+    assert errors[0] == "data.extras.test[0] must match pattern ^[a-zA-Z-_.0-9]+$"

@@ -21,7 +21,7 @@
     "description": {
       "type": "string",
       "description": "Short package description.",
-      "pattern": "\\A[^\n]*\\Z"
+      "pattern": "\\A[^\\n]*\\Z"
     },
     "keywords": {
       "type": "array",
