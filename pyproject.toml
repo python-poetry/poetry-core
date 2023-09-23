@@ -40,7 +40,6 @@ virtualenv = ">=20.21"
 
 [tool.poetry.group.typing.dependencies]
 mypy = ">=1.0"
-types-jsonschema = ">=4.4.4"
 types-setuptools = ">=57.4.14"
 
 [tool.ruff]
@@ -108,6 +107,7 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 
 [[tool.mypy.overrides]]
 module = [
+  'fastjsonschema.*',
   'lark.*',
   'virtualenv.*',
 ]

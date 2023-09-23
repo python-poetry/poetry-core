@@ -21,8 +21,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.8"
 
-# jsonschema 4.18 has binary dependencies, making it unsuitable for vendoring.
-jsonschema = "^4.17.3,<4.18.0"
+fastjsonschema = "^2.18.0"
 lark = "^1.1.3"
 packaging = ">=22.0"
 tomli = "^2.0.1"

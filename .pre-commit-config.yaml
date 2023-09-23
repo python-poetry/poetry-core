@@ -9,7 +9,6 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: "vendors/patches/jsonschema.patch"
       - id: end-of-file-fixer
       - id: check-merge-conflict
       - id: check-case-conflict
