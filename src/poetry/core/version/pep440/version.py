@@ -297,6 +297,15 @@ class PEP440Version:
             pre=ReleaseTag(RELEASE_PHASE_ID_ALPHA),
         )
 
+    def before_first_devrelease(self: T) -> T:
+        return self.__class__(
+            epoch=self.epoch,
+            release=self.release,
+            pre=self.pre,
+            post=self.post,
+            dev=_NEG_INF_TAG,
+        )
+
     def first_devrelease(self: T) -> T:
         return self.__class__(
             epoch=self.epoch,
