@@ -321,7 +321,10 @@ def test_with_constraint() -> None:
     assert new.marker == dependency.marker
     assert new.transitive_marker == dependency.transitive_marker
     assert new.python_constraint == dependency.python_constraint
-    assert new.transitive_python_constraint == dependency.transitive_python_constraint
+    with pytest.warns(DeprecationWarning):
+        assert (
+            new.transitive_python_constraint == dependency.transitive_python_constraint
+        )
 
 
 @pytest.mark.parametrize(

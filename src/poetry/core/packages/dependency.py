@@ -219,6 +219,11 @@ class Dependency(PackageSpecification):
 
     @property
     def transitive_python_constraint(self) -> VersionConstraint:
+        warnings.warn(
+            "'transitive_python_constraint' is deprecated and will be removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self._transitive_python_constraint is None:
             return self._python_constraint
 
