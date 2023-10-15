@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from contextlib import AbstractContextManager
+from contextlib import nullcontext
+from typing import Any
+
 import pytest
 
 from packaging.utils import canonicalize_name
@@ -303,7 +307,8 @@ def test_with_constraint() -> None:
         'python_version >= "3.7" and python_version < "4.0"'
     )
     dependency.python_versions = "^3.6"
-    dependency.transitive_python_versions = "^3.7"
+    with pytest.warns(DeprecationWarning):
+        dependency.transitive_python_versions = "^3.7"
 
     new = dependency.with_constraint("^1.2.6")
 
@@ -403,7 +408,14 @@ def test_mutable_attributes_not_in_hash(attr_name: str, value: str) -> None:
     dependency = Dependency("foo", "^1.2.3")
     ref_hash = hash(dependency)
 
-    ref_value = getattr(dependency, attr_name)
-    setattr(dependency, attr_name, value)
+    if attr_name == "transitive_python_versions":
+        context: AbstractContextManager[Any] = pytest.warns(DeprecationWarning)
+    else:
+        context = nullcontext()
+
+    with context:
+        ref_value = getattr(dependency, attr_name)
+    with context:
+        setattr(dependency, attr_name, value)
     assert value != ref_value
     assert hash(dependency) == ref_hash
