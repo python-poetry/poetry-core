@@ -371,13 +371,13 @@ class SdistBuilder(Builder):
         # same as how the pyproject.toml file is located in `find_files_to_add`
         pyproject = self._path / Path("pyproject.toml")
         try:
-            mtime = int(pyproject.stat(follow_symlinks=True).st_mtime)
+            mtime = int(pyproject.stat().st_mtime)
         except FileNotFoundError:
             logger.debug("pyproject.toml not found, using 0 for generated files mtime")
         except TypeError:
             logger.debug(
                 "mtime of pyproject.toml couldnt be coerced to an int, using 0, got"
-                f" mtime: {pyproject.stat(follow_symlinks=True).st_mtime}"
+                f" mtime: {pyproject.stat().st_mtime}"
             )
 
         return mtime
