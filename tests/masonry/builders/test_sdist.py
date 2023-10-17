@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterator
-from typing import Optional
 
 import pytest
 
@@ -438,7 +437,9 @@ def test_with_src_module_dir() -> None:
         assert "package_src-0.1/src/package_src/module.py" in tar.getnames()
 
 
-def test_default_with_excluded_data(mocker: MockerFixture, env_source_date_epoch: Optional[int]) -> None:
+def test_default_with_excluded_data(
+    mocker: MockerFixture, env_source_date_epoch: int | None
+) -> None:
     class MockGit:
         def get_ignored_files(self, folder: Path | None = None) -> list[str]:
             # Patch git module to return specific excluded files
@@ -498,11 +499,13 @@ def test_default_with_excluded_data(mocker: MockerFixture, env_source_date_epoch
         # if the SOURCE_DATE_EPOCH env variable is set, use it for mtimes
         if env_source_date_epoch is None:
             # if unset, should be pyproject.toml's mtime
-            generated_mtime = int(tar.getmember('my_package-1.2.3/pyproject.toml').mtime)
+            generated_mtime = int(
+                tar.getmember("my_package-1.2.3/pyproject.toml").mtime
+            )
         else:
             # should be the env variable, which should be set
             generated_mtime = env_source_date_epoch
-            assert os.environ['SOURCE_DATE_EPOCH'] == str(generated_mtime)
+            assert os.environ["SOURCE_DATE_EPOCH"] == str(generated_mtime)
 
         # all last modified times should be set to a valid timestamp
         for tarinfo in tar.getmembers():
@@ -510,7 +513,8 @@ def test_default_with_excluded_data(mocker: MockerFixture, env_source_date_epoch
                 "my_package-1.2.3/setup.py",
                 "my_package-1.2.3/PKG-INFO",
             ]:
-                # generated files have timestamp set to pyproject.toml's mtime or SOURCE_DATE_EPOCH
+                # generated files have timestamp set to pyproject.toml's mtime
+                # or SOURCE_DATE_EPOCH
                 assert tarinfo.mtime == generated_mtime
                 continue
             assert tarinfo.mtime > 0

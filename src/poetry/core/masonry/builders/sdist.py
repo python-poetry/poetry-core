@@ -352,26 +352,33 @@ class SdistBuilder(Builder):
         """
         Get mtime for generated files
 
-        * If the environment variable ``SOURCE_DATE_EPOCH`` is set as an integer, use that
+        * If the environment variable ``SOURCE_DATE_EPOCH`` is set as an integer,
+          use that
         * Otherwise, use the mtime of ``pyproject.toml``
         """
-        mtime = os.environ.get('SOURCE_DATE_EPOCH', None)
+        mtime = os.environ.get("SOURCE_DATE_EPOCH", None)  # type: int | str | None
         if mtime is not None:
             try:
-                logger.debug('Using SOURCE_DATE_EPOCH for generated file mtime')
+                logger.debug("Using SOURCE_DATE_EPOCH for generated file mtime")
                 return int(mtime)
             except TypeError:
-                logger.warning('SOURCE_DATE_EPOCH is not an integer, attempting to use mtime of pyproject.toml')
+                logger.warning(
+                    "SOURCE_DATE_EPOCH is not an integer, attempting to use mtime of"
+                    " pyproject.toml"
+                )
         mtime = 0
 
         # same as how the pyproject.toml file is located in `find_files_to_add`
-        pyproject = self._path / Path('pyproject.toml')
+        pyproject = self._path / Path("pyproject.toml")
         try:
             mtime = int(pyproject.stat(follow_symlinks=True).st_mtime)
         except FileNotFoundError:
-            logger.debug('pyproject.toml not found, using 0 for generated files mtime')
+            logger.debug("pyproject.toml not found, using 0 for generated files mtime")
         except TypeError:
-            logger.debug(f'mtime of pyproject.toml couldnt be coerced to an int, using 0, got mtime: {pyproject.stat(follow_symlinks=True).st_mtime}')
+            logger.debug(
+                "mtime of pyproject.toml couldnt be coerced to an int, using 0, got"
+                f" mtime: {pyproject.stat(follow_symlinks=True).st_mtime}"
+            )
 
         return mtime
 
