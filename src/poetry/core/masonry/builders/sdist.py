@@ -78,6 +78,7 @@ class SdistBuilder(Builder):
             tar_dir = f"{name}-{self._meta.version}"
 
             files_to_add = self.find_files_to_add(exclude_build=False)
+            mtime = self.get_generated_mtime()
 
             for file in sorted(files_to_add, key=lambda x: x.relative_to_source_root()):
                 tar_info = tar.gettarinfo(
@@ -96,7 +97,7 @@ class SdistBuilder(Builder):
                 setup = self.build_setup()
                 tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
                 tar_info.size = len(setup)
-                tar_info.mtime = 0
+                tar_info.mtime = mtime
                 tar_info = self.clean_tarinfo(tar_info)
                 tar.addfile(tar_info, BytesIO(setup))
 
@@ -104,7 +105,7 @@ class SdistBuilder(Builder):
 
             tar_info = tarfile.TarInfo(pjoin(tar_dir, "PKG-INFO"))
             tar_info.size = len(pkg_info)
-            tar_info.mtime = 0
+            tar_info.mtime = mtime
             tar_info = self.clean_tarinfo(tar_info)
             tar.addfile(tar_info, BytesIO(pkg_info))
         finally:
@@ -346,6 +347,33 @@ class SdistBuilder(Builder):
                 to_add.add(file)
 
         return to_add
+
+    def get_generated_mtime(self) -> int:
+        """
+        Get mtime for generated files
+
+        * If the environment variable ``SOURCE_DATE_EPOCH`` is set as an integer, use that
+        * Otherwise, use the mtime of ``pyproject.toml``
+        """
+        mtime = os.environ.get('SOURCE_DATE_EPOCH', None)
+        if mtime is not None:
+            try:
+                logger.debug('Using SOURCE_DATE_EPOCH for generated file mtime')
+                return int(mtime)
+            except TypeError:
+                logger.warning('SOURCE_DATE_EPOCH is not an integer, attempting to use mtime of pyproject.toml')
+        mtime = 0
+
+        # same as how the pyproject.toml file is located in `find_files_to_add`
+        pyproject = self._path / Path('pyproject.toml')
+        try:
+            mtime = int(pyproject.stat(follow_symlinks=True).st_mtime)
+        except FileNotFoundError:
+            logger.debug('pyproject.toml not found, using 0 for generated files mtime')
+        except TypeError:
+            logger.debug(f'mtime of pyproject.toml couldnt be coerced to an int, using 0, got mtime: {pyproject.stat(follow_symlinks=True).st_mtime}')
+
+        return mtime
 
     @classmethod
     def convert_dependencies(

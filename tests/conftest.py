@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 
@@ -108,3 +109,17 @@ def python(venv: Path) -> str:
 @pytest.fixture()
 def f() -> Factory:
     return Factory()
+
+@pytest.fixture(scope="function", params=[None, 1697539120])
+def env_source_date_epoch(request):
+    # store original value
+    env_orig = None
+    if request.param is not None:
+        env_orig = os.environ.get('SOURCE_DATE_EPOCH', None)
+        os.environ['SOURCE_DATE_EPOCH'] = str(request.param)
+
+    yield request.param
+
+    # restore
+    if env_orig is not None:
+        os.environ['SOURCE_DATE_EPOCH'] = env_orig
