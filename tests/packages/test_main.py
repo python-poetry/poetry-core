@@ -294,7 +294,7 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     )
 
 
-def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix() -> (  # noqa: E501
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_astrix() -> (
     None
 ):
     name = 'pathlib2 ; python_version == "3.4.*" or python_version < "3"'
@@ -305,7 +305,7 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.python_versions == "==3.4.* || <3"
 
 
-def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde() -> (  # noqa: E501
+def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_release_tilde() -> (
     None
 ):
     name = 'pathlib2 ; python_version ~= "3.4" or python_version < "3"'
@@ -316,7 +316,7 @@ def test_dependency_from_pep_508_with_python_full_version_pep440_compatible_rele
     assert dep.python_versions == "~=3.4 || <3"
 
 
-def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers() -> (  # noqa: E501
+def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correct_markers() -> (
     None
 ):
     name = (

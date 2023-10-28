@@ -313,7 +313,7 @@ class PEP440Version:
                     k: getattr(self, k)
                     for k in self.__dataclass_fields__
                     if k not in ("_compare_key", "text")
-                },  # setup defaults with current values, excluding compare keys and text  # noqa: E501
+                },  # setup defaults with current values, excluding compare keys and text
                 **kwargs,  # keys to replace
             }
         )

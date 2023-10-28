@@ -230,7 +230,7 @@ def test_package_equality_source_reference() -> None:
     assert a2 != a4
 
 
-def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> (  # noqa: E501
+def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for_both_packages() -> (
     None
 ):
     a1 = Package(
