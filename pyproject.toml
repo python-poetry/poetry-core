@@ -88,11 +88,10 @@ known-first-party = ["poetry.core"]
 known-third-party = ["poetry.core._vendor"]
 required-imports = ["from __future__ import annotations"]
 
-
 [tool.black]
+target-version = ['py38']
 preview = true
-extend-exclude = "src/poetry/core/_vendor/*"
-
+extend-exclude = "src/poetry/core/_vendor/|tests/([^/]*/)*fixtures/"
 
 [tool.mypy]
 strict = true

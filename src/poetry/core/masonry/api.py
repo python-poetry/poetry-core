@@ -1,6 +1,7 @@
 """
 PEP-517 compliant buildsystem API
 """
+
 from __future__ import annotations
 
 import logging
