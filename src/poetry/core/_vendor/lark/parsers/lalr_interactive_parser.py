@@ -7,6 +7,7 @@ import warnings
 from lark.exceptions import UnexpectedToken
 from lark.lexer import Token, LexerThread
 
+###{standalone
 
 class InteractiveParser:
     """InteractiveParser gives you advanced control over parsing and error handling when parsing with LALR.
@@ -102,9 +103,14 @@ class InteractiveParser:
     def accepts(self):
         """Returns the set of possible tokens that will advance the parser into a new valid state."""
         accepts = set()
+        conf_no_callbacks = copy(self.parser_state.parse_conf)
+        # We don't want to call callbacks here since those might have arbitrary side effects
+        # and are unnecessarily slow.
+        conf_no_callbacks.callbacks = {}
         for t in self.choices():
             if t.isupper(): # is terminal?
                 new_cursor = copy(self)
+                new_cursor.parser_state.parse_conf = conf_no_callbacks
                 try:
                     new_cursor.feed_token(self.lexer_thread._Token(t, ''))
                 except UnexpectedToken:
@@ -147,3 +153,5 @@ class ImmutableInteractiveParser(InteractiveParser):
         """Convert to an ``InteractiveParser``."""
         p = copy(self)
         return InteractiveParser(p.parser, p.parser_state, p.lexer_thread)
+
+###}

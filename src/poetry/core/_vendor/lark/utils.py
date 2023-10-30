@@ -2,7 +2,7 @@ import unicodedata
 import os
 from itertools import product
 from collections import deque
-from typing import Callable, Iterator, List, Optional, Tuple, Type, TypeVar, Union, Dict, Any, Sequence, Iterable
+from typing import Callable, Iterator, List, Optional, Tuple, Type, TypeVar, Union, Dict, Any, Sequence, Iterable, AbstractSet
 
 ###{standalone
 import sys, re
@@ -181,7 +181,7 @@ def is_id_start(s: str) -> bool:
     return _test_unicode_category(s, _ID_START)
 
 
-def dedup_list(l: List[T]) -> List[T]:
+def dedup_list(l: Sequence[T]) -> List[T]:
     """Given a list (l) will removing duplicates from the list,
        preserving the original order of the list. Assumes that
        the list entries are hashable."""
@@ -231,7 +231,8 @@ def combine_alternatives(lists):
     return list(product(*lists))
 
 try:
-    import atomicwrites
+    # atomicwrites doesn't have type bindings
+    import atomicwrites     # type: ignore[import]
     _has_atomicwrites = True
 except ImportError:
     _has_atomicwrites = False
@@ -265,13 +266,13 @@ class fzset(frozenset):
         return '{%s}' % ', '.join(map(repr, self))
 
 
-def classify_bool(seq: Sequence, pred: Callable) -> Any:
+def classify_bool(seq: Iterable, pred: Callable) -> Any:
     false_elems = []
     true_elems = [elem for elem in seq if pred(elem) or false_elems.append(elem)]  # type: ignore[func-returns-value]
     return true_elems, false_elems
 
 
-def bfs(initial: Sequence, expand: Callable) -> Iterator:
+def bfs(initial: Iterable, expand: Callable) -> Iterator:
     open_q = deque(list(initial))
     visited = set(open_q)
     while open_q:
@@ -328,3 +329,30 @@ def small_factors(n: int, max_factor: int) -> List[Tuple[int, int]]:
         if a + b <= max_factor:
             return small_factors(r, max_factor) + [(a, b)]
     assert False, "Failed to factorize %s" % n
+
+
+class OrderedSet(AbstractSet[T]):
+    """A minimal OrderedSet implementation, using a dictionary.
+
+    (relies on the dictionary being ordered)
+    """
+    def __init__(self, items: Iterable[T] =()):
+        self.d = dict.fromkeys(items)
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self.d
+
+    def add(self, item: T):
+        self.d[item] = None
+
+    def __iter__(self) -> Iterator[T]:
+        return iter(self.d)
+
+    def remove(self, item: T):
+        del self.d[item]
+
+    def __bool__(self):
+        return bool(self.d)
+
+    def __len__(self) -> int:
+        return len(self.d)
