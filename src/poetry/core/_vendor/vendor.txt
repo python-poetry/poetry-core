@@ -1,4 +1,4 @@
-fastjsonschema==2.18.0 ; python_version >= "3.8" and python_version < "4.0"
-lark==1.1.7 ; python_version >= "3.8" and python_version < "4.0"
-packaging==23.1 ; python_version >= "3.8" and python_version < "4.0"
+fastjsonschema==2.18.1 ; python_version >= "3.8" and python_version < "4.0"
+lark==1.1.8 ; python_version >= "3.8" and python_version < "4.0"
+packaging==23.2 ; python_version >= "3.8" and python_version < "4.0"
 tomli==2.0.1 ; python_version >= "3.8" and python_version < "4.0"
