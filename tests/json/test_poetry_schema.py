@@ -49,10 +49,14 @@ def test_path_dependencies(base_object: dict[str, Any]) -> None:
 def test_multi_url_dependencies(multi_url_object: dict[str, Any]) -> None:
     assert len(validate_object(multi_url_object, "poetry-schema")) == 0
 
+
 def test_git_dependencies(base_object: dict[str, Any]) -> None:
-    base_object["dependencies"].update({"git-dependency": {"git": "git@github.com:example/example-repository.git"}})
+    base_object["dependencies"].update(
+        {"git-dependency": {"git": "git@github.com:example/example-repository.git"}}
+    )
 
     assert len(validate_object(base_object, "poetry-schema")) == 0
+
 
 @pytest.mark.parametrize(
     "bad_description",
