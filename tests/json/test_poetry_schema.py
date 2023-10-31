@@ -50,10 +50,15 @@ def test_multi_url_dependencies(multi_url_object: dict[str, Any]) -> None:
     assert len(validate_object(multi_url_object, "poetry-schema")) == 0
 
 
-def test_git_dependencies(base_object: dict[str, Any]) -> None:
-    base_object["dependencies"].update(
-        {"git-dependency": {"git": "git@github.com:example/example-repository.git"}}
-    )
+@pytest.mark.parametrize(
+    "git",
+    [
+        "https://github.com/example/example-repository.git",
+        "git@github.com:example/example-repository.git",
+    ],
+)
+def test_git_dependencies(base_object: dict[str, Any], git: str) -> None:
+    base_object["dependencies"].update({"git-dependency": {"git": git}})
 
     assert len(validate_object(base_object, "poetry-schema")) == 0
 
