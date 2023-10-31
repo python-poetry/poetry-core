@@ -51,6 +51,19 @@ def test_multi_url_dependencies(multi_url_object: dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize(
+    "git",
+    [
+        "https://github.com/example/example-repository.git",
+        "git@github.com:example/example-repository.git",
+    ],
+)
+def test_git_dependencies(base_object: dict[str, Any], git: str) -> None:
+    base_object["dependencies"].update({"git-dependency": {"git": git}})
+
+    assert len(validate_object(base_object, "poetry-schema")) == 0
+
+
+@pytest.mark.parametrize(
     "bad_description",
     ["Some multi-\nline string", "Some multiline string\n", "\nSome multi-line string"],
 )
