@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [1.8.1] - 2023-10-31
+
+### Fixed
+
+- Fix an issue where git URLs starting with `git+` could not be parsed anymore ([#657](https://github.com/python-poetry/poetry-core/pull/657)).
+
+
 ## [1.8.0] - 2023-10-31
 
 ### Added
@@ -594,7 +601,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.8.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.8.1...main
+[1.8.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.1
 [1.8.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.0
 [1.7.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.7.0
 [1.6.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.1
