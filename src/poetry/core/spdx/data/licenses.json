@@ -304,6 +304,11 @@
     false,
     false
   ],
+  "BSD-3-Clause-flex": [
+    "BSD 3-Clause Flex variant",
+    false,
+    false
+  ],
   "BSD-4-Clause": [
     "BSD 4-Clause \"Original\" or \"Old\" License",
     false,
@@ -1189,11 +1194,6 @@
     false,
     false
   ],
-  "GNU-compiler-exception": [
-    "GNU Compiler Exception",
-    false,
-    false
-  ],
   "GPL-1.0": [
     "GNU General Public License v1.0 only",
     false,
@@ -1344,6 +1344,11 @@
     false,
     false
   ],
+  "HPND-doc": [
+    "Historical Permission Notice and Disclaimer - documentation variant",
+    false,
+    false
+  ],
   "HPND-doc-sell": [
     "Historical Permission Notice and Disclaimer - documentation sell variant",
     false,
@@ -1396,7 +1401,7 @@
   ],
   "ICU": [
     "ICU License",
-    false,
+    true,
     false
   ],
   "IEC-Code-Components-EULA": [
@@ -2349,11 +2354,6 @@
     false,
     false
   ],
-  "SANE-exception": [
-    "SANE Exception",
-    false,
-    false
-  ],
   "SAX-PD": [
     "Sax Public Domain Notice",
     false,
@@ -2586,11 +2586,6 @@
   ],
   "TermReadKey": [
     "TermReadKey License",
-    false,
-    false
-  ],
-  "Texinfo-exception": [
-    "Texinfo exception",
     false,
     false
   ],
@@ -2951,11 +2946,6 @@
   ],
   "ssh-keyscan": [
     "ssh-keyscan License",
-    false,
-    false
-  ],
-  "stunnel-exception": [
-    "stunnel Exception",
     false,
     false
   ],
