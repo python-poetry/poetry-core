@@ -342,6 +342,109 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "src_package/__init__.py" in names
 
 
+def test_package_with_include_symbolic_links(mocker: MockerFixture) -> None:
+    module_path = fixtures_dir / "with-include-symbolic"
+
+    # Patch git module to return specific excluded files
+    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
+    p.return_value = [
+        str(
+            Path(__file__).parent
+            / "fixtures"
+            / "with-include-symbolic"
+            / "extra_dir"
+            / "vcs_excluded.txt"
+        ),
+        str(
+            Path(__file__).parent
+            / "fixtures"
+            / "with-include-symbolic"
+            / "extra_dir"
+            / "sub_pkg"
+            / "vcs_excluded.txt"
+        ),
+    ]
+    builder = Builder(Factory().create_poetry(module_path))
+    builder.build(fmt="all")
+
+    sdist = (
+        fixtures_dir
+        / "with-include-symbolic"
+        / "dist"
+        / "with-include-symbolic-1.2.3.tar.gz"
+    )
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        names = tar.getnames()
+        assert len(names) == len(set(names))
+        assert "with-include-symbolic-1.2.3/LICENSE" in names
+        assert "with-include-symbolic-1.2.3/README.rst" in names
+        assert "with-include-symbolic-1.2.3/extra_dir/__init__.py" in names
+        assert "with-include-symbolic-1.2.3/extra_dir/vcs_excluded.txt" in names
+        assert "with-include-symbolic-1.2.3/extra_dir/sub_pkg/__init__.py" in names
+        assert (
+            "with-include-symbolic-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt"
+            not in names
+        )
+        assert "with-include-symbolic-1.2.3/my_module.py" in names
+        assert "with-include-symbolic-1.2.3/notes.txt" in names
+        assert "with-include-symbolic-1.2.3/package_with_include/__init__.py" in names
+        assert "with-include-symbolic-1.2.3/tests/__init__.py" in names
+        assert "with-include-symbolic-1.2.3/pyproject.toml" in names
+        assert "with-include-symbolic-1.2.3/setup.py" in names
+        assert "with-include-symbolic-1.2.3/PKG-INFO" in names
+        assert "with-include-symbolic-1.2.3/for_wheel_only/__init__.py" not in names
+        assert "with-include-symbolic-1.2.3/src/src_package/__init__.py" in names
+        assert "with-include-symbolic-1.2.3/data/1/35/2/blabla.txt" in names
+        assert "with-include-symbolic-1.2.3/data/2/4/5/nd.txt" in names
+        assert "with-include-symbolic-1.2.3/data/3/3/3/je.txt" in names
+        assert "with-include-symbolic-1.2.3/data/4/1/2/erric.txt" in names
+
+        file = tar.extractfile("with-include-symbolic-1.2.3/setup.py")
+        assert file
+        setup = file.read()
+        setup_ast = ast.parse(setup)
+
+        setup_ast.body = [n for n in setup_ast.body if isinstance(n, ast.Assign)]
+        ns: dict[str, Any] = {}
+        exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
+        assert ns["package_dir"] == {"": "src"}
+        assert ns["packages"] == [
+            "extra_dir",
+            "extra_dir.sub_pkg",
+            "package_with_include",
+            "src_package",
+            "tests",
+        ]
+        assert ns["package_data"] == {"": ["*"]}
+        assert ns["modules"] == ["my_module"]
+
+    whl = module_path / "dist" / "with_include_symbolic-1.2.3-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        names = z.namelist()
+        assert len(names) == len(set(names))
+        assert "with_include_symbolic-1.2.3.dist-info/LICENSE" in names
+        assert "extra_dir/__init__.py" in names
+        assert "extra_dir/vcs_excluded.txt" in names
+        assert "extra_dir/sub_pkg/__init__.py" in names
+        assert "extra_dir/sub_pkg/vcs_excluded.txt" not in names
+        assert "for_wheel_only/__init__.py" in names
+        assert "my_module.py" in names
+        assert "notes.txt" in names
+        assert "package_with_include/__init__.py" in names
+        assert "tests/__init__.py" not in names
+        assert "src_package/__init__.py" in names
+        assert "src_package/data/1/35/2/blabla.txt" in names
+        assert "src_package/data/2/4/5/nd.txt" in names
+        assert "src_package/data/3/3/3/je.txt" in names
+        assert "src_package/data/4/1/2/erric.txt" in names
+
+
 def test_respect_format_for_explicit_included_files() -> None:
     module_path = fixtures_dir / "exclude-whl-include-sdist"
     builder = Builder(Factory().create_poetry(module_path))

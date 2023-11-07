@@ -155,7 +155,9 @@ class Builder:
 
         return False
 
-    def find_files_to_add(self, exclude_build: bool = True) -> set[BuildIncludeFile]:
+    def find_files_to_add(
+        self, exclude_build: bool = True, resolve_symlinks: bool = True
+    ) -> set[BuildIncludeFile]:
         """
         Finds all files to add to the tarball
         """
@@ -187,6 +189,11 @@ class Builder:
                                 path=current_file,
                                 project_root=self._path,
                                 source_root=source_root,
+                                resolve_symlinks=resolve_symlinks
+                                or (
+                                    not file.is_symlink()
+                                    and not current_file.is_symlink()
+                                ),
                             )
 
                             if not (
@@ -199,7 +206,10 @@ class Builder:
                     continue
 
                 include_file = BuildIncludeFile(
-                    path=file, project_root=self._path, source_root=source_root
+                    path=file,
+                    project_root=self._path,
+                    source_root=source_root,
+                    resolve_symlinks=resolve_symlinks or not file.is_symlink(),
                 )
 
                 if self.is_excluded(
@@ -368,11 +378,13 @@ class BuildIncludeFile:
         path: Path | str,
         project_root: Path | str,
         source_root: Path | str | None = None,
+        resolve_symlinks: bool = True,
     ) -> None:
         """
         :param project_root: the full path of the project's root
         :param path: a full path to the file to be included
         :param source_root: the root path to resolve to
+        :param resolve_symlinks: resolve symlinks or not
         """
         self.path = Path(path)
         self.project_root = Path(project_root).resolve()
@@ -382,7 +394,7 @@ class BuildIncludeFile:
         else:
             self.path = self.path
 
-        self.path = self.path.resolve()
+        self.path = self.path.resolve() if resolve_symlinks else self.path.absolute()
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, BuildIncludeFile):

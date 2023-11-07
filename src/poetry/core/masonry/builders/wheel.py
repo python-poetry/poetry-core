@@ -266,8 +266,7 @@ class WheelBuilder(Builder):
         subprocess.check_call([self.executable.as_posix(), build_script])
 
     def _copy_module(self, wheel: zipfile.ZipFile) -> None:
-        to_add = self.find_files_to_add()
-
+        to_add = self.find_files_to_add(resolve_symlinks=False)
         # Walk the files and compress them,
         # sorting everything so the order is stable.
         for file in sorted(to_add, key=lambda x: x.path):
