@@ -97,4 +97,5 @@ class ProjectPackage(Package):
         return super(Package, self).__hash__()
 
     def build_should_generate_setup(self) -> bool:
-        return self.build_config.get("generate-setup-file", False)
+        value: bool = self.build_config.get("generate-setup-file", False)
+        return value

@@ -154,6 +154,11 @@
     false,
     false
   ],
+  "Adobe-Utopia": [
+    "Adobe Utopia Font License",
+    false,
+    false
+  ],
   "Afmparse": [
     "Afmparse License",
     false,
@@ -254,6 +259,11 @@
     false,
     false
   ],
+  "BSD-3-Clause-HP": [
+    "Hewlett-Packard BSD variant license",
+    false,
+    false
+  ],
   "BSD-3-Clause-LBNL": [
     "Lawrence Berkeley National Labs BSD variant license",
     true,
@@ -286,6 +296,16 @@
   ],
   "BSD-3-Clause-Open-MPI": [
     "BSD 3-Clause Open MPI variant",
+    false,
+    false
+  ],
+  "BSD-3-Clause-Sun": [
+    "BSD 3-Clause Sun Microsystems",
+    false,
+    false
+  ],
+  "BSD-3-Clause-flex": [
+    "BSD 3-Clause Flex variant",
     false,
     false
   ],
@@ -324,6 +344,11 @@
     false,
     false
   ],
+  "BSD-Inferno-Nettverk": [
+    "BSD-Inferno-Nettverk",
+    false,
+    false
+  ],
   "BSD-Protection": [
     "BSD Protection License",
     false,
@@ -331,6 +356,11 @@
   ],
   "BSD-Source-Code": [
     "BSD Source Code Attribution",
+    false,
+    false
+  ],
+  "BSD-Systemics": [
+    "Systemics BSD variant license",
     false,
     false
   ],
@@ -849,6 +879,11 @@
     false,
     false
   ],
+  "Cronyx": [
+    "Cronyx License",
+    false,
+    false
+  ],
   "Crossword": [
     "Crossword License",
     false,
@@ -871,6 +906,11 @@
   ],
   "DL-DE-BY-2.0": [
     "Data licence Germany – attribution – version 2.0",
+    false,
+    false
+  ],
+  "DL-DE-ZERO-2.0": [
+    "Data licence Germany – zero – version 2.0",
     false,
     false
   ],
@@ -969,6 +1009,11 @@
     false,
     false
   ],
+  "FBM": [
+    "Fuzzy Bitmap License",
+    false,
+    false
+  ],
   "FDK-AAC": [
     "Fraunhofer FDK AAC Codec Library",
     false,
@@ -1004,6 +1049,11 @@
     true,
     false
   ],
+  "Ferguson-Twofish": [
+    "Ferguson Twofish License",
+    false,
+    false
+  ],
   "Frameworx-1.0": [
     "Frameworx Open License 1.0",
     true,
@@ -1016,6 +1066,11 @@
   ],
   "FreeImage": [
     "FreeImage Public License v1.0",
+    false,
+    false
+  ],
+  "Furuseth": [
+    "Furuseth License",
     false,
     false
   ],
@@ -1136,11 +1191,6 @@
   ],
   "GLWTPL": [
     "Good Luck With That Public License",
-    false,
-    false
-  ],
-  "GNU-compiler-exception": [
-    "GNU Compiler Exception",
     false,
     false
   ],
@@ -1274,13 +1324,48 @@
     true,
     false
   ],
+  "HPND-DEC": [
+    "Historical Permission Notice and Disclaimer - DEC variant",
+    false,
+    false
+  ],
   "HPND-Markus-Kuhn": [
     "Historical Permission Notice and Disclaimer - Markus Kuhn variant",
     false,
     false
   ],
+  "HPND-Pbmplus": [
+    "Historical Permission Notice and Disclaimer - Pbmplus variant",
+    false,
+    false
+  ],
+  "HPND-UC": [
+    "Historical Permission Notice and Disclaimer - University of California variant",
+    false,
+    false
+  ],
+  "HPND-doc": [
+    "Historical Permission Notice and Disclaimer - documentation variant",
+    false,
+    false
+  ],
+  "HPND-doc-sell": [
+    "Historical Permission Notice and Disclaimer - documentation sell variant",
+    false,
+    false
+  ],
   "HPND-export-US": [
     "HPND with US Government export control warning",
+    false,
+    false
+  ],
+  "HPND-export-US-modify": [
+    "HPND with US Government export control warning and modification rqmt",
+    false,
+    false
+  ],
+  "HPND-sell-regexpr": [
+    "Historical Permission Notice and Disclaimer - sell regexpr variant",
     false,
     false
   ],
@@ -1316,7 +1401,7 @@
   ],
   "ICU": [
     "ICU License",
-    false,
+    true,
     false
   ],
   "IEC-Code-Components-EULA": [
@@ -1406,6 +1491,11 @@
   ],
   "JasPer-2.0": [
     "JasPer License",
+    false,
+    false
+  ],
+  "Kastrup": [
+    "Kastrup License",
     false,
     false
   ],
@@ -1604,6 +1694,11 @@
     false,
     false
   ],
+  "Lucida-Bitmap-Fonts": [
+    "Lucida Bitmap Fonts License",
+    false,
+    false
+  ],
   "MIT": [
     "MIT License",
     true,
@@ -1669,6 +1764,11 @@
     false,
     false
   ],
+  "MPEG-SSG": [
+    "MPEG Software Simulation",
+    false,
+    false
+  ],
   "MPL-1.0": [
     "Mozilla Public License 1.0",
     true,
@@ -1716,6 +1816,11 @@
   ],
   "Martin-Birgmeier": [
     "Martin Birgmeier License",
+    false,
+    false
+  ],
+  "McPhee-slideshow": [
+    "McPhee Slideshow License",
     false,
     false
   ],
@@ -2129,6 +2234,11 @@
     false,
     false
   ],
+  "PADL": [
+    "PADL License",
+    false,
+    false
+  ],
   "PDDL-1.0": [
     "Open Data Commons Public Domain Dedication & License 1.0",
     false,
@@ -2244,11 +2354,6 @@
     false,
     false
   ],
-  "SANE-exception": [
-    "SANE Exception",
-    false,
-    false
-  ],
   "SAX-PD": [
     "Sax Public Domain Notice",
     false,
@@ -2271,6 +2376,11 @@
   ],
   "SGI-B-2.0": [
     "SGI Free Software License B v2.0",
+    false,
+    false
+  ],
+  "SGI-OpenGL": [
+    "SGI OpenGL License",
     false,
     false
   ],
@@ -2476,11 +2586,6 @@
   ],
   "TermReadKey": [
     "TermReadKey License",
-    false,
-    false
-  ],
-  "Texinfo-exception": [
-    "Texinfo exception",
     false,
     false
   ],
@@ -2744,6 +2849,11 @@
     false,
     false
   ],
+  "fwlw": [
+    "fwlw License",
+    false,
+    false
+  ],
   "gSOAP-1.3b": [
     "gSOAP Public License v1.3b",
     false,
@@ -2779,6 +2889,16 @@
     false,
     false
   ],
+  "lsof": [
+    "lsof License",
+    false,
+    false
+  ],
+  "magaz": [
+    "magaz License",
+    false,
+    false
+  ],
   "metamail": [
     "metamail License",
     false,
@@ -2799,6 +2919,11 @@
     false,
     false
   ],
+  "pnmstitch": [
+    "pnmstitch License",
+    false,
+    false
+  ],
   "psfrag": [
     "psfrag License",
     false,
@@ -2809,13 +2934,28 @@
     false,
     false
   ],
+  "python-ldap": [
+    "Python ldap License",
+    false,
+    false
+  ],
   "snprintf": [
     "snprintf License",
     false,
     false
   ],
-  "stunnel-exception": [
-    "stunnel Exception",
+  "ssh-keyscan": [
+    "ssh-keyscan License",
+    false,
+    false
+  ],
+  "swrule": [
+    "swrule License",
+    false,
+    false
+  ],
+  "ulem": [
+    "ulem License",
     false,
     false
   ],

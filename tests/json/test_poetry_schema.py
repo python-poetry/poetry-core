@@ -51,6 +51,19 @@ def test_multi_url_dependencies(multi_url_object: dict[str, Any]) -> None:
 
 
 @pytest.mark.parametrize(
+    "git",
+    [
+        "https://github.com/example/example-repository.git",
+        "git@github.com:example/example-repository.git",
+    ],
+)
+def test_git_dependencies(base_object: dict[str, Any], git: str) -> None:
+    base_object["dependencies"].update({"git-dependency": {"git": git}})
+
+    assert len(validate_object(base_object, "poetry-schema")) == 0
+
+
+@pytest.mark.parametrize(
     "bad_description",
     ["Some multi-\nline string", "Some multiline string\n", "\nSome multi-line string"],
 )
@@ -63,8 +76,8 @@ def test_multiline_description(
 
     assert len(errors) == 1
 
-    regex = r"\\A[^\n]*\\Z"
-    assert errors[0] == f"[description] {bad_description!r} does not match '{regex}'"
+    regex = r"\A[^\n]*\Z"
+    assert errors[0] == f"data.description must match pattern {regex}"
 
 
 def test_bad_extra(base_object: dict[str, Any]) -> None:
@@ -74,6 +87,4 @@ def test_bad_extra(base_object: dict[str, Any]) -> None:
 
     errors = validate_object(base_object, "poetry-schema")
     assert len(errors) == 1
-    assert (
-        errors[0] == f"[extras.test.0] {bad_extra!r} does not match '^[a-zA-Z-_.0-9]+$'"
-    )
+    assert errors[0] == "data.extras.test[0] must match pattern ^[a-zA-Z-_.0-9]+$"

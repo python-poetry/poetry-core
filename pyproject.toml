@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.7.0"
+version = "1.8.1"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 license = "MIT"
@@ -10,7 +10,9 @@ repository = "https://github.com/python-poetry/poetry-core"
 keywords = ["packaging", "dependency", "poetry"]
 classifiers = [
     "Topic :: Software Development :: Build Tools",
-    "Topic :: Software Development :: Libraries :: Python Modules"
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    # Classifiers for Python 3.12 can be removed after Poetry 1.7.0 has been released.
+    "Programming Language :: Python :: 3.12",
 ]
 packages = [
     { include = "poetry", from = "src" },
@@ -40,16 +42,23 @@ virtualenv = ">=20.21"
 
 [tool.poetry.group.typing.dependencies]
 mypy = ">=1.0"
-types-jsonschema = ">=4.4.4"
 types-setuptools = ">=57.4.14"
 
 [tool.ruff]
+extend-exclude = [
+    "src/poetry/core/_vendor/*",
+    "tests/fixtures/*",
+    "tests/**/fixtures/*"
+]
 fix = true
+line-length = 88
+src = ["src"]
+target-version = "py38"
+
+[tool.ruff.lint]
 unfixable = [
     "ERA",  # do not autoremove commented out code
 ]
-target-version = "py38"
-line-length = 88
 extend-select = [
     "B",  # flake8-bugbear
     "C4",  # flake8-comprehensions
@@ -69,16 +78,11 @@ ignore = [
     "B905",  # use explicit 'strict=' parameter with 'zip()'
     "N818"  #  Exception name should be named with an Error suffix
 ]
-extend-exclude = [
-    "src/poetry/core/_vendor/*",
-    "tests/fixtures/*",
-    "tests/**/fixtures/*"
-]
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-single-line = true
 lines-between-types = 1
 lines-after-imports = 2
@@ -86,11 +90,10 @@ known-first-party = ["poetry.core"]
 known-third-party = ["poetry.core._vendor"]
 required-imports = ["from __future__ import annotations"]
 
-
 [tool.black]
+target-version = ['py38']
 preview = true
-extend-exclude = "src/poetry/core/_vendor/*"
-
+extend-exclude = "src/poetry/core/_vendor/|tests/([^/]*/)*fixtures/"
 
 [tool.mypy]
 strict = true
@@ -108,6 +111,7 @@ exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
 
 [[tool.mypy.overrides]]
 module = [
+  'fastjsonschema.*',
   'lark.*',
   'virtualenv.*',
 ]

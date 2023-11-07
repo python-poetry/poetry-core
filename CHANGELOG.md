@@ -1,6 +1,40 @@
 # Change Log
 
 
+## [1.8.1] - 2023-10-31
+
+### Fixed
+
+- Fix an issue where git URLs starting with `git+` could not be parsed anymore ([#657](https://github.com/python-poetry/poetry-core/pull/657)).
+
+
+## [1.8.0] - 2023-10-31
+
+### Added
+
+- Add `3.12` to the list of available Python versions ([#631](https://github.com/python-poetry/poetry-core/pull/631)).
+- Add support for creating packages dynamically in the build script ([#629](https://github.com/python-poetry/poetry-core/pull/629)).
+
+### Changed
+
+- Improve marker logic for `extra` markers ([#636](https://github.com/python-poetry/poetry-core/pull/636)).
+- Update list of supported licenses ([#635](https://github.com/python-poetry/poetry-core/pull/635),
+[#646](https://github.com/python-poetry/poetry-core/pull/646)).
+- Deprecate `Dependency.transitive_python_versions` ([#648](https://github.com/python-poetry/poetry-core/pull/648)).
+- Deprecate `Dependency.transitive_python_constraint` ([#649](https://github.com/python-poetry/poetry-core/pull/649)).
+
+### Fixed
+
+- Fix an issue where projects with extension modules were not installed in editable mode ([#633](https://github.com/python-poetry/poetry-core/pull/633)).
+- Fix an issue where the wrong or no `lib` folder was added to the wheel ([#634](https://github.com/python-poetry/poetry-core/pull/634)).
+
+### Vendoring
+
+- Replace [`jsonschema`](https://github.com/python-jsonschema/jsonschema) with [`fastjsonschema`](https://github.com/horejsek/python-fastjsonschema).
+- [`lark==1.1.8`](https://github.com/lark-parser/lark/releases/tag/1.1.8)
+- [`packaging==23.2`](https://github.com/pypa/packaging/blob/main/CHANGELOG.rst)
+
+
 ## [1.7.0] - 2023-08-20
 
 ### Added
@@ -567,7 +601,9 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.7.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.8.1...main
+[1.8.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.1
+[1.8.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.0
 [1.7.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.7.0
 [1.6.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.1
 [1.6.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.6.0

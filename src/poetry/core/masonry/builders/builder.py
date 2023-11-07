@@ -6,11 +6,13 @@ import sys
 import warnings
 
 from collections import defaultdict
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
+    from poetry.core.masonry.utils.module import Module
     from poetry.core.poetry import Poetry
 
 
@@ -38,13 +40,18 @@ class Builder:
         executable: Path | None = None,
     ) -> None:
         from poetry.core.masonry.metadata import Metadata
-        from poetry.core.masonry.utils.module import Module
 
         self._poetry = poetry
         self._package = poetry.package
         self._path: Path = poetry.pyproject_path.parent
+        self._ignore_packages_formats = ignore_packages_formats
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
+        self._meta = Metadata.from_package(self._package)
+
+    @cached_property
+    def _module(self) -> Module:
+        from poetry.core.masonry.utils.module import Module
 
         packages = []
         for p in self._package.packages:
@@ -62,7 +69,7 @@ class Builder:
                 formats
                 and self.format
                 and self.format not in formats
-                and not ignore_packages_formats
+                and not self._ignore_packages_formats
             ):
                 continue
 
@@ -76,20 +83,18 @@ class Builder:
                 formats
                 and self.format
                 and self.format not in formats
-                and not ignore_packages_formats
+                and not self._ignore_packages_formats
             ):
                 continue
 
             includes.append(include)
 
-        self._module = Module(
+        return Module(
             self._package.name,
             self._path.as_posix(),
             packages=packages,
             includes=includes,
         )
-
-        self._meta = Metadata.from_package(self._package)
 
     @property
     def executable(self) -> Path:

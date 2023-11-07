@@ -6,10 +6,9 @@ exclude: |
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        exclude: "vendors/patches/jsonschema.patch"
       - id: end-of-file-fixer
       - id: check-merge-conflict
       - id: check-case-conflict
@@ -26,11 +25,11 @@ repos:
       - id: check-docstring-first
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.9.0
+    rev: 23.10.1
     hooks:
       - id: black
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.286
+    rev: v0.1.3
     hooks:
     -   id: ruff

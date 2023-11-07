@@ -251,7 +251,7 @@ def test_validate_fails() -> None:
     content = doc["tool"]["poetry"]
     content["authors"] = "this is not a valid array"
 
-    expected = "[authors] 'this is not a valid array' is not of type 'array'"
+    expected = "data.authors must be array"
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
@@ -266,10 +266,10 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
 
     assert Factory.validate(content) == {
         "errors": [
-            "'name' is a required property",
-            "'version' is a required property",
-            "'description' is a required property",
-            "'authors' is a required property",
+            (
+                "data must contain ['authors', 'description', 'name', 'version'] "
+                "properties"
+            ),
         ],
         "warnings": [],
     }
@@ -285,10 +285,10 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
 
     assert Factory.validate(content, strict=True) == {
         "errors": [
-            "'name' is a required property",
-            "'version' is a required property",
-            "'description' is a required property",
-            "'authors' is a required property",
+            (
+                "data must contain ['authors', 'description', 'name', 'version']"
+                " properties"
+            ),
             (
                 'Cannot find dependency "missing_extra" for extra "some-extras" in '
                 "main dependencies."
@@ -352,7 +352,7 @@ def test_create_poetry_fails_on_invalid_configuration() -> None:
 
     expected = """\
 The Poetry configuration is invalid:
-  - 'description' is a required property
+  - data must contain ['description'] properties
 """
     assert str(e.value) == expected
 

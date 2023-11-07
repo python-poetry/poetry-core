@@ -10,13 +10,12 @@ POETRY_BIN                      ?= $(shell which poetry)
 .PHONY: vendor/lock
 vendor/lock: $(VENDOR_LOCK)
 	# regenerate lock file
-	@pushd $(VENDOR_SRC) && $(POETRY_BIN) lock --no-update
+	@pushd $(VENDOR_SRC) && $(POETRY_BIN) lock
 
 .PHONY: vendor/sync
 vendor/sync:
 	# regenerate vendor.txt file (exported from lockfile)
 	@pushd $(VENDOR_SRC) && $(POETRY_BIN) export --without-hashes 2> /dev/null \
-			| grep -E -v "(importlib|zipp|pkgutil-resolve-name)" \
 			| sort > $(VENDOR_TXT)
 
 	# vendor packages

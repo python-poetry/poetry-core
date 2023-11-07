@@ -13,6 +13,8 @@ from typing import Generic
 from typing import TypeVar
 from typing import Union
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.generic import BaseConstraint
 from poetry.core.constraints.generic import Constraint
 from poetry.core.constraints.generic import MultiConstraint
@@ -243,8 +245,24 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
         if self._name not in environment:
             return True
 
+        # "extra" is special because it can have multiple values at the same time.
+        # "extra == 'a'" will be true if "a" is one of the active extras.
+        # "extra != 'a'" will be true if "a" is not one of the active extras.
+        # Further, extra names are normalized for comparison.
+        if self._name == "extra":
+            extras = environment["extra"]
+            if isinstance(extras, str):
+                extras = {extras}
+            extras = {canonicalize_name(extra) for extra in extras}
+            assert isinstance(self._constraint, Constraint)
+            normalized_value = canonicalize_name(self._constraint.value)
+            if self._constraint.operator == "==":
+                return normalized_value in extras
+            assert self._constraint.operator == "!="
+            return normalized_value not in extras
+
         # The type of constraint returned by the parser matches our constraint: either
-        # both are BaseConstraint or both are VersionConstraint.  But it's hard for mypy
+        # both are BaseConstraint or both are VersionConstraint. But it's hard for mypy
         # to know that.
         constraint = self._parser(environment[self._name])
         return self._constraint.allows(constraint)  # type: ignore[arg-type]
@@ -975,6 +993,14 @@ def _merge_single_markers(
 
     if marker1.name != marker2.name:
         return None
+
+    # "extra" is special because it can have multiple values at the same time.
+    # That's why we can only merge two "extra" markers if they have the same value.
+    if marker1.name == "extra":
+        assert isinstance(marker1, SingleMarker)
+        assert isinstance(marker2, SingleMarker)
+        if marker1.value != marker2.value:  # type: ignore[attr-defined]
+            return None
 
     if merge_class == MultiMarker:
         merge_method = marker1.constraint.intersect

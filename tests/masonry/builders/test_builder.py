@@ -204,7 +204,7 @@ def test_invalid_script_files_definition() -> None:
         )
 
     assert "configuration is invalid" in err.value.args[0]
-    assert "[scripts.invalid_definition]" in err.value.args[0]
+    assert "scripts.invalid_definition" in err.value.args[0]
 
 
 @pytest.mark.parametrize(

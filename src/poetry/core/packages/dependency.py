@@ -142,6 +142,11 @@ class Dependency(PackageSpecification):
 
     @property
     def transitive_python_versions(self) -> str:
+        warnings.warn(
+            "'transitive_python_versions' is deprecated and will be removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self._transitive_python_versions is None:
             return self._python_versions
 
@@ -149,6 +154,11 @@ class Dependency(PackageSpecification):
 
     @transitive_python_versions.setter
     def transitive_python_versions(self, value: str) -> None:
+        warnings.warn(
+            "'transitive_python_versions' is deprecated and will be removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._transitive_python_versions = value
         self._transitive_python_constraint = parse_constraint(value)
 
@@ -209,6 +219,11 @@ class Dependency(PackageSpecification):
 
     @property
     def transitive_python_constraint(self) -> VersionConstraint:
+        warnings.warn(
+            "'transitive_python_constraint' is deprecated and will be removed.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self._transitive_python_constraint is None:
             return self._python_constraint
 
