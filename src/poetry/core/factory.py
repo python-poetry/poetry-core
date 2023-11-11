@@ -58,9 +58,12 @@ class Factory:
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
         # Load package
-        name = local_config["name"]
+        # If name or version were missing in package mode, we would have already
+        # raised an error, so we can safely assume they might only be missing
+        # in non-package mode and use some dummy values in this case.
+        name = local_config.get("name", "non-package-mode")
         assert isinstance(name, str)
-        version = local_config["version"]
+        version = local_config.get("version", "0")
         assert isinstance(version, str)
         package = self.get_package(name, version)
         package = self.configure_package(
@@ -128,7 +131,7 @@ class Factory:
 
         package.root_dir = root
 
-        for author in config["authors"]:
+        for author in config.get("authors", []):
             package.authors.append(combine_unicode(author))
 
         for maintainer in config.get("maintainers", []):
@@ -388,6 +391,23 @@ class Factory:
         result: dict[str, list[str]] = {"errors": [], "warnings": []}
         # Schema validation errors
         validation_errors = validate_object(config, "poetry-schema")
+
+        # json validation may only say "data cannot be validated by any definition",
+        # which is quite vague, so we try to give a more precise error message
+        generic_error = "data cannot be validated by any definition"
+        if generic_error in validation_errors:
+            mode = config.get("mode", "package")
+            if mode not in {"package", "non-package"}:
+                validation_errors[validation_errors.index(generic_error)] = (
+                    f'Invalid mode "{mode}"'
+                    ' (allowed values are "package" and "non-package").'
+                )
+            elif mode == "package":
+                required = {"name", "version", "description", "authors"}
+                if missing := required.difference(config):
+                    validation_errors[validation_errors.index(generic_error)] = (
+                        f"The fields {sorted(missing)} are required in package mode."
+                    )
 
         result["errors"] += validation_errors
 

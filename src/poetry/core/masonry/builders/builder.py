@@ -41,6 +41,11 @@ class Builder:
     ) -> None:
         from poetry.core.masonry.metadata import Metadata
 
+        if not poetry.is_package_mode:
+            raise RuntimeError(
+                "Building a package is not possible in non-package mode."
+            )
+
         self._poetry = poetry
         self._package = poetry.package
         self._path: Path = poetry.pyproject_path.parent

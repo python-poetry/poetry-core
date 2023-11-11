@@ -46,6 +46,17 @@ def test_builder_factory_raises_error_when_format_is_not_valid() -> None:
 
 
 @pytest.mark.parametrize("format", ["sdist", "wheel", "all"])
+def test_builder_raises_error_in_non_package_mode(tmp_path: Path, format: str) -> None:
+    poetry = Factory().create_poetry(
+        Path(__file__).parent.parent / "fixtures" / "non_package_mode"
+    )
+    with pytest.raises(RuntimeError) as err:
+        Builder(poetry).build(format, target_dir=tmp_path)
+
+    assert str(err.value) == "Building a package is not possible in non-package mode."
+
+
+@pytest.mark.parametrize("format", ["sdist", "wheel", "all"])
 def test_builder_creates_places_built_files_in_specified_directory(
     tmp_path: Path, format: str
 ) -> None:
