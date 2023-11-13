@@ -441,12 +441,10 @@ def test_ensure_absolute_path_to_git(mocker: MockerFixture) -> None:
 
     def checkout_output(cmd: list[str], *args: Any, **kwargs: Any) -> str | bytes:
         if Path(cmd[0]).name == "where.exe":
-            return "\n".join(
-                [
-                    str(Path.cwd().joinpath("git.exe")),
-                    "C:\\Git\\cmd\\git.exe",
-                ]
-            )
+            return "\n".join([
+                str(Path.cwd().joinpath("git.exe")),
+                "C:\\Git\\cmd\\git.exe",
+            ])
 
         return b""
 

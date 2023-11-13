@@ -88,15 +88,13 @@ def temporary_directory() -> Iterator[Path]:
 @pytest.fixture
 def venv(temporary_directory: Path) -> Path:
     venv_dir = temporary_directory / ".venv"
-    virtualenv.cli_run(
-        [
-            "--no-download",
-            "--no-periodic-update",
-            "--python",
-            sys.executable,
-            venv_dir.as_posix(),
-        ]
-    )
+    virtualenv.cli_run([
+        "--no-download",
+        "--no-periodic-update",
+        "--python",
+        sys.executable,
+        venv_dir.as_posix(),
+    ])
     return venv_dir
 
 
