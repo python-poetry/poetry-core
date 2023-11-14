@@ -175,7 +175,7 @@ class PackageSpecification:
         return self.is_same_source_as(other)
 
     def clone(self: T) -> T:
-        return copy.deepcopy(self)
+        return copy.copy(self)
 
     def with_features(self: T, features: Iterable[str]) -> T:
         package = self.clone()
