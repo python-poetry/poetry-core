@@ -307,16 +307,14 @@ class PEP440Version:
         )
 
     def replace(self: T, **kwargs: Any) -> T:
-        return self.__class__(
+        return self.__class__(**{
             **{
-                **{
-                    k: getattr(self, k)
-                    for k in self.__dataclass_fields__
-                    if k not in ("_compare_key", "text")
-                },  # setup defaults with current values, excluding compare keys and text
-                **kwargs,  # keys to replace
-            }
-        )
+                k: getattr(self, k)
+                for k in self.__dataclass_fields__
+                if k not in ("_compare_key", "text")
+            },  # setup defaults with current values, excluding compare keys and text
+            **kwargs,  # keys to replace
+        })
 
     def without_local(self: T) -> T:
         return self.replace(local=None)
