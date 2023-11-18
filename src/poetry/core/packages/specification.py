@@ -29,6 +29,9 @@ class PackageSpecification:
     ) -> None:
         from packaging.utils import canonicalize_name
 
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
         self._pretty_name = name
         self._name = canonicalize_name(name)
         self._source_type = source_type

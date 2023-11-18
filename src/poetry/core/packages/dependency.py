@@ -62,6 +62,9 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
         self._constraint: VersionConstraint
         self._pretty_constraint: str
         self.constraint = constraint  # type: ignore[assignment]

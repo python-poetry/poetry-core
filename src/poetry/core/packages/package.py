@@ -94,6 +94,9 @@ class Package(PackageSpecification):
             features=features,
         )
 
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
         self._set_version(version)
 
         self.description = ""

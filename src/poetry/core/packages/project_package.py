@@ -36,6 +36,9 @@ class ProjectPackage(Package):
 
         super().__init__(name, version)
 
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
         self.build_config: Mapping[str, Any] = {}
         self.packages: Sequence[Mapping[str, Any]] = []
         self.include: Sequence[Mapping[str, Any]] = []
