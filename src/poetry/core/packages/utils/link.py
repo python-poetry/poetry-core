@@ -3,17 +3,27 @@ from __future__ import annotations
 import posixpath
 import re
 import urllib.parse as urlparse
+import warnings
+
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 from poetry.core.packages.utils.utils import path_to_url
 from poetry.core.packages.utils.utils import splitext
+
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class Link:
     def __init__(
         self,
         url: str,
+        *,
         requires_python: str | None = None,
-        metadata: str | bool | None = None,
+        hashes: Mapping[str, str] | None = None,
+        metadata: str | bool | dict[str, str] | None = None,
         yanked: str | bool = False,
     ) -> None:
         """
@@ -25,11 +35,16 @@ class Link:
             String containing the `Requires-Python` metadata field, specified
             in PEP 345. This may be specified by a data-requires-python
             attribute in the HTML link tag, as described in PEP 503.
+        hashes:
+            A dictionary of hash names and associated hashes of the file.
+            Only relevant for JSON-API (PEP 691).
         metadata:
-            String of the syntax `<hashname>=<hashvalue>` representing the hash
-            of the Core Metadata file. This may be specified by a
-            data-dist-info-metadata attribute in the HTML link tag, as described
-            in PEP 658.
+            One of:
+            - bool indicating that metadata is available
+            - string of the syntax `<hashname>=<hashvalue>` representing the hash
+              of the Core Metadata file according to PEP 658 (HTML).
+            - dict with hash names and associated hashes of the Core Metadata file
+              according to PEP 691 (JSON).
         yanked:
             False, if the data-yanked attribute is not present.
             A string, if the data-yanked attribute has a string value.
@@ -43,6 +58,7 @@ class Link:
 
         self.url = url
         self.requires_python = requires_python if requires_python else None
+        self._hashes = hashes
 
         if isinstance(metadata, str):
             metadata = {"true": True, "": False, "false": False}.get(
@@ -96,7 +112,7 @@ class Link:
     def __hash__(self) -> int:
         return hash(self.url)
 
-    @property
+    @cached_property
     def filename(self) -> str:
         _, netloc, path, _, _ = urlparse.urlsplit(self.url)
         name = posixpath.basename(path.rstrip("/")) or netloc
@@ -104,33 +120,33 @@ class Link:
 
         return name
 
-    @property
+    @cached_property
     def scheme(self) -> str:
         return urlparse.urlsplit(self.url)[0]
 
-    @property
+    @cached_property
     def netloc(self) -> str:
         return urlparse.urlsplit(self.url)[1]
 
-    @property
+    @cached_property
     def path(self) -> str:
         return urlparse.unquote(urlparse.urlsplit(self.url)[2])
 
     def splitext(self) -> tuple[str, str]:
         return splitext(posixpath.basename(self.path.rstrip("/")))
 
-    @property
+    @cached_property
     def ext(self) -> str:
         return self.splitext()[1]
 
-    @property
+    @cached_property
     def url_without_fragment(self) -> str:
         scheme, netloc, path, query, fragment = urlparse.urlsplit(self.url)
         return urlparse.urlunsplit((scheme, netloc, path, query, None))
 
     _egg_fragment_re = re.compile(r"[#&]egg=([^&]*)")
 
-    @property
+    @cached_property
     def egg_fragment(self) -> str | None:
         match = self._egg_fragment_re.search(self.url)
         if not match:
@@ -139,7 +155,7 @@ class Link:
 
     _subdirectory_fragment_re = re.compile(r"[#&]subdirectory=([^&]*)")
 
-    @property
+    @cached_property
     def subdirectory_fragment(self) -> str | None:
         match = self._subdirectory_fragment_re.search(self.url)
         if not match:
@@ -148,20 +164,36 @@ class Link:
 
     _hash_re = re.compile(r"(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)")
 
-    @property
+    @cached_property
     def has_metadata(self) -> bool:
         if self._metadata is None:
             return False
         return bool(self._metadata) and (self.is_wheel or self.is_sdist)
 
-    @property
+    @cached_property
     def metadata_url(self) -> str | None:
         if self.has_metadata:
             return f"{self.url_without_fragment.split('?', 1)[0]}.metadata"
         return None
 
+    @cached_property
+    def metadata_hashes(self) -> Mapping[str, str]:
+        if self.has_metadata:
+            if isinstance(self._metadata, dict):
+                return self._metadata
+            if isinstance(self._metadata, str):
+                match = self._hash_re.search(self._metadata)
+                if match:
+                    return {match.group(1): match.group(2)}
+        return {}
+
     @property
     def metadata_hash(self) -> str | None:
+        warnings.warn(
+            "metadata_hash is deprecated. Use metadata_hashes instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self.has_metadata and isinstance(self._metadata, str):
             match = self._hash_re.search(self._metadata)
             if match:
@@ -170,14 +202,33 @@ class Link:
 
     @property
     def metadata_hash_name(self) -> str | None:
+        warnings.warn(
+            "metadata_hash_name is deprecated. Use metadata_hashes instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self.has_metadata and isinstance(self._metadata, str):
             match = self._hash_re.search(self._metadata)
             if match:
                 return match.group(1)
         return None
 
+    @cached_property
+    def hashes(self) -> Mapping[str, str]:
+        if self._hashes:
+            return self._hashes
+        match = self._hash_re.search(self.url)
+        if match:
+            return {match.group(1): match.group(2)}
+        return {}
+
     @property
     def hash(self) -> str | None:
+        warnings.warn(
+            "hash is deprecated. Use hashes instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         match = self._hash_re.search(self.url)
         if match:
             return match.group(2)
@@ -185,47 +236,52 @@ class Link:
 
     @property
     def hash_name(self) -> str | None:
+        warnings.warn(
+            "hash_name is deprecated. Use hashes instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         match = self._hash_re.search(self.url)
         if match:
             return match.group(1)
         return None
 
-    @property
+    @cached_property
     def show_url(self) -> str:
         return posixpath.basename(self.url.split("#", 1)[0].split("?", 1)[0])
 
-    @property
+    @cached_property
     def is_wheel(self) -> bool:
         return self.ext == ".whl"
 
-    @property
+    @cached_property
     def is_wininst(self) -> bool:
         return self.ext == ".exe"
 
-    @property
+    @cached_property
     def is_egg(self) -> bool:
         return self.ext == ".egg"
 
-    @property
+    @cached_property
     def is_sdist(self) -> bool:
         return self.ext in {".tar.bz2", ".tar.gz", ".zip"}
 
-    @property
+    @cached_property
     def is_artifact(self) -> bool:
         """
         Determines if this points to an actual artifact (e.g. a tarball) or if
         it points to an "abstract" thing like a path or a VCS location.
         """
-        if self.scheme in ("ssh", "git", "hg", "bzr", "sftp", "svn"):
+        if self.scheme in {"ssh", "git", "hg", "bzr", "sftp", "svn"}:
             return False
 
         return True
 
-    @property
+    @cached_property
     def yanked(self) -> bool:
         return isinstance(self._yanked, str) or bool(self._yanked)
 
-    @property
+    @cached_property
     def yanked_reason(self) -> str:
         if isinstance(self._yanked, str):
             return self._yanked
