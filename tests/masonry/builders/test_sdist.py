@@ -178,6 +178,9 @@ def test_find_files_to_add() -> None:
     result = {f.relative_to_source_root() for f in builder.find_files_to_add()}
 
     assert result == {
+        Path("AUTHORS"),
+        Path("COPYING"),
+        Path("LICENCE"),
         Path("LICENSE"),
         Path("README.rst"),
         Path("bin/script.sh"),

@@ -321,7 +321,11 @@ class SdistBuilder(Builder):
         to_add = super().find_files_to_add(exclude_build)
 
         # add any additional files, starting with all LICENSE files
-        additional_files: set[Path] = set(self._path.glob("LICENSE*"))
+        additional_files: set[Path] = set()
+        include_files_patterns = {"COPYING*", "LICEN[SC]E*", "AUTHORS*", "NOTICE*"}
+
+        for pattern in include_files_patterns:
+            additional_files.update(self._path.glob(pattern))
 
         # add script files
         additional_files.update(self.convert_script_files())
