@@ -24,7 +24,7 @@ build-backend = "poetry.core.masonry.api"
 ```
 
 Once this is present, a PEP 517 frontend like `pip` can build and install your project from source without the need
-for Poetry or any of its dependencies.
+for Poetry or any of its dependencies (besides `poetry-core`).
 
 ```shell
 # install to current environment
