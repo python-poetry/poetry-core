@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import functools
-from pathlib import Path
 import subprocess
 import sys
+
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -25,17 +26,22 @@ pytestmark = pytest.mark.integration
 
 def verbose_called_process_error(test_function):
     """Decorator to emit verbose CalledProcessError details on stderr."""
+
     @functools.wraps(test_function)
     def verbose_called_process_error_wrapper(*args, **kwargs):
         try:
             return test_function(*args, **kwargs)
         except subprocess.CalledProcessError as error:
-            sys.stdout.write(f"\n---=============---\n")
-            sys.stdout.write(f"CalledProcessError details to workaround the test fixture swallowing it:\n")
+            sys.stdout.write("\n---=============---\n")
+            sys.stdout.write(
+                "CalledProcessError details to workaround the test fixture swallowing"
+                " it:\n"
+            )
             sys.stdout.write(f"stdout = {error.stdout}\n")
             sys.stdout.write(f"stderr = {error.stderr}\n")
-            sys.stdout.write(f"---=============---\n")
+            sys.stdout.write("---=============---\n")
             raise
+
     return verbose_called_process_error_wrapper
 
 
