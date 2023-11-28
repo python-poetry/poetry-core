@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import functools
 from pathlib import Path
+import subprocess
+import sys
 from typing import TYPE_CHECKING
 
 import pytest
@@ -20,6 +23,23 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 
+def verbose_called_process_error(test_function):
+    """Decorator to emit verbose CalledProcessError details on stderr."""
+    @functools.wraps(test_function)
+    def verbose_called_process_error_wrapper(*args, **kwargs):
+        try:
+            return test_function(*args, **kwargs)
+        except subprocess.CalledProcessError as error:
+            sys.stdout.write(f"\n---=============---\n")
+            sys.stdout.write(f"CalledProcessError details to workaround the test fixture swallowing it:\n")
+            sys.stdout.write(f"stdout = {error.stdout}\n")
+            sys.stdout.write(f"stderr = {error.stderr}\n")
+            sys.stdout.write(f"---=============---\n")
+            raise
+    return verbose_called_process_error_wrapper
+
+
+@verbose_called_process_error
 @pytest.mark.parametrize(
     "getter, project",
     [
@@ -35,10 +55,12 @@ def test_pep517_check_poetry_managed(
         assert project_wheel_metadata(path)
 
 
+@verbose_called_process_error
 def test_pep517_check(project_source_root: Path) -> None:
     assert project_wheel_metadata(str(project_source_root))
 
 
+@verbose_called_process_error
 def test_pep517_build_sdist(
     temporary_directory: Path, project_source_root: Path
 ) -> None:
@@ -51,6 +73,7 @@ def test_pep517_build_sdist(
     assert len(distributions) == 1
 
 
+@verbose_called_process_error
 def test_pep517_build_wheel(
     temporary_directory: Path, project_source_root: Path
 ) -> None:
@@ -63,6 +86,7 @@ def test_pep517_build_wheel(
     assert len(distributions) == 1
 
 
+@verbose_called_process_error
 def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path) -> None:
     tmp = str(temporary_directory)
     pip = subprocess_run(
@@ -76,6 +100,7 @@ def test_pip_wheel_build(temporary_directory: Path, project_source_root: Path) -
     assert len(wheels) == 1
 
 
+@verbose_called_process_error
 def test_pip_install_no_binary(python: str, project_source_root: Path) -> None:
     subprocess_run(
         python,
