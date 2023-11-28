@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import functools
 import json
-
-from pathlib import Path
 import sys
+
 
 if sys.version_info[:2] < (3, 9):
     import importlib_resources
