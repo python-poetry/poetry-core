@@ -69,10 +69,10 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        run: poetry run python -m pytest -p no:sugar -q tests/
+        run: poetry run python -m pytest --verbosity=2 -p no:sugar -q tests/
 
       - name: Run integration tests
-        run: poetry run python -m pytest -p no:sugar --integration -q tests/integration
+        run: poetry run python -m pytest --verbosity=2 -p no:sugar --integration -q tests/integration
 
       - name: Run mypy
         run: poetry run mypy
