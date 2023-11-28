@@ -5,7 +5,9 @@ import subprocess
 import sys
 
 from pathlib import Path
-from typing import Any, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Callable
 
 import pytest
 
@@ -24,7 +26,9 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 
-def verbose_called_process_error(test_function: Callable[..., None]) -> Callable[..., None]:
+def verbose_called_process_error(
+    test_function: Callable[..., None]
+) -> Callable[..., None]:
     """Decorator to emit verbose CalledProcessError details on stderr."""
 
     @functools.wraps(test_function)
@@ -33,11 +37,11 @@ def verbose_called_process_error(test_function: Callable[..., None]) -> Callable
             return test_function(*args, **kwargs)
         except subprocess.CalledProcessError as error:
             try:
-                stdout = error.stdout.decode('utf-8')
+                stdout = error.stdout.decode("utf-8")
             except UnicodeError:
                 stdout = error.stdout
             try:
-                stderr = error.stderr.decode('utf-8')
+                stderr = error.stderr.decode("utf-8")
             except UnicodeError:
                 stderr = error.stderr
             sys.stderr.write("\n---=============---\n")
