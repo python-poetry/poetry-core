@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING
 
 import pytest
 
@@ -24,22 +24,29 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.integration
 
 
-def verbose_called_process_error(test_function):
+def verbose_called_process_error(test_function: Callable[..., None]) -> Callable[..., None]:
     """Decorator to emit verbose CalledProcessError details on stderr."""
 
     @functools.wraps(test_function)
-    def verbose_called_process_error_wrapper(*args, **kwargs):
+    def verbose_called_process_error_wrapper(*args: Any, **kwargs: Any) -> None:
         try:
             return test_function(*args, **kwargs)
         except subprocess.CalledProcessError as error:
-            sys.stdout.write("\n---=============---\n")
-            sys.stdout.write(
-                "CalledProcessError details to workaround the test fixture swallowing"
-                " it:\n"
+            try:
+                stdout = error.stdout.decode('utf-8')
+            except UnicodeError:
+                stdout = error.stdout
+            try:
+                stderr = error.stderr.decode('utf-8')
+            except UnicodeError:
+                stderr = error.stderr
+            sys.stderr.write("\n---=============---\n")
+            sys.stderr.write(
+                "CalledProcessError details (test fixtures can swallow it):\n"
             )
-            sys.stdout.write(f"stdout = {error.stdout}\n")
-            sys.stdout.write(f"stderr = {error.stderr}\n")
-            sys.stdout.write("---=============---\n")
+            sys.stderr.write(f"stdout = {stdout}\n")
+            sys.stderr.write(f"stderr = {stderr}\n")
+            sys.stderr.write("---=============---\n")
             raise
 
     return verbose_called_process_error_wrapper
