@@ -4,6 +4,12 @@ import functools
 import json
 
 from pathlib import Path
+import sys
+
+if sys.version_info[:2] < (3, 9):
+    import importlib_resources
+else:
+    from importlib import resources as importlib_resources
 
 from poetry.core.spdx.license import License
 
@@ -21,7 +27,9 @@ def license_by_id(identifier: str) -> License:
 @functools.lru_cache
 def _load_licenses() -> dict[str, License]:
     licenses = {}
-    licenses_file = Path(__file__).parent / "data" / "licenses.json"
+    licenses_file = (
+        importlib_resources.files("poetry.core.spdx").joinpath("data") / "licenses.json"
+    )
 
     with licenses_file.open(encoding="utf-8") as f:
         data = json.load(f)

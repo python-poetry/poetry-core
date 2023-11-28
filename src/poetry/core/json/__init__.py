@@ -3,7 +3,13 @@ from __future__ import annotations
 import json
 
 from pathlib import Path
+import sys
 from typing import Any
+
+if sys.version_info[:2] < (3, 9):
+    import importlib_resources
+else:
+    from importlib import resources as importlib_resources
 
 import fastjsonschema
 
@@ -18,9 +24,12 @@ class ValidationError(ValueError):
 
 
 def validate_object(obj: dict[str, Any], schema_name: str) -> list[str]:
-    schema_file = SCHEMA_DIR / f"{schema_name}.json"
+    schema_file = (
+        importlib_resources.files("poetry.core.json").joinpath("schemas")
+        / f"{schema_name}.json"
+    )
 
-    if not schema_file.exists():
+    if not schema_file.is_file():
         raise ValueError(f"Schema {schema_name} does not exist.")
 
     with schema_file.open(encoding="utf-8") as f:

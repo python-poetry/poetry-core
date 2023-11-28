@@ -1,5 +1,9 @@
 # Change Log
 
+### Fixed
+
+- Fix some usage from zipapp or similar non-filesystem based Python deployments by using `importlib.resources` to load data files. ([part of issue #2965](https://github.com/python-poetry/poetry/issues/2965)).
+
 
 ## [1.8.1] - 2023-10-31
 
