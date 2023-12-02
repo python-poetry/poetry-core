@@ -12,7 +12,7 @@ from poetry.core.spdx.license import License
 if sys.version_info < (3, 9):
     from pathlib import Path
 
-    def _get_license_file(schema_name: str) -> Path:
+    def _get_license_file() -> Path:
         return Path(__file__).parent / "data" / "licenses.json"
 
 else:
@@ -21,7 +21,7 @@ else:
     if TYPE_CHECKING:
         from importlib.abc import Traversable
 
-    def _get_license_file(schema_name: str) -> Traversable:
+    def _get_license_file() -> Traversable:
         return files(__package__) / "data" / "licenses.json"
 
 
@@ -38,7 +38,7 @@ def license_by_id(identifier: str) -> License:
 @functools.lru_cache
 def _load_licenses() -> dict[str, License]:
     licenses = {}
-    licenses_file = _get_license_file("licenses")
+    licenses_file = _get_license_file()
 
     with licenses_file.open(encoding="utf-8") as f:
         data = json.load(f)
