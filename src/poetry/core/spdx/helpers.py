@@ -2,10 +2,27 @@ from __future__ import annotations
 
 import functools
 import json
+import sys
 
-from poetry.core.spdx import data as licenses_data
+from typing import TYPE_CHECKING
+
 from poetry.core.spdx.license import License
-from poetry.core.utils._compat import importlib_resources
+
+
+if sys.version_info < (3, 9):
+    from pathlib import Path
+
+    def _get_license_file(schema_name: str) -> Path:
+        return Path(__file__).parent / "data" / "licenses.json"
+
+else:
+    from importlib.resources import files
+
+    if TYPE_CHECKING:
+        from importlib.abc import Traversable
+
+    def _get_license_file(schema_name: str) -> Traversable:
+        return files(__package__) / "data" / "licenses.json"
 
 
 def license_by_id(identifier: str) -> License:
@@ -21,7 +38,7 @@ def license_by_id(identifier: str) -> License:
 @functools.lru_cache
 def _load_licenses() -> dict[str, License]:
     licenses = {}
-    licenses_file = importlib_resources.files(licenses_data).joinpath("licenses.json")
+    licenses_file = _get_license_file("licenses")
 
     with licenses_file.open(encoding="utf-8") as f:
         data = json.load(f)
