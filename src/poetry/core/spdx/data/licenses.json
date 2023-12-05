@@ -79,6 +79,11 @@
     false,
     false
   ],
+  "AML-glslang": [
+    "AML glslang variant License",
+    false,
+    false
+  ],
   "AMPAS": [
     "Academy of Motion Picture Arts and Sciences BSD",
     false,
@@ -146,6 +151,11 @@
   ],
   "Adobe-2006": [
     "Adobe Systems Incorporated Source Code License Agreement",
+    false,
+    false
+  ],
+  "Adobe-Display-PostScript": [
+    "Adobe Display PostScript License",
     false,
     false
   ],
@@ -904,6 +914,11 @@
     false,
     false
   ],
+  "DEC-3-Clause": [
+    "DEC 3-Clause License",
+    false,
+    false
+  ],
   "DL-DE-BY-2.0": [
     "Data licence Germany – attribution – version 2.0",
     false,
@@ -921,6 +936,11 @@
   ],
   "DRL-1.0": [
     "Detection Rule License 1.0",
+    false,
+    false
+  ],
+  "DRL-1.1": [
+    "Detection Rule License 1.1",
     false,
     false
   ],
@@ -1071,6 +1091,11 @@
   ],
   "Furuseth": [
     "Furuseth License",
+    false,
+    false
+  ],
+  "GCR-docs": [
+    "Gnome GCR Documentation License",
     false,
     false
   ],
@@ -1361,6 +1386,11 @@
   ],
   "HPND-export-US-modify": [
     "HPND with US Government export control warning and modification rqmt",
+    false,
+    false
+  ],
+  "HPND-sell-MIT-disclaimer-xserver": [
+    "Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer",
     false,
     false
   ],
@@ -2269,6 +2299,11 @@
     false,
     false
   ],
+  "Pixar": [
+    "Pixar License",
+    false,
+    false
+  ],
   "Plexus": [
     "Plexus Classworlds License",
     false,
@@ -2356,6 +2391,11 @@
   ],
   "SAX-PD": [
     "Sax Public Domain Notice",
+    false,
+    false
+  ],
+  "SAX-PD-2.0": [
+    "Sax Public Domain Notice 2.0",
     false,
     false
   ],
@@ -2864,6 +2904,11 @@
     false,
     false
   ],
+  "hdparm": [
+    "hdparm License",
+    false,
+    false
+  ],
   "iMatix": [
     "iMatix Standard Function Library Agreement",
     false,
@@ -2936,6 +2981,11 @@
   ],
   "python-ldap": [
     "Python ldap License",
+    false,
+    false
+  ],
+  "radvd": [
+    "radvd License",
     false,
     false
   ],
