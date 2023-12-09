@@ -396,13 +396,12 @@ class Factory:
         # which is quite vague, so we try to give a more precise error message
         generic_error = "data cannot be validated by any definition"
         if generic_error in validation_errors:
-            mode = config.get("mode", "package")
-            if mode not in {"package", "non-package"}:
+            package_mode = config.get("package-mode", True)
+            if not isinstance(package_mode, bool):
                 validation_errors[validation_errors.index(generic_error)] = (
-                    f'Invalid mode "{mode}"'
-                    ' (allowed values are "package" and "non-package").'
+                    f"Invalid value for package-mode: {package_mode}"
                 )
-            elif mode == "package":
+            elif package_mode:
                 required = {"name", "version", "description", "authors"}
                 if missing := required.difference(config):
                     validation_errors[validation_errors.index(generic_error)] = (

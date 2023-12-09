@@ -6,12 +6,12 @@
   "anyOf": [
     {
       "required": [
-        "mode"
+        "package-mode"
       ],
       "properties": {
-        "mode": {
+        "package-mode": {
           "enum": [
-            "non-package"
+            false
           ]
         }
       }
@@ -26,12 +26,10 @@
     }
   ],
   "properties": {
-    "mode": {
-      "enum": [
-        "package",
-        "non-package"
-      ],
-      "description": "Defines the operating mode of Poetry."
+    "package-mode": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether Poetry is operated in package mode or non-package mode."
     },
     "name": {
       "type": "string",

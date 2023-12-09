@@ -38,9 +38,9 @@ class Poetry:
 
     @property
     def is_package_mode(self) -> bool:
-        mode = self._local_config.get("mode", "package")
-        assert isinstance(mode, str)
-        return mode == "package"
+        package_mode = self._local_config["package-mode"]
+        assert isinstance(package_mode, bool)
+        return package_mode
 
     @property
     def local_config(self) -> dict[str, Any]:

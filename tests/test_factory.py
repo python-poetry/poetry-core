@@ -375,7 +375,7 @@ def test_create_poetry_fails_on_invalid_mode() -> None:
 
     expected = """\
 The Poetry configuration is invalid:
-  - Invalid mode "invalid" (allowed values are "package" and "non-package").
+  - Invalid value for package-mode: invalid
 """
     assert str(e.value) == expected
 

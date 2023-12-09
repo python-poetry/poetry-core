@@ -1,2 +1,2 @@
 [tool.poetry]
-mode = "invalid"
+package-mode = "invalid"
