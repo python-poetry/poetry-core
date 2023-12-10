@@ -94,6 +94,10 @@
           },
           "format": {
             "$ref": "#/definitions/package-formats"
+          },
+          "to": {
+            "type": "string",
+            "description": "Where the package should be installed in the final distribution."
           }
         }
       }
