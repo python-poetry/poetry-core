@@ -180,6 +180,15 @@ class Builder:
                 else:
                     source_root = self._path
 
+                if (
+                    isinstance(include, PackageInclude)
+                    and include.target
+                    and self.format == "wheel"
+                ):
+                    target_dir = include.target
+                else:
+                    target_dir = None
+
                 if file.is_dir():
                     if self.format in formats:
                         for current_file in file.glob("**/*"):
@@ -187,6 +196,7 @@ class Builder:
                                 path=current_file,
                                 project_root=self._path,
                                 source_root=source_root,
+                                target_dir=target_dir,
                             )
 
                             if not (
@@ -199,7 +209,10 @@ class Builder:
                     continue
 
                 include_file = BuildIncludeFile(
-                    path=file, project_root=self._path, source_root=source_root
+                    path=file,
+                    project_root=self._path,
+                    source_root=source_root,
+                    target_dir=target_dir,
                 )
 
                 if self.is_excluded(
@@ -220,6 +233,7 @@ class Builder:
                     path=self._package.build_script,
                     project_root=self._path,
                     source_root=self._path,
+                    target_dir=self._path,
                 )
             )
 
@@ -368,6 +382,7 @@ class BuildIncludeFile:
         path: Path | str,
         project_root: Path | str,
         source_root: Path | str | None = None,
+        target_dir: Path | str | None = None,
     ) -> None:
         """
         :param project_root: the full path of the project's root
@@ -377,6 +392,7 @@ class BuildIncludeFile:
         self.path = Path(path)
         self.project_root = Path(project_root).resolve()
         self.source_root = None if not source_root else Path(source_root).resolve()
+        self.target_dir = None if not target_dir else Path(target_dir)
         if not self.path.is_absolute() and self.source_root:
             self.path = self.source_root / self.path
         else:
@@ -401,6 +417,15 @@ class BuildIncludeFile:
 
     def relative_to_source_root(self) -> Path:
         if self.source_root is not None:
+            return self.path.relative_to(self.source_root)
+
+        return self.path
+
+    def concatenation_target_dir_relative_to_source_root(self) -> Path:
+        if self.source_root is not None and self.target_dir is not None:
+            return self.target_dir / self.path.relative_to(self.source_root)
+
+        elif self.source_root is not None:
             return self.path.relative_to(self.source_root)
 
         return self.path

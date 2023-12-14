@@ -16,11 +16,13 @@ class PackageInclude(Include):
         include: str,
         formats: list[str] | None = None,
         source: str | None = None,
+        target: str | None = None,
     ) -> None:
         self._package: str
         self._is_package = False
         self._is_module = False
         self._source = source
+        self._target = target
 
         if source is not None:
             base = base / source
@@ -35,6 +37,10 @@ class PackageInclude(Include):
     @property
     def source(self) -> str | None:
         return self._source
+
+    @property
+    def target(self) -> str | None:
+        return self._target
 
     def is_package(self) -> bool:
         return self._is_package
