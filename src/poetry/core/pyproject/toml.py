@@ -33,8 +33,8 @@ class PyProjectTOML:
 
         return self._data
 
-    def is_build_system_defined(self) -> bool:
-        return "build-system" in self.data
+    def exists(self) -> bool:
+        return self.path.exists()
 
     @property
     def build_system(self) -> BuildSystem:

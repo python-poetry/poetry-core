@@ -131,7 +131,7 @@ def is_python_project(path: Path) -> bool:
 
     pyproject = PyProjectTOML(path / "pyproject.toml")
 
-    supports_pep517 = setuptools_project or pyproject.is_build_system_defined()
+    supports_pep517 = setuptools_project or pyproject.exists()
     supports_poetry = pyproject.is_poetry_project()
 
     return supports_pep517 or supports_poetry
