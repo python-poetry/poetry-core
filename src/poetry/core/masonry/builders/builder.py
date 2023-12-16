@@ -422,10 +422,7 @@ class BuildIncludeFile:
         return self.path
 
     def concatenation_target_dir_relative_to_source_root(self) -> Path:
+        path = self.relative_to_source_root()
         if self.source_root is not None and self.target_dir is not None:
-            return self.target_dir / self.path.relative_to(self.source_root)
-
-        elif self.source_root is not None:
-            return self.path.relative_to(self.source_root)
-
-        return self.path
+            return self.target_dir / path
+        return path
