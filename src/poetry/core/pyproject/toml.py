@@ -33,9 +33,6 @@ class PyProjectTOML:
 
         return self._data
 
-    def exists(self) -> bool:
-        return self.path.exists()
-
     @property
     def build_system(self) -> BuildSystem:
         if self._build_system is None:
