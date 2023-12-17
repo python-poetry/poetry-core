@@ -406,8 +406,7 @@ class Dependency(PackageSpecification):
             if os.path.isdir(p) and (os.path.sep in name or name.startswith(".")):
                 if not is_python_project(Path(name)):
                     raise ValueError(
-                        f"Directory {name!r} is not installable. File 'setup.[py|cfg]' "
-                        "not found."
+                        f"Directory {name!r} is not installable. Not a Python project."
                     )
                 link = Link(path_to_url(p))
             elif is_archive_file(p):
