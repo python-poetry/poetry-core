@@ -233,7 +233,6 @@ class Builder:
                     path=self._package.build_script,
                     project_root=self._path,
                     source_root=self._path,
-                    target_dir=self._path,
                 )
             )
 
