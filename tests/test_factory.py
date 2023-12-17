@@ -217,7 +217,8 @@ def test_create_poetry_with_packages_and_includes() -> None:
         {"include": "tests", "format": "sdist"},
         {"include": "for_wheel_only", "format": ["wheel"]},
         {"include": "src_package", "from": "src"},
-        {"include": "from_to", "from": "etc", "to": "target"},
+        {"include": "from_to", "from": "etc", "to": "target_from_to"},
+        {"include": "my_module_to.py", "to": "target_module"},
     ]
 
     assert package.include == [

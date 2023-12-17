@@ -341,7 +341,8 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "package_with_include/__init__.py" in names
         assert "tests/__init__.py" not in names
         assert "src_package/__init__.py" in names
-        assert "target/from_to/__init__.py" in names
+        assert "target_from_to/from_to/__init__.py" in names
+        assert "target_module/my_module_to.py" in names
 
 
 def test_respect_format_for_explicit_included_files() -> None:
