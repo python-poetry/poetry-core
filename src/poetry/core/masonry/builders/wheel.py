@@ -267,11 +267,7 @@ class WheelBuilder(Builder):
         # Walk the files and compress them,
         # sorting everything so the order is stable.
         for file in sorted(to_add, key=lambda x: x.path):
-            self._add_file(
-                wheel,
-                file.path,
-                file.concatenation_target_dir_relative_to_source_root(),
-            )
+            self._add_file(wheel, file.path, file.relative_to_target_root())
 
     def prepare_metadata(self, metadata_directory: Path) -> Path:
         dist_info = metadata_directory / self.dist_info
