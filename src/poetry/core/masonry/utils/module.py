@@ -81,6 +81,7 @@ class Module:
                     package["include"],
                     formats=formats,
                     source=package.get("from"),
+                    target=package.get("to"),
                 )
             )
 
