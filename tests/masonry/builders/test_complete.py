@@ -321,6 +321,7 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "with_include-1.2.3/PKG-INFO" in names
         assert "with_include-1.2.3/for_wheel_only/__init__.py" not in names
         assert "with_include-1.2.3/src/src_package/__init__.py" in names
+        assert "with_include-1.2.3/etc/from_to/__init__.py" in names
 
     whl = module_path / "dist" / "with_include-1.2.3-py3-none-any.whl"
 
@@ -340,6 +341,8 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "package_with_include/__init__.py" in names
         assert "tests/__init__.py" not in names
         assert "src_package/__init__.py" in names
+        assert "target_from_to/from_to/__init__.py" in names
+        assert "target_module/my_module_to.py" in names
 
 
 def test_respect_format_for_explicit_included_files() -> None:
