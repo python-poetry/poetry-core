@@ -18,7 +18,6 @@ from urllib.request import url2pathname
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import parse_marker_version_constraint
-from poetry.core.pyproject.toml import PyProjectTOML
 from poetry.core.version.markers import SingleMarker
 from poetry.core.version.markers import SingleMarkerLike
 from poetry.core.version.markers import dnf
@@ -129,12 +128,9 @@ def is_python_project(path: Path) -> bool:
     setup_cfg = path / "setup.cfg"
     setuptools_project = setup_py.exists() or setup_cfg.exists()
 
-    pyproject = PyProjectTOML(path / "pyproject.toml")
+    pyproject = (path / "pyproject.toml").exists()
 
-    supports_pep517 = setuptools_project or pyproject.is_build_system_defined()
-    supports_poetry = pyproject.is_poetry_project()
-
-    return supports_pep517 or supports_poetry
+    return pyproject or setuptools_project
 
 
 def is_archive_file(name: str) -> bool:

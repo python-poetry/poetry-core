@@ -66,6 +66,12 @@ def test_directory_dependency_is_not_a_python_project(
         dep.validate(raise_error=True)
 
 
+def test_directory_dependency_minimal() -> None:
+    path = Path(__file__).parent.parent / "fixtures" / "project_minimal"
+    dep = DirectoryDependency("demo", path)
+    dep.validate(raise_error=True)
+
+
 def _test_directory_dependency_pep_508(
     name: str, path: Path, pep_508_input: str, pep_508_output: str | None = None
 ) -> None:
