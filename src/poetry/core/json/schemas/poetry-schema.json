@@ -3,13 +3,34 @@
   "name": "Package",
   "type": "object",
   "additionalProperties": true,
-  "required": [
-    "name",
-    "version",
-    "description",
-    "authors"
+  "anyOf": [
+    {
+      "required": [
+        "package-mode"
+      ],
+      "properties": {
+        "package-mode": {
+          "enum": [
+            false
+          ]
+        }
+      }
+    },
+    {
+      "required": [
+        "name",
+        "version",
+        "description",
+        "authors"
+      ]
+    }
   ],
   "properties": {
+    "package-mode": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether Poetry is operated in package mode or non-package mode."
+    },
     "name": {
       "type": "string",
       "description": "Package name."

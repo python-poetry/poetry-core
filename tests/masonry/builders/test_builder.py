@@ -16,6 +16,17 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+def test_building_not_possible_in_non_package_mode() -> None:
+    with pytest.raises(RuntimeError) as err:
+        Builder(
+            Factory().create_poetry(
+                Path(__file__).parent.parent.parent / "fixtures" / "non_package_mode"
+            )
+        )
+
+    assert str(err.value) == "Building a package is not possible in non-package mode."
+
+
 def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
@@ -190,7 +201,7 @@ def test_missing_script_files_throws_error() -> None:
     with pytest.raises(RuntimeError) as err:
         builder.convert_script_files()
 
-    assert "is not found." in err.value.args[0]
+    assert "is not found." in str(err.value)
 
 
 def test_invalid_script_files_definition() -> None:
@@ -203,8 +214,8 @@ def test_invalid_script_files_definition() -> None:
             )
         )
 
-    assert "configuration is invalid" in err.value.args[0]
-    assert "scripts.invalid_definition" in err.value.args[0]
+    assert "configuration is invalid" in str(err.value)
+    assert "scripts.invalid_definition" in str(err.value)
 
 
 @pytest.mark.parametrize(

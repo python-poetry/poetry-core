@@ -39,6 +39,35 @@ def multi_url_object() -> dict[str, Any]:
     }
 
 
+@pytest.mark.parametrize("explicit", [True, False])
+@pytest.mark.parametrize(
+    "missing_required", ["", "name", "version", "description", "authors"]
+)
+def test_package_mode(
+    base_object: dict[str, Any], explicit: bool, missing_required: str
+) -> None:
+    if explicit:
+        base_object["package-mode"] = True
+    if missing_required:
+        del base_object[missing_required]
+        assert len(validate_object(base_object, "poetry-schema")) == 1
+    else:
+        assert len(validate_object(base_object, "poetry-schema")) == 0
+
+
+def test_non_package_mode_no_metadata() -> None:
+    assert len(validate_object({"package-mode": False}, "poetry-schema")) == 0
+
+
+def test_non_package_mode_with_metadata(base_object: dict[str, Any]) -> None:
+    base_object["package-mode"] = False
+    assert len(validate_object(base_object, "poetry-schema")) == 0
+
+
+def test_invalid_mode() -> None:
+    assert len(validate_object({"package-mode": "foo"}, "poetry-schema")) == 1
+
+
 def test_path_dependencies(base_object: dict[str, Any]) -> None:
     base_object["dependencies"].update({"foo": {"path": "../foo"}})
     base_object["dev-dependencies"].update({"foo": {"path": "../foo"}})
