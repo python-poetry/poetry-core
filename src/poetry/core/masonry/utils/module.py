@@ -52,19 +52,15 @@ class Module:
                 if src_pkg_dir.is_dir() and src_py_file.is_file():
                     raise ValueError(f"Both {pkg_dir} and {py_file} exist")
                 elif src_pkg_dir.is_dir():
-                    packages = [
-                        {
-                            "include": str(src_pkg_dir.relative_to(src)),
-                            "from": str(src.relative_to(self._path)),
-                        }
-                    ]
+                    packages = [{
+                        "include": str(src_pkg_dir.relative_to(src)),
+                        "from": str(src.relative_to(self._path)),
+                    }]
                 elif src_py_file.is_file():
-                    packages = [
-                        {
-                            "include": str(src_py_file.relative_to(src)),
-                            "from": str(src.relative_to(self._path)),
-                        }
-                    ]
+                    packages = [{
+                        "include": str(src_py_file.relative_to(src)),
+                        "from": str(src.relative_to(self._path)),
+                    }]
                 else:
                     raise ModuleOrPackageNotFound(
                         f"No file/folder found for package {name}"
