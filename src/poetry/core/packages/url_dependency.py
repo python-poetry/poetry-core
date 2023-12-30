@@ -50,13 +50,7 @@ class URLDependency(Dependency):
 
     @property
     def base_pep_508_name(self) -> str:
-        requirement = self.pretty_name
-
-        if self.extras:
-            extras = ",".join(sorted(self.extras))
-            requirement += f"[{extras}]"
-
-        requirement += f" @ {self._url}"
+        requirement = f"{self.complete_pretty_name} @ {self._url}"
 
         if self.directory:
             requirement += f"#subdirectory={self.directory}"

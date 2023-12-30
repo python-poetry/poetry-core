@@ -104,13 +104,9 @@ class VCSDependency(Dependency):
     def _base_pep_508_name(self, *, resolved: bool = False) -> str:
         from poetry.core.vcs import git
 
-        requirement = self.pretty_name
+        requirement = self.complete_pretty_name
+
         parsed_url = git.ParsedUrl.parse(self._source)
-
-        if self.extras:
-            extras = ",".join(sorted(self.extras))
-            requirement += f"[{extras}]"
-
         if parsed_url.protocol is not None:
             requirement += f" @ {self._vcs}+{self._source}"
         else:
