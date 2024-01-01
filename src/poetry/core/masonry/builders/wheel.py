@@ -288,15 +288,7 @@ class WheelBuilder(Builder):
         with (dist_info / "METADATA").open("w", encoding="utf-8", newline="\n") as f:
             self._write_metadata_file(f)
 
-        legal_files: set[Path] = set()
-        include_files_globs = {"COPYING*", "LICEN[SC]E*", "AUTHORS*", "NOTICE*"}
-
-        for file in include_files_globs:
-            legal_files.update(self._path.glob(file))
-
-        legal_files.update(self._path.joinpath("LICENSES").glob("**/*"))
-
-        for legal_file in legal_files:
+        for legal_file in self._get_legal_files():
             if not legal_file.is_file():
                 logger.debug(f"Skipping: {legal_file.as_posix()}")
                 continue
