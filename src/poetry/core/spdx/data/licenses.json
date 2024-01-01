@@ -920,12 +920,12 @@
     false
   ],
   "DL-DE-BY-2.0": [
-    "Data licence Germany – attribution – version 2.0",
+    "Data licence Germany \u2013 attribution \u2013 version 2.0",
     false,
     false
   ],
   "DL-DE-ZERO-2.0": [
-    "Data licence Germany – zero – version 2.0",
+    "Data licence Germany \u2013 zero \u2013 version 2.0",
     false,
     false
   ],
@@ -1041,6 +1041,11 @@
   ],
   "FSFAP": [
     "FSF All Permissive License",
+    false,
+    false
+  ],
+  "FSFAP-no-warranty-disclaimer": [
+    "FSF All Permissive License (without Warranty)",
     false,
     false
   ],
@@ -1351,6 +1356,11 @@
   ],
   "HPND-DEC": [
     "Historical Permission Notice and Disclaimer - DEC variant",
+    false,
+    false
+  ],
+  "HPND-Kevlin-Henney": [
+    "Historical Permission Notice and Disclaimer - Kevlin Henney variant",
     false,
     false
   ],
@@ -1680,17 +1690,17 @@
     false
   ],
   "LiLiQ-P-1.1": [
-    "Licence Libre du Québec – Permissive version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 Permissive version 1.1",
     true,
     false
   ],
   "LiLiQ-R-1.1": [
-    "Licence Libre du Québec – Réciprocité version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 version 1.1",
     true,
     false
   ],
   "LiLiQ-Rplus-1.1": [
-    "Licence Libre du Québec – Réciprocité forte version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 forte version 1.1",
     true,
     false
   ],
@@ -3021,6 +3031,11 @@
   ],
   "xinetd": [
     "xinetd License",
+    false,
+    false
+  ],
+  "xkeyboard-config-Zinoviev": [
+    "xkeyboard-config Zinoviev License",
     false,
     false
   ],
