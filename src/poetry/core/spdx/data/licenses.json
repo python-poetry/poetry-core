@@ -1044,6 +1044,11 @@
     false,
     false
   ],
+  "FSFAP-no-warranty-disclaimer": [
+    "FSF All Permissive License (without Warranty)",
+    false,
+    false
+  ],
   "FSFUL": [
     "FSF Unlimited License",
     false,
@@ -1351,6 +1356,11 @@
   ],
   "HPND-DEC": [
     "Historical Permission Notice and Disclaimer - DEC variant",
+    false,
+    false
+  ],
+  "HPND-Kevlin-Henney": [
+    "Historical Permission Notice and Disclaimer - Kevlin Henney variant",
     false,
     false
   ],
@@ -3021,6 +3031,11 @@
   ],
   "xinetd": [
     "xinetd License",
+    false,
+    false
+  ],
+  "xkeyboard-config-Zinoviev": [
+    "xkeyboard-config Zinoviev License",
     false,
     false
   ],
