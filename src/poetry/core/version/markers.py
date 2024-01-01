@@ -927,9 +927,9 @@ def cnf(marker: BaseMarker) -> BaseMarker:
         sub_marker_lists = [
             m.markers if isinstance(m, MultiMarker) else [m] for m in cnf_markers
         ]
-        return MultiMarker.of(*[
-            MarkerUnion.of(*c) for c in itertools.product(*sub_marker_lists)
-        ])
+        return MultiMarker.of(
+            *[MarkerUnion.of(*c) for c in itertools.product(*sub_marker_lists)]
+        )
 
     if isinstance(marker, MultiMarker):
         return MultiMarker.of(*[cnf(m) for m in marker.markers])
@@ -945,9 +945,9 @@ def dnf(marker: BaseMarker) -> BaseMarker:
         sub_marker_lists = [
             m.markers if isinstance(m, MarkerUnion) else [m] for m in dnf_markers
         ]
-        return MarkerUnion.of(*[
-            MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)
-        ])
+        return MarkerUnion.of(
+            *[MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)]
+        )
 
     if isinstance(marker, MarkerUnion):
         return MarkerUnion.of(*[dnf(m) for m in marker.markers])
