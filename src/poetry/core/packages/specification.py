@@ -61,6 +61,16 @@ class PackageSpecification:
         return name
 
     @property
+    def complete_pretty_name(self) -> str:
+        name = self._pretty_name
+
+        if self._features:
+            features = ",".join(sorted(self._features))
+            name = f"{name}[{features}]"
+
+        return name
+
+    @property
     def source_type(self) -> str | None:
         return self._source_type
 

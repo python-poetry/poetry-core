@@ -83,16 +83,7 @@ class PathDependency(Dependency, ABC):
 
     @property
     def base_pep_508_name(self) -> str:
-        requirement = self.pretty_name
-
-        if self.extras:
-            extras = ",".join(sorted(self.extras))
-            requirement += f"[{extras}]"
-
-        path = path_to_url(self.full_path)
-        requirement += f" @ {path}"
-
-        return requirement
+        return f"{self.complete_pretty_name} @ {path_to_url(self.full_path)}"
 
     def _validate(self) -> str:
         if not self._full_path.exists():

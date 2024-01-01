@@ -243,11 +243,7 @@ class Dependency(PackageSpecification):
         from poetry.core.constraints.version import Version
         from poetry.core.constraints.version import VersionUnion
 
-        requirement = self.pretty_name
-
-        if self.extras:
-            extras = ",".join(sorted(self.extras))
-            requirement += f"[{extras}]"
+        requirement = self.complete_pretty_name
 
         constraint = self.constraint
         if isinstance(constraint, VersionUnion):
