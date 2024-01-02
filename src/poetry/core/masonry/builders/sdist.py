@@ -320,8 +320,11 @@ class SdistBuilder(Builder):
     def find_files_to_add(self, exclude_build: bool = False) -> set[BuildIncludeFile]:
         to_add = super().find_files_to_add(exclude_build)
 
-        # add any additional files, starting with all LICENSE files
-        additional_files: set[Path] = set(self._path.glob("LICENSE*"))
+        # add any additional files
+        additional_files: set[Path] = set()
+
+        # add legal files
+        additional_files.update(self._get_legal_files())
 
         # add script files
         additional_files.update(self.convert_script_files())

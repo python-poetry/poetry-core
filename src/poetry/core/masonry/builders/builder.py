@@ -379,6 +379,16 @@ class Builder:
 
         return {"name": name, "email": email}
 
+    def _get_legal_files(self) -> set[Path]:
+        include_files_patterns = {"COPYING*", "LICEN[SC]E*", "AUTHORS*", "NOTICE*"}
+        files: set[Path] = set()
+
+        for pattern in include_files_patterns:
+            files.update(self._path.glob(pattern))
+
+        files.update(self._path.joinpath("LICENSES").glob("**/*"))
+        return files
+
 
 class BuildIncludeFile:
     def __init__(
