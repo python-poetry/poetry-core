@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from poetry.core.masonry.builders.sdist import SdistBuilder
+from poetry.core.masonry.builders.wheel import WheelBuilder
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -9,17 +12,15 @@ if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
 
 
+BUILD_FORMATS = {
+    "sdist": SdistBuilder,
+    "wheel": WheelBuilder,
+}
+
+
 class Builder:
     def __init__(self, poetry: Poetry) -> None:
-        from poetry.core.masonry.builders.sdist import SdistBuilder
-        from poetry.core.masonry.builders.wheel import WheelBuilder
-
         self._poetry = poetry
-
-        self._formats = {
-            "sdist": SdistBuilder,
-            "wheel": WheelBuilder,
-        }
 
     def build(
         self,
@@ -28,10 +29,10 @@ class Builder:
         *,
         target_dir: Path | None = None,
     ) -> None:
-        if fmt in self._formats:
-            builders = [self._formats[fmt]]
+        if fmt in BUILD_FORMATS:
+            builders = [BUILD_FORMATS[fmt]]
         elif fmt == "all":
-            builders = list(self._formats.values())
+            builders = list(BUILD_FORMATS.values())
         else:
             raise ValueError(f"Invalid format: {fmt}")
 
