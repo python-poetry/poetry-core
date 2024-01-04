@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from poetry.core.factory import Factory
-from poetry.core.masonry.builders.builder import Builder
+from poetry.core.masonry.builders.builder import BaseBuilder
 
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 def test_building_not_possible_in_non_package_mode() -> None:
     with pytest.raises(RuntimeError) as err:
-        Builder(
+        BaseBuilder(
             Factory().create_poetry(
                 Path(__file__).parent.parent.parent / "fixtures" / "non_package_mode"
             )
@@ -31,7 +31,7 @@ def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
     )
 
@@ -46,7 +46,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> No
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "case_sensitive_exclusions"
         )
@@ -73,7 +73,7 @@ def test_builder_find_invalid_case_sensitive_excluded_files(
     p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
     p.return_value = []
 
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "invalid_case_sensitive_exclusions"
         )
@@ -83,7 +83,7 @@ def test_builder_find_invalid_case_sensitive_excluded_files(
 
 
 def test_get_metadata_content() -> None:
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
     )
 
@@ -140,7 +140,7 @@ def test_get_metadata_content() -> None:
 
 
 def test_metadata_pretty_name() -> None:
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "Pretty.Name")
     )
 
@@ -150,7 +150,7 @@ def test_metadata_pretty_name() -> None:
 
 
 def test_metadata_homepage_default() -> None:
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "simple_version")
     )
 
@@ -160,7 +160,7 @@ def test_metadata_homepage_default() -> None:
 
 
 def test_metadata_with_vcs_dependencies() -> None:
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "with_vcs_dependency"
         )
@@ -174,7 +174,7 @@ def test_metadata_with_vcs_dependencies() -> None:
 
 
 def test_metadata_with_url_dependencies() -> None:
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "with_url_dependency"
         )
@@ -192,7 +192,7 @@ def test_metadata_with_url_dependencies() -> None:
 
 
 def test_missing_script_files_throws_error() -> None:
-    builder = Builder(
+    builder = BaseBuilder(
         Factory().create_poetry(
             Path(__file__).parent / "fixtures" / "script_reference_file_missing"
         )
@@ -206,7 +206,7 @@ def test_missing_script_files_throws_error() -> None:
 
 def test_invalid_script_files_definition() -> None:
     with pytest.raises(RuntimeError) as err:
-        Builder(
+        BaseBuilder(
             Factory().create_poetry(
                 Path(__file__).parent
                 / "fixtures"
@@ -226,7 +226,7 @@ def test_invalid_script_files_definition() -> None:
 )
 def test_entrypoint_scripts_legacy_warns(fixture: str) -> None:
     with pytest.warns(DeprecationWarning):
-        Builder(
+        BaseBuilder(
             Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
         ).convert_entry_points()
 
@@ -266,7 +266,7 @@ def test_entrypoint_scripts_legacy_warns(fixture: str) -> None:
 def test_builder_convert_entry_points(
     fixture: str, result: dict[str, list[str]]
 ) -> None:
-    entry_points = Builder(
+    entry_points = BaseBuilder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
     ).convert_entry_points()
     assert entry_points == result
@@ -295,13 +295,15 @@ def test_builder_convert_entry_points(
 )
 def test_builder_convert_script_files(fixture: str, result: list[Path]) -> None:
     project_root = Path(__file__).parent / "fixtures" / fixture
-    script_files = Builder(Factory().create_poetry(project_root)).convert_script_files()
+    script_files = BaseBuilder(
+        Factory().create_poetry(project_root)
+    ).convert_script_files()
     assert [p.relative_to(project_root) for p in script_files] == result
 
 
 def test_metadata_with_readme_files() -> None:
     test_path = Path(__file__).parent.parent.parent / "fixtures" / "with_readme_files"
-    builder = Builder(Factory().create_poetry(test_path))
+    builder = BaseBuilder(Factory().create_poetry(test_path))
 
     metadata = Parser().parsestr(builder.get_metadata_content())
 
@@ -316,7 +318,7 @@ def test_metadata_with_wildcard_dependency_constraint() -> None:
     test_path = (
         Path(__file__).parent / "fixtures" / "with_wildcard_dependency_constraint"
     )
-    builder = Builder(Factory().create_poetry(test_path))
+    builder = BaseBuilder(Factory().create_poetry(test_path))
 
     metadata = Parser().parsestr(builder.get_metadata_content())
 

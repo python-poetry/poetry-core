@@ -30,7 +30,7 @@ Summary: {summary}
 logger = logging.getLogger(__name__)
 
 
-class Builder:
+class BaseBuilder:
     format: str | None = None
 
     def __init__(

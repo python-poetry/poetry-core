@@ -15,7 +15,7 @@ from posixpath import join as pjoin
 from pprint import pformat
 from typing import TYPE_CHECKING
 
-from poetry.core.masonry.builders.builder import Builder
+from poetry.core.masonry.builders.builder import BaseBuilder
 from poetry.core.masonry.builders.builder import BuildIncludeFile
 from poetry.core.masonry.utils.helpers import distribution_name
 
@@ -54,7 +54,7 @@ setup(**setup_kwargs)
 logger = logging.getLogger(__name__)
 
 
-class SdistBuilder(Builder):
+class SdistBuilder(BaseBuilder):
     format = "sdist"
 
     def build(

@@ -150,7 +150,7 @@ def test_make_setup() -> None:
 
 def test_make_pkg_info(mocker: MockerFixture) -> None:
     get_metadata_content = mocker.patch(
-        "poetry.core.masonry.builders.builder.Builder.get_metadata_content"
+        "poetry.core.masonry.builders.builder.BaseBuilder.get_metadata_content"
     )
     poetry = Factory().create_poetry(project("complete"))
 

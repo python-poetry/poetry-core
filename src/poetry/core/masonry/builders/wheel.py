@@ -23,7 +23,7 @@ import packaging.tags
 
 from poetry.core import __version__
 from poetry.core.constraints.version import parse_constraint
-from poetry.core.masonry.builders.builder import Builder
+from poetry.core.masonry.builders.builder import BaseBuilder
 from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.helpers import distribution_name
 from poetry.core.masonry.utils.helpers import normalize_file_permissions
@@ -48,7 +48,7 @@ Tag: {tag}
 logger = logging.getLogger(__name__)
 
 
-class WheelBuilder(Builder):
+class WheelBuilder(BaseBuilder):
     format = "wheel"
 
     def __init__(
