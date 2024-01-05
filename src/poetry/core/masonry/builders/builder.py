@@ -438,3 +438,18 @@ class BuildIncludeFile:
         if self.target_dir is not None:
             return self.target_dir / path
         return path
+
+
+class Builder(BaseBuilder):
+    def __init__(
+        self,
+        poetry: Poetry,
+        ignore_packages_formats: bool = False,
+        executable: Path | None = None,
+    ) -> None:
+        warnings.warn(
+            "Builder is deprecated. Use BaseBuilder instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(poetry, ignore_packages_formats, executable)
