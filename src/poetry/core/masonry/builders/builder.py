@@ -364,16 +364,6 @@ class Builder:
 
                 abs_path = Path.joinpath(self._path, source)
 
-                if not abs_path.exists():
-                    raise RuntimeError(
-                        f"{abs_path} in script specification ({name}) is not found."
-                    )
-
-                if not abs_path.is_file():
-                    raise RuntimeError(
-                        f"{abs_path} in script specification ({name}) is not a file."
-                    )
-
                 script_files.append(abs_path)
 
         return script_files

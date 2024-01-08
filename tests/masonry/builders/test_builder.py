@@ -190,19 +190,6 @@ def test_metadata_with_url_dependencies() -> None:
     )
 
 
-def test_missing_script_files_throws_error() -> None:
-    builder = Builder(
-        Factory().create_poetry(
-            Path(__file__).parent / "fixtures" / "script_reference_file_missing"
-        )
-    )
-
-    with pytest.raises(RuntimeError) as err:
-        builder.convert_script_files()
-
-    assert "is not found." in str(err.value)
-
-
 def test_invalid_script_files_definition() -> None:
     with pytest.raises(RuntimeError) as err:
         Builder(
