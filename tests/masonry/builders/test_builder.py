@@ -307,7 +307,9 @@ def test_metadata_with_readme_files() -> None:
 
     readme1 = test_path / "README-1.rst"
     readme2 = test_path / "README-2.rst"
-    description = "\n".join([readme1.read_text(), readme2.read_text(), ""])
+    description = "\n".join(
+        [readme1.read_text(encoding="utf-8"), readme2.read_text(encoding="utf-8"), ""]
+    )
 
     assert metadata.get_payload() == description
 

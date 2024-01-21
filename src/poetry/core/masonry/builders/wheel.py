@@ -385,6 +385,7 @@ for t in packaging_tags.sys_tags():
                 ],
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
             )
         except subprocess.CalledProcessError as e:
             raise RuntimeError(
