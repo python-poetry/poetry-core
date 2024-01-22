@@ -537,9 +537,7 @@ class MultiMarker(BaseMarker):
 
     @property
     def complexity(self) -> tuple[int, int]:
-        return tuple(  # type: ignore[return-value]
-            sum(c) for c in zip(*(m.complexity for m in self._markers))
-        )
+        return tuple(sum(c) for c in zip(*(m.complexity for m in self._markers)))
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
@@ -706,9 +704,7 @@ class MarkerUnion(BaseMarker):
 
     @property
     def complexity(self) -> tuple[int, int]:
-        return tuple(  # type: ignore[return-value]
-            sum(c) for c in zip(*(m.complexity for m in self._markers))
-        )
+        return tuple(sum(c) for c in zip(*(m.complexity for m in self._markers)))
 
     @classmethod
     def of(cls, *markers: BaseMarker) -> BaseMarker:
