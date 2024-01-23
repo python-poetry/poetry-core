@@ -36,6 +36,8 @@ class FileDependency(PathDependency):
             subdirectory=directory,
             extras=extras,
         )
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
 
     @property
     def directory(self) -> str | None:

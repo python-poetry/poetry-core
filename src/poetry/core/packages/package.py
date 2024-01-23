@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import copy
 import re
 import warnings
 
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from typing import ClassVar
+from typing import Mapping
+from typing import Sequence
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
@@ -93,30 +94,33 @@ class Package(PackageSpecification):
             features=features,
         )
 
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
         self._set_version(version)
 
         self.description = ""
 
-        self._authors: list[str] = []
-        self._maintainers: list[str] = []
+        self.authors: Sequence[str] = []
+        self.maintainers: Sequence[str] = []
 
         self.homepage: str | None = None
         self.repository_url: str | None = None
         self.documentation_url: str | None = None
-        self.keywords: list[str] = []
+        self.keywords: Sequence[str] = []
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
 
-        self.extras: dict[NormalizedName, list[Dependency]] = {}
+        self.extras: Mapping[NormalizedName, Sequence[Dependency]] = {}
 
-        self._dependency_groups: dict[str, DependencyGroup] = {}
+        self._dependency_groups: Mapping[str, DependencyGroup] = {}
 
         # Category is heading towards deprecation.
         self._category = "main"
-        self.files: list[dict[str, str]] = []
+        self.files: Sequence[Mapping[str, str]] = []
         self.optional = False
 
-        self.classifiers: list[str] = []
+        self.classifiers: Sequence[str] = []
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
@@ -178,20 +182,12 @@ class Package(PackageSpecification):
         return f"{self.pretty_version} {ref}"
 
     @property
-    def authors(self) -> list[str]:
-        return self._authors
-
-    @property
     def author_name(self) -> str | None:
         return self._get_author()["name"]
 
     @property
     def author_email(self) -> str | None:
         return self._get_author()["email"]
-
-    @property
-    def maintainers(self) -> list[str]:
-        return self._maintainers
 
     @property
     def maintainer_name(self) -> str | None:
@@ -238,10 +234,10 @@ class Package(PackageSpecification):
         self._version = version
 
     def _get_author(self) -> dict[str, str | None]:
-        if not self._authors:
+        if not self.authors:
             return {"name": None, "email": None}
 
-        m = AUTHOR_REGEX.match(self._authors[0])
+        m = AUTHOR_REGEX.match(self.authors[0])
 
         if m is None:
             raise ValueError(
@@ -255,10 +251,10 @@ class Package(PackageSpecification):
         return {"name": name, "email": email}
 
     def _get_maintainer(self) -> dict[str, str | None]:
-        if not self._maintainers:
+        if not self.maintainers:
             return {"name": None, "email": None}
 
-        m = AUTHOR_REGEX.match(self._maintainers[0])
+        m = AUTHOR_REGEX.match(self.maintainers[0])
 
         if m is None:
             raise ValueError(
@@ -314,7 +310,7 @@ class Package(PackageSpecification):
     def all_classifiers(self) -> list[str]:
         from poetry.core.constraints.version import Version
 
-        classifiers = copy.copy(self.classifiers)
+        classifiers = list(self.classifiers)
 
         # Automatically set python classifiers
         if self.python_versions == "*":
@@ -439,7 +435,9 @@ class Package(PackageSpecification):
         }
 
     def add_dependency_group(self, group: DependencyGroup) -> None:
-        self._dependency_groups[group.name] = group
+        groups = dict(self._dependency_groups)
+        groups[group.name] = group
+        self._dependency_groups = groups
 
     def has_dependency_group(self, name: str) -> bool:
         return name in self._dependency_groups
@@ -469,11 +467,14 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
-        package = self.clone()
+        updated_groups = {
+            group_name: group
+            for group_name, group in self._dependency_groups.items()
+            if group_name not in groups
+        }
 
-        for group_name in groups:
-            if group_name in package._dependency_groups:
-                del package._dependency_groups[group_name]
+        package = self.clone()
+        package._dependency_groups = updated_groups
 
         return package
 
@@ -481,11 +482,13 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package without optional dependency groups.
         """
+        updated_groups = {
+            group_name: group
+            for group_name, group in self._dependency_groups.items()
+            if not group.is_optional()
+        }
         package = self.clone()
-
-        for group_name, group in self._dependency_groups.items():
-            if group.is_optional():
-                del package._dependency_groups[group_name]
+        package._dependency_groups = updated_groups
 
         return package
 
@@ -500,11 +503,13 @@ class Package(PackageSpecification):
 
         If `only` is set to True, then only the given groups will be selected.
         """
+        updated_groups = {
+            group_name: group
+            for group_name, group in self._dependency_groups.items()
+            if group_name in groups or not only and not group.is_optional()
+        }
         package = self.clone()
-
-        for group_name, group in self._dependency_groups.items():
-            if (only or group.is_optional()) and group_name not in groups:
-                del package._dependency_groups[group_name]
+        package._dependency_groups = updated_groups
 
         return package
 
