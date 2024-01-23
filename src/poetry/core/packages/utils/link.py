@@ -6,6 +6,7 @@ import urllib.parse as urlparse
 import warnings
 
 from functools import cached_property
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from poetry.core.packages.utils.utils import path_to_url
@@ -133,7 +134,7 @@ class Link:
         return urlparse.unquote(urlparse.urlsplit(self.url)[2])
 
     def splitext(self) -> tuple[str, str]:
-        return splitext(posixpath.basename(self.path.rstrip("/")))
+        return splitext(Path(posixpath.basename(self.path.rstrip("/"))))
 
     @cached_property
     def ext(self) -> str:

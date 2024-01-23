@@ -16,7 +16,7 @@ from poetry.core.packages.utils.utils import url_to_path
 @pytest.mark.skipif("sys.platform == 'win32'")
 def test_path_to_url_unix() -> None:
     assert path_to_url("/tmp/file") == "file:///tmp/file"
-    path = Path(".") / "file"
+    path = Path() / "file"
     assert path_to_url("file") == "file://" + path.absolute().as_posix()
 
 
@@ -25,7 +25,7 @@ def test_path_to_url_win() -> None:
     assert path_to_url("c:/tmp/file") == "file:///c:/tmp/file"
     assert path_to_url("c:\\tmp\\file") == "file:///c:/tmp/file"
     assert path_to_url(r"\\unc\as\path") == "file://unc/as/path"
-    path = Path(".") / "file"
+    path = Path() / "file"
     assert path_to_url("file") == "file:///" + path.absolute().as_posix()
 
 
