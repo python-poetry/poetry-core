@@ -34,6 +34,8 @@ class DirectoryDependency(PathDependency):
             base=base,
             extras=extras,
         )
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
         self._develop = develop
 
         # cache this function to avoid multiple IO reads and parsing

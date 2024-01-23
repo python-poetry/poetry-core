@@ -19,6 +19,8 @@ from poetry.core.utils.helpers import readme_content_type
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
@@ -131,11 +133,13 @@ class Factory:
 
         package.root_dir = root
 
-        for author in config.get("authors", []):
-            package.authors.append(combine_unicode(author))
+        package.authors = [
+            combine_unicode(author) for author in config.get("authors", [])
+        ]
 
-        for maintainer in config.get("maintainers", []):
-            package.maintainers.append(combine_unicode(maintainer))
+        package.maintainers = [
+            combine_unicode(maintainer) for maintainer in config.get("maintainers", [])
+        ]
 
         package.description = config.get("description", "")
         package.homepage = config.get("homepage")
@@ -177,10 +181,11 @@ class Factory:
                 package=package, group="dev", dependencies=config["dev-dependencies"]
             )
 
+        package_extras: dict[NormalizedName, list[Dependency]] = {}
         extras = config.get("extras", {})
         for extra_name, requirements in extras.items():
             extra_name = canonicalize_name(extra_name)
-            package.extras[extra_name] = []
+            package_extras[extra_name] = []
 
             # Checking for dependency
             for req in requirements:
@@ -188,8 +193,10 @@ class Factory:
 
                 for dep in package.requires:
                     if dep.name == req.name:
-                        dep.in_extras.append(extra_name)
-                        package.extras[extra_name].append(dep)
+                        dep._in_extras = [*dep._in_extras, extra_name]
+                        package_extras[extra_name].append(dep)
+
+        package.extras = package_extras
 
         if "build" in config:
             build = config["build"]

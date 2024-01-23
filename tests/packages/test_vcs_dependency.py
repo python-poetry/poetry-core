@@ -119,7 +119,7 @@ def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git"
     )
-    dependency.in_extras.append(canonicalize_name("foo"))
+    dependency._in_extras = [canonicalize_name("foo")]
 
     expected = (
         'poetry @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
@@ -129,7 +129,7 @@ def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git", extras=["bar"]
     )
-    dependency.in_extras.append(canonicalize_name("foo"))
+    dependency._in_extras = [canonicalize_name("foo")]
 
     expected = (
         'poetry[bar] @ git+https://github.com/python-poetry/poetry.git ; extra == "foo"'
@@ -140,7 +140,7 @@ def test_to_pep_508_in_extras() -> None:
     dependency = VCSDependency(
         "poetry", "git", "https://github.com/python-poetry/poetry.git", "b;ar;"
     )
-    dependency.in_extras.append(canonicalize_name("foo;"))
+    dependency._in_extras = [canonicalize_name("foo;")]
 
     expected = (
         "poetry @ git+https://github.com/python-poetry/poetry.git@b;ar; ; extra =="

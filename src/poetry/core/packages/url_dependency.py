@@ -21,6 +21,8 @@ class URLDependency(Dependency):
         optional: bool = False,
         extras: Iterable[str] | None = None,
     ) -> None:
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
         self._url = url
         self._directory = directory
 

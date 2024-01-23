@@ -43,11 +43,11 @@ def package_with_groups() -> Package:
 def test_package_authors() -> None:
     package = Package("foo", "0.1.0")
 
-    package.authors.append("Sébastien Eustace <sebastien@eustace.io>")
+    package.authors = ["Sébastien Eustace <sebastien@eustace.io>"]
     assert package.author_name == "Sébastien Eustace"
     assert package.author_email == "sebastien@eustace.io"
 
-    package.authors.insert(0, "John Doe")
+    package.authors = ["John Doe", *package.authors]
     assert package.author_name == "John Doe"
     assert package.author_email is None
 
@@ -55,7 +55,7 @@ def test_package_authors() -> None:
 def test_package_authors_invalid() -> None:
     package = Package("foo", "0.1.0")
 
-    package.authors.insert(0, "<John Doe")
+    package.authors = ["<John Doe"]
     with pytest.raises(ValueError) as e:
         package.author_name  # noqa: B018
 
@@ -89,7 +89,7 @@ def test_package_authors_valid(name: str, email: str | None) -> None:
     package = Package("foo", "0.1.0")
 
     author = name if email is None else f"{name} <{email}>"
-    package.authors.insert(0, author)
+    package.authors = [author]
     assert package.author_name == name
     assert package.author_email == email
 
@@ -109,7 +109,7 @@ def test_package_authors_valid(name: str, email: str | None) -> None:
 def test_package_author_names_invalid(name: str) -> None:
     package = Package("foo", "0.1.0")
 
-    package.authors.insert(0, name)
+    package.authors = [name]
     with pytest.raises(ValueError):
         package.author_name  # noqa: B018
 

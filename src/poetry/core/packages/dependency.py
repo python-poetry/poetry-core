@@ -7,6 +7,7 @@ import warnings
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Sequence
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
@@ -61,6 +62,9 @@ class Dependency(PackageSpecification):
             features=extras,
         )
 
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
         self._constraint: VersionConstraint
         self._pretty_constraint: str
         self.constraint = constraint  # type: ignore[assignment]
@@ -79,7 +83,7 @@ class Dependency(PackageSpecification):
         self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
 
-        self._in_extras: list[NormalizedName] = []
+        self._in_extras: Sequence[NormalizedName] = []
 
         self._activated = not self._optional
 
@@ -184,13 +188,15 @@ class Dependency(PackageSpecification):
             # If we have extras, the dependency is optional
             self.deactivate()
 
+            new_in_extras = []
             for or_ in markers["extra"]:
                 for op, extra in or_:
                     if op == "==":
-                        self.in_extras.append(canonicalize_name(extra))
+                        new_in_extras.append(canonicalize_name(extra))
                     elif op == "" and "||" in extra:
                         for _extra in extra.split(" || "):
-                            self.in_extras.append(canonicalize_name(_extra))
+                            new_in_extras.append(canonicalize_name(_extra))
+            self._in_extras = [*self._in_extras, *new_in_extras]
 
         # Recalculate python versions.
         self._python_versions = "*"
@@ -235,7 +241,7 @@ class Dependency(PackageSpecification):
         return self._features
 
     @property
-    def in_extras(self) -> list[NormalizedName]:
+    def in_extras(self) -> Sequence[NormalizedName]:
         return self._in_extras
 
     @property

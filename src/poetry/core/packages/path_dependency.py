@@ -32,6 +32,8 @@ class PathDependency(Dependency, ABC):
         subdirectory: str | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
         assert source_type in ("file", "directory")
         self._path = path
         self._base = base or Path.cwd()

@@ -4,6 +4,8 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Mapping
+from typing import Sequence
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.markers import parse_marker
@@ -34,11 +36,14 @@ class ProjectPackage(Package):
 
         super().__init__(name, version)
 
-        self.build_config: dict[str, Any] = {}
-        self.packages: list[dict[str, Any]] = []
-        self.include: list[dict[str, Any]] = []
-        self.exclude: list[dict[str, Any]] = []
-        self.custom_urls: dict[str, str] = {}
+        # Attributes must be immutable for clone() to be safe!
+        # (For performance reasons, clone only creates a copy instead of a deep copy).
+
+        self.build_config: Mapping[str, Any] = {}
+        self.packages: Sequence[Mapping[str, Any]] = []
+        self.include: Sequence[Mapping[str, Any]] = []
+        self.exclude: Sequence[Mapping[str, Any]] = []
+        self.custom_urls: Mapping[str, str] = {}
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
