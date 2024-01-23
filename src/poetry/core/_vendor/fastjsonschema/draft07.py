@@ -3,7 +3,7 @@ from .draft06 import CodeGeneratorDraft06
 
 class CodeGeneratorDraft07(CodeGeneratorDraft06):
     FORMAT_REGEXS = dict(CodeGeneratorDraft06.FORMAT_REGEXS, **{
-        'date': r'^(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})\Z',
+        'date': r'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\Z',
         'iri': r'^\w+:(\/?\/?)[^\s]+\Z',
         'iri-reference': r'^(\w+:(\/?\/?))?[^#\\\s]*(#[^\\\s]*)?\Z',
         'idn-email': r'^[^@]+@[^@]+\.[^@]+\Z',
@@ -17,8 +17,8 @@ class CodeGeneratorDraft07(CodeGeneratorDraft06):
         ),
     })
 
-    def __init__(self, definition, resolver=None, formats={}, use_default=True):
-        super().__init__(definition, resolver, formats, use_default)
+    def __init__(self, definition, resolver=None, formats={}, use_default=True, use_formats=True):
+        super().__init__(definition, resolver, formats, use_default, use_formats)
         # pylint: disable=duplicate-code
         self._json_keywords_to_function.update((
             ('if', self.generate_if_then_else),
