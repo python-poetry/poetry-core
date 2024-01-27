@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import warnings
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -10,7 +11,11 @@ from typing import Iterator
 import pytest
 
 from poetry.core.factory import Factory
-from poetry.core.masonry.builder import Builder
+
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from poetry.core.masonry.builder import Builder
 
 
 if TYPE_CHECKING:
