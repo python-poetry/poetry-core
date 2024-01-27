@@ -70,6 +70,7 @@ def test_wheel_module() -> None:
         assert "module1.py" in z.namelist()
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_wheel_package() -> None:
     module_path = fixtures_dir / "complete"
     WheelBuilder.make(Factory().create_poetry(module_path))
@@ -208,6 +209,7 @@ def test_wheel_build_script_creates_package() -> None:
     shutil.rmtree(module_path / "my_package")
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_dist_info_file_permissions() -> None:
     module_path = fixtures_dir / "complete"
     WheelBuilder.make(Factory().create_poetry(module_path))

@@ -262,7 +262,8 @@ def test_entrypoint_scripts_legacy_warns(fixture: str) -> None:
         ),
     ],
 )
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+@pytest.mark.filterwarnings("ignore:.* callable .* deprecated:DeprecationWarning")
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_builder_convert_entry_points(
     fixture: str, result: dict[str, list[str]]
 ) -> None:

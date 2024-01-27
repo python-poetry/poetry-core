@@ -111,7 +111,8 @@ def test_complete(no_vcs: bool) -> None:
         module_path = temporary_dir
 
     builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+    with pytest.warns(DeprecationWarning, match=".* script .* extra"):
+        builder.build(fmt="all")
 
     whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
