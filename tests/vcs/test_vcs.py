@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 from poetry.core.utils._compat import WINDOWS
+from poetry.core.vcs import get_vcs
 from poetry.core.vcs.git import Git
 from poetry.core.vcs.git import GitError
 from poetry.core.vcs.git import GitUrl
@@ -474,3 +475,14 @@ def test_ensure_existing_git_executable_is_found(mocker: MockerFixture) -> None:
 
     assert cmd.is_absolute()
     assert cmd.name == "git.exe"
+
+
+def test_get_vcs_encoding(tmp_path: Path) -> None:
+    repo_path = tmp_path / "répö"
+    repo_path.mkdir()
+    subprocess.run(["git", "init"], cwd=repo_path)
+    assert repo_path.exists()
+    vcs = get_vcs(repo_path)
+    assert vcs is not None
+    assert vcs._work_dir is not None
+    assert vcs._work_dir.exists()
