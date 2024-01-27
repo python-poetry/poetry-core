@@ -468,9 +468,7 @@ def test_ensure_absolute_path_to_git(reset_git: None, mocker: MockerFixture) -> 
 
     Git().run("config")
 
-    cmd = Path(mock.call_args_list[-1][0][0][0])
-
-    assert cmd.is_absolute()
+    assert mock.call_args_list[-1][0][0] == [r"C:\Git\cmd\git.exe", "config"]
 
 
 def test_get_vcs_encoding(tmp_path: Path) -> None:
