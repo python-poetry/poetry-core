@@ -464,11 +464,20 @@ class Factory:
                         continue
 
                     extras = script.get("extras", [])
+                    if extras:
+                        result["warnings"].append(
+                            f'The script "{name}" depends on an extra. Scripts'
+                            " depending on extras are deprecated and support for them"
+                            " will be removed in a future version of"
+                            " poetry/poetry-core. See"
+                            " https://packaging.python.org/en/latest/specifications/entry-points/#data-model"
+                            " for details."
+                        )
                     for extra in extras:
                         if extra not in config_extras:
                             result["errors"].append(
-                                f'Script "{name}" requires extra "{extra}" which is not'
-                                " defined."
+                                f'The script "{name}" requires extra "{extra}"'
+                                " which is not defined."
                             )
 
             # Checking types of all readme files (must match)

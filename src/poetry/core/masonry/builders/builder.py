@@ -311,7 +311,7 @@ class Builder:
                     f"Use of callable in script specification ({name}) is"
                     " deprecated. Use reference instead.",
                     DeprecationWarning,
-                    stacklevel=2,
+                    stacklevel=1,
                 )
                 specification = {
                     "reference": specification["callable"],
@@ -322,6 +322,16 @@ class Builder:
                 continue
 
             extras = specification.get("extras", [])
+            if extras:
+                warnings.warn(
+                    f'The script "{name}" depends on an extra. Scripts depending on'
+                    " extras are deprecated and support for them will be removed in a"
+                    " future version of poetry/poetry-core. See"
+                    " https://packaging.python.org/en/latest/specifications/entry-points/#data-model"
+                    " for details.",
+                    DeprecationWarning,
+                    stacklevel=1,
+                )
             extras = f"[{', '.join(extras)}]" if extras else ""
             reference = specification.get("reference")
 

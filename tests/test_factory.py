@@ -308,8 +308,8 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
                 '"some-extras" in main dependencies.'
             ),
             (
-                'Script "a_script_with_unknown_extra" requires extra "foo" which is not'
-                " defined."
+                'The script "a_script_with_unknown_extra" requires extra "foo" which is'
+                " not defined."
             ),
             (
                 "Declared README files must be of same type: found text/markdown,"
@@ -324,6 +324,13 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             (
                 'The "pathlib2" dependency specifies the "allows-prereleases" property,'
                 ' which is deprecated. Use "allow-prereleases" instead.'
+            ),
+            (
+                'The script "a_script_with_unknown_extra" depends on an extra. Scripts'
+                " depending on extras are deprecated and support for them will be"
+                " removed in a future version of poetry/poetry-core. See"
+                " https://packaging.python.org/en/latest/specifications/entry-points/#data-model"
+                " for details."
             ),
         ],
     }

@@ -43,7 +43,6 @@ time = ["pendulum"]
 [tool.poetry.scripts]
 my-script = "my_package:main"
 my-2nd-script = "my_package:main2"
-extra-script = {reference = "my_package.extra:main", extras = ["time"], type = "console"}
 
 [tool.poetry.urls]
 "Issue Tracker" = "https://github.com/python-poetry/poetry/issues"
