@@ -30,6 +30,7 @@ def get_vcs(directory: Path) -> Git | None:
                 [executable(), "rev-parse", "--show-toplevel"],
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
             ).strip()
 
             vcs = Git(Path(git_dir))
