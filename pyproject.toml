@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poetry-core"
-version = "1.8.1"
+version = "1.9.0"
 description = "Poetry PEP 517 Build Backend"
 authors = ["Sébastien Eustace <sebastien@eustace.io>"]
 license = "MIT"
@@ -11,8 +11,6 @@ keywords = ["packaging", "dependency", "poetry"]
 classifiers = [
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    # Classifiers for Python 3.12 can be removed after Poetry 1.7.0 has been released.
-    "Programming Language :: Python :: 3.12",
 ]
 packages = [
     { include = "poetry", from = "src" },
