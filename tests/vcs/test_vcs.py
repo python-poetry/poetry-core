@@ -480,8 +480,8 @@ def test_ensure_existing_git_executable_is_found(mocker: MockerFixture) -> None:
 def test_get_vcs_encoding(tmp_path: Path) -> None:
     repo_path = tmp_path / "répö"
     repo_path.mkdir()
-    subprocess.run(["git", "init"], cwd=repo_path)
     assert repo_path.exists()
+    assert subprocess.check_call(["git", "init"], cwd=repo_path) == 0
     vcs = get_vcs(repo_path)
     assert vcs is not None
     assert vcs._work_dir is not None
