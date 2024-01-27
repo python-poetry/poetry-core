@@ -1,6 +1,38 @@
 # Change Log
 
 
+## [1.9.0] - 2024-02-02
+
+### Added
+
+- Add a `to` key in `tool.poetry.packages` to allow custom subpackage names ([#672](https://github.com/python-poetry/poetry-core/pull/672)).
+- Add support for path dependencies that do not define a build system ([#675](https://github.com/python-poetry/poetry-core/pull/675)).
+- Add a `tool.poetry.package-mode` key to support non-package mode ([#661](https://github.com/python-poetry/poetry-core/pull/661)).
+
+### Changed
+
+- Update list of supported licenses ([#659](https://github.com/python-poetry/poetry-core/pull/659),
+[#669](https://github.com/python-poetry/poetry-core/pull/669),
+[#678](https://github.com/python-poetry/poetry-core/pull/678),
+[#694](https://github.com/python-poetry/poetry-core/pull/694)).
+- Improve support for PEP 691 JSON-based Simple API ([#664](https://github.com/python-poetry/poetry-core/pull/664)).
+- Establish zipapp compatibility ([#670](https://github.com/python-poetry/poetry-core/pull/670)).
+- Rework list of files included in build artifacts ([#666](https://github.com/python-poetry/poetry-core/pull/666)).
+- Improve performance by treating collections in packages as immutable ([#663](https://github.com/python-poetry/poetry-core/pull/663)).
+- Deprecate `poetry.core.masonry.builder` ([#682](https://github.com/python-poetry/poetry-core/pull/682)).
+- Deprecate scripts that depend on extras ([#690](https://github.com/python-poetry/poetry-core/pull/690)).
+
+### Fixed
+
+- Fix an issue where insignificant errors were printed if the working directory is not inside a git repository ([#684](https://github.com/python-poetry/poetry-core/pull/684)).
+- Fix an issue where the project's directory was not recognized as git repository on Windows due to an encoding issue ([#685](https://github.com/python-poetry/poetry-core/pull/685)).
+
+### Vendoring
+
+- [`fastjsonschema==2.19.1`](https://github.com/horejsek/python-fastjsonschema/blob/master/CHANGELOG.txt)
+- [`lark==1.1.8`](https://github.com/lark-parser/lark/releases/tag/1.1.9)
+
+
 ## [1.8.1] - 2023-10-31
 
 ### Fixed
@@ -601,7 +633,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.8.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.9.0...main
+[1.9.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.9.0
 [1.8.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.1
 [1.8.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.0
 [1.7.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.7.0
