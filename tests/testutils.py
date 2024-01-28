@@ -59,7 +59,9 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess[str
     """
     Helper method to run a subprocess. Asserts for success.
     """
-    result = subprocess.run(args, text=True, capture_output=True, **kwargs)
+    result = subprocess.run(
+        args, text=True, encoding="utf-8", capture_output=True, **kwargs
+    )
     assert result.returncode == 0
     return result
 
