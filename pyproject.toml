@@ -131,9 +131,6 @@ drop = [
     "*/tests/"
 ]
 
-[tool.vendoring.license.fallback-urls]
-pyrsistent = "https://raw.githubusercontent.com/tobgu/pyrsistent/master/LICENSE.mit"
-
 [build-system]
 requires = []
 build-backend = "poetry.core.masonry.api"
