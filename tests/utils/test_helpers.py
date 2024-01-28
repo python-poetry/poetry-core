@@ -103,7 +103,7 @@ def test_utils_helpers_combine_unicode() -> None:
 def test_utils_helpers_temporary_directory_readonly_file() -> None:
     with temporary_directory() as temp_dir:
         readonly_filename = os.path.join(temp_dir, "file.txt")
-        with open(readonly_filename, "w+") as readonly_file:
+        with open(readonly_filename, "w+", encoding="utf-8") as readonly_file:
             readonly_file.write("Poetry rocks!")
         os.chmod(str(readonly_filename), S_IREAD)
 
