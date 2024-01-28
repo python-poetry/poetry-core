@@ -116,6 +116,7 @@ def test_convert_dependencies() -> None:
     assert result == (main, extras)
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_make_setup() -> None:
     poetry = Factory().create_poetry(project("complete"))
 
@@ -298,6 +299,7 @@ def test_sdist_reproducibility() -> None:
     assert len(hashes) == 1
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_setup_py_context() -> None:
     poetry = Factory().create_poetry(project("complete"))
 

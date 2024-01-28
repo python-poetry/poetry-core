@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 from typing import TYPE_CHECKING
 
 
@@ -7,6 +9,14 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from poetry.core.poetry import Poetry
+
+
+warnings.warn(
+    "poetry.core.masonry.builder is deprecated. Its functionality has been moved"
+    "from poetry-core to poetry (poetry.console.commands.build).",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class Builder:

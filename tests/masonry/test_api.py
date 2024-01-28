@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterator
 
+import pytest
+
 from poetry.core import __version__
 from poetry.core.masonry import api
 from poetry.core.utils.helpers import temporary_directory
@@ -44,6 +46,7 @@ def test_get_requires_for_build_sdist() -> None:
         assert api.get_requires_for_build_sdist() == expected
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_build_wheel() -> None:
     with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
         filename = api.build_wheel(tmp_dir)
@@ -132,6 +135,7 @@ def test_build_sdist_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
     assert "does not exist" in record.message
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_prepare_metadata_for_build_wheel() -> None:
     entry_points = """\
 [console_scripts]
@@ -224,6 +228,7 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     assert "does not exist" in record.message
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_build_editable_wheel() -> None:
     pkg_dir = Path(fixtures) / "complete"
 
@@ -244,6 +249,7 @@ def test_build_editable_wheel() -> None:
             assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_build_wheel_with_metadata_directory() -> None:
     pkg_dir = Path(fixtures) / "complete"
 
@@ -271,6 +277,7 @@ def test_build_wheel_with_metadata_directory() -> None:
                 assert f"{metadata_directory}/CUSTOM" in namelist
 
 
+@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_build_editable_wheel_with_metadata_directory() -> None:
     pkg_dir = Path(fixtures) / "complete"
 
