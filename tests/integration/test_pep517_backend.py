@@ -38,7 +38,7 @@ def test_pip_install(
 
     # Append dynamic `build-system` section to `pyproject.toml` in the temporary
     # project directory.
-    with open(temp_pep_517_backend_path / "pyproject.toml", "a") as f:
+    with open(temp_pep_517_backend_path / "pyproject.toml", "a", encoding="utf-8") as f:
         f.write(
             BUILD_SYSTEM_TEMPLATE.format(project_path=project_source_root.as_posix())
         )
