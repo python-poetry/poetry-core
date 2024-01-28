@@ -18,7 +18,8 @@ import pytest
 
 from poetry.core import __version__
 from poetry.core.factory import Factory
-from poetry.core.masonry.builder import Builder
+from poetry.core.masonry.builders.sdist import SdistBuilder
+from poetry.core.masonry.builders.wheel import WheelBuilder
 from tests.masonry.builders.test_wheel import WHEEL_TAG_REGEX
 
 
@@ -56,8 +57,9 @@ def clear_samples_dist() -> None:
 )
 def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
     module_path = fixtures_dir / project
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+    poetry = Factory().create_poetry(module_path)
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     sdist = fixtures_dir / project / "dist" / "extended-0.1.tar.gz"
     assert sdist.exists()
@@ -110,9 +112,10 @@ def test_complete(no_vcs: bool) -> None:
         shutil.copytree(module_path.as_posix(), temporary_dir.as_posix())
         module_path = temporary_dir
 
-    builder = Builder(Factory().create_poetry(module_path))
+    poetry = Factory().create_poetry(module_path)
     with pytest.warns(DeprecationWarning, match=".* script .* extra"):
-        builder.build(fmt="all")
+        SdistBuilder(poetry).build()
+        WheelBuilder(poetry).build()
 
     whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
@@ -218,8 +221,9 @@ My Package
 
 def test_module_src() -> None:
     module_path = fixtures_dir / "source_file"
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+    poetry = Factory().create_poetry(module_path)
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     sdist = module_path / "dist" / "module_src-0.1.tar.gz"
 
@@ -238,8 +242,9 @@ def test_module_src() -> None:
 
 def test_package_src() -> None:
     module_path = fixtures_dir / "source_package"
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+    poetry = Factory().create_poetry(module_path)
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     sdist = module_path / "dist" / "package_src-0.1.tar.gz"
 
@@ -259,8 +264,9 @@ def test_package_src() -> None:
 
 def test_split_source() -> None:
     module_path = fixtures_dir / "split_source"
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+    poetry = Factory().create_poetry(module_path)
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     sdist = module_path / "dist" / "split_source-0.1.tar.gz"
 
@@ -301,8 +307,10 @@ def test_package_with_include(mocker: MockerFixture) -> None:
             / "vcs_excluded.txt"
         ),
     ]
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+
+    poetry = Factory().create_poetry(module_path)
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     sdist = fixtures_dir / "with-include" / "dist" / "with_include-1.2.3.tar.gz"
 
@@ -351,8 +359,9 @@ def test_package_with_include(mocker: MockerFixture) -> None:
 
 def test_respect_format_for_explicit_included_files() -> None:
     module_path = fixtures_dir / "exclude-whl-include-sdist"
-    builder = Builder(Factory().create_poetry(module_path))
-    builder.build(fmt="all")
+    poetry = Factory().create_poetry(module_path)
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     sdist = module_path / "dist" / "exclude_whl_include_sdist-0.1.0.tar.gz"
 
