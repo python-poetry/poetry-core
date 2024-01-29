@@ -292,8 +292,7 @@ def test_single_marker_union_with_multi() -> None:
         parse_marker('implementation_name == "cpython" and python_version >= "3.6"')
     )
     assert (
-        str(union)
-        == 'implementation_name == "cpython" and python_version >= "3.6" or'
+        str(union) == 'implementation_name == "cpython" and python_version >= "3.6" or'
         ' sys_platform == "darwin"'
     )
 
@@ -536,8 +535,7 @@ def test_multi_marker_union_multi() -> None:
 
     union = m.union(parse_marker('python_version >= "3.6" and os_name == "Windows"'))
     assert (
-        str(union)
-        == 'sys_platform == "darwin" and implementation_name == "cpython" '
+        str(union) == 'sys_platform == "darwin" and implementation_name == "cpython" '
         'or python_version >= "3.6" and os_name == "Windows"'
     )
 
@@ -809,8 +807,7 @@ def test_marker_union_union_with_union() -> None:
         parse_marker('implementation_name == "cpython" or os_name == "Windows"')
     )
     assert (
-        str(union)
-        == 'sys_platform == "darwin" or python_version < "3.4" '
+        str(union) == 'sys_platform == "darwin" or python_version < "3.4" '
         'or implementation_name == "cpython" or os_name == "Windows"'
     )
 
@@ -1784,8 +1781,7 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
         ' or platform_machine == "WIN32")'
     )
     assert (
-        str(m2.intersect(m1))
-        == 'python_full_version >= "3.11.0"'
+        str(m2.intersect(m1)) == 'python_full_version >= "3.11.0"'
         ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
         ' or platform_machine == "x86_64" or platform_machine == "amd64"'
         ' or platform_machine == "AMD64" or platform_machine == "win32"'
