@@ -185,8 +185,7 @@ def test_metadata_with_url_dependencies() -> None:
     requires_dist = metadata["Requires-Dist"]
 
     assert (
-        requires_dist
-        == "demo @"
+        requires_dist == "demo @"
         " https://python-poetry.org/distributions/demo-0.1.0-py2.py3-none-any.whl"
     )
 

@@ -103,8 +103,7 @@ def test_dependency_from_pep_508_complex() -> None:
     assert dep.in_extras == ["foo"]
     assert dep.python_versions == ">=2.7 !=3.2.*"
     assert (
-        str(dep.marker)
-        == 'python_version >= "2.7" and python_version != "3.2" '
+        str(dep.marker) == 'python_version >= "2.7" and python_version != "3.2" '
         'and (sys_platform == "win32" or sys_platform == "darwin") '
         'and extra == "foo"'
     )
@@ -169,8 +168,7 @@ def test_dependency_from_pep_508_with_python_version_union_of_multi() -> None:
     assert dep.extras == frozenset()
     assert dep.python_versions == ">=2.7 <2.8 || >=3.4 <3.5"
     assert (
-        str(dep.marker)
-        == 'python_version >= "2.7" and python_version < "2.8" '
+        str(dep.marker) == 'python_version >= "2.7" and python_version < "2.8" '
         'or python_version >= "3.4" and python_version < "3.5"'
     )
 
@@ -288,8 +286,7 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     assert dep.extras == frozenset()
     assert dep.python_versions == ">=2.7 <2.8 || >=3.4.0 <3.5.4"
     assert (
-        str(dep.marker)
-        == 'python_version >= "2.7" and python_version < "2.8" '
+        str(dep.marker) == 'python_version >= "2.7" and python_version < "2.8" '
         'or python_full_version >= "3.4.0" and python_full_version < "3.5.4"'
     )
 

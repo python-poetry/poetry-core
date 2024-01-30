@@ -28,8 +28,7 @@ def test_classifier() -> None:
     license = license_by_id("lgpl-3.0-or-later")
 
     assert (
-        license.classifier
-        == "License :: "
+        license.classifier == "License :: "
         "OSI Approved :: "
         "GNU Lesser General Public License v3 or later (LGPLv3+)"
     )
