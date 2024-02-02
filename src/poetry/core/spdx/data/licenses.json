@@ -314,6 +314,11 @@
     false,
     false
   ],
+  "BSD-3-Clause-acpica": [
+    "BSD 3-Clause acpica variant",
+    false,
+    false
+  ],
   "BSD-3-Clause-flex": [
     "BSD 3-Clause Flex variant",
     false,
@@ -369,8 +374,18 @@
     false,
     false
   ],
+  "BSD-Source-beginning-file": [
+    "BSD Source Code Attribution - beginning of file variant",
+    false,
+    false
+  ],
   "BSD-Systemics": [
     "Systemics BSD variant license",
+    false,
+    false
+  ],
+  "BSD-Systemics-W3Works": [
+    "Systemics W3Works BSD variant license",
     false,
     false
   ],
@@ -426,7 +441,7 @@
   ],
   "BlueOak-1.0.0": [
     "Blue Oak Model License 1.0.0",
-    false,
+    true,
     false
   ],
   "Boehm-GC": [
@@ -491,6 +506,11 @@
   ],
   "CC-BY-3.0-AT": [
     "Creative Commons Attribution 3.0 Austria",
+    false,
+    false
+  ],
+  "CC-BY-3.0-AU": [
+    "Creative Commons Attribution 3.0 Australia",
     false,
     false
   ],
@@ -861,6 +881,11 @@
   ],
   "Caldera": [
     "Caldera License",
+    false,
+    false
+  ],
+  "Caldera-no-preamble": [
+    "Caldera License (without preamble)",
     false,
     false
   ],
@@ -1364,6 +1389,11 @@
     false,
     false
   ],
+  "HPND-MIT-disclaimer": [
+    "Historical Permission Notice and Disclaimer with MIT disclaimer",
+    false,
+    false
+  ],
   "HPND-Markus-Kuhn": [
     "Historical Permission Notice and Disclaimer - Markus Kuhn variant",
     false,
@@ -1472,6 +1502,11 @@
   "ISC": [
     "ISC License",
     true,
+    false
+  ],
+  "ISC-Veillard": [
+    "ISC Veillard variant",
+    false,
     false
   ],
   "ImageMagick": [
@@ -1626,6 +1661,11 @@
   ],
   "LOOP": [
     "Common Lisp LOOP License",
+    false,
+    false
+  ],
+  "LPD-document": [
+    "LPD Documentation License",
     false,
     false
   ],
@@ -2589,6 +2629,11 @@
     false,
     false
   ],
+  "TGPPL-1.0": [
+    "Transitive Grace Period Public Licence 1.0",
+    false,
+    false
+  ],
   "TMate": [
     "TMate Open Source License",
     false,
@@ -2657,6 +2702,11 @@
   "URT-RLE": [
     "Utah Raster Toolkit Run Length Encoded License",
     false,
+    false
+  ],
+  "Unicode-3.0": [
+    "Unicode License v3",
+    true,
     false
   ],
   "Unicode-DFS-2015": [
@@ -2951,6 +3001,11 @@
   ],
   "magaz": [
     "magaz License",
+    false,
+    false
+  ],
+  "mailprio": [
+    "mailprio License",
     false,
     false
   ],
