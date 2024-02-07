@@ -364,7 +364,7 @@ def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None
 def test_create_poetry_fails_on_invalid_configuration() -> None:
     with pytest.raises(RuntimeError) as e:
         Factory().create_poetry(
-            Path(__file__).parent / "fixtures" / "invalid_pyproject" / "pyproject.toml"
+            Path(__file__).parent / "fixtures" / "invalid_pyproject"
         )
 
     expected = """\
@@ -376,9 +376,7 @@ The Poetry configuration is invalid:
 
 def test_create_poetry_fails_on_invalid_mode() -> None:
     with pytest.raises(RuntimeError) as e:
-        Factory().create_poetry(
-            Path(__file__).parent / "fixtures" / "invalid_mode" / "pyproject.toml"
-        )
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "invalid_mode")
 
     expected = """\
 The Poetry configuration is invalid:
