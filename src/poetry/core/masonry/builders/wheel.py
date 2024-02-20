@@ -239,23 +239,27 @@ class WheelBuilder(Builder):
 
     def _run_build_command(self, setup: Path) -> None:
         if self._editable:
-            subprocess.check_call([
+            subprocess.check_call(
+                [
+                    self.executable.as_posix(),
+                    str(setup),
+                    "build_ext",
+                    "--inplace",
+                ]
+            )
+        subprocess.check_call(
+            [
                 self.executable.as_posix(),
                 str(setup),
-                "build_ext",
-                "--inplace",
-            ])
-        subprocess.check_call([
-            self.executable.as_posix(),
-            str(setup),
-            "build",
-            "-b",
-            str(self._path / "build"),
-            "--build-purelib",
-            str(self._get_build_purelib_dir()),
-            "--build-platlib",
-            str(self._get_build_platlib_dir()),
-        ])
+                "build",
+                "-b",
+                str(self._path / "build"),
+                "--build-purelib",
+                str(self._get_build_purelib_dir()),
+                "--build-platlib",
+                str(self._get_build_platlib_dir()),
+            ]
+        )
 
     def _run_build_script(self, build_script: str) -> None:
         logger.debug(f"Executing build script: {build_script}")

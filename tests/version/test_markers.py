@@ -1008,10 +1008,12 @@ def test_validate(
 
 @pytest.mark.parametrize(
     "marker, env",
-    [(
-        'platform_release >= "9.0" and platform_release < "11.0"',
-        {"platform_release": "10.0"},
-    )],
+    [
+        (
+            'platform_release >= "9.0" and platform_release < "11.0"',
+            {"platform_release": "10.0"},
+        )
+    ],
 )
 def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
     m = parse_marker(marker)
