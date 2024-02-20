@@ -328,20 +328,22 @@ def test_default_src_with_excluded_data(mocker: MockerFixture) -> None:
     class MockGit:
         def get_ignored_files(self, folder: Path | None = None) -> list[str]:
             # Patch git module to return specific excluded files
-            return [(
+            return [
                 (
-                    Path(__file__).parent
-                    / "fixtures"
-                    / "default_src_with_excluded_data"
-                    / "src"
-                    / "my_package"
-                    / "data"
-                    / "sub_data"
-                    / "data2.txt"
+                    (
+                        Path(__file__).parent
+                        / "fixtures"
+                        / "default_src_with_excluded_data"
+                        / "src"
+                        / "my_package"
+                        / "data"
+                        / "sub_data"
+                        / "data2.txt"
+                    )
+                    .relative_to(project("default_src_with_excluded_data"))
+                    .as_posix()
                 )
-                .relative_to(project("default_src_with_excluded_data"))
-                .as_posix()
-            )]
+            ]
 
     p = mocker.patch("poetry.core.vcs.get_vcs")
     p.return_value = MockGit()
