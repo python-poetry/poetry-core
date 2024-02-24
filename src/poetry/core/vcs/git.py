@@ -119,7 +119,7 @@ class ParsedUrl:
             if m:
                 groups = m.groupdict()
                 return ParsedUrl(
-                    groups.get("protocol"),
+                    groups.get("protocol", "ssh"),
                     groups.get("resource"),
                     groups.get("pathname"),
                     groups.get("user"),

@@ -32,7 +32,6 @@ class VCSDependency(Dependency):
         # Attributes must be immutable for clone() to be safe!
         # (For performance reasons, clone only creates a copy instead of a deep copy).
         self._vcs = vcs
-        self._source = source
 
         self._branch = branch
         self._tag = tag
@@ -47,12 +46,14 @@ class VCSDependency(Dependency):
             optional=optional,
             allows_prereleases=True,
             source_type=self._vcs.lower(),
-            source_url=self._source,
+            source_url=source,
             source_reference=branch or tag or rev or "HEAD",
             source_resolved_reference=resolved_rev,
             source_subdirectory=directory,
             extras=extras,
         )
+
+        self._source = self.source_url or source
 
     @property
     def vcs(self) -> str:

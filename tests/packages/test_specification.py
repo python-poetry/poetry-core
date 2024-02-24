@@ -115,3 +115,41 @@ def test_equal_specifications_have_same_hash(
     assert spec1 == spec2
     assert spec2 == spec1
     assert hash(spec1) == hash(spec2)
+
+
+@pytest.mark.parametrize(
+    "source_url,normalized_url",
+    [
+        ("https://github.com/demo/demo.git", "https://github.com/demo/demo.git"),
+        ("git@github.com:demo/demo.git", "ssh://git@github.com/demo/demo.git"),
+    ],
+)
+def test_specification_normalize_source_url_method(
+    source_url: str, normalized_url: str
+) -> None:
+    assert (
+        PackageSpecification._normalize_source_url("git", source_url) == normalized_url
+    )
+    assert (
+        PackageSpecification._normalize_source_url("notgit", source_url) == source_url
+    )
+
+
+@pytest.mark.parametrize(
+    "source_url,normalized_url",
+    [
+        ("https://github.com/demo/demo.git", "https://github.com/demo/demo.git"),
+        ("git@github.com:demo/demo.git", "ssh://git@github.com/demo/demo.git"),
+    ],
+)
+def test_specification_uses_normalize_source_url_for_git(
+    source_url: str, normalized_url: str
+) -> None:
+    assert (
+        PackageSpecification(
+            name="demo",
+            source_type="git",
+            source_url=source_url,
+        ).source_url
+        == normalized_url
+    )
