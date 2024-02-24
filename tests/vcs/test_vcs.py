@@ -258,7 +258,7 @@ def test_normalize_url(url: str, normalized: GitUrl) -> None:
         ),
         (
             "git@github.com:org/repo",
-            ParsedUrl(None, "github.com", ":org/repo", "git", None, "repo", None),
+            ParsedUrl("ssh", "github.com", ":org/repo", "git", None, "repo", None),
         ),
         (
             "git+https://github.com/sdispater/pendulum",
