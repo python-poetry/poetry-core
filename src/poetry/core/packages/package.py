@@ -392,26 +392,6 @@ class Package(PackageSpecification):
         self._category = category
 
     @property
-    def readme(self) -> Path | None:
-        warnings.warn(
-            "`readme` is deprecated: you are getting only the first readme file."
-            " Please use the plural form `readmes`.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return next(iter(self.readmes), None)
-
-    @readme.setter
-    def readme(self, path: Path) -> None:
-        warnings.warn(
-            "`readme` is deprecated. Please assign a tuple to the plural form"
-            " `readmes`.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.readmes = (path,)
-
-    @property
     def yanked(self) -> bool:
         return isinstance(self._yanked, str) or bool(self._yanked)
 

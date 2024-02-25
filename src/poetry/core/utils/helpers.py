@@ -7,7 +7,6 @@ import sys
 import tempfile
 import time
 import unicodedata
-import warnings
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -15,8 +14,6 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 from packaging.utils import canonicalize_name
-
-from poetry.core.version.pep440 import PEP440Version
 
 
 if TYPE_CHECKING:
@@ -29,15 +26,6 @@ def combine_unicode(string: str) -> str:
 
 def module_name(name: str) -> str:
     return canonicalize_name(name).replace("-", "_")
-
-
-def normalize_version(version: str) -> str:
-    warnings.warn(
-        "normalize_version() is deprecated. Use Version.parse().to_string() instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return PEP440Version.parse(version).to_string()
 
 
 @contextmanager

@@ -306,18 +306,6 @@ class Builder:
                 # TODO: deprecate this in favour or reference
                 specification = {"reference": specification, "type": "console"}
 
-            if "callable" in specification:
-                warnings.warn(
-                    f"Use of callable in script specification ({name}) is"
-                    " deprecated. Use reference instead.",
-                    DeprecationWarning,
-                    stacklevel=1,
-                )
-                specification = {
-                    "reference": specification["callable"],
-                    "type": "console",
-                }
-
             if specification.get("type") != "console":
                 continue
 

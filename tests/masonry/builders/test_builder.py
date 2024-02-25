@@ -218,30 +218,8 @@ def test_invalid_script_files_definition() -> None:
 
 
 @pytest.mark.parametrize(
-    "fixture",
-    [
-        "script_callable_legacy_table",
-    ],
-)
-def test_entrypoint_scripts_legacy_warns(fixture: str) -> None:
-    with pytest.warns(DeprecationWarning):
-        Builder(
-            Factory().create_poetry(Path(__file__).parent / "fixtures" / fixture)
-        ).convert_entry_points()
-
-
-@pytest.mark.parametrize(
     "fixture, result",
     [
-        (
-            "script_callable_legacy_table",
-            {
-                "console_scripts": [
-                    "extra-script-legacy = my_package.extra_legacy:main",
-                    "script-legacy = my_package.extra_legacy:main",
-                ]
-            },
-        ),
         (
             "script_callable_legacy_string",
             {"console_scripts": ["script-legacy = my_package:main"]},
@@ -261,7 +239,6 @@ def test_entrypoint_scripts_legacy_warns(fixture: str) -> None:
         ),
     ],
 )
-@pytest.mark.filterwarnings("ignore:.* callable .* deprecated:DeprecationWarning")
 @pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_builder_convert_entry_points(
     fixture: str, result: dict[str, list[str]]
