@@ -516,25 +516,6 @@ def test_only_with_dependency_groups(package_with_groups: Package) -> None:
     assert len(package.all_requires) == 2
 
 
-def test_get_readme_property_with_multiple_readme_files() -> None:
-    package = Package("foo", "0.1.0")
-
-    package.readmes = (Path("README.md"), Path("HISTORY.md"))
-    with pytest.deprecated_call():
-        assert package.readme == Path("README.md")
-
-
-def test_set_readme_property() -> None:
-    package = Package("foo", "0.1.0")
-
-    with pytest.deprecated_call():
-        package.readme = Path("README.md")
-
-    assert package.readmes == (Path("README.md"),)
-    with pytest.deprecated_call():
-        assert package.readme == Path("README.md")
-
-
 @pytest.mark.parametrize(
     ("package", "dependency", "ignore_source_type", "result"),
     [

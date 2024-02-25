@@ -135,17 +135,7 @@ class ReleaseTag:
             self, "phase", RELEASE_PHASE_NORMALIZATIONS.get(self.phase, self.phase)
         )
 
-    def to_string(self, short: bool = False) -> str:
-        if short:
-            import warnings
-
-            warnings.warn(
-                "Parameter 'short' has no effect and will be removed. "
-                "(Release tags are always normalized according to PEP 440 now.)",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
+    def to_string(self) -> str:
         return f"{self.phase}{self.number}"
 
     def next(self) -> ReleaseTag:

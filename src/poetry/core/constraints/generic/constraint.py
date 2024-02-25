@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import operator
-import warnings
 
 from typing import Any
 from typing import Callable
@@ -38,16 +37,6 @@ class Constraint(BaseConstraint):
     @property
     def value(self) -> str:
         return self._value
-
-    @property
-    def version(self) -> str:
-        warnings.warn(
-            "The property 'version' is deprecated and will be removed. "
-            "Please use the property 'value' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.value
 
     @property
     def operator(self) -> str:
