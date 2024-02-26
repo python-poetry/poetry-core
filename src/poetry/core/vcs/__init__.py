@@ -26,14 +26,14 @@ def get_vcs(directory: Path) -> Git | None:
         if check_ignore == 0:
             vcs = None
         else:
-            git_dir = subprocess.check_output(
-                [executable(), "rev-parse", "--show-toplevel"],
+            rel_path_to_git_dir = subprocess.check_output(
+                [executable(), "rev-parse", "--show-cdup"],
                 stderr=subprocess.STDOUT,
                 text=True,
                 encoding="utf-8",
             ).strip()
 
-            vcs = Git(Path(git_dir))
+            vcs = Git((directory.resolve() / rel_path_to_git_dir).resolve())
 
     except (subprocess.CalledProcessError, OSError, RuntimeError):
         vcs = None
