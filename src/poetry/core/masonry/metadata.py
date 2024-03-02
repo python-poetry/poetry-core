@@ -6,11 +6,13 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
+    from packaging.utils import NormalizedName
+
     from poetry.core.packages.package import Package
 
 
 class Metadata:
-    metadata_version = "2.1"
+    metadata_version = "2.3"
     # version 1.0
     name: str | None = None
     version: str
@@ -41,7 +43,7 @@ class Metadata:
 
     # Version 2.1
     description_content_type: str | None = None
-    provides_extra: list[str] = []  # noqa: RUF012
+    provides_extra: list[NormalizedName] = []  # noqa: RUF012
 
     @classmethod
     def from_package(cls, package: Package) -> Metadata:
