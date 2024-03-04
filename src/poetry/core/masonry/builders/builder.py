@@ -21,7 +21,7 @@ AUTHOR_REGEX = re.compile(
 )
 
 METADATA_BASE = """\
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: {name}
 Version: {version}
 Summary: {summary}

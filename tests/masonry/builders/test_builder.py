@@ -92,7 +92,7 @@ def test_get_metadata_content() -> None:
     p = Parser()
     parsed = p.parsestr(metadata)
 
-    assert parsed["Metadata-Version"] == "2.1"
+    assert parsed["Metadata-Version"] == "2.3"
     assert parsed["Name"] == "my-package"
     assert parsed["Version"] == "1.2.3"
     assert parsed["Summary"] == "Some description."

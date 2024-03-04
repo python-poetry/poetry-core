@@ -181,7 +181,7 @@ Tag: py3-none-any
         assert (
             wheel_data
             == """\
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: my-package
 Version: 1.2.3
 Summary: Some description.
