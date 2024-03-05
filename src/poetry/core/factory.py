@@ -8,7 +8,6 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Union
-from warnings import warn
 
 from packaging.utils import canonicalize_name
 
@@ -265,18 +264,7 @@ class Factory:
             python_versions = constraint.get("python")
             platform = constraint.get("platform")
             markers = constraint.get("markers")
-            if "allows-prereleases" in constraint:
-                message = (
-                    f'The "{name}" dependency specifies '
-                    'the "allows-prereleases" property, which is deprecated. '
-                    'Use "allow-prereleases" instead.'
-                )
-                warn(message, DeprecationWarning, stacklevel=2)
-                logger.warning(message)
-
-            allows_prereleases = constraint.get(
-                "allow-prereleases", constraint.get("allows-prereleases", False)
-            )
+            allows_prereleases = constraint.get("allow-prereleases", False)
 
             dependency: Dependency
             if "git" in constraint:

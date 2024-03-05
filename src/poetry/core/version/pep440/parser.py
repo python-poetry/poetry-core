@@ -81,6 +81,5 @@ class PEP440Parser:
 
 
 def parse_pep440(value: str, version_class: type[T]) -> T:
-    return PEP440Parser.parse(  # type: ignore[no-any-return]
-        value, version_class  # type: ignore[arg-type]
-    )
+    version: T = PEP440Parser.parse(value, version_class)  # type: ignore[arg-type]
+    return version

@@ -108,15 +108,6 @@ class Dependency(PackageSpecification):
 
         self._pretty_constraint = str(constraint)
 
-    def set_constraint(self, constraint: str | VersionConstraint) -> None:
-        warnings.warn(
-            "Calling method 'set_constraint' is deprecated and will be removed. "
-            "It has been replaced by the property 'constraint' for consistency.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.constraint = constraint  # type: ignore[assignment]
-
     @property
     def pretty_constraint(self) -> str:
         return self._pretty_constraint

@@ -229,3 +229,21 @@ def test_vcs_dependencies_are_equal_if_resolved_references_match() -> None:
     )
 
     assert dependency1 == dependency2
+
+
+@pytest.mark.parametrize(
+    "source_url,normalized_url",
+    [
+        ("https://github.com/demo/demo.git", "https://github.com/demo/demo.git"),
+        ("git@github.com:demo/demo.git", "ssh://git@github.com/demo/demo.git"),
+    ],
+)
+def test_vcs_source_is_normalized(source_url: str, normalized_url: str) -> None:
+    dependency = VCSDependency(
+        name="demo",
+        vcs="git",
+        source=source_url,
+        branch="main",
+    )
+    assert dependency.source == normalized_url
+    assert dependency.source_url == normalized_url

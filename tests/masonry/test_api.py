@@ -151,7 +151,7 @@ Root-Is-Purelib: true
 Tag: py3-none-any
 """
     metadata = """\
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: my-package
 Version: 1.2.3
 Summary: Some description.

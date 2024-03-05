@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 
 from pathlib import Path
@@ -258,7 +259,7 @@ def test_normalize_url(url: str, normalized: GitUrl) -> None:
         ),
         (
             "git@github.com:org/repo",
-            ParsedUrl(None, "github.com", ":org/repo", "git", None, "repo", None),
+            ParsedUrl("ssh", "github.com", ":org/repo", "git", None, "repo", None),
         ),
         (
             "git+https://github.com/sdispater/pendulum",
@@ -480,3 +481,47 @@ def test_get_vcs_encoding(tmp_path: Path) -> None:
     assert vcs is not None
     assert vcs._work_dir is not None
     assert vcs._work_dir.exists()
+    assert vcs._work_dir == repo_path
+
+
+def test_get_vc_subdir(tmp_path: Path) -> None:
+    repo_path = tmp_path / "répö"
+    repo_path.mkdir()
+    assert repo_path.exists()
+    assert subprocess.check_call([executable(), "init"], cwd=repo_path) == 0
+    subdir = repo_path / "subdir"
+    subdir.mkdir()
+    vcs = get_vcs(subdir)
+    assert vcs is not None
+    assert vcs._work_dir is not None
+    assert vcs._work_dir.exists()
+    assert vcs._work_dir == repo_path
+
+
+def test_get_vcs_no_repo(tmp_path: Path, mocker: MockerFixture) -> None:
+    repo_path = tmp_path / "répö"
+    repo_path.mkdir()
+    assert repo_path.exists()
+    assert subprocess.check_call([executable(), "init"], cwd=repo_path) == 0
+
+    # This makes sure git fails to find the git directory even if one
+    # exists at some higher level in the filesystem
+    mocker.patch.dict(os.environ, {"GIT_DIR": os.devnull})
+
+    vcs = get_vcs(repo_path)
+    assert vcs is None
+
+
+def test_get_vcs_ignored_subdir(tmp_path: Path) -> None:
+    # See https://github.com/python-poetry/poetry-core/pull/611
+    repo_path = tmp_path / "répö"
+    repo_path.mkdir()
+    assert repo_path.exists()
+    assert subprocess.check_call([executable(), "init"], cwd=repo_path) == 0
+    with open(repo_path / ".gitignore", "w", encoding="utf-8") as f:
+        f.write("/ignored")
+    subdir = repo_path / "ignored"
+    subdir.mkdir()
+
+    vcs = get_vcs(subdir)
+    assert vcs is None
