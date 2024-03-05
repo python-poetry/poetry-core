@@ -486,7 +486,7 @@ class Factory:
             if poetry_file.exists():
                 return poetry_file
 
-            raise RuntimeError(f"Poetry could not find a pyproject.toml file in {cwd}")
+            raise RuntimeError(f"Poetry could not find pyproject.toml file {poetry_file} in {cwd}")
 
         cwd = Path.cwd()
         candidates = [cwd, *cwd.parents]
@@ -496,7 +496,6 @@ class Factory:
             if poetry_file.exists():
                 return poetry_file
 
-        else:
-            raise RuntimeError(
-                f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
-            )
+        raise RuntimeError(
+            f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
+        )
