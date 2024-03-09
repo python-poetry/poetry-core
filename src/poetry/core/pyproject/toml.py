@@ -87,4 +87,16 @@ class PyProjectTOML:
                 _ = self.poetry_config
                 return True
 
+            # Even if there is no [tool.poetry] section, a project can still be a
+            # valid Poetry project if there is a name and a version in [project]
+            # and there are no dynamic fields.
+            with suppress(KeyError):
+                project = self.data["project"]
+                if (
+                    project["name"]
+                    and project["version"]
+                    and not project.get("dynamic")
+                ):
+                    return True
+
         return False

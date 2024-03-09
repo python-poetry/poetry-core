@@ -54,7 +54,9 @@ class Metadata:
         meta.name = package.pretty_name
         meta.version = package.version.to_string()
         meta.summary = package.description
-        if package.readmes:
+        if package.readme_content:
+            meta.description = package.readme_content
+        elif package.readmes:
             descriptions = []
             for readme in package.readmes:
                 with readme.open(encoding="utf-8") as f:
@@ -82,14 +84,16 @@ class Metadata:
         meta.requires_dist = [d.to_pep_508() for d in package.requires]
 
         # Version 2.1
-        if package.readmes:
+        if package.readme_content_type:
+            meta.description_content_type = package.readme_content_type
+        elif package.readmes:
             meta.description_content_type = readme_content_type(package.readmes[0])
 
         meta.provides_extra = list(package.extras)
 
         if package.urls:
             for name, url in package.urls.items():
-                if name == "Homepage" and meta.home_page == url:
+                if name.lower() == "homepage" and meta.home_page == url:
                     continue
 
                 meta.project_urls += (f"{name}, {url}",)
