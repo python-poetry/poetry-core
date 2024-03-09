@@ -8,7 +8,7 @@ from poetry.core.utils.helpers import readme_content_type
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
 
-    from poetry.core.packages.package import Package
+    from poetry.core.packages.project_package import ProjectPackage
 
 
 class Metadata:
@@ -46,7 +46,7 @@ class Metadata:
     provides_extra: list[NormalizedName] = []  # noqa: RUF012
 
     @classmethod
-    def from_package(cls, package: Package) -> Metadata:
+    def from_package(cls, package: ProjectPackage) -> Metadata:
         from poetry.core.version.helpers import format_python_constraint
 
         meta = cls()
@@ -78,7 +78,9 @@ class Metadata:
         meta.maintainer_email = package.maintainer_email
 
         # Requires python
-        if package.python_versions != "*":
+        if package.requires_python != "*":
+            meta.requires_python = package.requires_python
+        elif package.python_versions != "*":
             meta.requires_python = format_python_constraint(package.python_constraint)
 
         meta.requires_dist = [d.to_pep_508() for d in package.requires]
