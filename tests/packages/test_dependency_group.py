@@ -1,26 +1,310 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
+
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
+from poetry.core.packages.directory_dependency import DirectoryDependency
+from poetry.core.packages.vcs_dependency import VCSDependency
 
 
-def test_dependency_group_remove_dependency() -> None:
-    group = DependencyGroup(name="linter")
-    group.add_dependency(Dependency(name="black", constraint="*"))
-    group.add_dependency(Dependency(name="isort", constraint="*"))
-    group.add_dependency(Dependency(name="flake8", constraint="*"))
+def create_dependency(
+    name: str,
+    constraint: str = "*",
+    *,
+    extras: tuple[str, ...] = (),
+    allows_prereleases: bool = False,
+    develop: bool = False,
+    source_name: str | None = None,
+    marker: str | None = None,
+) -> Dependency:
+    dep = Dependency(
+        name=name,
+        constraint=constraint,
+        extras=extras,
+        allows_prereleases=allows_prereleases,
+    )
+    if develop:
+        dep._develop = develop
+    if source_name:
+        dep.source_name = source_name
+    if marker:
+        dep.marker = marker  # type: ignore[assignment]
+    return dep
 
-    assert {dependency.name for dependency in group.dependencies} == {
-        "black",
-        "isort",
-        "flake8",
-    }
 
-    group.remove_dependency("isort")
-    assert {dependency.name for dependency in group.dependencies} == {"black", "flake8"}
+@pytest.mark.parametrize(
+    (
+        "dependencies",
+        "poetry_dependencies",
+        "expected_dependencies",
+    ),
+    [
+        ({"foo"}, set(), {"foo"}),
+        (set(), {"bar"}, {"bar"}),
+        ({"foo"}, {"bar"}, {"foo"}),
+    ],
+)
+def test_dependencies(
+    dependencies: set[str],
+    poetry_dependencies: set[str],
+    expected_dependencies: set[str],
+) -> None:
+    group = DependencyGroup(name="group")
+    group._dependencies = [
+        Dependency(name=name, constraint="*") for name in dependencies
+    ]
+    group._poetry_dependencies = [
+        Dependency(name=name, constraint="*") for name in poetry_dependencies
+    ]
 
-    group.remove_dependency("black")
-    assert {dependency.name for dependency in group.dependencies} == {"flake8"}
+    assert {d.name for d in group.dependencies} == set(expected_dependencies)
 
-    group.remove_dependency("flake8")
-    assert {dependency.name for dependency in group.dependencies} == set()
+
+@pytest.mark.parametrize(
+    (
+        "initial_dependencies",
+        "initial_poetry_dependencies",
+        "expected_dependencies",
+        "expected_poetry_dependencies",
+    ),
+    [
+        (set(), set(), {"new"}, set()),
+        ({"foo"}, set(), {"foo", "new"}, set()),
+        (set(), {"bar"}, set(), {"bar", "new"}),
+        ({"foo"}, {"bar"}, {"foo", "new"}, {"bar"}),
+    ],
+)
+def test_add_dependency_adds_to_correct_list(
+    initial_dependencies: set[str],
+    initial_poetry_dependencies: set[str],
+    expected_dependencies: set[str],
+    expected_poetry_dependencies: set[str],
+) -> None:
+    group = DependencyGroup(name="group")
+    group._dependencies = [
+        Dependency(name=name, constraint="*") for name in initial_dependencies
+    ]
+    group._poetry_dependencies = [
+        Dependency(name=name, constraint="*") for name in initial_poetry_dependencies
+    ]
+
+    group.add_dependency(Dependency(name="new", constraint="*"))
+
+    assert {d.name for d in group._dependencies} == expected_dependencies
+    assert {d.name for d in group._poetry_dependencies} == expected_poetry_dependencies
+
+
+def test_remove_dependency_removes_from_both_lists() -> None:
+    group = DependencyGroup(name="group")
+    group.add_dependency(Dependency(name="foo", constraint="*"))
+    group.add_dependency(Dependency(name="bar", constraint="*"))
+    group.add_dependency(Dependency(name="foo", constraint="*"))
+    group.add_poetry_dependency(Dependency(name="baz", constraint="*"))
+    group.add_poetry_dependency(Dependency(name="foo", constraint="*"))
+
+    group.remove_dependency("foo")
+
+    assert {d.name for d in group._dependencies} == {"bar"}
+    assert {d.name for d in group._poetry_dependencies} == {"baz"}
+
+
+@pytest.mark.parametrize(
+    (
+        "dependencies",
+        "poetry_dependencies",
+        "expected_dependencies",
+    ),
+    [
+        ([Dependency.create_from_pep_508("foo")], [], [create_dependency("foo")]),
+        ([], [Dependency.create_from_pep_508("bar")], [create_dependency("bar")]),
+        # refine constraint
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [create_dependency("foo", "<2")],
+            [create_dependency("foo", ">=1,<2")],
+        ),
+        # refine constraint + other dependency
+        (
+            [
+                Dependency.create_from_pep_508("foo>=1"),
+                Dependency.create_from_pep_508("bar>=2"),
+            ],
+            [create_dependency("foo", "<2")],
+            [create_dependency("foo", ">=1,<2"), create_dependency("bar", ">=2")],
+        ),
+        # refine constraint depending on marker
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [create_dependency("foo", "<2", marker="sys_platform == 'win32'")],
+            [create_dependency("foo", ">=1,<2", marker="sys_platform == 'win32'")],
+        ),
+        # allow pre-releases
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [create_dependency("foo", allows_prereleases=True)],
+            [create_dependency("foo", ">=1", allows_prereleases=True)],
+        ),
+        # directory dependency - develop
+        (
+            [DirectoryDependency("foo", Path("path/to/foo"))],
+            [create_dependency("foo", develop=True)],
+            [DirectoryDependency("foo", Path("path/to/foo"), develop=True)],
+        ),
+        # directory dependency - develop (full spec)
+        (
+            [DirectoryDependency("foo", Path("path/to/foo"))],
+            [DirectoryDependency("foo", Path("path/to/foo"), develop=True)],
+            [DirectoryDependency("foo", Path("path/to/foo"), develop=True)],
+        ),
+        # vcs dependency - develop
+        (
+            [VCSDependency("foo", "git", "https://example.org/foo")],
+            [create_dependency("foo", develop=True)],
+            [VCSDependency("foo", "git", "https://example.org/foo", develop=True)],
+        ),
+        # vcs dependency - develop (full spec)
+        (
+            [VCSDependency("foo", "git", "https://example.org/foo")],
+            [VCSDependency("foo", "git", "https://example.org/foo", develop=True)],
+            [VCSDependency("foo", "git", "https://example.org/foo", develop=True)],
+        ),
+        # replace with directory dependency
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [DirectoryDependency("foo", Path("path/to/foo"), develop=True)],
+            [DirectoryDependency("foo", Path("path/to/foo"), develop=True)],
+        ),
+        # source
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [create_dependency("foo", source_name="src")],
+            [create_dependency("foo", ">=1", source_name="src")],
+        ),
+        # different sources depending on marker
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [
+                create_dependency(
+                    "foo", source_name="src1", marker="sys_platform == 'win32'"
+                ),
+                create_dependency(
+                    "foo", source_name="src2", marker="sys_platform == 'linux'"
+                ),
+            ],
+            [
+                create_dependency(
+                    "foo", ">=1", source_name="src1", marker="sys_platform == 'win32'"
+                ),
+                create_dependency(
+                    "foo", ">=1", source_name="src2", marker="sys_platform == 'linux'"
+                ),
+            ],
+        ),
+        # pairwise different sources depending on marker
+        (
+            [
+                Dependency.create_from_pep_508("foo>=1; sys_platform == 'win32'"),
+                Dependency.create_from_pep_508("foo>=1.1; sys_platform == 'linux'"),
+            ],
+            [
+                create_dependency(
+                    "foo", source_name="src1", marker="sys_platform == 'win32'"
+                ),
+                create_dependency(
+                    "foo", source_name="src2", marker="sys_platform == 'linux'"
+                ),
+            ],
+            [
+                create_dependency(
+                    "foo", ">=1", source_name="src1", marker="sys_platform == 'win32'"
+                ),
+                create_dependency(
+                    "foo", ">=1.1", source_name="src2", marker="sys_platform == 'linux'"
+                ),
+            ],
+        ),
+        # enrich only one with source
+        (
+            [
+                Dependency.create_from_pep_508("foo>=1; sys_platform == 'win32'"),
+                Dependency.create_from_pep_508("foo>=1.1; sys_platform == 'linux'"),
+            ],
+            [
+                create_dependency(
+                    "foo", source_name="src1", marker="sys_platform == 'win32'"
+                ),
+            ],
+            [
+                create_dependency(
+                    "foo", ">=1", source_name="src1", marker="sys_platform == 'win32'"
+                ),
+                create_dependency("foo", ">=1.1", marker="sys_platform == 'linux'"),
+            ],
+        ),
+        # extras
+        (
+            [Dependency.create_from_pep_508("foo[extra1,extra2]")],
+            [create_dependency("foo", source_name="src")],
+            [create_dependency("foo", source_name="src", extras=["extra1", "extra2"])],
+        ),
+        (
+            [Dependency.create_from_pep_508("foo;extra=='extra1'")],
+            [create_dependency("foo", source_name="src")],
+            [create_dependency("foo", source_name="src", marker="extra == 'extra1'")],
+        ),
+    ],
+)
+def test_dependencies_for_locking(
+    dependencies: list[Dependency],
+    poetry_dependencies: list[Dependency],
+    expected_dependencies: list[Dependency],
+) -> None:
+    group = DependencyGroup(name="group")
+    group._dependencies = dependencies
+    group._poetry_dependencies = poetry_dependencies
+
+    assert group.dependencies_for_locking == expected_dependencies
+    # explicitly check attributes that are not considered in __eq__
+    assert [d.allows_prereleases() for d in group.dependencies_for_locking] == [
+        d.allows_prereleases() for d in expected_dependencies
+    ]
+    assert [d.source_name for d in group.dependencies_for_locking] == [
+        d.source_name for d in expected_dependencies
+    ]
+    assert [d.marker for d in group.dependencies_for_locking] == [
+        d.marker for d in expected_dependencies
+    ]
+    assert [d._develop for d in group.dependencies_for_locking] == [
+        d._develop for d in expected_dependencies
+    ]
+
+
+@pytest.mark.parametrize(
+    (
+        "dependencies",
+        "poetry_dependencies",
+    ),
+    [
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [create_dependency("foo", "<1")],
+        ),
+        (
+            [DirectoryDependency("foo", Path("path/to/foo"))],
+            [VCSDependency("foo", "git", "https://example.org/foo")],
+        ),
+    ],
+)
+def test_dependencies_for_locking_failure(
+    dependencies: list[Dependency],
+    poetry_dependencies: list[Dependency],
+) -> None:
+    group = DependencyGroup(name="group")
+    group._dependencies = dependencies
+    group._poetry_dependencies = poetry_dependencies
+
+    with pytest.raises(ValueError):
+        _ = group.dependencies_for_locking
