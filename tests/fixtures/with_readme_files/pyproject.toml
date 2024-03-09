@@ -1,19 +1,10 @@
-[tool.poetry]
+[project]
 name = "my-package"
 version = "0.1"
-description = "Some description."
-authors = [
-    "Wagner Macedo <wagnerluis1982@gmail.com>"
-]
-license = "MIT"
+dynamic = ["readme"]
 
+[tool.poetry]
 readme = [
     "README-1.rst",
     "README-2.rst"
 ]
-
-homepage = "https://python-poetry.org/"
-
-
-[tool.poetry.dependencies]
-python = "^2.7"
