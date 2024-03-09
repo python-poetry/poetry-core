@@ -187,9 +187,10 @@ class Factory:
 
         package.requires_python = project.get("requires-python", "*")
         package.keywords = project.get("keywords") or tool_poetry.get("keywords", [])
-        package.classifiers = project.get("classifiers") or tool_poetry.get(
-            "classifiers", []
-        )
+        package.classifiers = (
+            static_classifiers := project.get("classifiers")
+        ) or tool_poetry.get("classifiers", [])
+        package.dynamic_classifiers = not static_classifiers
 
         if urls := project.get("urls"):
             package.homepage = urls.get("homepage") or urls.get("Homepage")

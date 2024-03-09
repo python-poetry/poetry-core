@@ -279,20 +279,23 @@ def test_create_poetry(new_format: str) -> None:
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
 
-    assert package.all_classifiers == [
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
-        "Topic :: Software Development :: Build Tools",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ]
+    if new_format:
+        assert package.all_classifiers == package.classifiers
+    else:
+        assert package.all_classifiers == [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: Python :: 3.13",
+            "Topic :: Software Development :: Build Tools",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+        ]
 
 
 def test_create_poetry_with_dependencies_with_subdirectory() -> None:
@@ -428,6 +431,63 @@ python = ">=3.7"
         Factory().create_poetry(tmp_path)
 
     assert "not a subset" in str(e.value)
+
+
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        (  # static
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = ["License :: OSI Approved :: MIT License"]
+""",
+            ["License :: OSI Approved :: MIT License"],
+        ),
+        (  # dynamic
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+dynamic = [ "classifiers" ]
+
+[tool.poetry]
+classifiers = ["License :: OSI Approved :: MIT License"]
+""",
+            [
+                "License :: OSI Approved :: MIT License",
+                "Programming Language :: Python :: 3",
+                "Programming Language :: Python :: 3.10",
+            ],
+        ),
+        (  # legacy
+            """\
+[tool.poetry]
+name = "foo"
+version = "1"
+classifiers = ["License :: OSI Approved :: MIT License"]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+""",
+            [
+                "License :: OSI Approved :: MIT License",
+                "Programming Language :: Python :: 3",
+                "Programming Language :: Python :: 3.10",
+            ],
+        ),
+    ],
+)
+def test_create_poetry_classifiers(
+    content: str, expected: list[str], tmp_path: Path
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(content)
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.all_classifiers == expected
 
 
 def test_validate() -> None:
