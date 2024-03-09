@@ -185,7 +185,7 @@ class Factory:
             license_ = None
         package.license = license_
 
-        package.python_versions = project.get("requires-python", "*")
+        package.requires_python = project.get("requires-python", "*")
         package.keywords = project.get("keywords") or tool_poetry.get("keywords", [])
         package.classifiers = project.get("classifiers") or tool_poetry.get(
             "classifiers", []

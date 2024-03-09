@@ -384,6 +384,52 @@ def test_create_poetry_non_package_mode() -> None:
     assert not poetry.is_package_mode
 
 
+@pytest.mark.parametrize(
+    ("requires_python", "python", "expected_versions", "expected_constraint"),
+    [
+        (">=3.8", None, ">=3.8", ">=3.8"),
+        (None, "^3.8", "^3.8", ">=3.8,<4.0"),
+        (">=3.8", "^3.8", "^3.8", ">=3.8,<4.0"),
+    ],
+)
+def test_create_poetry_python_version(
+    requires_python: str,
+    python: str,
+    expected_versions: str,
+    expected_constraint: str,
+    tmp_path: Path,
+) -> None:
+    content = '[project]\nname = "foo"\nversion = "1"\n'
+    if requires_python:
+        content += f'requires-python = "{requires_python}"\n'
+    if python:
+        content += f'[tool.poetry.dependencies]\npython = "{python}"\n'
+    (tmp_path / "pyproject.toml").write_text(content)
+    poetry = Factory().create_poetry(tmp_path)
+
+    package = poetry.package
+    assert package.requires_python == requires_python or python
+    assert package.python_versions == expected_versions
+    assert str(package.python_constraint) == expected_constraint
+
+
+def test_create_poetry_python_version_not_compatible(tmp_path: Path) -> None:
+    content = """
+[project]
+name = "foo"
+version = "1"
+requires-python = ">=3.8"
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+"""
+    (tmp_path / "pyproject.toml").write_text(content)
+    with pytest.raises(ValueError) as e:
+        Factory().create_poetry(tmp_path)
+
+    assert "not a subset" in str(e.value)
+
+
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
