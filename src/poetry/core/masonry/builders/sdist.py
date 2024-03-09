@@ -199,10 +199,8 @@ class SdistBuilder(Builder):
             before.append(f"scripts = \\\n{pformat(rel_paths)}\n")
             extra.append("'scripts': scripts,")
 
-        if self._package.python_versions != "*":
-            python_requires = self._meta.requires_python
-
-            extra.append(f"'python_requires': {python_requires!r},")
+        if self._meta.requires_python:
+            extra.append(f"'python_requires': {self._meta.requires_python!r},")
 
         return SETUP.format(
             before="\n".join(before),
