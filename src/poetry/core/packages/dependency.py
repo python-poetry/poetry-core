@@ -76,6 +76,8 @@ class Dependency(PackageSpecification):
 
         self._groups = frozenset(groups)
         self._allows_prereleases = allows_prereleases
+        # "_develop" is only required for enriching [project] dependencies
+        self._develop = False
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")

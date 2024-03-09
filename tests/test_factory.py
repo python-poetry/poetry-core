@@ -12,6 +12,7 @@ from packaging.utils import canonicalize_name
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
+from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
 
@@ -22,7 +23,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
-    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -213,7 +213,10 @@ def test_create_poetry(new_format: str) -> None:
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
     assert tomlkit.allows_prereleases()
-    assert not tomlkit.develop
+    assert not tomlkit.develop if new_format else tomlkit.develop
+    tomlkit_for_locking = next(d for d in package.all_requires if d.name == "tomlkit")
+    assert isinstance(tomlkit_for_locking, VCSDependency)
+    assert tomlkit_for_locking.develop
 
     requests = dependencies["requests"]
     assert requests.pretty_constraint == (">=2.18,<3.0" if new_format else "^2.18")

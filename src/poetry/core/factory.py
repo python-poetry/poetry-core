@@ -111,7 +111,7 @@ class Factory:
                         package.python_versions = _constraint
                     continue
 
-                group.add_dependency(
+                group.add_poetry_dependency(
                     cls.create_dependency(
                         name,
                         _constraint,
@@ -263,14 +263,7 @@ class Factory:
 
             package.extras = package_extras
 
-        # TODO: ignore dependencies in [tool.poetry] for now if dependencies or
-        #       optional-dependencies are declared in [project],
-        #       later we have to merge them (abstract vs. concrete dependencies)
-        if (
-            not dependencies
-            and not optional_dependencies
-            and "dependencies" in tool_poetry
-        ):
+        if "dependencies" in tool_poetry:
             cls._add_package_group_dependencies(
                 package=package,
                 group=MAIN_GROUP,
@@ -459,6 +452,8 @@ class Factory:
                     allows_prereleases=allows_prereleases,
                     extras=constraint.get("extras", []),
                 )
+                # Normally not valid, but required for enriching [project] dependencies
+                dependency._develop = constraint.get("develop", False)
 
             marker = parse_marker(markers) if markers else AnyMarker()
 

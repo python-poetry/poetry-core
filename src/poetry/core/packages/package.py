@@ -203,7 +203,7 @@ class Package(PackageSpecification):
     @property
     def requires(self) -> list[Dependency]:
         """
-        Returns the main dependencies
+        Returns the main dependencies.
         """
         if not self._dependency_groups or MAIN_GROUP not in self._dependency_groups:
             return []
@@ -211,16 +211,15 @@ class Package(PackageSpecification):
         return self._dependency_groups[MAIN_GROUP].dependencies
 
     @property
-    def all_requires(
-        self,
-    ) -> list[Dependency]:
+    def all_requires(self) -> list[Dependency]:
         """
-        Returns the main dependencies and group dependencies.
+        Returns the main dependencies and group dependencies
+        enriched with Poetry-specific information for locking.
         """
         return [
             dependency
             for group in self._dependency_groups.values()
-            for dependency in group.dependencies
+            for dependency in group.dependencies_for_locking
         ]
 
     def _set_version(self, version: str | Version) -> None:
