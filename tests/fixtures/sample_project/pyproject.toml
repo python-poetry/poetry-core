@@ -28,7 +28,7 @@ classifiers = [
 python = ">=3.6"
 cleo = "^0.6"
 pendulum = { git = "https://github.com/sdispater/pendulum.git", branch = "2.0" }
-tomlkit = { git = "https://github.com/sdispater/tomlkit.git", rev = "3bff550", develop = false }
+tomlkit = { git = "https://github.com/sdispater/tomlkit.git", rev = "3bff550", develop = true }
 requests = { version = "^2.18", optional = true, extras = [ "security" ] }
 pathlib2 = { version = "^2.2", python = "~2.7" }
 
