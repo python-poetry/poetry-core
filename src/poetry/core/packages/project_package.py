@@ -44,6 +44,7 @@ class ProjectPackage(Package):
         self.include: Sequence[Mapping[str, Any]] = []
         self.exclude: Sequence[Mapping[str, Any]] = []
         self.custom_urls: Mapping[str, str] = {}
+        self._requires_python: str = "*"
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
@@ -63,6 +64,15 @@ class ProjectPackage(Package):
         return dependency
 
     @property
+    def requires_python(self) -> str:
+        return self._requires_python
+
+    @requires_python.setter
+    def requires_python(self, value: str) -> None:
+        self._requires_python = value
+        self.python_versions = value
+
+    @property
     def python_versions(self) -> str:
         return self._python_versions
 
@@ -71,9 +81,23 @@ class ProjectPackage(Package):
         self._python_versions = value
 
         if value == "*":
+            if self._requires_python != "*":
+                raise ValueError(
+                    f'The Python constraint in [tool.poetry.dependencies] "{value}"'
+                    ' is not a subset of "requires-python" in [project]'
+                    f' "{self._requires_python}"'
+                )
             value = "~2.7 || >=3.4"
 
         self._python_constraint = parse_constraint(value)
+        if not parse_constraint(self._requires_python).allows_all(
+            self._python_constraint
+        ):
+            raise ValueError(
+                f'The Python constraint in [tool.poetry.dependencies] "{value}"'
+                ' is not a subset of "requires-python" in [project]'
+                f' "{self._requires_python}"'
+            )
         self._python_marker = parse_marker(
             create_nested_marker("python_version", self._python_constraint)
         )
