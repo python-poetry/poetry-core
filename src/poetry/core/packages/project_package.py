@@ -45,6 +45,7 @@ class ProjectPackage(Package):
         self.exclude: Sequence[Mapping[str, Any]] = []
         self.custom_urls: Mapping[str, str] = {}
         self._requires_python: str = "*"
+        self.dynamic_classifiers = True
 
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
@@ -110,6 +111,13 @@ class ProjectPackage(Package):
     @version.setter
     def version(self, value: str | Version) -> None:
         self._set_version(value)
+
+    @property
+    def all_classifiers(self) -> list[str]:
+        if self.dynamic_classifiers:
+            return super().all_classifiers
+
+        return list(self.classifiers)
 
     @property
     def urls(self) -> dict[str, str]:
