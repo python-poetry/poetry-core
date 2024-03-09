@@ -1,10 +1,6 @@
 [tool.poetry]
-name = "invalid"
-version = "1.0.0"
-authors = [
-    "Foo <foo@bar.com>"
-]
-license = "INVALID"
+# name missing
+# version missing
 
 [tool.poetry.dependencies]
 python = "*"

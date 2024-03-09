@@ -111,6 +111,8 @@ class Package(PackageSpecification):
         self.keywords: Sequence[str] = []
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
+        self.readme_content_type: str | None = None
+        self.readme_content: str | None = None
 
         self.extras: Mapping[NormalizedName, Sequence[Dependency]] = {}
 

@@ -1,3 +1,21 @@
+[project]
+dynamic = [
+    "name",  # This is not valid and will trigger an error in Factory.validate()
+    "version",
+    "description",
+    "readme",
+    "requires-python",
+    "license",
+    "authors",
+    "maintainers",
+    "keywords",
+    "classifiers",
+    "urls",
+    "dependencies",
+    "optional-dependencies",
+    "scripts",
+]
+
 [tool.poetry]
 name = "poetry"
 version = "0.5.0"
@@ -31,7 +49,7 @@ requests = { version = "^2.13", extras = [ "security" ] }
 # Python specific dependencies with prereleases allowed
 pathlib2 = { version = "^2.2", python = "~3.8", allow-prereleases = true }
 # Git dependencies
-cleo = { git = "https://github.com/sdispater/cleo.git", branch = "main" }
+cleo = { git = "https://github.com/sdispater/cleo.git", branch = "master" }
 
 # Optional dependencies (extras)
 pendulum = { version = "^1.4", optional = true }
@@ -48,7 +66,7 @@ my-script = 'my_package:main'
 sample_pyscript = { reference = "script-files/sample_script.py", type= "file" }
 sample_shscript = { reference = "script-files/sample_script.sh", type= "file" }
 
-[tool.poetry.plugins."poetry.application.plugin"]
+[project.entry-points."poetry.application.plugin"]
 my-command = "my_package.plugins:MyApplicationPlugin"
 
 
