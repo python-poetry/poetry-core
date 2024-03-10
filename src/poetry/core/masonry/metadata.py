@@ -97,6 +97,10 @@ class Metadata:
             for name, url in package.urls.items():
                 if name.lower() == "homepage" and meta.home_page == url:
                     continue
+                if name == "repository" and url == package.urls["Repository"]:
+                    continue
+                if name == "documentation" and url == package.urls["Documentation"]:
+                    continue
 
                 meta.project_urls += (f"{name}, {url}",)
 
