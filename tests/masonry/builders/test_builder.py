@@ -229,7 +229,7 @@ def test_invalid_script_files_definition() -> None:
             "script_reference_console",
             {
                 "console_scripts": [
-                    "extra-script = my_package.extra:main[time]",
+                    "extra-script = my_package.extra:main",
                     "script = my_package.extra:main",
                 ]
             },
@@ -240,7 +240,6 @@ def test_invalid_script_files_definition() -> None:
         ),
     ],
 )
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_builder_convert_entry_points(
     fixture: str, result: dict[str, list[str]]
 ) -> None:

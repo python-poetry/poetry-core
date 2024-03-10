@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 
+from collections import defaultdict
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -136,6 +137,7 @@ class Factory:
         package.root_dir = root
 
         cls._configure_package_metadata(package, project, tool_poetry, root)
+        cls._configure_entry_points(package, project, tool_poetry)
         cls._configure_package_dependencies(
             package, project, tool_poetry, with_groups=with_groups
         )
@@ -220,6 +222,47 @@ class Factory:
                 package.readmes = (root / custom_readme,)
             else:
                 package.readmes = tuple(root / readme for readme in custom_readme)
+
+    @classmethod
+    def _configure_entry_points(
+        cls,
+        package: ProjectPackage,
+        project: dict[str, Any],
+        tool_poetry: dict[str, Any],
+    ) -> None:
+        entry_points: defaultdict[str, dict[str, str]] = defaultdict(dict)
+
+        if scripts := project.get("scripts"):
+            entry_points["console-scripts"] = scripts
+        elif scripts := tool_poetry.get("scripts"):
+            for name, specification in scripts.items():
+                if isinstance(specification, str):
+                    specification = {"reference": specification, "type": "console"}
+
+                if specification.get("type") != "console":
+                    continue
+
+                reference = specification.get("reference")
+
+                if reference:
+                    entry_points["console-scripts"][name] = reference
+
+        if scripts := project.get("gui-scripts"):
+            entry_points["gui-scripts"] = scripts
+
+        if other_scripts := project.get("entry-points"):
+            for group_name, scripts in sorted(other_scripts.items()):
+                if group_name in {"console-scripts", "gui-scripts"}:
+                    raise ValueError(
+                        f"Group '{group_name}' is reserved and cannot be used"
+                        " as a custom entry-point group."
+                    )
+                entry_points[group_name] = scripts
+        elif other_scripts := tool_poetry.get("plugins"):
+            for group_name, scripts in sorted(other_scripts.items()):
+                entry_points[group_name] = scripts
+
+        package.entry_points = dict(entry_points)
 
     @classmethod
     def _configure_package_dependencies(
