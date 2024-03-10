@@ -1,0 +1,53 @@
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+readme = "README.rst"
+requires-python = ">=3.6,<4.0"
+license = { "text" = "MIT" }
+authors = [
+    { "name" = "Sébastien Eustace", "email" = "sebastien@eustace.io" }
+]
+maintainers = [
+    { name = "People Everywhere", email = "people@everywhere.com" }
+]
+keywords = ["packaging", "dependency", "poetry"]
+dependencies = [
+    "cleo>=0.6,<0.7",
+    "cachy[msgpack]>=0.2.0,<0.3.0",
+]
+dynamic = [ "classifiers" ]
+
+[project.optional-dependencies]
+time = [ "pendulum>=1.4,<2.0 ; python_version ~= '2.7' and sys_platform == 'win32' or python_version in '3.4 3.5'" ]
+
+[project.urls]
+homepage = "https://python-poetry.org/"
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs"
+"Issue Tracker" = "https://github.com/python-poetry/poetry/issues"
+
+[project.scripts]
+my-script = "my_package:main"
+my-2nd-script = "my_package:main2"
+extra-script = "my_package.extra:main"
+
+[project.entry-points."poetry.application.plugin"]
+my-command = "my_package.plugins:MyApplicationPlugin"
+
+[tool.poetry]
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+exclude = [
+    "does-not-exist",
+    "**/*.xml"
+]
+
+[tool.poetry.dev-dependencies]
+pytest = "~3.4"
+
+[tool.poetry.scripts]
+file-script = { reference = "bin/script.sh", type = "file" }
