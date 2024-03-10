@@ -47,6 +47,8 @@ class ProjectPackage(Package):
         self._requires_python: str = "*"
         self.dynamic_classifiers = True
 
+        self.entry_points: Mapping[str, dict[str, str]] = {}
+
         if self._python_versions == "*":
             self._python_constraint = parse_constraint("~2.7 || >=3.4")
 

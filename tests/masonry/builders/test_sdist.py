@@ -116,9 +116,9 @@ def test_convert_dependencies() -> None:
     assert result == (main, extras)
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_make_setup() -> None:
-    poetry = Factory().create_poetry(project("complete"))
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_make_setup(project_name: str) -> None:
+    poetry = Factory().create_poetry(project(project_name))
 
     builder = SdistBuilder(poetry)
     setup = builder.build_setup()
@@ -136,10 +136,13 @@ def test_make_setup() -> None:
     assert ns["install_requires"] == ["cachy[msgpack]>=0.2.0,<0.3.0", "cleo>=0.6,<0.7"]
     assert ns["entry_points"] == {
         "console_scripts": [
-            "extra-script = my_package.extra:main[time]",
+            "extra-script = my_package.extra:main",
             "my-2nd-script = my_package:main2",
             "my-script = my_package:main",
-        ]
+        ],
+        "poetry.application.plugin": [
+            "my-command = my_package.plugins:MyApplicationPlugin"
+        ],
     }
     assert ns["scripts"] == [str(Path("bin") / "script.sh")]
     assert ns["extras_require"] == {
@@ -149,11 +152,12 @@ def test_make_setup() -> None:
     }
 
 
-def test_make_pkg_info(mocker: MockerFixture) -> None:
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_make_pkg_info(project_name: str, mocker: MockerFixture) -> None:
     get_metadata_content = mocker.patch(
         "poetry.core.masonry.builders.builder.Builder.get_metadata_content"
     )
-    poetry = Factory().create_poetry(project("complete"))
+    poetry = Factory().create_poetry(project(project_name))
 
     builder = SdistBuilder(poetry)
     builder.build_pkg_info()
@@ -172,8 +176,9 @@ def test_make_pkg_info_any_python() -> None:
     assert "Requires-Python" not in parsed
 
 
-def test_find_files_to_add() -> None:
-    poetry = Factory().create_poetry(project("complete"))
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_find_files_to_add(project_name: str) -> None:
+    poetry = Factory().create_poetry(project(project_name))
 
     builder = SdistBuilder(poetry)
     result = {f.relative_to_source_root() for f in builder.find_files_to_add()}
@@ -230,12 +235,13 @@ def test_make_pkg_info_multi_constraints_dependency() -> None:
     ]
 
 
-def test_find_packages() -> None:
-    poetry = Factory().create_poetry(project("complete"))
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_find_packages(project_name: str) -> None:
+    poetry = Factory().create_poetry(project(project_name))
 
     builder = SdistBuilder(poetry)
 
-    base = project("complete")
+    base = project(project_name)
     include = PackageInclude(base, "my_package")
 
     pkg_dir, packages, pkg_data = builder.find_packages(include)
@@ -267,13 +273,14 @@ def test_find_packages() -> None:
     assert pkg_data == {"": ["*"]}
 
 
-def test_package() -> None:
-    poetry = Factory().create_poetry(project("complete"))
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_package(project_name: str) -> None:
+    poetry = Factory().create_poetry(project(project_name))
 
     builder = SdistBuilder(poetry)
     builder.build()
 
-    sdist = fixtures_dir / "complete" / "dist" / "my_package-1.2.3.tar.gz"
+    sdist = fixtures_dir / project_name / "dist" / "my_package-1.2.3.tar.gz"
 
     assert sdist.exists()
 
@@ -281,8 +288,9 @@ def test_package() -> None:
         assert "my_package-1.2.3/LICENSE" in tar.getnames()
 
 
-def test_sdist_reproducibility() -> None:
-    poetry = Factory().create_poetry(project("complete"))
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_sdist_reproducibility(project_name: str) -> None:
+    poetry = Factory().create_poetry(project(project_name))
 
     hashes = set()
 
@@ -290,7 +298,7 @@ def test_sdist_reproducibility() -> None:
         builder = SdistBuilder(poetry)
         builder.build()
 
-        sdist = fixtures_dir / "complete" / "dist" / "my_package-1.2.3.tar.gz"
+        sdist = fixtures_dir / project_name / "dist" / "my_package-1.2.3.tar.gz"
 
         assert sdist.exists()
 
@@ -299,9 +307,9 @@ def test_sdist_reproducibility() -> None:
     assert len(hashes) == 1
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_setup_py_context() -> None:
-    poetry = Factory().create_poetry(project("complete"))
+@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+def test_setup_py_context(project_name: str) -> None:
+    poetry = Factory().create_poetry(project(project_name))
 
     builder = SdistBuilder(poetry)
 
