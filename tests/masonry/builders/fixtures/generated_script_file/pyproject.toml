@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "generated_script_file"
+version = "0.1"
+description = "Some description."
+authors = [
+    "Poetry Maintainers <noreply@python-poetry.org>"
+]
+license = "MIT"
+readme = "README.rst"
+
+[tool.poetry.scripts]
+sh-script = { reference = "generated_script_file/generated/script.sh", type = "file" }
+
+[tool.poetry.build]
+script = "build.py"
+generate-setup-file = true
+
+[build-system]
+requires = ["poetry-core", "setuptools"]
+build-backend = "poetry.core.masonry.api"
