@@ -44,9 +44,8 @@ types-setuptools = ">=57.4.14"
 
 [tool.ruff]
 extend-exclude = [
-    "src/poetry/core/_vendor/*",
-    "tests/fixtures/*",
-    "tests/**/fixtures/*"
+  "src/poetry/core/_vendor/*",
+  "tests/**/fixtures/*",
 ]
 fix = true
 line-length = 88
@@ -54,27 +53,31 @@ src = ["src"]
 target-version = "py38"
 
 [tool.ruff.lint]
-unfixable = [
-    "ERA",  # do not autoremove commented out code
-]
 extend-select = [
-    "B",  # flake8-bugbear
+    "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
-    "ERA",  # flake8-eradicate/eradicate
-    "PIE",  # flake8-pie
-    "SIM",  # flake8-simplify
-    "TID",  # flake8-tidy-imports
-    "TCH",  # flake8-type-checking
-    "N",  # pep8-naming
-    "RUF",  # ruff checks
+    "ERA", # flake8-eradicate/eradicate
+    "I",   # isort
+    "N",   # pep8-naming
+    "PIE", # flake8-pie
+    "PGH", # pygrep
+    "RUF", # ruff checks
+    "SIM", # flake8-simplify
+    "T20", # flake8-print
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
     "UP",  # pyupgrade
-    "I",  # isort
-    "PGH",  # pygrep
 ]
 ignore = [
     "B904",  # use 'raise ... from err'
     "B905",  # use explicit 'strict=' parameter with 'zip()'
-    "N818"  #  Exception name should be named with an Error suffix
+    "N818"   # Exception name should be named with an Error suffix
+]
+extend-safe-fixes = [
+    "TCH", # move import from and to TYPE_CHECKING blocks
+]
+unfixable = [
+    "ERA",  # do not autoremove commented out code
 ]
 
 [tool.ruff.lint.flake8-tidy-imports]
@@ -87,11 +90,6 @@ lines-after-imports = 2
 known-first-party = ["poetry.core"]
 known-third-party = ["poetry.core._vendor"]
 required-imports = ["from __future__ import annotations"]
-
-[tool.black]
-target-version = ['py38']
-preview = true
-extend-exclude = "src/poetry/core/_vendor/|tests/([^/]*/)*fixtures/"
 
 [tool.mypy]
 strict = true
