@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import logging
 
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
 from typing import List
 from typing import Union
 
@@ -16,8 +16,6 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from packaging.utils import NormalizedName
 
     from poetry.core.packages.dependency import Dependency
@@ -26,7 +24,7 @@ if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
 
-    DependencyConstraint = Union[str, Dict[str, Any]]
+    DependencyConstraint = Union[str, Mapping[str, Any]]
     DependencyConfig = Mapping[
         str, Union[List[DependencyConstraint], DependencyConstraint]
     ]
@@ -259,7 +257,7 @@ class Factory:
         if constraint is None:
             constraint = "*"
 
-        if isinstance(constraint, dict):
+        if isinstance(constraint, Mapping):
             optional = constraint.get("optional", False)
             python_versions = constraint.get("python")
             platform = constraint.get("platform")
