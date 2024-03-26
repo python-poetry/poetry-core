@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import sys
 import warnings
 
@@ -15,10 +14,6 @@ if TYPE_CHECKING:
     from poetry.core.masonry.utils.module import Module
     from poetry.core.poetry import Poetry
 
-
-AUTHOR_REGEX = re.compile(
-    r"(?u)^(?P<name>[- .,\w\d'’\"()]+) <(?P<email>.+?)>$"  # noqa: RUF001
-)
 
 METADATA_BASE = """\
 Metadata-Version: 2.3
@@ -366,17 +361,6 @@ class Builder:
                 script_files.append(abs_path)
 
         return script_files
-
-    @classmethod
-    def convert_author(cls, author: str) -> dict[str, str]:
-        m = AUTHOR_REGEX.match(author)
-        if m is None:
-            raise RuntimeError(f"{author} does not match regex")
-
-        name = m.group("name")
-        email = m.group("email")
-
-        return {"name": name, "email": email}
 
     def _get_legal_files(self) -> set[Path]:
         include_files_patterns = {"COPYING*", "LICEN[SC]E*", "AUTHORS*", "NOTICE*"}
