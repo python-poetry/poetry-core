@@ -23,8 +23,10 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Iterable
     from collections.abc import Iterator
-    from typing import Mapping, Union, Sequence
     from pathlib import Path
+    from typing import Mapping
+    from typing import Sequence
+    from typing import Union
 
     from packaging.utils import NormalizedName
 
