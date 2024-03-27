@@ -280,6 +280,7 @@ class Factory:
                     groups=groups,
                     optional=optional,
                     develop=constraint.get("develop", False),
+                    config_settings=constraint.get("config_settings", {}),
                     extras=constraint.get("extras", []),
                 )
             elif "file" in constraint:
@@ -322,6 +323,7 @@ class Factory:
                         optional=optional,
                         base=root_dir,
                         develop=constraint.get("develop", False),
+                        config_settings=constraint.get("config_settings", {}),
                         extras=constraint.get("extras", []),
                     )
             elif "url" in constraint:
