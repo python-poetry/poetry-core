@@ -49,7 +49,7 @@ class DirectoryDependency(PathDependency):
         return self._develop
 
     @property
-    def config_settings(self) -> Mapping[str, str | Sequence[str]] | None = None:
+    def config_settings(self) -> Mapping[str, str | Sequence[str]] | None:
         return self._develop
 
     def _validate(self) -> str:
