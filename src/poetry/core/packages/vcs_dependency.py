@@ -27,6 +27,7 @@ class VCSDependency(Dependency):
         groups: Iterable[str] | None = None,
         optional: bool = False,
         develop: bool = False,
+        config_settings: Mapping[str, str | Sequence[str]] | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         # Attributes must be immutable for clone() to be safe!
@@ -38,6 +39,7 @@ class VCSDependency(Dependency):
         self._rev = rev
         self._directory = directory
         self._develop = develop
+        self._config_settings = config_settings
 
         super().__init__(
             name,
@@ -81,6 +83,10 @@ class VCSDependency(Dependency):
 
     @property
     def develop(self) -> bool:
+        return self._develop
+
+    @property
+    def config_settings(self) -> Mapping[str, str | Sequence[str]] | None:
         return self._develop
 
     @property
