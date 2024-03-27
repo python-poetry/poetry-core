@@ -50,7 +50,7 @@ class DirectoryDependency(PathDependency):
 
     @property
     def config_settings(self) -> Mapping[str, str | Sequence[str]] | None:
-        return self._develop
+        return self._config_settings
 
     def _validate(self) -> str:
         message = super()._validate()
