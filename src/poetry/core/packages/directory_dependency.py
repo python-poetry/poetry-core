@@ -12,7 +12,8 @@ from poetry.core.pyproject.toml import PyProjectTOML
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
-    from typing import Mapping, Sequence
+    from typing import Mapping
+    from typing import Sequence
 
 
 class DirectoryDependency(PathDependency):
