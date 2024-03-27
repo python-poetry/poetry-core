@@ -88,7 +88,7 @@ class VCSDependency(Dependency):
 
     @property
     def config_settings(self) -> Mapping[str, str | Sequence[str]] | None:
-        return self._develop
+        return self._config_settings
 
     @property
     def reference(self) -> str:
