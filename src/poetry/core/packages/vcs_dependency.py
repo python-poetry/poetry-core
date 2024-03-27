@@ -37,7 +37,6 @@ class VCSDependency(Dependency):
         self._tag = tag
         self._rev = rev
         self._directory = directory
-        self._develop = develop
 
         super().__init__(
             name,
@@ -54,6 +53,7 @@ class VCSDependency(Dependency):
         )
 
         self._source = self.source_url or source
+        self._develop = develop
 
     @property
     def vcs(self) -> str:

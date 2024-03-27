@@ -102,20 +102,20 @@ $""",
         assert len(set(record_files)) == len(record_files)
 
 
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
 @pytest.mark.parametrize("no_vcs", [False, True])
-def test_complete(no_vcs: bool) -> None:
-    module_path = fixtures_dir / "complete"
+def test_complete(project: str, no_vcs: bool) -> None:
+    module_path = fixtures_dir / project
 
     if no_vcs:
         # Copy the complete fixtures dir to a temporary directory
-        temporary_dir = Path(tempfile.mkdtemp()) / "complete"
+        temporary_dir = Path(tempfile.mkdtemp()) / project
         shutil.copytree(module_path.as_posix(), temporary_dir.as_posix())
         module_path = temporary_dir
 
     poetry = Factory().create_poetry(module_path)
-    with pytest.warns(DeprecationWarning, match=".* script .* extra"):
-        SdistBuilder(poetry).build()
-        WheelBuilder(poetry).build()
+    SdistBuilder(poetry).build()
+    WheelBuilder(poetry).build()
 
     whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
@@ -159,9 +159,12 @@ def test_complete(no_vcs: bool) -> None:
             entry_points.decode()
             == """\
 [console_scripts]
-extra-script=my_package.extra:main[time]
+extra-script=my_package.extra:main
 my-2nd-script=my_package:main2
 my-script=my_package:main
+
+[poetry.application.plugin]
+my-command=my_package.plugins:MyApplicationPlugin
 
 """
         )

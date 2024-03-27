@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import warnings
 
-from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import Mapping
@@ -22,7 +21,6 @@ from poetry.core.version.markers import parse_marker
 if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Iterable
-    from collections.abc import Iterator
     from pathlib import Path
 
     from packaging.utils import NormalizedName
@@ -110,6 +108,8 @@ class Package(PackageSpecification):
         self.keywords: Sequence[str] = []
         self._license: License | None = None
         self.readmes: tuple[Path, ...] = ()
+        self.readme_content_type: str | None = None
+        self.readme_content: str | None = None
 
         self.extras: Mapping[NormalizedName, Sequence[Dependency]] = {}
 
@@ -208,6 +208,17 @@ class Package(PackageSpecification):
         return self._dependency_groups[MAIN_GROUP].dependencies
 
     @property
+    def requires_for_locking(self) -> list[Dependency]:
+        """
+        Returns the main dependencies
+        enriched with Poetry-specific information for locking.
+        """
+        if not self._dependency_groups or MAIN_GROUP not in self._dependency_groups:
+            return []
+
+        return self._dependency_groups[MAIN_GROUP].dependencies_for_locking
+
+    @property
     def all_requires(
         self,
     ) -> list[Dependency]:
@@ -218,6 +229,20 @@ class Package(PackageSpecification):
             dependency
             for group in self._dependency_groups.values()
             for dependency in group.dependencies
+        ]
+
+    @property
+    def all_requires_for_locking(
+        self,
+    ) -> list[Dependency]:
+        """
+        Returns the main dependencies and group dependencies
+        enriched with Poetry-specific information for locking.
+        """
+        return [
+            dependency
+            for group in self._dependency_groups.values()
+            for dependency in group.dependencies_for_locking
         ]
 
     def _set_version(self, version: str | Version) -> None:
@@ -562,16 +587,6 @@ class Package(PackageSpecification):
             return dep
 
         return dep.with_constraint(self._version)
-
-    @contextmanager
-    def with_python_versions(self, python_versions: str) -> Iterator[None]:
-        original_python_versions = self.python_versions
-
-        self.python_versions = python_versions
-
-        yield
-
-        self.python_versions = original_python_versions
 
     def satisfies(
         self, dependency: Dependency, ignore_source_type: bool = False
