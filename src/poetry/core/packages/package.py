@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Iterable
     from collections.abc import Iterator
+    from typing import Mapping, Union, Sequence
     from pathlib import Path
 
     from packaging.utils import NormalizedName
@@ -69,6 +70,7 @@ class Package(PackageSpecification):
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
         develop: bool = False,
+        config_settings: Mapping[str, Union[str, Sequence[str]]] | None = None,
         yanked: str | bool = False,
     ) -> None:
         """
@@ -131,6 +133,8 @@ class Package(PackageSpecification):
         self.root_dir: Path | None = None
 
         self.develop = develop
+
+        self.config_settings = config_settings
 
         self._yanked = yanked
 
