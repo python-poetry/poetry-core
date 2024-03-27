@@ -7,6 +7,7 @@ from poetry.core.packages.dependency import Dependency
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from typing import Mapping, Sequence
 
 
 class VCSDependency(Dependency):
