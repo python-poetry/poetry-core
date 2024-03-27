@@ -26,7 +26,6 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Mapping
     from typing import Sequence
-    from typing import Union
 
     from packaging.utils import NormalizedName
 
@@ -72,7 +71,7 @@ class Package(PackageSpecification):
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
         develop: bool = False,
-        config_settings: Mapping[str, Union[str, Sequence[str]]] | None = None,
+        config_settings: Mapping[str, str | Sequence[str]] | None = None,
         yanked: str | bool = False,
     ) -> None:
         """
