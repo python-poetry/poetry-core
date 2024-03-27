@@ -439,6 +439,10 @@
         "develop": {
           "type": "boolean",
           "description": "Whether to install the dependency in development mode."
+        },
+        "config-settings": {
+          "type": "object",
+          "description": "Config-settings passed to the builder when installing."
         }
       }
     },
