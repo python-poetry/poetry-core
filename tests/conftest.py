@@ -81,7 +81,9 @@ def masonry_project(
 
 @pytest.fixture
 def temporary_directory() -> Iterator[Path]:
-    with tempfile.TemporaryDirectory(prefix="poetry-core") as tmp:
+    with tempfile.TemporaryDirectory(
+        prefix="poetry-core", ignore_cleanup_errors=True
+    ) as tmp:
         yield Path(tmp)
 
 
