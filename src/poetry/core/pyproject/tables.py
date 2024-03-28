@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from contextlib import suppress
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -9,18 +10,15 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
 
 
-# TODO: Convert to dataclass once python 2.7, 3.5 is dropped
+@dataclass
 class BuildSystem:
-    def __init__(
-        self, build_backend: str | None = None, requires: list[str] | None = None
-    ) -> None:
-        self.build_backend = (
-            build_backend
-            if build_backend is not None
-            else "setuptools.build_meta:__legacy__"
-        )
-        self.requires = requires if requires is not None else ["setuptools", "wheel"]
-        self._dependencies: list[Dependency] | None = None
+    build_backend: str | None = field(default=None)
+    requires: list[str] = field(default_factory=list)
+    _dependencies: list[Dependency] | None = field(default=None, init=False)
+
+    def __post_init__(self) -> None:
+        self.build_backend = self.build_backend or "setuptools.build_meta:__legacy__"
+        self.requires = self.requires or ["setuptools", "wheel"]
 
     @property
     def dependencies(self) -> list[Dependency]:
@@ -38,13 +36,10 @@ class BuildSystem:
                 except ValueError:
                     # PEP 517 requires can be path if not PEP 508
                     path = Path(requirement)
-                    # compatibility Python < 3.8
-                    # https://docs.python.org/3/library/pathlib.html#methods
-                    with suppress(OSError):
-                        if path.is_file():
-                            dependency = FileDependency(name=path.name, path=path)
-                        elif path.is_dir():
-                            dependency = DirectoryDependency(name=path.name, path=path)
+                    if path.is_file():
+                        dependency = FileDependency(name=path.name, path=path)
+                    elif path.is_dir():
+                        dependency = DirectoryDependency(name=path.name, path=path)
 
                 if dependency is None:
                     # skip since we could not determine requirement
