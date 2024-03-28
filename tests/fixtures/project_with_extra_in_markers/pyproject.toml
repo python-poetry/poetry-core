@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "extra-package"
+version = "1.2.3"
+description = "Some description."
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+psycopg = [
+    { version = "^3.1.9" },
+    { version = "^3.1.9", optional = true , extras = ["binary"], markers = "extra == 'extra-binary'"},
+    { version = "^3.1.9", optional = true , extras = ["c"], markers = "extra in 'extra-c, extra-pool'"}
+]
