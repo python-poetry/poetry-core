@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import warnings
 
-from typing import TYPE_CHECKING, Literal, TypedDict
-from typing import Any
+from typing import TYPE_CHECKING
+from typing import Literal
 from typing import Mapping
 from typing import Sequence
+from typing import TypedDict
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.markers import parse_marker
@@ -22,7 +23,9 @@ from poetry.core.packages.utils.utils import create_nested_marker
 SupportedPackageFormats = Literal["sdist", "wheel"]
 
 
-BuildConfigSpec = TypedDict("BuildConfigSpec", {"script": str, "generate-setup-file": bool})
+BuildConfigSpec = TypedDict(
+    "BuildConfigSpec", {"script": str, "generate-setup-file": bool}
+)
 
 
 class PackageSpec(TypedDict):
