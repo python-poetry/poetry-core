@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, TypedDict
 from typing import Any
 from typing import Mapping
 from typing import Sequence
@@ -17,6 +17,18 @@ if TYPE_CHECKING:
 
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
+
+SupportedPackageFormats = Literal["sdist", "wheel"]
+
+class PackageSpec(TypedDict):
+    include: str
+    to: str
+    format: list[SupportedPackageFormats]
+
+
+class IncludeSpec(TypedDict):
+    path: str
+    format: list[SupportedPackageFormats]
 
 
 class ProjectPackage(Package):
@@ -40,9 +52,9 @@ class ProjectPackage(Package):
         # (For performance reasons, clone only creates a copy instead of a deep copy).
 
         self.build_config: Mapping[str, Any] = {}
-        self.packages: Sequence[Mapping[str, Any]] = []
-        self.include: Sequence[Mapping[str, Any]] = []
-        self.exclude: Sequence[Mapping[str, Any]] = []
+        self.packages: Sequence[PackageSpec] = []
+        self.include: Sequence[IncludeSpec] = []
+        self.exclude: Sequence[IncludeSpec] = []
         self.custom_urls: Mapping[str, str] = {}
 
         if self._python_versions == "*":
