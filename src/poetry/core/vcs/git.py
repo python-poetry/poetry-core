@@ -23,6 +23,23 @@ PATTERNS = [
     re.compile(
         r"^(git\+)?"
         r"(?P<protocol>https?|git|ssh|rsync|file)://"
+        rf"(?:(?P<user>[^@]+)@)?"
+        rf"(?P<resource>{RESOURCE})?"
+        rf"(:(?P<port>{PORT}))?"
+        rf"(?P<pathname>[:/\\]({PATH}[/\\])?"
+        rf"((?P<name>{NAME}?)(\.git|[/\\])?)?)"
+        r"(?:"
+        r"#egg=?.+"
+        r"|"
+        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
+        r"|"
+        rf"[@#](?P<rev>{REV})(?:[&#](?:egg=.+?|(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})))?"
+        r")?"
+        r"$"
+    ),
+    re.compile(
+        r"^(git\+)?"
+        r"(?P<protocol>https?|git|ssh|rsync|file)://"
         rf"(?:(?P<user>{USER})@)?"
         rf"(?P<resource>{RESOURCE})?"
         rf"(:(?P<port>{PORT}))?"
