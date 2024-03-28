@@ -18,7 +18,12 @@ if TYPE_CHECKING:
 from poetry.core.packages.package import Package
 from poetry.core.packages.utils.utils import create_nested_marker
 
+
 SupportedPackageFormats = Literal["sdist", "wheel"]
+
+
+BuildConfigSpec = TypedDict("BuildConfigSpec", {"script": str, "generate-setup-file": bool})
+
 
 class PackageSpec(TypedDict):
     include: str
@@ -51,7 +56,7 @@ class ProjectPackage(Package):
         # Attributes must be immutable for clone() to be safe!
         # (For performance reasons, clone only creates a copy instead of a deep copy).
 
-        self.build_config: Mapping[str, Any] = {}
+        self.build_config: BuildConfigSpec = {}
         self.packages: Sequence[PackageSpec] = []
         self.include: Sequence[IncludeSpec] = []
         self.exclude: Sequence[IncludeSpec] = []
