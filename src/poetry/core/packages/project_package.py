@@ -5,9 +5,10 @@ import warnings
 from typing import TYPE_CHECKING
 from typing import Literal
 from typing import Mapping
-from typing import NotRequired
 from typing import Sequence
 from typing import TypedDict
+
+from typing_extensions import NotRequired
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.markers import parse_marker
