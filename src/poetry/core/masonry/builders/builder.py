@@ -80,8 +80,7 @@ class Builder:
             formats = include.get("format", [])
 
             if (
-                formats
-                and self.format
+                self.format
                 and self.format not in formats
                 and not self._ignore_packages_formats
             ):

@@ -5,6 +5,7 @@ import warnings
 from typing import TYPE_CHECKING
 from typing import Literal
 from typing import Mapping
+from typing import NotRequired
 from typing import Sequence
 from typing import TypedDict
 
@@ -24,7 +25,8 @@ SupportedPackageFormats = Literal["sdist", "wheel"]
 
 
 BuildConfigSpec = TypedDict(
-    "BuildConfigSpec", {"script": str, "generate-setup-file": bool}
+    "BuildConfigSpec",
+    {"script": NotRequired[str], "generate-setup-file": NotRequired[bool]},
 )
 
 
