@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 
@@ -18,6 +19,7 @@ from poetry.core.utils._compat import WINDOWS
 if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import SubRequest
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -108,3 +110,18 @@ def python(venv: Path) -> str:
 @pytest.fixture()
 def f() -> Factory:
     return Factory()
+
+
+@pytest.fixture(scope="function", params=[None, 1697539120])
+def env_source_date_epoch(request: SubRequest) -> Iterator[int | None]:
+    # store original value
+    env_orig = None
+    if request.param is not None:
+        env_orig = os.environ.get("SOURCE_DATE_EPOCH", None)
+        os.environ["SOURCE_DATE_EPOCH"] = str(request.param)
+
+    yield request.param
+
+    # restore
+    if env_orig is not None:
+        os.environ["SOURCE_DATE_EPOCH"] = env_orig
