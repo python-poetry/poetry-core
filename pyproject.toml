@@ -42,6 +42,12 @@ virtualenv = ">=20.21"
 mypy = ">=1.0"
 types-setuptools = ">=57.4.14"
 
+# only used in github actions
+[tool.poetry.group.github-actions]
+optional = true
+[tool.poetry.group.github-actions.dependencies]
+pytest-github-actions-annotate-failures = "^0.1.7"
+
 
 [build-system]
 requires = []
