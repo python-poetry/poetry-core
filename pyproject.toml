@@ -33,6 +33,8 @@ vendoring = ">=1.0"
 pytest = ">=7.1.2"
 pytest-cov = ">=3.0.0"
 pytest-mock = ">=3.10"
+pytest-randomly = "^3.12"
+pytest-xdist = { version = "^3.1", extras = ["psutil"] }
 build = ">=0.10.0"
 setuptools = ">=60"
 tomli-w = "^1.0.0"
@@ -127,6 +129,10 @@ module = [
   'virtualenv.*',
 ]
 ignore_missing_imports = true
+
+
+[tool.pytest.ini_options]
+addopts = "-n logical"
 
 
 [tool.vendoring]
