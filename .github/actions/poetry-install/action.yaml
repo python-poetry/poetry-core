@@ -16,10 +16,6 @@ outputs:
     description: Whether an exact cache hit occured
     value: ${{ steps.cache.outputs.cache-hit }}
 
-defaults:
-  run:
-    working-directory: ${{ inputs.path }}
-
 runs:
   using: composite
   steps:
@@ -48,10 +44,13 @@ runs:
         enableCrossOsArchive: true
 
     - run: poetry install ${{ inputs.args }}
+      working-directory: ${{ inputs.path }}
       shell: bash
 
     - run: poetry env info
+      working-directory: ${{ inputs.path }}
       shell: bash
 
     - run: poetry show
+      working-directory: ${{ inputs.path }}
       shell: bash
