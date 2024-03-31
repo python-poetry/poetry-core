@@ -8,38 +8,33 @@ from typing import Mapping
 from typing import Sequence
 from typing import TypedDict
 
-from typing_extensions import NotRequired
-
 from poetry.core.constraints.version import parse_constraint
+from poetry.core.packages.package import Package
+from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from typing_extensions import NotRequired
+
     from poetry.core.constraints.version import Version
     from poetry.core.packages.dependency import Dependency
 
-from poetry.core.packages.package import Package
-from poetry.core.packages.utils.utils import create_nested_marker
+    SupportedPackageFormats = Literal["sdist", "wheel"]
 
+    BuildConfigSpec = TypedDict(
+        "BuildConfigSpec",
+        {"script": NotRequired[str], "generate-setup-file": NotRequired[bool]},
+    )
 
-SupportedPackageFormats = Literal["sdist", "wheel"]
+    class PackageSpec(TypedDict):
+        include: str
+        to: str
+        format: list[SupportedPackageFormats]
 
-
-BuildConfigSpec = TypedDict(
-    "BuildConfigSpec",
-    {"script": NotRequired[str], "generate-setup-file": NotRequired[bool]},
-)
-
-
-class PackageSpec(TypedDict):
-    include: str
-    to: str
-    format: list[SupportedPackageFormats]
-
-
-class IncludeSpec(TypedDict):
-    path: str
-    format: list[SupportedPackageFormats]
+    class IncludeSpec(TypedDict):
+        path: str
+        format: list[SupportedPackageFormats]
 
 
 class ProjectPackage(Package):
