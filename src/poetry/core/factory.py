@@ -206,7 +206,7 @@ class Factory:
             if not isinstance(build, dict):
                 build = {"script": build}
             if TYPE_CHECKING:
-                cast(BuildConfigSpec, build)
+                build = cast(BuildConfigSpec, build)
             package.build_config = build
 
         if "include" in config:
