@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import sys
 import tempfile
 
@@ -18,6 +19,9 @@ from poetry.core.utils._compat import WINDOWS
 if TYPE_CHECKING:
     from _pytest.config import Config
     from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import FixtureRequest
+
+    from tests.types import FixtureFactory
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -35,6 +39,32 @@ def pytest_configure(config: Config) -> None:
 
     if not config.option.integration:
         config.option.markexpr = "not integration"
+
+
+@pytest.fixture
+def fixture_factory(request: FixtureRequest, tmp_path: Path) -> FixtureFactory:
+    """Provides a factory function that creates a copy of a fixture in a temporary directory."""
+    test_root = Path(__file__).parent
+
+    def _factory(name: str, scope: Path | None = None) -> Path:
+        if scope is None:
+            # If scope is None, find "fixtures/" relative to the test.
+            scope = request.path.parent.relative_to(test_root)
+
+        source = test_root / scope / "fixtures" / name
+        target = tmp_path / name
+
+        if not source.exists():
+            raise FileNotFoundError(source)
+
+        if source.is_dir():
+            shutil.copytree(source, target)
+        else:
+            shutil.copyfile(source, target)
+
+        return target
+
+    return _factory
 
 
 def get_project_from_dir(base_directory: Path) -> Callable[[str], Path]:
