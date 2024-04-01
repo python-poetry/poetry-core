@@ -132,7 +132,8 @@ ignore_missing_imports = true
 
 
 [tool.pytest.ini_options]
-addopts = "-n logical"
+addopts = "-n logical -p no:legacypath"
+testpaths = ["tests"]
 
 
 [tool.vendoring]
