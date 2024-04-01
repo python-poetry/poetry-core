@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import List
 from typing import Union
+from typing import cast
 
 from packaging.utils import canonicalize_name
 
@@ -16,8 +17,6 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
-    from typing import cast
-
     from packaging.utils import NormalizedName
 
     from poetry.core.packages.dependency import Dependency
@@ -205,9 +204,7 @@ class Factory:
                 build = {}
             if not isinstance(build, dict):
                 build = {"script": build}
-            if TYPE_CHECKING:
-                build = cast(BuildConfigSpec, build)
-            package.build_config = build
+            package.build_config = cast("BuildConfigSpec", build)
 
         if "include" in config:
             package.include = []
@@ -220,9 +217,7 @@ class Factory:
                 if formats and not isinstance(formats, list):
                     formats = [formats]
                 include["format"] = formats
-                if TYPE_CHECKING:
-                    include = cast(IncludeSpec, include)
-                package.include.append(include)
+                package.include.append(cast("IncludeSpec", include))
 
         if "exclude" in config:
             package.exclude = config["exclude"]
