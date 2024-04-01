@@ -4,15 +4,12 @@ import csv
 import os
 import platform
 import re
-import shutil
 import sys
 import tarfile
-import tempfile
 import zipfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterator
 
 import pytest
 
@@ -26,52 +23,39 @@ from tests.masonry.builders.test_wheel import WHEEL_TAG_REGEX
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
-fixtures_dir = Path(__file__).parent / "fixtures"
-
-
-@pytest.fixture(autouse=True)
-def setup() -> Iterator[None]:
-    clear_samples_dist()
-
-    yield
-
-    clear_samples_dist()
-
-
-def clear_samples_dist() -> None:
-    for dist in fixtures_dir.glob("**/dist"):
-        if dist.is_dir():
-            shutil.rmtree(str(dist))
+    from tests.types import FixtureFactory
 
 
 @pytest.mark.skipif(
     platform.python_implementation().lower() == "pypy", reason="Disable test for PyPy"
 )
 @pytest.mark.parametrize(
-    ["project", "exptected_c_dir"],
+    ["fixture_name", "exptected_c_dir"],
     [
         ("extended", "extended"),
         ("extended_with_no_setup", "extended"),
         ("src_extended", "src/extended"),
     ],
 )
-def test_wheel_c_extension(project: str, exptected_c_dir: str) -> None:
-    module_path = fixtures_dir / project
-    poetry = Factory().create_poetry(module_path)
+def test_wheel_c_extension(
+    fixture_name: str, exptected_c_dir: str, fixture_factory: FixtureFactory
+) -> None:
+    fixture = fixture_factory(fixture_name)
+    poetry = Factory().create_poetry(fixture)
     SdistBuilder(poetry).build()
     WheelBuilder(poetry).build()
 
-    sdist = fixtures_dir / project / "dist" / "extended-0.1.tar.gz"
+    sdist = fixture / "dist" / "extended-0.1.tar.gz"
     assert sdist.exists()
 
     with tarfile.open(sdist, "r") as tar:
         assert "extended-0.1/build.py" in tar.getnames()
         assert f"extended-0.1/{exptected_c_dir}/extended.c" in tar.getnames()
 
-    whl = next(iter((module_path / "dist").glob("extended-0.1-cp*-cp*-*.whl")))
-    assert whl.exists()
+    bdist = next(iter((fixture / "dist").glob("extended-0.1-cp*-cp*-*.whl")))
+    assert bdist.exists()
 
-    with zipfile.ZipFile(whl) as zipf:
+    with zipfile.ZipFile(bdist) as zipf:
         has_compiled_extension = False
         for name in zipf.namelist():
             if name.startswith("extended/extended") and name.endswith((".so", ".pyd")):
@@ -102,26 +86,18 @@ $""",
         assert len(set(record_files)) == len(record_files)
 
 
-@pytest.mark.parametrize("no_vcs", [False, True])
-def test_complete(no_vcs: bool) -> None:
-    module_path = fixtures_dir / "complete"
+def test_complete(fixture_factory: FixtureFactory) -> None:
+    fixture = fixture_factory("complete")
 
-    if no_vcs:
-        # Copy the complete fixtures dir to a temporary directory
-        temporary_dir = Path(tempfile.mkdtemp()) / "complete"
-        shutil.copytree(module_path.as_posix(), temporary_dir.as_posix())
-        module_path = temporary_dir
-
-    poetry = Factory().create_poetry(module_path)
+    poetry = Factory().create_poetry(fixture)
     with pytest.warns(DeprecationWarning, match=".* script .* extra"):
         SdistBuilder(poetry).build()
         WheelBuilder(poetry).build()
 
-    whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
-
-    assert whl.exists()
+    bdist = fixture / "dist" / "my_package-1.2.3-py3-none-any.whl"
+    assert bdist.exists()
     if sys.platform != "win32":
-        assert (os.stat(str(whl)).st_mode & 0o777) == 0o644
+        assert (os.stat(bdist).st_mode & 0o777) == 0o644
 
     expected_name_list = [
         "my_package/__init__.py",
@@ -146,7 +122,7 @@ def test_complete(no_vcs: bool) -> None:
         "my_package-1.2.3.dist-info/RECORD",
     ]
 
-    with zipfile.ZipFile(str(whl)) as zipf:
+    with zipfile.ZipFile(bdist) as zipf:
         assert zipf.namelist() == expected_name_list
         assert (
             "Hello World"
@@ -228,182 +204,168 @@ My Package
         assert actual_files == expected_name_list
 
 
-def test_module_src() -> None:
-    module_path = fixtures_dir / "source_file"
-    poetry = Factory().create_poetry(module_path)
+def test_module_src(fixture_factory: FixtureFactory) -> None:
+    fixture = fixture_factory("source_file")
+    poetry = Factory().create_poetry(fixture)
     SdistBuilder(poetry).build()
     WheelBuilder(poetry).build()
 
-    sdist = module_path / "dist" / "module_src-0.1.tar.gz"
-
+    sdist = fixture / "dist" / "module_src-0.1.tar.gz"
     assert sdist.exists()
 
-    with tarfile.open(str(sdist), "r") as tar:
+    with tarfile.open(sdist, "r") as tar:
         assert "module_src-0.1/src/module_src.py" in tar.getnames()
 
-    whl = module_path / "dist" / "module_src-0.1-py2.py3-none-any.whl"
+    bdist = fixture / "dist" / "module_src-0.1-py2.py3-none-any.whl"
+    assert bdist.exists()
 
-    assert whl.exists()
-
-    with zipfile.ZipFile(str(whl)) as zipf:
+    with zipfile.ZipFile(bdist) as zipf:
         assert "module_src.py" in zipf.namelist()
 
 
-def test_package_src() -> None:
-    module_path = fixtures_dir / "source_package"
-    poetry = Factory().create_poetry(module_path)
+def test_package_src(fixture_factory: FixtureFactory) -> None:
+    fixture = fixture_factory("source_package")
+    poetry = Factory().create_poetry(fixture)
     SdistBuilder(poetry).build()
     WheelBuilder(poetry).build()
 
-    sdist = module_path / "dist" / "package_src-0.1.tar.gz"
-
+    sdist = fixture / "dist" / "package_src-0.1.tar.gz"
     assert sdist.exists()
 
-    with tarfile.open(str(sdist), "r") as tar:
+    with tarfile.open(sdist, "r") as tar:
         assert "package_src-0.1/src/package_src/module.py" in tar.getnames()
 
-    whl = module_path / "dist" / "package_src-0.1-py2.py3-none-any.whl"
+    bdist = fixture / "dist" / "package_src-0.1-py2.py3-none-any.whl"
+    assert bdist.exists()
 
-    assert whl.exists()
-
-    with zipfile.ZipFile(str(whl)) as zipf:
+    with zipfile.ZipFile(bdist) as zipf:
         assert "package_src/__init__.py" in zipf.namelist()
         assert "package_src/module.py" in zipf.namelist()
 
 
-def test_split_source() -> None:
-    module_path = fixtures_dir / "split_source"
-    poetry = Factory().create_poetry(module_path)
+def test_split_source(fixture_factory: FixtureFactory) -> None:
+    fixture = fixture_factory("split_source")
+    poetry = Factory().create_poetry(fixture)
     SdistBuilder(poetry).build()
     WheelBuilder(poetry).build()
 
-    sdist = module_path / "dist" / "split_source-0.1.tar.gz"
-
+    sdist = fixture / "dist" / "split_source-0.1.tar.gz"
     assert sdist.exists()
 
-    with tarfile.open(str(sdist), "r") as tar:
+    with tarfile.open(sdist, "r") as tar:
         assert "split_source-0.1/lib_a/module_a/__init__.py" in tar.getnames()
         assert "split_source-0.1/lib_b/module_b/__init__.py" in tar.getnames()
 
-    whl = module_path / "dist" / "split_source-0.1-py3-none-any.whl"
+    bdist = fixture / "dist" / "split_source-0.1-py3-none-any.whl"
+    assert bdist.exists()
 
-    assert whl.exists()
-
-    with zipfile.ZipFile(str(whl)) as zipf:
+    with zipfile.ZipFile(bdist) as zipf:
         assert "module_a/__init__.py" in zipf.namelist()
         assert "module_b/__init__.py" in zipf.namelist()
 
 
-def test_package_with_include(mocker: MockerFixture) -> None:
-    module_path = fixtures_dir / "with-include"
+def test_package_with_include(
+    fixture_factory: FixtureFactory, mocker: MockerFixture
+) -> None:
+    class MockGit:
+        def get_ignored_files(self, folder: Path | None = None) -> list[str]:
+            # Patch git module to return specific excluded files
+            return [
+                "extra_dir/vcs_excluded.txt",
+                "extra_dir/sub_pkg/vcs_excluded.txt",
+            ]
 
-    # Patch git module to return specific excluded files
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = [
-        str(
-            Path(__file__).parent
-            / "fixtures"
-            / "with-include"
-            / "extra_dir"
-            / "vcs_excluded.txt"
-        ),
-        str(
-            Path(__file__).parent
-            / "fixtures"
-            / "with-include"
-            / "extra_dir"
-            / "sub_pkg"
-            / "vcs_excluded.txt"
-        ),
-    ]
+    p = mocker.patch("poetry.core.vcs.get_vcs")
+    p.return_value = MockGit()
 
-    poetry = Factory().create_poetry(module_path)
+    fixture = fixture_factory("with-include")
+    poetry = Factory().create_poetry(fixture)
+
     SdistBuilder(poetry).build()
     WheelBuilder(poetry).build()
 
-    sdist = fixtures_dir / "with-include" / "dist" / "with_include-1.2.3.tar.gz"
-
+    sdist = fixture / "dist" / "with_include-1.2.3.tar.gz"
     assert sdist.exists()
 
-    with tarfile.open(str(sdist), "r") as tar:
-        names = tar.getnames()
-        assert len(names) == len(set(names))
-        assert "with_include-1.2.3/LICENSE" in names
-        assert "with_include-1.2.3/README.rst" in names
-        assert "with_include-1.2.3/extra_dir/__init__.py" in names
-        assert "with_include-1.2.3/extra_dir/vcs_excluded.txt" in names
-        assert "with_include-1.2.3/extra_dir/sub_pkg/__init__.py" in names
-        assert "with_include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt" not in names
-        assert "with_include-1.2.3/my_module.py" in names
-        assert "with_include-1.2.3/notes.txt" in names
-        assert "with_include-1.2.3/package_with_include/__init__.py" in names
-        assert "with_include-1.2.3/tests/__init__.py" in names
-        assert "with_include-1.2.3/pyproject.toml" in names
-        assert "with_include-1.2.3/PKG-INFO" in names
-        assert "with_include-1.2.3/for_wheel_only/__init__.py" not in names
-        assert "with_include-1.2.3/src/src_package/__init__.py" in names
-        assert "with_include-1.2.3/etc/from_to/__init__.py" in names
+    assert p.called
 
-    whl = module_path / "dist" / "with_include-1.2.3-py3-none-any.whl"
+    with tarfile.open(sdist, "r") as tar:
+        assert "with_include-1.2.3/LICENSE" in tar.getnames()
+        assert "with_include-1.2.3/README.rst" in tar.getnames()
+        assert "with_include-1.2.3/extra_dir/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/extra_dir/vcs_excluded.txt" in tar.getnames()
+        assert "with_include-1.2.3/extra_dir/sub_pkg/__init__.py" in tar.getnames()
+        assert (
+            "with_include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt"
+            not in tar.getnames()
+        )
+        assert "with_include-1.2.3/my_module.py" in tar.getnames()
+        assert "with_include-1.2.3/notes.txt" in tar.getnames()
+        assert "with_include-1.2.3/package_with_include/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/tests/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/pyproject.toml" in tar.getnames()
+        assert "with_include-1.2.3/PKG-INFO" in tar.getnames()
+        assert "with_include-1.2.3/for_wheel_only/__init__.py" not in tar.getnames()
+        assert "with_include-1.2.3/src/src_package/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/etc/from_to/__init__.py" in tar.getnames()
+        assert len(tar.getnames()) == len(set(tar.getnames()))
 
-    assert whl.exists()
+    bdist = fixture / "dist" / "with_include-1.2.3-py3-none-any.whl"
+    assert bdist.exists()
 
-    with zipfile.ZipFile(str(whl)) as z:
-        names = z.namelist()
-        assert len(names) == len(set(names))
-        assert "with_include-1.2.3.dist-info/LICENSE" in names
-        assert "extra_dir/__init__.py" in names
-        assert "extra_dir/vcs_excluded.txt" in names
-        assert "extra_dir/sub_pkg/__init__.py" in names
-        assert "extra_dir/sub_pkg/vcs_excluded.txt" not in names
-        assert "for_wheel_only/__init__.py" in names
-        assert "my_module.py" in names
-        assert "notes.txt" in names
-        assert "package_with_include/__init__.py" in names
-        assert "tests/__init__.py" not in names
-        assert "src_package/__init__.py" in names
-        assert "target_from_to/from_to/__init__.py" in names
-        assert "target_module/my_module_to.py" in names
+    with zipfile.ZipFile(bdist) as zipf:
+        assert "with_include-1.2.3.dist-info/LICENSE" in zipf.namelist()
+        assert "extra_dir/__init__.py" in zipf.namelist()
+        assert "extra_dir/vcs_excluded.txt" in zipf.namelist()
+        assert "extra_dir/sub_pkg/__init__.py" in zipf.namelist()
+        assert "extra_dir/sub_pkg/vcs_excluded.txt" not in zipf.namelist()
+        assert "for_wheel_only/__init__.py" in zipf.namelist()
+        assert "my_module.py" in zipf.namelist()
+        assert "notes.txt" in zipf.namelist()
+        assert "package_with_include/__init__.py" in zipf.namelist()
+        assert "tests/__init__.py" not in zipf.namelist()
+        assert "src_package/__init__.py" in zipf.namelist()
+        assert "target_from_to/from_to/__init__.py" in zipf.namelist()
+        assert "target_module/my_module_to.py" in zipf.namelist()
+        assert len(zipf.namelist()) == len(set(zipf.namelist()))
 
 
-def test_respect_format_for_explicit_included_files() -> None:
-    module_path = fixtures_dir / "exclude-whl-include-sdist"
-    poetry = Factory().create_poetry(module_path)
+def test_respect_format_for_explicit_included_files(
+    fixture_factory: FixtureFactory,
+) -> None:
+    fixture = fixture_factory("exclude-whl-include-sdist")
+    poetry = Factory().create_poetry(fixture)
     SdistBuilder(poetry).build()
     WheelBuilder(poetry).build()
 
-    sdist = module_path / "dist" / "exclude_whl_include_sdist-0.1.0.tar.gz"
-
+    sdist = fixture / "dist" / "exclude_whl_include_sdist-0.1.0.tar.gz"
     assert sdist.exists()
 
-    with tarfile.open(str(sdist), "r") as tar:
-        names = tar.getnames()
+    with tarfile.open(sdist, "r") as tar:
         assert (
             "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/__init__.py"
-            in names
+            in tar.getnames()
         )
         assert (
             "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/compiled/source.c"
-            in names
+            in tar.getnames()
         )
         assert (
             "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/compiled/source.h"
-            in names
+            in tar.getnames()
         )
         assert (
             "exclude_whl_include_sdist-0.1.0/exclude_whl_include_sdist/cython_code.pyx"
-            in names
+            in tar.getnames()
         )
-        assert "exclude_whl_include_sdist-0.1.0/pyproject.toml" in names
-        assert "exclude_whl_include_sdist-0.1.0/PKG-INFO" in names
+        assert "exclude_whl_include_sdist-0.1.0/pyproject.toml" in tar.getnames()
+        assert "exclude_whl_include_sdist-0.1.0/PKG-INFO" in tar.getnames()
 
-    whl = module_path / "dist" / "exclude_whl_include_sdist-0.1.0-py3-none-any.whl"
+    bdist = fixture / "dist" / "exclude_whl_include_sdist-0.1.0-py3-none-any.whl"
+    assert bdist.exists()
 
-    assert whl.exists()
-
-    with zipfile.ZipFile(str(whl)) as z:
-        names = z.namelist()
-        assert "exclude_whl_include_sdist/__init__.py" in names
-        assert "exclude_whl_include_sdist/compiled/source.c" not in names
-        assert "exclude_whl_include_sdist/compiled/source.h" not in names
-        assert "exclude_whl_include_sdist/cython_code.pyx" not in names
+    with zipfile.ZipFile(bdist) as zipf:
+        assert "exclude_whl_include_sdist/__init__.py" in zipf.namelist()
+        assert "exclude_whl_include_sdist/compiled/source.c" not in zipf.namelist()
+        assert "exclude_whl_include_sdist/compiled/source.h" not in zipf.namelist()
+        assert "exclude_whl_include_sdist/cython_code.pyx" not in zipf.namelist()
