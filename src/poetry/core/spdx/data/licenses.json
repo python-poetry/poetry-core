@@ -69,6 +69,11 @@
     true,
     false
   ],
+  "AMD-newlib": [
+    "AMD newlib License",
+    false,
+    false
+  ],
   "AMDPLPA": [
     "AMD's plpa_map.c License",
     false,
@@ -2119,6 +2124,11 @@
     false,
     false
   ],
+  "OAR": [
+    "OAR License",
+    false,
+    false
+  ],
   "OCCT-PL": [
     "Open CASCADE Technology Public License",
     false,
@@ -3149,6 +3159,11 @@
     false,
     false
   ],
+  "threeparttable": [
+    "threeparttable License",
+    false,
+    false
+  ],
   "ulem": [
     "ulem License",
     false,
@@ -3181,6 +3196,11 @@
   ],
   "xpp": [
     "XPP License",
+    false,
+    false
+  ],
+  "xzoom": [
+    "xzoom License",
     false,
     false
   ],
