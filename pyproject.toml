@@ -120,7 +120,7 @@ ignore_missing_imports = true
 [tool.vendoring]
 destination = "src/poetry/core/_vendor/"
 requirements = "src/poetry/core/_vendor/vendor.txt"
-namespace = ""
+namespace = "poetry.core._vendor"
 
 protected-files = ["vendor.txt"]
 patches-dir = "vendors/patches"

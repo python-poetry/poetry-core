@@ -6,7 +6,7 @@ import codecs
 import argparse
 
 
-from lark import Lark, Transformer, v_args
+from poetry.core._vendor.lark import Lark, Transformer, v_args
 
 nearley_grammar = r"""
     start: (ruledef|directive)+

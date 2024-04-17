@@ -4,8 +4,8 @@ from typing import Iterator, List
 from copy import copy
 import warnings
 
-from lark.exceptions import UnexpectedToken
-from lark.lexer import Token, LexerThread
+from poetry.core._vendor.lark.exceptions import UnexpectedToken
+from poetry.core._vendor.lark.lexer import Token, LexerThread
 
 ###{standalone
 

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from typing import Sequence
 from typing import TypeVar
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
 from poetry.core.constraints.version import parse_constraint
@@ -25,7 +25,7 @@ from poetry.core.version.markers import parse_marker
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
     from poetry.core.constraints.version import VersionConstraint
     from poetry.core.packages.directory_dependency import DirectoryDependency

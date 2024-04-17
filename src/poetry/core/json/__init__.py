@@ -7,9 +7,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
-import fastjsonschema
-
-from fastjsonschema.exceptions import JsonSchemaException
+from poetry.core._vendor import fastjsonschema
+from poetry.core._vendor.fastjsonschema.exceptions import JsonSchemaException
 
 
 SCHEMA_DIR = Path(__file__).parent / "schemas"

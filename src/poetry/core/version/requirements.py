@@ -29,8 +29,8 @@ class Requirement:
     """
 
     def __init__(self, requirement_string: str) -> None:
-        from lark import UnexpectedCharacters
-        from lark import UnexpectedToken
+        from poetry.core._vendor.lark import UnexpectedCharacters
+        from poetry.core._vendor.lark import UnexpectedToken
 
         try:
             parsed = _parser.parse(requirement_string)

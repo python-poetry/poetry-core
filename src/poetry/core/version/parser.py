@@ -7,8 +7,8 @@ from typing import Any
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from lark import Lark
-    from lark import Tree
+    from poetry.core._vendor.lark import Lark
+    from poetry.core._vendor.lark import Tree
 
 
 class Parser:
@@ -21,7 +21,7 @@ class Parser:
         self._lark: Lark | None = None
 
     def parse(self, text: str, **kwargs: Any) -> Tree:
-        from lark import Lark
+        from poetry.core._vendor.lark import Lark
 
         if self._lark is None:
             self._lark = Lark.open(

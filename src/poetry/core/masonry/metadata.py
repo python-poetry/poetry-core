@@ -6,7 +6,7 @@ from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
     from poetry.core.packages.package import Package
 

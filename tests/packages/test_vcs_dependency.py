@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 from poetry.core.packages.vcs_dependency import VCSDependency
 

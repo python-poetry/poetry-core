@@ -6,7 +6,7 @@ from typing import cast
 
 
 if TYPE_CHECKING:
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
 
 DistributionName = NewType("DistributionName", str)

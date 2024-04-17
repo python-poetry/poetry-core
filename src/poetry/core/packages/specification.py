@@ -5,13 +5,13 @@ import copy
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
     T = TypeVar("T", bound="PackageSpecification")
 
@@ -27,7 +27,7 @@ class PackageSpecification:
         source_subdirectory: str | None = None,
         features: Iterable[str] | None = None,
     ) -> None:
-        from packaging.utils import canonicalize_name
+        from poetry.core._vendor.packaging.utils import canonicalize_name
 
         # Attributes must be immutable for clone() to be safe!
         # (For performance reasons, clone only creates a copy instead of a deep copy).

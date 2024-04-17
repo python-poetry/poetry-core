@@ -78,7 +78,7 @@ Usage
 
 .. code-block:: python
 
-    import fastjsonschema
+    from poetry.core._vendor import fastjsonschema
 
     point_schema = {
         "type": "object",
@@ -132,7 +132,7 @@ def validate(definition, data, handlers={}, formats={}, use_default=True, use_fo
 
     .. code-block:: python
 
-        import fastjsonschema
+        from poetry.core._vendor import fastjsonschema
 
         fastjsonschema.validate({'type': 'string'}, 'hello')
         # same as: compile({'type': 'string'})('hello')
@@ -151,7 +151,7 @@ def compile(definition, handlers={}, formats={}, use_default=True, use_formats=T
 
     .. code-block:: python
 
-        import fastjsonschema
+        from poetry.core._vendor import fastjsonschema
 
         validate = fastjsonschema.compile({'type': 'string'})
         validate('hello')
@@ -224,7 +224,7 @@ def compile_to_code(definition, handlers={}, formats={}, use_default=True, use_f
 
     .. code-block:: python
 
-        import fastjsonschema
+        from poetry.core._vendor import fastjsonschema
 
         code = fastjsonschema.compile_to_code({'type': 'string'})
         with open('your_file.py', 'w') as f:

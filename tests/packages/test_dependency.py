@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency

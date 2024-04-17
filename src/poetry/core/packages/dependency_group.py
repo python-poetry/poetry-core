@@ -31,7 +31,7 @@ class DependencyGroup:
         self._dependencies.append(dependency)
 
     def remove_dependency(self, name: str) -> None:
-        from packaging.utils import canonicalize_name
+        from poetry.core._vendor.packaging.utils import canonicalize_name
 
         name = canonicalize_name(name)
 
