@@ -92,18 +92,22 @@ known-third-party = ["poetry.core._vendor"]
 required-imports = ["from __future__ import annotations"]
 
 [tool.mypy]
-strict = true
-explicit_package_bases = true
+files = "src, tests"
+mypy_path = "src"
 namespace_packages = true
+explicit_package_bases = true
 show_error_codes = true
+strict = true
 enable_error_code = [
     "ignore-without-code",
     "redundant-expr",
     "truthy-bool",
 ]
-mypy_path = "src"
-files = "src, tests"
-exclude = "(?x)(^tests/.*/fixtures | ^src/poetry/core/_vendor)"
+exclude = [
+  "src/poetry/core/_vendor",
+  "tests/fixtures",
+  "tests/masonry/builders/fixtures",
+]
 
 [[tool.mypy.overrides]]
 module = [
