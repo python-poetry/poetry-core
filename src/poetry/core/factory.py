@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import List
 from typing import Union
+from typing import cast
 
 from packaging.utils import canonicalize_name
 
@@ -20,6 +21,8 @@ if TYPE_CHECKING:
 
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup
+    from poetry.core.packages.project_package import BuildConfigSpec
+    from poetry.core.packages.project_package import IncludeSpec
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.poetry import Poetry
     from poetry.core.spdx.license import License
@@ -197,9 +200,11 @@ class Factory:
 
         if "build" in config:
             build = config["build"]
+            if not build:
+                build = {}
             if not isinstance(build, dict):
                 build = {"script": build}
-            package.build_config = build or {}
+            package.build_config = cast("BuildConfigSpec", build)
 
         if "include" in config:
             package.include = []
@@ -212,8 +217,7 @@ class Factory:
                 if formats and not isinstance(formats, list):
                     formats = [formats]
                 include["format"] = formats
-
-                package.include.append(include)
+                package.include.append(cast("IncludeSpec", include))
 
         if "exclude" in config:
             package.exclude = config["exclude"]

@@ -66,7 +66,7 @@ class Builder:
                 formats = [formats]
 
             if (
-                formats
+                len(formats) > 0
                 and self.format
                 and self.format not in formats
                 and not self._ignore_packages_formats
@@ -80,7 +80,7 @@ class Builder:
             formats = include.get("format", [])
 
             if (
-                formats
+                len(formats) > 0
                 and self.format
                 and self.format not in formats
                 and not self._ignore_packages_formats

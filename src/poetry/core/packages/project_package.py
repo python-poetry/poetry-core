@@ -3,20 +3,38 @@ from __future__ import annotations
 import warnings
 
 from typing import TYPE_CHECKING
-from typing import Any
+from typing import Literal
 from typing import Mapping
 from typing import Sequence
+from typing import TypedDict
 
 from poetry.core.constraints.version import parse_constraint
+from poetry.core.packages.package import Package
+from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
+    from typing_extensions import NotRequired
+
     from poetry.core.constraints.version import Version
     from poetry.core.packages.dependency import Dependency
 
-from poetry.core.packages.package import Package
-from poetry.core.packages.utils.utils import create_nested_marker
+    SupportedPackageFormats = Literal["sdist", "wheel"]
+
+    BuildConfigSpec = TypedDict(
+        "BuildConfigSpec",
+        {"script": NotRequired[str], "generate-setup-file": NotRequired[bool]},
+    )
+
+    class PackageSpec(TypedDict):
+        include: str
+        to: str
+        format: list[SupportedPackageFormats]
+
+    class IncludeSpec(TypedDict):
+        path: str
+        format: list[SupportedPackageFormats]
 
 
 class ProjectPackage(Package):
@@ -39,10 +57,10 @@ class ProjectPackage(Package):
         # Attributes must be immutable for clone() to be safe!
         # (For performance reasons, clone only creates a copy instead of a deep copy).
 
-        self.build_config: Mapping[str, Any] = {}
-        self.packages: Sequence[Mapping[str, Any]] = []
-        self.include: Sequence[Mapping[str, Any]] = []
-        self.exclude: Sequence[Mapping[str, Any]] = []
+        self.build_config: BuildConfigSpec = {}
+        self.packages: Sequence[PackageSpec] = []
+        self.include: Sequence[IncludeSpec] = []
+        self.exclude: Sequence[IncludeSpec] = []
         self.custom_urls: Mapping[str, str] = {}
 
         if self._python_versions == "*":
