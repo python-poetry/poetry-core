@@ -14,17 +14,41 @@ from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
 OperatorType = Callable[[object, object], Any]
 
 
+def contains(a: object, b: object, /) -> bool:
+    return operator.contains(a, b)  # type: ignore[arg-type]
+
+
+def not_contains(a: object, b: object, /) -> bool:
+    return not contains(a, b)
+
+
 class Constraint(BaseConstraint):
     OP_EQ = operator.eq
     OP_NE = operator.ne
+    OP_IN = contains
+    OP_NC = not_contains
 
     _trans_op_str: ClassVar[dict[str, OperatorType]] = {
         "=": OP_EQ,
         "==": OP_EQ,
         "!=": OP_NE,
+        "in": OP_IN,
+        "not in": OP_NC,
     }
 
-    _trans_op_int: ClassVar[dict[OperatorType, str]] = {OP_EQ: "==", OP_NE: "!="}
+    _trans_op_int: ClassVar[dict[OperatorType, str]] = {
+        OP_EQ: "==",
+        OP_NE: "!=",
+        OP_IN: "in",
+        OP_NC: "not in",
+    }
+
+    _trans_op_inv: ClassVar[dict[str, str]] = {
+        "!=": "==",
+        "==": "!=",
+        "not in": "in",
+        "in": "not in",
+    }
 
     def __init__(self, value: str, operator: str = "==") -> None:
         if operator == "=":
@@ -57,6 +81,9 @@ class Constraint(BaseConstraint):
 
         if is_non_equal_op:
             return self._value != other.value
+
+        if self._operator in {"in", "not in"} and other.operator == "==":
+            return bool(self._trans_op_str[self._operator](other.value, self._value))
 
         return False
 
@@ -111,7 +138,7 @@ class Constraint(BaseConstraint):
         return other.is_any()
 
     def invert(self) -> Constraint:
-        return Constraint(self._value, "!=" if self._operator == "==" else "==")
+        return Constraint(self._value, self._trans_op_inv[self.operator])
 
     def difference(self, other: BaseConstraint) -> Constraint | EmptyConstraint:
         if other.allows(self):
@@ -126,13 +153,21 @@ class Constraint(BaseConstraint):
             if other == self:
                 return self
 
-            if self.operator == "!=" and other.operator == "==" and self.allows(other):
+            if (
+                (self.operator == "!=" and other.operator == "==")
+                or (self.operator == "not in" and other.operator == "in")
+            ) and self.allows(other):
                 return other
 
-            if other.operator == "!=" and self.operator == "==" and other.allows(self):
+            if (
+                (other.operator == "!=" and self.operator == "==")
+                or (other.operator == "not in" and self.operator == "in")
+            ) and other.allows(self):
                 return self
 
-            if other.operator == "!=" and self.operator == "!=":
+            if (other.operator == "!=" and self.operator == "!=") or (
+                other.operator == "not in" and self.operator == "not in"
+            ):
                 return MultiConstraint(self, other)
 
             return EmptyConstraint()
@@ -146,13 +181,21 @@ class Constraint(BaseConstraint):
             if other == self:
                 return self
 
-            if self.operator == "!=" and other.operator == "==" and self.allows(other):
+            if (
+                (self.operator == "!=" and other.operator == "==")
+                or (self.operator == "not in" and other.operator == "in")
+            ) and self.allows(other):
                 return self
 
-            if other.operator == "!=" and self.operator == "==" and other.allows(self):
+            if (
+                (other.operator == "!=" and self.operator == "==")
+                or (other.operator == "not in" and self.operator == "in")
+            ) and other.allows(self):
                 return other
 
-            if other.operator == "==" and self.operator == "==":
+            if (other.operator == "==" and self.operator == "==") or (
+                other.operator == "in" and self.operator == "in"
+            ):
                 return UnionConstraint(self, other)
 
             return AnyConstraint()

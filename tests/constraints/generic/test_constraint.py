@@ -29,6 +29,16 @@ def test_allows(
 ) -> None:
     assert constraint1.allows(constraint2) is expected
 
+    c = Constraint("tegra", "in")
+
+    assert c.allows(Constraint("5.10.120-tegra"))
+    assert not c.allows(Constraint("5.10.120"))
+
+    c = Constraint("tegra", "not in")
+
+    assert c.allows(Constraint("5.10.120"))
+    assert not c.allows(Constraint("5.10.120-tegra"))
+
 
 @pytest.mark.parametrize(
     ("constraint1", "constraint2", "expected_any", "expected_all"),
@@ -138,6 +148,7 @@ def test_allows_any_and_allows_all(
             MultiConstraint(Constraint("foo", "!="), Constraint("bar", "!=")),
             UnionConstraint(Constraint("foo"), Constraint("bar")),
         ),
+        (Constraint("tegra", "not in"), Constraint("tegra", "in")),
     ],
 )
 def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
@@ -313,6 +324,42 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
                     Constraint("darwin", "!="),
                     Constraint("linux", "!="),
                 ),
+            ),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("tegra", "not in"),
+            EmptyConstraint(),
+        ),
+        (
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+        ),
+        (
+            Constraint("tegra", "not in"),
+            Constraint("rpi-v8", "not in"),
+            (
+                MultiConstraint(
+                    Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
+                ),
+                MultiConstraint(
+                    Constraint("rpi-v8", "not in"), Constraint("tegra", "not in")
+                ),
+            ),
+        ),
+        (
+            Constraint("tegra", "not in"),
+            MultiConstraint(
+                Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
+            ),
+            MultiConstraint(
+                Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
             ),
         ),
     ],
@@ -516,6 +563,19 @@ def test_intersect(
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
             MultiConstraint(Constraint("win32", "!=")),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("rpi-v8", "in"),
+            (
+                UnionConstraint(Constraint("tegra", "in"), Constraint("rpi-v8", "in")),
+                UnionConstraint(Constraint("rpi-v8", "in"), Constraint("tegra", "in")),
+            ),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("tegra", "not in"),
+            AnyConstraint(),
         ),
     ],
 )
