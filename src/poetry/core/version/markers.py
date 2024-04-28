@@ -19,6 +19,7 @@ from poetry.core.constraints.generic import BaseConstraint
 from poetry.core.constraints.generic import Constraint
 from poetry.core.constraints.generic import MultiConstraint
 from poetry.core.constraints.generic import UnionConstraint
+from poetry.core.constraints.generic.parser import STR_CMP_CONSTRAINT
 from poetry.core.constraints.version import VersionConstraint
 from poetry.core.constraints.version import VersionUnion
 from poetry.core.constraints.version.exceptions import ParseConstraintError
@@ -336,7 +337,11 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
 
 
 class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
-    _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
+    _CONSTRAINT_RE_PATTERN_1 = re.compile(
+        r"(?i)^(?P<op>~=|!=|>=?|<=?|==?=?|not in|in)?\s*(?P<value>.+)$"
+    )
+    _CONSTRAINT_RE_PATTERN_2 = STR_CMP_CONSTRAINT
+
     VALUE_SEPARATOR_RE = re.compile("[ ,|]+")
     _VERSION_LIKE_MARKER_NAME: ClassVar[set[str]] = {
         "python_version",
@@ -345,7 +350,10 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
     }
 
     def __init__(
-        self, name: str, constraint: str | BaseConstraint | VersionConstraint
+        self,
+        name: str,
+        constraint: str | BaseConstraint | VersionConstraint,
+        swapped_name_value: bool = False,
     ) -> None:
         from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
@@ -355,20 +363,29 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         parsed_constraint: BaseConstraint | VersionConstraint
         parser: Callable[[str], BaseConstraint | VersionConstraint]
         original_constraint_string = constraint_string = str(constraint)
+        self._swapped_name_value: bool = swapped_name_value
 
-        # Extract operator and value
-        m = self._CONSTRAINT_RE.match(constraint_string)
+        if swapped_name_value:
+            pattern = self._CONSTRAINT_RE_PATTERN_2
+        else:
+            pattern = self._CONSTRAINT_RE_PATTERN_1
+
+        m = pattern.match(constraint_string)
         if m is None:
             raise InvalidMarker(f"Invalid marker for '{name}': {constraint_string}")
 
-        self._operator = m.group(1)
+        self._operator = m.group("op")
         if self._operator is None:
             self._operator = "=="
 
-        self._value = m.group(2)
+        self._value = m.group("value")
         parser = parse_generic_constraint
 
-        if name in self._VERSION_LIKE_MARKER_NAME:
+        if swapped_name_value and name not in PYTHON_VERSION_MARKERS:
+            # Something like `"tegra" in platform_release`
+            # or `"arm" not in platform_version`.
+            pass
+        elif name in self._VERSION_LIKE_MARKER_NAME:
             parser = parse_marker_version_constraint
 
             if self._operator in {"in", "not in"}:
@@ -472,7 +489,11 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
             # We should never go there
             raise RuntimeError(f"Invalid marker operator '{self._operator}'")
 
-        return parse_marker(f"{self._name} {operator} '{self._value}'")
+        if self._swapped_name_value:
+            constraint = f'"{self._value}" {operator} {self._name}'
+        else:
+            constraint = f'{self._name} {operator} "{self._value}"'
+        return parse_marker(constraint)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, SingleMarker):
@@ -484,6 +505,8 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         return hash(self._key)
 
     def __str__(self) -> str:
+        if self._swapped_name_value:
+            return f'"{self._value}" {self._operator} {self._name}'
         return f'{self._name} {self._operator} "{self._value}"'
 
 
@@ -961,11 +984,21 @@ def _compact_markers(
 
         elif token.data == f"{tree_prefix}item":
             name, op, value = token.children
-            if value.type == f"{tree_prefix}MARKER_NAME":
+            swapped_name_value = value.type == f"{tree_prefix}MARKER_NAME"
+            stringed_value = name.type in {
+                f"{tree_prefix}ESCAPED_STRING",
+                f"{tree_prefix}SINGLE_QUOTED_STRING",
+            }
+            if swapped_name_value:
                 name, value = value, name
 
             value = value[1:-1]
-            sub_marker = SingleMarker(str(name), f"{op}{value}")
+
+            sub_marker = SingleMarker(
+                str(name),
+                f'"{value}" {op}' if stringed_value else f"{op}{value}",
+                swapped_name_value=swapped_name_value,
+            )
             groups[-1].append(sub_marker)
 
         elif token.data == f"{tree_prefix}BOOL_OP" and token.children[0] == "or":
