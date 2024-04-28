@@ -109,6 +109,18 @@ def assert_requirement(
                 ),
             },
         ),
+        (
+            (
+                'foo (>=1.2.3) ; "tegra" not in platform_release and python_version >= "3.10"'
+            ),
+            {
+                "name": "foo",
+                "constraint": ">=1.2.3",
+                "marker": (
+                    '"tegra" not in platform_release and python_version >= "3.10"'
+                ),
+            },
+        ),
     ],
 )
 def test_requirement(string: str, expected: dict[str, Any]) -> None:

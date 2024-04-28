@@ -62,6 +62,11 @@ EMPTY = "<empty>"
         'extra == "a" or extra != "b"',
         'extra != "a" or extra == "b"',
         'extra != "a" or extra != "b"',
+        # String comparison markers
+        '"tegra" in platform_release',
+        '"tegra" not in platform_release',
+        '"tegra" in platform_release or "rpi-v8" in platform_release',
+        '"tegra" not in platform_release and "rpi-v8" not in platform_release',
     ],
 )
 def test_parse_marker(marker: str) -> None:
@@ -110,6 +115,10 @@ def test_parse_marker(marker: str) -> None:
             "platform_machine",
             "!=aarch64, !=loongarch64",
         ),
+        ('"tegra" not in platform_release', "platform_release", "'tegra' not in"),
+        ('"rpi-v8" in platform_release', "platform_release", "'rpi-v8' in"),
+        ('"arm" not in platform_version', "platform_version", "'arm' not in"),
+        ('"arm" in platform_version', "platform_version", "'arm' in"),
     ],
 )
 def test_parse_single_marker(
@@ -1300,6 +1309,8 @@ def test_union_of_multi_with_a_containing_single() -> None:
             'python_full_version ~= "3.6.3"',
             'python_full_version < "3.6.3" or python_full_version >= "3.7.0"',
         ),
+        ('"tegra" in platform_release', '"tegra" not in platform_release'),
+        ('"tegra" not in platform_release', '"tegra" in platform_release'),
     ],
 )
 def test_invert(marker: str, inverse: str) -> None:
