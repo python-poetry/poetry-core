@@ -18,6 +18,8 @@ from poetry.core.constraints.generic import parse_constraint
         ("==win32", Constraint("win32", "=")),
         ("!=win32", Constraint("win32", "!=")),
         ("!= win32", Constraint("win32", "!=")),
+        ("not integra", Constraint("tegra", "not in")),
+        ("integra", Constraint("tegra", "in")),
     ],
 )
 def test_parse_constraint(input: str, constraint: AnyConstraint | Constraint) -> None:
@@ -39,6 +41,13 @@ def test_parse_constraint(input: str, constraint: AnyConstraint | Constraint) ->
                 Constraint("linux2", "!="),
             ),
         ),
+        (
+            "not integra,not inrpi-v8",
+            MultiConstraint(
+                Constraint("tegra", "not in"),
+                Constraint("rpi-v8", "not in"),
+            ),
+        ),
     ],
 )
 def test_parse_constraint_multi(input: str, constraint: MultiConstraint) -> None:
@@ -52,6 +61,10 @@ def test_parse_constraint_multi(input: str, constraint: MultiConstraint) -> None
         (
             "win32 || !=linux2",
             UnionConstraint(Constraint("win32"), Constraint("linux2", "!=")),
+        ),
+        (
+            "integra || inrpi-v8",
+            UnionConstraint(Constraint("tegra", "in"), Constraint("rpi-v8", "in")),
         ),
     ],
 )

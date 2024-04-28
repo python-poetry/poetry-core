@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
+STR_CMP_CONSTRAINT = re.compile(r"^(?P<op>(in|not in))(?P<value>(.*))$")
 
 
 @functools.lru_cache(maxsize=None)
@@ -27,7 +28,7 @@ def parse_constraint(constraints: str) -> BaseConstraint:
     or_groups = []
     for constraints in or_constraints:
         and_constraints = re.split(
-            r"(?<!^)(?<![=>< ,]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
+            r"(?<!^)(?<![=>< ,(in|not in)]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
         )
         constraint_objects = []
 
@@ -53,9 +54,15 @@ def parse_constraint(constraints: str) -> BaseConstraint:
 
 
 def parse_single_constraint(constraint: str) -> Constraint:
+    # string comparator
+    if m := STR_CMP_CONSTRAINT.match(constraint):
+        op = m.group("op")
+        value = m.group("value").strip()
+        return Constraint(value, op)
+
     # Basic comparator
-    m = BASIC_CONSTRAINT.match(constraint)
-    if m:
+
+    if m := BASIC_CONSTRAINT.match(constraint):
         op = m.group(1)
         if op is None:
             op = "=="
