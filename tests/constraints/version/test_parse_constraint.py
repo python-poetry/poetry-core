@@ -7,6 +7,8 @@ from poetry.core.constraints.version import VersionConstraint
 from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import VersionUnion
 from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version import parse_marker_version_constraint
+from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.pep440 import ReleaseTag
 
 
@@ -595,3 +597,14 @@ def test_parse_constraint_with_white_space_padding(
     padding = " " * (4 if with_whitespace_padding else 0)
     constraint = padding.join(["", *constraint_parts, ""])
     assert parse_constraint(constraint) == expected
+
+
+def test_parse_marker_constraint_does_not_allow_invalid_version() -> None:
+    with pytest.raises(ParseConstraintError):
+        parse_marker_version_constraint("4.9.253-tegra")
+
+
+def test_parse_marker_constraint_does_allow_invalid_version_if_requested() -> None:
+    assert parse_marker_version_constraint(
+        "4.9.253-tegra", pep440=False
+    ) == Version.from_parts(4, 9, 253, local="tegra")

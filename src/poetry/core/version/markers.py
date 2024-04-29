@@ -233,15 +233,15 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
         from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
-        from poetry.core.constraints.version import (
-            parse_constraint as parse_version_constraint,
-        )
+        from poetry.core.constraints.version import parse_marker_version_constraint
 
         self._name = ALIASES.get(name, name)
         self._constraint = constraint
         self._parser: Callable[[str], BaseConstraint | VersionConstraint]
         if isinstance(constraint, VersionConstraint):
-            self._parser = parse_version_constraint
+            self._parser = functools.partial(
+                parse_marker_version_constraint, pep440=name != "platform_release"
+            )
         else:
             self._parser = parse_generic_constraint
 
@@ -386,7 +386,9 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
             # or `"arm" not in platform_version`.
             pass
         elif name in self._VERSION_LIKE_MARKER_NAME:
-            parser = parse_marker_version_constraint
+            parser = functools.partial(
+                parse_marker_version_constraint, pep440=name != "platform_release"
+            )
 
             if self._operator in {"in", "not in"}:
                 versions = []
