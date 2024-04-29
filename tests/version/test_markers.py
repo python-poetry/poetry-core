@@ -960,6 +960,34 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_machine": "x86_64"},
             False,
         ),
+        ('"tegra" in platform_release', {"platform_release": "5.10.120-tegra"}, True),
+        ('"tegra" in platform_release', {"platform_release": "5.10.120"}, False),
+        (
+            '"tegra" not in platform_release',
+            {"platform_release": "5.10.120-tegra"},
+            False,
+        ),
+        ('"tegra" not in platform_release', {"platform_release": "5.10.120"}, True),
+        (
+            "platform_machine == 'aarch64' and 'tegra' in platform_release",
+            {"platform_release": "5.10.120-tegra", "platform_machine": "aarch64"},
+            True,
+        ),
+        (
+            "platform_release != '4.9.253-tegra'",
+            {"platform_release": "4.9.254-tegra"},
+            True,
+        ),
+        (
+            "platform_release >= '6.6.0+rpt-rpi-v8'",
+            {"platform_release": "6.6.20+rpt-rpi-v8"},
+            True,
+        ),
+        (
+            "platform_release < '5.10.123-tegra' and platform_release >= '4.9.254-tegra'",
+            {"platform_release": "4.9.254-tegra"},
+            True,
+        ),
         # extras
         # single extra
         ("extra == 'security'", {"extra": "quux"}, False),
