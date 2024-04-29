@@ -12,6 +12,7 @@ from poetry.core.constraints.version import parse_constraint as parse_version_co
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import AtomicMarkerUnion
 from poetry.core.version.markers import EmptyMarker
+from poetry.core.version.markers import InvalidMarker
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
@@ -71,6 +72,21 @@ EMPTY = "<empty>"
 )
 def test_parse_marker(marker: str) -> None:
     assert str(parse_marker(marker)) == marker
+
+
+@pytest.mark.parametrize(
+    ("marker", "valid"),
+    [
+        ('platform_release != "4.9.253-tegra"', True),
+        ('python_version != "4.9.253-tegra"', False),
+    ],
+)
+def test_parse_marker_non_python_versions(marker: str, valid: bool) -> None:
+    if valid:
+        assert str(parse_marker(marker)) == marker
+    else:
+        with pytest.raises(InvalidMarker):
+            parse_marker(marker)
 
 
 @pytest.mark.parametrize(
@@ -962,6 +978,39 @@ def test_multi_marker_removes_duplicates() -> None:
             ),
             {"platform_machine": "x86_64"},
             False,
+        ),
+        ('"tegra" in platform_release', {"platform_release": "5.10.120-tegra"}, True),
+        ('"tegra" in platform_release', {"platform_release": "5.10.120"}, False),
+        (
+            '"tegra" not in platform_release',
+            {"platform_release": "5.10.120-tegra"},
+            False,
+        ),
+        ('"tegra" not in platform_release', {"platform_release": "5.10.120"}, True),
+        (
+            "platform_machine == 'aarch64' and 'tegra' in platform_release",
+            {"platform_release": "5.10.120-tegra", "platform_machine": "aarch64"},
+            True,
+        ),
+        (
+            "platform_release != '4.9.253-tegra'",
+            {"platform_release": "4.9.254-tegra"},
+            True,
+        ),
+        (
+            "platform_release != '4.9.253-tegra'",
+            {"platform_release": "4.9.253"},
+            True,
+        ),
+        (
+            "platform_release >= '6.6.0+rpt-rpi-v8'",
+            {"platform_release": "6.6.20+rpt-rpi-v8"},
+            True,
+        ),
+        (
+            "platform_release < '5.10.123-tegra' and platform_release >= '4.9.254-tegra'",
+            {"platform_release": "4.9.254-tegra"},
+            True,
         ),
         # extras
         # single extra
