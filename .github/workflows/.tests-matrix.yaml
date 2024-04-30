@@ -1,0 +1,96 @@
+# Reusable workflow consumed by tests.yaml; used to share a single matrix across jobs.
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      python-version:
+        required: true
+        type: string
+      run-mypy:
+        required: true
+        type: boolean
+      run-pytest:
+        required: true
+        type: boolean
+      run-pytest-poetry:
+        required: true
+        type: boolean
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  mypy:
+    name: mypy
+    runs-on: ${{ inputs.runner }}
+    if: inputs.run-mypy
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+
+      - uses: ./.github/actions/bootstrap-poetry
+        id: bootstrap-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: ./.github/actions/poetry-install
+
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4
+        with:
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}-py${{ steps.bootstrap-poetry.outputs.python-version }}-${{ hashFiles('pyproject.toml', 'poetry.lock') }}
+          restore-keys: |
+            mypy-${{ runner.os }}-py${{ steps.bootstrap-poetry.outputs.python-version }}-
+            mypy-${{ runner.os }}-
+
+      - run: poetry run mypy
+
+  pytest:
+    name: pytest
+    runs-on: ${{ inputs.runner }}
+    if: inputs.run-pytest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+
+      - uses: ./.github/actions/bootstrap-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: ./.github/actions/poetry-install
+        with:
+          args: --with github-actions
+
+      - run: poetry run pytest --integration -v
+
+      - run: git diff --exit-code --stat HEAD
+
+  pytest-poetry:
+    name: pytest (Poetry)
+    runs-on: ${{ inputs.runner }}
+    # FIXME: make Poetry tests pass with PyPy
+    if: inputs.run-pytest-poetry && !startsWith(inputs.python-version, 'pypy')
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          path: poetry-core
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          path: poetry
+          repository: python-poetry/poetry
+
+      - uses: ./poetry-core/.github/actions/bootstrap-poetry
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: ./poetry-core/.github/actions/poetry-install
+        with:
+          path: ./poetry
+
+      - run: poetry add ../poetry-core
+        working-directory: ./poetry
+
+      - run: poetry run pytest -v
+        working-directory: ./poetry

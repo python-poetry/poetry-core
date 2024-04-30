@@ -1,4 +1,4 @@
-name: "Update licenses"
+name: Update Licenses
 
 on:
   workflow_dispatch:

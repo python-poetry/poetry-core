@@ -1,0 +1,102 @@
+name: Tests
+
+on:
+  merge_group:
+  pull_request:
+  push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PYTHONWARNDEFAULTENCODING: 'true'
+
+jobs:
+  changes:
+    name: Detect changed files
+    runs-on: ubuntu-latest
+    outputs:
+      project: ${{ steps.changes.outputs.project }}
+      src: ${{ steps.changes.outputs.src }}
+      tests: ${{ steps.changes.outputs.tests }}
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        id: changes
+        with:
+          filters: |
+            workflow: &workflow
+              - '.github/actions/**'
+              - '.github/workflows/tests.yaml'
+              - '.github/workflows/.tests-matrix.yaml'
+            project: &project
+              - *workflow
+              - 'poetry.lock'
+              - 'pyproject.toml'
+            src:
+              - *project
+              - 'src/**/*.py'
+            tests:
+              - *project
+              - 'src/**/*.py'
+              - 'tests/**'
+
+  lockfile:
+    name: Check poetry.lock
+    runs-on: ubuntu-latest
+    if: needs.changes.outputs.project == 'true'
+    needs: changes
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+
+      - uses: ./.github/actions/bootstrap-poetry
+
+      - run: poetry check --lock
+
+  tests-matrix:
+    # Use this matrix with multiple jobs defined in a reusable workflow:
+    uses: ./.github/workflows/.tests-matrix.yaml
+    name: ${{ matrix.os.name }} (Python ${{ matrix.python-version }})
+    if: '!failure() && !cancelled()'
+    needs:
+      - lockfile
+      - changes
+    with:
+      runner: ${{ matrix.os.image }}
+      python-version: ${{ matrix.python-version }}
+      run-mypy: ${{ needs.changes.outputs.src == 'true' }}
+      run-pytest: ${{ needs.changes.outputs.tests == 'true' }}
+      run-pytest-poetry: ${{ needs.changes.outputs.src == 'true' }}
+    secrets: inherit
+    strategy:
+      matrix:
+        os:
+          - name: Ubuntu
+            image: ubuntu-22.04
+          - name: macOS
+            image: macos-13
+          - name: Windows
+            image: windows-2022
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        include:
+          - os: {name: Ubuntu, image: ubuntu-22.04}
+            python-version: pypy3.9
+          - os: {name: Ubuntu, image: ubuntu-22.04}
+            python-version: pypy3.10
+      fail-fast: false
+
+  status:
+    name: Status
+    runs-on: ubuntu-latest
+    if: '!cancelled()'
+    needs:
+      - lockfile
+      - tests-matrix
+    steps:
+      - run: ${{ (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) && 'false' || 'true' }}
