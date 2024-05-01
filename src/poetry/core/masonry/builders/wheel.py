@@ -232,12 +232,12 @@ print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
                     text=True,
                     encoding="utf-8",
                 )
-                plat_specifier = output.strip()
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(
                     "Failed to get build_platlib_dir for python interpreter"
                     f" '{self.executable.as_posix()}':\n{e.output}"
                 )
+            plat_specifier = output.strip()
         else:
             plat_specifier = "-".join(
                 (sysconfig.get_platform(), sys.implementation.cache_tag)
