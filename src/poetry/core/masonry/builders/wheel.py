@@ -242,7 +242,7 @@ print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
             plat_specifier = "-".join(
                 (sysconfig.get_platform(), sys.implementation.cache_tag)
             )
-        return self._path / "build" / ("lib." + plat_specifier)
+        return self._path / "build" / f"lib.{plat_specifier}"
 
     def _get_build_lib_dir(self) -> Path | None:
         # Either the purelib or platlib path will have been used when building
