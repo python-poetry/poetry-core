@@ -264,6 +264,11 @@
     false,
     false
   ],
+  "BSD-2-clause-first-lines": [
+    "BSD 2-Clause - first lines requirement",
+    false,
+    false
+  ],
   "BSD-3-Clause": [
     "BSD 3-Clause \"New\" or \"Revised\" License",
     true,
@@ -909,6 +914,11 @@
     false,
     false
   ],
+  "Catharon": [
+    "Catharon License",
+    false,
+    false
+  ],
   "ClArtistic": [
     "Clarified Artistic License",
     false,
@@ -965,12 +975,12 @@
     false
   ],
   "DL-DE-BY-2.0": [
-    "Data licence Germany – attribution – version 2.0",
+    "Data licence Germany \u2013 attribution \u2013 version 2.0",
     false,
     false
   ],
   "DL-DE-ZERO-2.0": [
-    "Data licence Germany – zero – version 2.0",
+    "Data licence Germany \u2013 zero \u2013 version 2.0",
     false,
     false
   ],
@@ -1439,6 +1449,11 @@
     false,
     false
   ],
+  "HPND-UC-export-US": [
+    "Historical Permission Notice and Disclaimer - University of California, US export warning",
+    false,
+    false
+  ],
   "HPND-doc": [
     "Historical Permission Notice and Disclaimer - documentation variant",
     false,
@@ -1760,17 +1775,17 @@
     false
   ],
   "LiLiQ-P-1.1": [
-    "Licence Libre du Québec – Permissive version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 Permissive version 1.1",
     true,
     false
   ],
   "LiLiQ-R-1.1": [
-    "Licence Libre du Québec – Réciprocité version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 version 1.1",
     true,
     false
   ],
   "LiLiQ-Rplus-1.1": [
-    "Licence Libre du Québec – Réciprocité forte version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 forte version 1.1",
     true,
     false
   ],
@@ -2001,6 +2016,11 @@
   ],
   "NCGL-UK-2.0": [
     "Non-Commercial Government Licence",
+    false,
+    false
+  ],
+  "NCL": [
+    "NCL Source Code License",
     false,
     false
   ],
@@ -2674,6 +2694,11 @@
     false,
     false
   ],
+  "Sun-PPP-2000": [
+    "Sun PPP License (2000)",
+    false,
+    false
+  ],
   "SunPro": [
     "SunPro License",
     false,
@@ -3111,6 +3136,11 @@
   ],
   "mplus": [
     "mplus Font License",
+    false,
+    false
+  ],
+  "pkgconf": [
+    "pkgconf License",
     false,
     false
   ],
