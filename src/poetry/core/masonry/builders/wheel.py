@@ -235,7 +235,7 @@ print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
                 plat_specifier = output.strip()
             except subprocess.CalledProcessError as e:
                 raise RuntimeError(
-                    "Failed to get platform-cache_tag for python interpreter"
+                    "Failed to get build_platlib_dir for python interpreter"
                     f" '{self.executable.as_posix()}':\n{e.output}"
                 )
         else:
