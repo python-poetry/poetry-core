@@ -214,7 +214,7 @@ class WheelBuilder(Builder):
     def _get_build_platlib_dir(self) -> Path:
         # Roughly equivalent to the naming convention in used by distutils, see:
         # distutils.command.build.build.finalize_options
-        if self._package.build_script and self.executable != Path(sys.executable):
+        if self.executable != Path(sys.executable):
             # poetry-core is not run in the build environment
             # -> this is probably not a PEP 517 build but a poetry build
             try:
