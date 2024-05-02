@@ -264,6 +264,11 @@
     false,
     false
   ],
+  "BSD-2-clause-first-lines": [
+    "BSD 2-Clause - first lines requirement",
+    false,
+    false
+  ],
   "BSD-3-Clause": [
     "BSD 3-Clause \"New\" or \"Revised\" License",
     true,
@@ -909,6 +914,11 @@
     false,
     false
   ],
+  "Catharon": [
+    "Catharon License",
+    false,
+    false
+  ],
   "ClArtistic": [
     "Clarified Artistic License",
     false,
@@ -1436,6 +1446,11 @@
   ],
   "HPND-UC": [
     "Historical Permission Notice and Disclaimer - University of California variant",
+    false,
+    false
+  ],
+  "HPND-UC-export-US": [
+    "Historical Permission Notice and Disclaimer - University of California, US export warning",
     false,
     false
   ],
@@ -2001,6 +2016,11 @@
   ],
   "NCGL-UK-2.0": [
     "Non-Commercial Government Licence",
+    false,
+    false
+  ],
+  "NCL": [
+    "NCL Source Code License",
     false,
     false
   ],
@@ -2674,6 +2694,11 @@
     false,
     false
   ],
+  "Sun-PPP-2000": [
+    "Sun PPP License (2000)",
+    false,
+    false
+  ],
   "SunPro": [
     "SunPro License",
     false,
@@ -3111,6 +3136,11 @@
   ],
   "mplus": [
     "mplus Font License",
+    false,
+    false
+  ],
+  "pkgconf": [
+    "pkgconf License",
     false,
     false
   ],
