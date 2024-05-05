@@ -28,6 +28,7 @@ from poetry.core.version.parser import Parser
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Iterable
+    from collections.abc import Mapping
 
     from lark import Tree
 
@@ -91,7 +92,7 @@ class BaseMarker(ABC):
         return False
 
     @abstractmethod
-    def validate(self, environment: dict[str, Any] | None) -> bool:
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
         raise NotImplementedError
 
     @abstractmethod
@@ -132,7 +133,7 @@ class AnyMarker(BaseMarker):
     def is_any(self) -> bool:
         return True
 
-    def validate(self, environment: dict[str, Any] | None) -> bool:
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
         return True
 
     def without_extras(self) -> BaseMarker:
@@ -173,7 +174,7 @@ class EmptyMarker(BaseMarker):
     def is_empty(self) -> bool:
         return True
 
-    def validate(self, environment: dict[str, Any] | None) -> bool:
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
         return False
 
     def without_extras(self) -> BaseMarker:
@@ -238,7 +239,7 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
     def _key(self) -> tuple[object, ...]:
         return self._name, self._constraint
 
-    def validate(self, environment: dict[str, Any] | None) -> bool:
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
         if environment is None:
             return True
 
@@ -645,7 +646,7 @@ class MultiMarker(BaseMarker):
 
         return None
 
-    def validate(self, environment: dict[str, Any] | None) -> bool:
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
         return all(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> BaseMarker:
@@ -812,7 +813,7 @@ class MarkerUnion(BaseMarker):
 
         return None
 
-    def validate(self, environment: dict[str, Any] | None) -> bool:
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
         return any(m.validate(environment) for m in self._markers)
 
     def without_extras(self) -> BaseMarker:
