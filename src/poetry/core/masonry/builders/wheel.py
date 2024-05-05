@@ -209,13 +209,40 @@ class WheelBuilder(Builder):
                         self._add_file(wheel, pkg, rel_path)
 
     def _get_build_purelib_dir(self) -> Path:
-        return self._path / "build/lib"
+        return self._path / "build" / "lib"
 
     def _get_build_platlib_dir(self) -> Path:
         # Roughly equivalent to the naming convention in used by distutils, see:
         # distutils.command.build.build.finalize_options
-        plat_specifier = f"{sysconfig.get_platform()}-{sys.implementation.cache_tag}"
-        return self._path / f"build/lib.{plat_specifier}"
+        if self.executable != Path(sys.executable):
+            # poetry-core is not run in the build environment
+            # -> this is probably not a PEP 517 build but a poetry build
+            try:
+                output = subprocess.check_output(
+                    [
+                        self.executable.as_posix(),
+                        "-c",
+                        """
+import sysconfig
+import sys
+print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
+""",
+                    ],
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding="utf-8",
+                )
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(
+                    "Failed to get build_platlib_dir for python interpreter"
+                    f" '{self.executable.as_posix()}':\n{e.output}"
+                )
+            plat_specifier = output.strip()
+        else:
+            plat_specifier = "-".join(
+                (sysconfig.get_platform(), sys.implementation.cache_tag)
+            )
+        return self._path / "build" / f"lib.{plat_specifier}"
 
     def _get_build_lib_dir(self) -> Path | None:
         # Either the purelib or platlib path will have been used when building
