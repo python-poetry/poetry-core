@@ -42,7 +42,7 @@ def test_parse_constraint(input: str, constraint: AnyConstraint | Constraint) ->
             ),
         ),
         (
-            "not integra,not inrpi-v8",
+            "not in tegra,not in rpi-v8",
             MultiConstraint(
                 Constraint("tegra", "not in"),
                 Constraint("rpi-v8", "not in"),
@@ -63,7 +63,7 @@ def test_parse_constraint_multi(input: str, constraint: MultiConstraint) -> None
             UnionConstraint(Constraint("win32"), Constraint("linux2", "!=")),
         ),
         (
-            "integra || inrpi-v8",
+            "in tegra || in rpi-v8",
             UnionConstraint(Constraint("tegra", "in"), Constraint("rpi-v8", "in")),
         ),
     ],

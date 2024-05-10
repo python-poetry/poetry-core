@@ -114,8 +114,8 @@ def test_parse_marker(marker: str) -> None:
             "platform_machine",
             "!=aarch64, !=loongarch64",
         ),
-        ('"tegra" not in platform_release', "platform_release", "not integra"),
-        ('"rpi-v8" in platform_release', "platform_release", "inrpi-v8"),
+        ('"tegra" not in platform_release', "platform_release", "not in tegra"),
+        ('"rpi-v8" in platform_release', "platform_release", "in rpi-v8"),
     ],
 )
 def test_parse_single_marker(
@@ -976,6 +976,11 @@ def test_multi_marker_removes_duplicates() -> None:
         (
             "platform_release != '4.9.253-tegra'",
             {"platform_release": "4.9.254-tegra"},
+            True,
+        ),
+        (
+            "platform_release != '4.9.253-tegra'",
+            {"platform_release": "4.9.253"},
             True,
         ),
         (

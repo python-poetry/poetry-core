@@ -362,6 +362,26 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
                 Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
             ),
         ),
+        (
+            Constraint("5.10.123-tegra", "!="),
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+        ),
+        (
+            Constraint("5.10.123-tegra", "!="),
+            Constraint("tegra", "in"),
+            EmptyConstraint(),
+        ),
+        (
+            Constraint("5.10.123-tegra", "=="),
+            Constraint("tegra", "in"),
+            Constraint("5.10.123-tegra"),
+        ),
+        (
+            Constraint("5.10.123", "=="),
+            Constraint("tegra", "in"),
+            EmptyConstraint(),
+        ),
     ],
 )
 def test_intersect(
@@ -576,6 +596,21 @@ def test_intersect(
             Constraint("tegra", "in"),
             Constraint("tegra", "not in"),
             AnyConstraint(),
+        ),
+        (
+            Constraint("5.10.123-tegra", "!="),
+            Constraint("tegra", "in"),
+            AnyConstraint(),
+        ),
+        (
+            Constraint("5.10.123", "!="),
+            Constraint("tegra", "in"),
+            AnyConstraint(),
+        ),
+        (
+            Constraint("5.10.123-tegra", "!="),
+            Constraint("tegra", "not in"),
+            Constraint("5.10.123-tegra", "!="),
         ),
     ],
 )

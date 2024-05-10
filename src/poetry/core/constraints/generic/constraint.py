@@ -67,6 +67,17 @@ class Constraint(BaseConstraint):
         return self._operator
 
     def allows(self, other: BaseConstraint) -> bool:
+        """Logic table to help
+
+                ||   !=   |   ==   |   in   | not in
+        --------||--------|--------|--------|--------
+           !=   ||   !=   |   !=   | not in | not in
+           ==   ||   !=   |   ==   |   in   | not in
+           in   || not in |   in   |   in   | not in
+         not in || not in | not in | not in | false
+
+        """
+
         if not isinstance(other, Constraint) or other.operator != "==":
             raise ValueError(
                 f"Invalid argument for allows"
@@ -75,15 +86,40 @@ class Constraint(BaseConstraint):
 
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
+        is_other_equal_op = other.operator == "=="
+        is_other_non_equal_op = other.operator == "!="
+        is_in_op = self._operator == "in"
+        is_not_in_op = self._operator == "not in"
+        is_other_in_op = other.operator == "in"
+        is_other_not_in_op = other.operator == "not in"
 
         if is_equal_op:
             return self._value == other.value
-
         if is_non_equal_op:
             return self._value != other.value
 
-        if self._operator in {"in", "not in"} and other.operator == "==":
-            return bool(self._trans_op_str[self._operator](other.value, self._value))
+        if (
+            is_in_op
+            and is_other_in_op
+            or is_other_in_op
+            or is_in_op
+            and is_other_equal_op
+        ):
+            return bool(self._trans_op_str["in"](other.value, self._value))
+
+        if (
+            is_in_op
+            and is_other_non_equal_op
+            or is_in_op
+            and is_other_not_in_op
+            or is_not_in_op
+            and is_other_non_equal_op
+            or is_not_in_op
+            and is_other_equal_op
+            or is_non_equal_op
+            and is_other_not_in_op
+        ):
+            return bool(self._trans_op_str["not in"](other.value, self._value))
 
         return False
 
@@ -154,20 +190,20 @@ class Constraint(BaseConstraint):
                 return self
 
             if (
-                (self.operator == "!=" and other.operator == "==")
-                or (self.operator == "not in" and other.operator == "in")
-            ) and self.allows(other):
+                self.operator in {"!=", "not in", "in"}
+                and other.operator in {"==", "in", "not in"}
+                and self.allows(other)
+            ):
                 return other
 
             if (
-                (other.operator == "!=" and self.operator == "==")
-                or (other.operator == "not in" and self.operator == "in")
-            ) and other.allows(self):
+                other.operator in {"!=", "not in", "in"}
+                and self.operator in {"==", "in", "not in"}
+                and other.allows(self)
+            ):
                 return self
 
-            if (other.operator == "!=" and self.operator == "!=") or (
-                other.operator == "not in" and self.operator == "not in"
-            ):
+            if other.operator in {"!=", "not in"} and self.operator in {"!=", "not in"}:
                 return MultiConstraint(self, other)
 
             return EmptyConstraint()
@@ -182,20 +218,18 @@ class Constraint(BaseConstraint):
                 return self
 
             if (
-                (self.operator == "!=" and other.operator == "==")
-                or (self.operator == "not in" and other.operator == "in")
+                self.operator in {"!=", "not in", "in"}
+                and other.operator in {"==", "in", "not in"}
             ) and self.allows(other):
                 return self
 
             if (
-                (other.operator == "!=" and self.operator == "==")
-                or (other.operator == "not in" and self.operator == "in")
+                other.operator in {"!=", "not in", "in"}
+                and self.operator in {"==", "in", "not in"}
             ) and other.allows(self):
                 return other
 
-            if (other.operator == "==" and self.operator == "==") or (
-                other.operator == "in" and self.operator == "in"
-            ):
+            if other.operator in {"==", "in"} and self.operator in {"==", "in"}:
                 return UnionConstraint(self, other)
 
             return AnyConstraint()
@@ -222,5 +256,6 @@ class Constraint(BaseConstraint):
         return hash((self._operator, self._value))
 
     def __str__(self) -> str:
+        space = " " if self._operator in {"in", "not in"} else ""
         op = self._operator if self._operator != "==" else ""
-        return f"{op}{self._value}"
+        return f"{op}{space}{self._value}"
