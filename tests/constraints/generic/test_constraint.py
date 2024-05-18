@@ -15,41 +15,118 @@ if TYPE_CHECKING:
     from poetry.core.constraints.generic import BaseConstraint
 
 
-def test_allows() -> None:
-    c = Constraint("win32")
-
-    assert c.allows(Constraint("win32"))
-    assert not c.allows(Constraint("linux"))
-
-    c = Constraint("win32", "!=")
-
-    assert not c.allows(Constraint("win32"))
-    assert c.allows(Constraint("linux"))
-
-
-def test_allows_any() -> None:
-    c = Constraint("win32")
-
-    assert c.allows_any(Constraint("win32"))
-    assert not c.allows_any(Constraint("linux"))
-    assert c.allows_any(UnionConstraint(Constraint("win32"), Constraint("linux")))
-    assert c.allows_any(Constraint("linux", "!="))
-
-    c = Constraint("win32", "!=")
-
-    assert not c.allows_any(Constraint("win32"))
-    assert c.allows_any(Constraint("linux"))
-    assert c.allows_any(UnionConstraint(Constraint("win32"), Constraint("linux")))
-    assert c.allows_any(Constraint("linux", "!="))
+@pytest.mark.parametrize(
+    ("constraint1", "constraint2", "expected"),
+    [
+        (Constraint("win32"), Constraint("win32"), True),
+        (Constraint("win32"), Constraint("linux"), False),
+        (Constraint("win32", "!="), Constraint("win32"), False),
+        (Constraint("win32", "!="), Constraint("linux"), True),
+    ],
+)
+def test_allows(
+    constraint1: Constraint, constraint2: Constraint, expected: bool
+) -> None:
+    assert constraint1.allows(constraint2) is expected
 
 
-def test_allows_all() -> None:
-    c = Constraint("win32")
-
-    assert c.allows_all(Constraint("win32"))
-    assert not c.allows_all(Constraint("linux"))
-    assert not c.allows_all(Constraint("linux", "!="))
-    assert not c.allows_all(UnionConstraint(Constraint("win32"), Constraint("linux")))
+@pytest.mark.parametrize(
+    ("constraint1", "constraint2", "expected_any", "expected_all"),
+    [
+        (Constraint("win32"), EmptyConstraint(), False, True),
+        (Constraint("win32"), AnyConstraint(), True, False),
+        (Constraint("win32"), Constraint("win32"), True, True),
+        (Constraint("win32"), Constraint("linux"), False, False),
+        (Constraint("win32"), Constraint("win32", "!="), False, False),
+        (Constraint("win32"), Constraint("linux", "!="), True, False),
+        (
+            Constraint("win32"),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            True,
+            False,
+        ),
+        (
+            Constraint("win32"),
+            UnionConstraint(Constraint("darwin"), Constraint("linux")),
+            False,
+            False,
+        ),
+        (
+            Constraint("win32"),
+            UnionConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            True,
+            False,
+        ),
+        (
+            Constraint("win32"),
+            UnionConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            True,
+            False,
+        ),
+        (
+            Constraint("win32"),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            False,
+            False,
+        ),
+        (
+            Constraint("win32"),
+            MultiConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            True,
+            False,
+        ),
+        (Constraint("win32", "!="), EmptyConstraint(), False, True),
+        (Constraint("win32", "!="), AnyConstraint(), True, False),
+        (Constraint("win32", "!="), Constraint("win32"), False, False),
+        (Constraint("win32", "!="), Constraint("linux"), True, True),
+        (Constraint("win32", "!="), Constraint("win32", "!="), True, True),
+        (Constraint("win32", "!="), Constraint("linux", "!="), True, False),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            True,
+            False,
+        ),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(Constraint("darwin"), Constraint("linux")),
+            True,
+            True,
+        ),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            True,
+            False,
+        ),
+        (
+            Constraint("win32", "!="),
+            UnionConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            True,
+            False,
+        ),
+        (
+            Constraint("win32", "!="),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            True,
+            True,
+        ),
+        (
+            Constraint("win32", "!="),
+            MultiConstraint(Constraint("darwin", "!="), Constraint("linux", "!=")),
+            True,
+            False,
+        ),
+    ],
+)
+def test_allows_any_and_allows_all(
+    constraint1: Constraint,
+    constraint2: BaseConstraint,
+    expected_any: bool,
+    expected_all: bool,
+) -> None:
+    assert constraint1.allows_any(constraint2) is expected_any
+    assert constraint1.allows_all(constraint2) is expected_all
 
 
 @pytest.mark.parametrize(
