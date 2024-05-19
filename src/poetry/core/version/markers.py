@@ -20,6 +20,7 @@ from poetry.core.constraints.generic import Constraint
 from poetry.core.constraints.generic import MultiConstraint
 from poetry.core.constraints.generic import UnionConstraint
 from poetry.core.constraints.version import VersionConstraint
+from poetry.core.constraints.version import VersionUnion
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
 from poetry.core.version.parser import Parser
@@ -108,6 +109,12 @@ class BaseMarker(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
+        raise NotImplementedError
+
+    @abstractmethod
     def invert(self) -> BaseMarker:
         raise NotImplementedError
 
@@ -143,6 +150,11 @@ class AnyMarker(BaseMarker):
         return self
 
     def only(self, *marker_names: str) -> BaseMarker:
+        return self
+
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
         return self
 
     def invert(self) -> EmptyMarker:
@@ -184,6 +196,11 @@ class EmptyMarker(BaseMarker):
         return self
 
     def only(self, *marker_names: str) -> BaseMarker:
+        return self
+
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
         return self
 
     def invert(self) -> AnyMarker:
@@ -281,6 +298,11 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
         if self.name not in marker_names:
             return AnyMarker()
 
+        return self
+
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
         return self
 
     def intersect(self, other: BaseMarker) -> BaseMarker:
@@ -394,6 +416,18 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
     @property
     def _key(self) -> tuple[object, ...]:
         return self._name, self._operator, self._value
+
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
+        if self.name in PYTHON_VERSION_MARKERS:
+            assert isinstance(self._constraint, VersionConstraint)
+            if self._constraint.allows_all(python_constraint):
+                return AnyMarker()
+            elif not self._constraint.allows_any(python_constraint):
+                return EmptyMarker()
+
+        return self
 
     def invert(self) -> BaseMarker:
         if self._operator in ("===", "=="):
@@ -670,6 +704,13 @@ class MultiMarker(BaseMarker):
     def only(self, *marker_names: str) -> BaseMarker:
         return self.of(*(m.only(*marker_names) for m in self._markers))
 
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
+        return self.of(
+            *(m.reduce_by_python_constraint(python_constraint) for m in self._markers)
+        )
+
     def invert(self) -> BaseMarker:
         markers = [marker.invert() for marker in self._markers]
 
@@ -838,6 +879,31 @@ class MarkerUnion(BaseMarker):
 
     def only(self, *marker_names: str) -> BaseMarker:
         return self.of(*(m.only(*marker_names) for m in self._markers))
+
+    def reduce_by_python_constraint(
+        self, python_constraint: VersionConstraint
+    ) -> BaseMarker:
+        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+
+        markers: Iterable[BaseMarker] = self._markers
+        if isinstance(python_constraint, VersionUnion):
+            python_only_markers = []
+            other_markers = []
+            for m in self._markers:
+                if m == m.only(*PYTHON_VERSION_MARKERS):
+                    python_only_markers.append(m)
+                else:
+                    other_markers.append(m)
+            if get_python_constraint_from_marker(
+                self.of(*python_only_markers)
+            ).allows_all(python_constraint):
+                if not other_markers:
+                    return AnyMarker()
+                markers = other_markers
+
+        return self.of(
+            *(m.reduce_by_python_constraint(python_constraint) for m in markers)
+        )
 
     def invert(self) -> BaseMarker:
         markers = [marker.invert() for marker in self._markers]
