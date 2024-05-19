@@ -8,6 +8,7 @@ import pytest
 
 from poetry.core.constraints.generic import UnionConstraint
 from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
+from poetry.core.constraints.version import parse_constraint as parse_version_constraint
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import AtomicMarkerUnion
 from poetry.core.version.markers import EmptyMarker
@@ -1173,6 +1174,88 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
     m = parse_marker(marker)
 
     assert str(m.only(*only)) == expected
+
+
+@pytest.mark.parametrize(
+    ("marker", "constraint", "expected"),
+    [
+        ("", "~3.8", ""),
+        ("<empty>", "~3.8", "<empty>"),
+        ('sys_platform == "linux"', "~3.8", 'sys_platform == "linux"'),
+        ('python_version >= "3.8"', "~3.8", ""),
+        ('python_version > "3.8"', "~3.8", 'python_version > "3.8"'),
+        ('python_version >= "3.9"', "~3.8", "<empty>"),
+        ('python_full_version >= "3.8.0"', "~3.8", ""),
+        ('python_full_version >= "3.8.1"', "~3.8", 'python_full_version >= "3.8.1"'),
+        ('python_full_version < "3.8.0"', "~3.8", "<empty>"),
+        ('python_version >= "3.8" and python_version < "3.9"', "~3.8", ""),
+        ('python_version >= "3.7" and python_version < "4.0"', "~3.8", ""),
+        (
+            'python_full_version >= "3.8.1" and python_version < "3.9"',
+            "~3.8",
+            'python_full_version >= "3.8.1"',
+        ),
+        (
+            'python_version >= "3.8" and python_full_version < "3.8.2"',
+            "~3.8",
+            'python_full_version < "3.8.2"',
+        ),
+        (
+            'python_version >= "3.8" and sys_platform == "linux" and python_version < "3.9"',
+            "~3.8",
+            'sys_platform == "linux"',
+        ),
+        ('python_version < "3.8" or python_version >= "3.9"', "~3.9", ""),
+        (
+            'python_version < "3.8" or python_version >= "3.9"',
+            ">=3.7",
+            'python_version < "3.8" or python_version >= "3.9"',
+        ),
+        ('python_version < "3.8" or python_version >= "3.9"', "~3.7", ""),
+        (
+            'python_version < "3.8" or python_version >= "3.9"',
+            "<=3.10",
+            'python_version < "3.8" or python_version >= "3.9"',
+        ),
+        (
+            (
+                'python_version < "3.8"'
+                ' or python_version >= "3.9" and sys_platform == "linux"'
+            ),
+            "~3.9",
+            'sys_platform == "linux"',
+        ),
+        ('python_version < "3.8" or python_version >= "3.9"', "~3.7 || ~3.9", ""),
+        (
+            'python_version < "3.8" or python_version >= "3.9"',
+            "~3.6 || ~3.8",
+            'python_version < "3.8"',
+        ),
+        (
+            (
+                'python_version < "3.8" or sys_platform == "linux"'
+                ' or python_version >= "3.9"'
+            ),
+            "~3.7 || ~3.9",
+            'sys_platform == "linux"',
+        ),
+        (
+            (
+                'python_version < "3.8" or sys_platform == "linux"'
+                ' or python_version >= "3.9" or sys_platform == "win32"'
+            ),
+            "~3.7 || ~3.9",
+            'sys_platform == "linux" or sys_platform == "win32"',
+        ),
+    ],
+)
+def test_reduce_by_python_constraint(
+    marker: str, constraint: str, expected: str
+) -> None:
+    m = parse_marker(marker)
+    c = parse_version_constraint(constraint)
+
+    assert str(m.reduce_by_python_constraint(c)) == expected
 
 
 def test_union_of_a_single_marker_is_the_single_marker() -> None:
