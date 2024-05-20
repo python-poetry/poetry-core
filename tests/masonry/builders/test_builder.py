@@ -160,6 +160,25 @@ def test_metadata_homepage_default() -> None:
     assert metadata["Home-page"] is None
 
 
+def test_metadata_license_type_file() -> None:
+    project_path = (
+        Path(__file__).parent.parent.parent / "fixtures" / "with_license_type_file"
+    )
+    builder = Builder(Factory().create_poetry(project_path))
+    license_text = (project_path / "LICENSE").read_text(encoding="utf-8")
+
+    raw_content = builder.get_metadata_content()
+    metadata = Parser().parsestr(raw_content)
+
+    license_lines = metadata["License"].splitlines()
+    unindented_license = "\n".join([line.strip() for line in license_lines])
+    assert unindented_license == license_text.rstrip()
+
+    # Check that field after "license" is read correctly
+    assert raw_content.index("License:") < raw_content.index("Keywords:")
+    assert metadata["Keywords"] == "special"
+
+
 def test_metadata_with_vcs_dependencies() -> None:
     builder = Builder(
         Factory().create_poetry(
