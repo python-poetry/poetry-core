@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import textwrap
 
 from functools import cached_property
 from pathlib import Path
@@ -248,7 +249,15 @@ class Builder:
             content += f"Home-page: {self._meta.home_page}\n"
 
         if self._meta.license:
-            content += f"License: {self._meta.license}\n"
+            license_field = "License: "
+            # Indentation is not only for readability, but required
+            # so that the line break is not treated as end of field.
+            # The exact indentation does not matter,
+            # but it is essential to also indent empty lines.
+            escaped_license = textwrap.indent(
+                self._meta.license, " " * len(license_field), lambda line: True
+            ).strip()
+            content += f"{license_field}{escaped_license}\n"
 
         if self._meta.keywords:
             content += f"Keywords: {self._meta.keywords}\n"
