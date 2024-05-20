@@ -387,6 +387,16 @@ def test_create_poetry_non_package_mode() -> None:
     assert not poetry.is_package_mode
 
 
+def test_create_poetry_with_license_type_file() -> None:
+    project_dir = fixtures_dir / "with_license_type_file"
+    poetry = Factory().create_poetry(project_dir)
+
+    license_content = (project_dir / "LICENSE").read_text(encoding="utf-8")
+
+    assert poetry.package.license
+    assert poetry.package.license.id == license_content
+
+
 @pytest.mark.parametrize(
     ("requires_python", "python", "expected_versions", "expected_constraint"),
     [
