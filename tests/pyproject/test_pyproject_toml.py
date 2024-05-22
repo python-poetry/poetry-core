@@ -85,4 +85,4 @@ def test_unparseable_pyproject_toml() -> None:
     with pytest.raises(PyProjectException) as excval:
         _ = PyProjectTOML(pyproject_toml).build_system
 
-    assert f"poetry cannot parse {pyproject_toml}" in str(excval.value)
+    assert f"poetry cannot parse {pyproject_toml.as_posix()}" in str(excval.value)
