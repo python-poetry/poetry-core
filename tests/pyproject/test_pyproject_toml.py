@@ -73,6 +73,7 @@ def test_pyproject_toml_non_existent(pyproject_toml: Path) -> None:
     assert build_system.requires == ["poetry-core"]
     assert build_system.build_backend == "poetry.core.masonry.api"
 
+
 def test_unparseable_pyproject_toml() -> None:
     pyproject_toml = (
         Path(__file__).parent.parent

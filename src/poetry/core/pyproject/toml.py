@@ -28,7 +28,6 @@ class PyProjectTOML:
             if not self.path.exists():
                 self._data = {}
             else:
-                raise NotImplementedError("hmm")
                 try:
                     with self.path.open("rb") as f:
                         self._data = tomllib.load(f)

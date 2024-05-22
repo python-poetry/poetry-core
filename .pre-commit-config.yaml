@@ -14,6 +14,7 @@ repos:
       - id: check-case-conflict
       - id: check-json
       - id: check-toml
+        exclude: tests/fixtures/project_duplicate_dependency/pyproject.toml
       - id: check-yaml
       - id: pretty-format-json
         args:
