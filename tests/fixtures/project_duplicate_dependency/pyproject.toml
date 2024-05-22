@@ -1,0 +1,7 @@
+[project]
+name = "minimal"
+version = "1"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+python = "^3.8"

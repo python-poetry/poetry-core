@@ -28,8 +28,16 @@ class PyProjectTOML:
             if not self.path.exists():
                 self._data = {}
             else:
-                with self.path.open("rb") as f:
-                    self._data = tomllib.load(f)
+                raise NotImplementedError("hmm")
+                try:
+                    with self.path.open("rb") as f:
+                        self._data = tomllib.load(f)
+                except tomllib.TOMLDecodeError as e:
+                    from poetry.core.pyproject.exceptions import PyProjectException
+
+                    raise PyProjectException(
+                        f"poetry cannot parse {self._path.as_posix()}"
+                    ) from e
 
         return self._data
 

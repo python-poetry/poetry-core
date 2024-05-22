@@ -72,3 +72,16 @@ def test_pyproject_toml_non_existent(pyproject_toml: Path) -> None:
     assert pyproject.data == {}
     assert build_system.requires == ["poetry-core"]
     assert build_system.build_backend == "poetry.core.masonry.api"
+
+def test_unparseable_pyproject_toml() -> None:
+    pyproject_toml = (
+        Path(__file__).parent.parent
+        / "fixtures"
+        / "project_duplicate_dependency"
+        / "pyproject.toml"
+    )
+
+    with pytest.raises(PyProjectException) as excval:
+        _ = PyProjectTOML(pyproject_toml).build_system
+
+    assert f"poetry cannot parse {pyproject_toml}" in str(excval.value)
