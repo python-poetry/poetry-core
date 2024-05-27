@@ -16,7 +16,15 @@ if TYPE_CHECKING:
 
 
 BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
-STR_CMP_CONSTRAINT = re.compile(r"^(?P<op>(in|not in))(?P<value>(.*))$")
+STR_CMP_CONSTRAINT = re.compile(
+    r"""(?ix)^ # case insensitive and verbose mode
+    (?P<quote>['"]) # Single or double quotes
+    (?P<value>.+?) # The value itself inside quotes
+    \1 # Closing single of double quote
+    \s* # Space
+    (?P<op>(not\sin|in)) # Literal match of 'in' or 'not in'
+    $"""
+)
 
 
 @functools.lru_cache(maxsize=None)
@@ -27,9 +35,7 @@ def parse_constraint(constraints: str) -> BaseConstraint:
     or_constraints = re.split(r"\s*\|\|?\s*", constraints.strip())
     or_groups = []
     for constraints in or_constraints:
-        and_constraints = re.split(
-            r"(?<!^)(?<![=>< ,(in|not in)]) *(?<!-)[, ](?!-) *(?!,|$)", constraints
-        )
+        and_constraints = re.split(r"\s*,\s*", constraints)
         constraint_objects = []
 
         if len(and_constraints) > 1:

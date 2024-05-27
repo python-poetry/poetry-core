@@ -19,6 +19,7 @@ from poetry.core.constraints.generic import BaseConstraint
 from poetry.core.constraints.generic import Constraint
 from poetry.core.constraints.generic import MultiConstraint
 from poetry.core.constraints.generic import UnionConstraint
+from poetry.core.constraints.generic.parser import STR_CMP_CONSTRAINT
 from poetry.core.constraints.version import VersionConstraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
@@ -314,7 +315,14 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
 
 
 class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
-    _CONSTRAINT_RE = re.compile(r"(?i)^(~=|!=|>=?|<=?|==?=?|in|not in)?\s*(.+)$")
+    _CONSTRAINT_RE = re.compile(
+        r"""(?i)^((~=|!=|>=?|<=?|==?=?|not in|in)?\s*.+)|(".+"|'.+'\s*(not in|in))$"""
+    )
+    _CONSTRAINT_RE_PATTERN_1 = re.compile(
+        r"(?i)^(?P<op>~=|!=|>=?|<=?|==?=?|not in|in)?\s*(?P<value>.+)$"
+    )
+    _CONSTRAINT_RE_PATTERN_2 = STR_CMP_CONSTRAINT
+
     VALUE_SEPARATOR_RE = re.compile("[ ,|]+")
     _VERSION_LIKE_MARKER_NAME: ClassVar[set[str]] = {
         "python_version",
@@ -343,11 +351,20 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         if m is None:
             raise InvalidMarker(f"Invalid marker for '{name}': {constraint_string}")
 
-        self._operator = m.group(1)
+        if swapped_name_value:
+            pattern = self._CONSTRAINT_RE_PATTERN_2
+        else:
+            pattern = self._CONSTRAINT_RE_PATTERN_1
+
+        m = pattern.match(constraint_string)
+        if m is None:
+            raise InvalidMarker(f"Invalid marker for '{name}': {constraint_string}")
+
+        self._operator = m.group("op")
         if self._operator is None:
             self._operator = "=="
 
-        self._value = m.group(2)
+        self._value = m.group("value")
         parser = parse_generic_constraint
 
         # platform_release has non-version constraints
@@ -451,7 +468,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         if self._swapped_name_value:
             constraint = f'"{self._value}" {operator} {self._name}'
         else:
-            constraint = f"{self._name} {operator} '{self._value}'"
+            constraint = f'{self._name} {operator} "{self._value}"'
         return parse_marker(constraint)
 
     def __eq__(self, other: object) -> bool:
@@ -912,12 +929,19 @@ def _compact_markers(
         elif token.data == f"{tree_prefix}item":
             name, op, value = token.children
             swapped_name_value = value.type == f"{tree_prefix}MARKER_NAME"
+            stringed_value = name.type in {
+                f"{tree_prefix}ESCAPED_STRING",
+                f"{tree_prefix}SINGLE_QUOTED_STRING",
+            }
             if swapped_name_value:
                 name, value = value, name
 
             value = value[1:-1]
+
             sub_marker = SingleMarker(
-                str(name), f"{op}{value}", swapped_name_value=swapped_name_value
+                str(name),
+                f'"{value}" {op}' if stringed_value else f"{op}{value}",
+                swapped_name_value=swapped_name_value,
             )
             groups[-1].append(sub_marker)
 
