@@ -34,9 +34,12 @@ class PyProjectTOML:
                 except tomllib.TOMLDecodeError as e:
                     from poetry.core.pyproject.exceptions import PyProjectException
 
-                    raise PyProjectException(
-                        f"poetry cannot parse {self._path.as_posix()}"
-                    ) from e
+                    msg = f"{self._path.as_posix()} is not a valid TOML file. {e}"
+
+                    if e.args[0].startswith("Cannot overwrite a value"):
+                        msg += "\nThis is often caused by a duplicate entry"
+
+                    raise PyProjectException(msg) from e
 
         return self._data
 

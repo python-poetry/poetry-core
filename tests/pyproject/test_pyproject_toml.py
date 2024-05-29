@@ -85,4 +85,7 @@ def test_unparseable_pyproject_toml() -> None:
     with pytest.raises(PyProjectException) as excval:
         _ = PyProjectTOML(pyproject_toml).build_system
 
-    assert f"poetry cannot parse {pyproject_toml.as_posix()}" in str(excval.value)
+    assert (
+        f"{pyproject_toml.as_posix()} is not a valid TOML file. Cannot overwrite a value (at line 7, column 16)\nThis is often caused by a duplicate entry"
+        in str(excval.value)
+    )
