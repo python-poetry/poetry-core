@@ -41,3 +41,18 @@ python = "^3.5"
     with pyproject_toml.open(mode="a", encoding="utf-8") as f:
         f.write(content)
     return content
+
+
+@pytest.fixture
+def duplicated_dependencies_poetry_section(pyproject_toml: Path) -> str:
+    content = """
+[tool.poetry]
+name = "poetry"
+
+[tool.poetry.dependencies]
+python = "^3.5"
+python = "^3.5"
+"""
+    with pyproject_toml.open(mode="a", encoding="utf-8") as f:
+        f.write(content)
+    return content
