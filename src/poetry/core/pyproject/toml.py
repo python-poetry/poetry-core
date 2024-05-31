@@ -24,6 +24,7 @@ class PyProjectTOML:
                 self._data = tomllib.load(f)
             except tomllib.TOMLDecodeError as e:
                 from poetry.core.pyproject.exceptions import PyProjectException
+
                 raise PyProjectException(
                     f"{e} in {self._path.as_posix()}. Check the file for formatting errors and duplicate entries"
                 ) from e

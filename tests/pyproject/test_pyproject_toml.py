@@ -74,12 +74,15 @@ def test_pyproject_toml_non_existent(pyproject_toml: Path) -> None:
     assert build_system.build_backend == "poetry.core.masonry.api"
 
 
-def test_pyproject_toml_invalid(pyproject_toml: Path, duplicated_dependencies_poetry_section) -> None:
+def test_pyproject_toml_invalid(
+    pyproject_toml: Path, duplicated_dependencies_poetry_section
+) -> None:
     pyproject = PyProjectTOML(pyproject_toml)
 
     with pytest.raises(PyProjectException) as excval:
         _ = pyproject.poetry_config
 
-    assert f"{pyproject_toml.as_posix()}. Check the file for formatting errors and duplicate entries" in str(
-        excval.value
+    assert (
+        f"{pyproject_toml.as_posix()}. Check the file for formatting errors and duplicate entries"
+        in str(excval.value)
     )
