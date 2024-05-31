@@ -28,8 +28,21 @@ class PyProjectTOML:
             if not self.path.exists():
                 self._data = {}
             else:
-                with self.path.open("rb") as f:
-                    self._data = tomllib.load(f)
+                try:
+                    with self.path.open("rb") as f:
+                        self._data = tomllib.load(f)
+                except tomllib.TOMLDecodeError as e:
+                    from poetry.core.pyproject.exceptions import PyProjectException
+
+                    msg = (
+                        f"{self._path.as_posix()} is not a valid TOML file.\n"
+                        f"{e.__class__.__name__}: {e}"
+                    )
+
+                    if str(e).startswith("Cannot overwrite a value"):
+                        msg += "\nThis is often caused by a duplicate entry."
+
+                    raise PyProjectException(msg) from e
 
         return self._data
 

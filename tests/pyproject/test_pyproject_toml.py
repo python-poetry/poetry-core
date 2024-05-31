@@ -72,3 +72,21 @@ def test_pyproject_toml_non_existent(pyproject_toml: Path) -> None:
     assert pyproject.data == {}
     assert build_system.requires == ["poetry-core"]
     assert build_system.build_backend == "poetry.core.masonry.api"
+
+
+def test_unparseable_pyproject_toml() -> None:
+    pyproject_toml = (
+        Path(__file__).parent.parent
+        / "fixtures"
+        / "project_duplicate_dependency"
+        / "pyproject.toml"
+    )
+
+    with pytest.raises(PyProjectException) as excval:
+        _ = PyProjectTOML(pyproject_toml).build_system
+
+    assert (
+        f"{pyproject_toml.as_posix()} is not a valid TOML file.\n"
+        "TOMLDecodeError: Cannot overwrite a value (at line 7, column 16)\n"
+        "This is often caused by a duplicate entry"
+    ) in str(excval.value)
