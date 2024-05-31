@@ -75,7 +75,7 @@ def test_pyproject_toml_non_existent(pyproject_toml: Path) -> None:
 
 
 def test_pyproject_toml_invalid(
-    pyproject_toml: Path, duplicated_dependencies_poetry_section
+    pyproject_toml: Path, duplicated_dependencies_poetry_section: str
 ) -> None:
     pyproject = PyProjectTOML(pyproject_toml)
 
