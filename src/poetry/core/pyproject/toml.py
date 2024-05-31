@@ -18,10 +18,10 @@ class PyProjectTOML:
         self._data: dict[str, Any] | None = None
         self._build_system: BuildSystem | None = None
 
-    def load_toml_file(self) -> None:
+    def load_toml_file(self) -> dict[str, Any]:
         with self.path.open("rb") as f:
             try:
-                self._data = tomllib.load(f)
+                return tomllib.load(f)
             except tomllib.TOMLDecodeError as e:
                 from poetry.core.pyproject.exceptions import PyProjectException
 
@@ -39,7 +39,7 @@ class PyProjectTOML:
             if not self.path.exists():
                 self._data = {}
             else:
-                self.load_toml_file()
+                self._data = self.load_toml_file()
         return self._data
 
     @property
