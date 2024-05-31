@@ -18,7 +18,7 @@ class PyProjectTOML:
         self._data: dict[str, Any] | None = None
         self._build_system: BuildSystem | None = None
 
-    def load_toml_file(self):
+    def load_toml_file(self) -> None:
         with self.path.open("rb") as f:
             try:
                 self._data = tomllib.load(f)
