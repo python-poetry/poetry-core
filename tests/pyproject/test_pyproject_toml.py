@@ -86,6 +86,7 @@ def test_unparseable_pyproject_toml() -> None:
         _ = PyProjectTOML(pyproject_toml).build_system
 
     assert (
-        f"{pyproject_toml.as_posix()} is not a valid TOML file.\nTOMLDecodeError: Cannot overwrite a value (at line 7, column 16)\nThis is often caused by a duplicate entry"
-        in str(excval.value)
-    )
+        f"{pyproject_toml.as_posix()} is not a valid TOML file.\n"
+        "TOMLDecodeError: Cannot overwrite a value (at line 7, column 16)\n"
+        "This is often caused by a duplicate entry"
+    ) in str(excval.value)
