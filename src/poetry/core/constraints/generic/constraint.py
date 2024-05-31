@@ -43,44 +43,72 @@ class Constraint(BaseConstraint):
         return self._operator
 
     def allows(self, other: BaseConstraint) -> bool:
-        if not isinstance(other, Constraint):
-            raise ValueError("Unimplemented comparison of constraints")
+        if not isinstance(other, Constraint) or other.operator != "==":
+            raise ValueError(
+                f"Invalid argument for allows"
+                f' ("other" must be a constraint with operator "=="): {other}'
+            )
 
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
-        is_other_equal_op = other.operator == "=="
-        is_other_non_equal_op = other.operator == "!="
 
-        if is_equal_op and is_other_equal_op:
+        if is_equal_op:
             return self._value == other.value
 
-        if (
-            is_equal_op
-            and is_other_non_equal_op
-            or is_non_equal_op
-            and is_other_equal_op
-            or is_non_equal_op
-            and is_other_non_equal_op
-        ):
+        if is_non_equal_op:
             return self._value != other.value
 
         return False
 
     def allows_all(self, other: BaseConstraint) -> bool:
-        if not isinstance(other, Constraint):
-            return other.is_empty()
+        from poetry.core.constraints.generic import MultiConstraint
+        from poetry.core.constraints.generic import UnionConstraint
 
-        return other == self
+        if isinstance(other, Constraint):
+            if other.operator == "==":
+                return self.allows(other)
+
+            return self == other
+
+        if isinstance(other, MultiConstraint):
+            return any(self.allows_all(c) for c in other.constraints)
+
+        if isinstance(other, UnionConstraint):
+            return all(self.allows_all(c) for c in other.constraints)
+
+        return other.is_empty()
 
     def allows_any(self, other: BaseConstraint) -> bool:
+        from poetry.core.constraints.generic import MultiConstraint
+        from poetry.core.constraints.generic import UnionConstraint
+
+        is_equal_op = self._operator == "=="
+        is_non_equal_op = self._operator == "!="
+
+        if is_equal_op:
+            return other.allows(self)
+
         if isinstance(other, Constraint):
-            is_non_equal_op = self._operator == "!="
+            is_other_equal_op = other.operator == "=="
             is_other_non_equal_op = other.operator == "!="
 
-            if is_non_equal_op and is_other_non_equal_op:
+            if is_other_equal_op:
+                return self.allows(other)
+
+            if is_equal_op and is_other_non_equal_op:
                 return self._value != other.value
 
-        return other.allows(self)
+            return is_non_equal_op and is_other_non_equal_op
+
+        elif isinstance(other, MultiConstraint):
+            return is_non_equal_op
+
+        elif isinstance(other, UnionConstraint):
+            return is_non_equal_op and any(
+                self.allows_any(c) for c in other.constraints
+            )
+
+        return other.is_any()
 
     def invert(self) -> Constraint:
         return Constraint(self._value, "!=" if self._operator == "==" else "==")
