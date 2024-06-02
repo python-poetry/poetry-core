@@ -78,7 +78,11 @@ class Constraint(BaseConstraint):
 
         """
 
-        if not isinstance(other, Constraint) or other.operator != "==":
+        if not isinstance(other, Constraint) or other.operator not in {
+            "==",
+            "in",
+            "not in",
+        }:
             raise ValueError(
                 f"Invalid argument for allows"
                 f' ("other" must be a constraint with operator "=="): {other}'
@@ -95,17 +99,12 @@ class Constraint(BaseConstraint):
 
         if is_equal_op:
             return self._value == other.value
-        if is_non_equal_op:
-            return self._value != other.value
 
-        if (
-            is_in_op
-            and is_other_in_op
-            or is_other_in_op
-            or is_in_op
-            and is_other_equal_op
-        ):
+        if is_in_op and is_other_in_op or is_in_op and is_other_equal_op:
             return bool(self._trans_op_str["in"](other.value, self._value))
+
+        if is_non_equal_op and not (is_other_in_op or is_other_not_in_op):
+            return self._value != other.value
 
         if (
             is_in_op

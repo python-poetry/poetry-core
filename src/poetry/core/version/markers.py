@@ -315,9 +315,6 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
 
 
 class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
-    _CONSTRAINT_RE = re.compile(
-        r"""(?i)^((~=|!=|>=?|<=?|==?=?|not in|in)?\s*.+)|(".+"|'.+'\s*(not in|in))$"""
-    )
     _CONSTRAINT_RE_PATTERN_1 = re.compile(
         r"(?i)^(?P<op>~=|!=|>=?|<=?|==?=?|not in|in)?\s*(?P<value>.+)$"
     )
@@ -345,11 +342,6 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         parser: Callable[[str], BaseConstraint | VersionConstraint]
         original_constraint_string = constraint_string = str(constraint)
         self._swapped_name_value: bool = swapped_name_value
-
-        # Extract operator and value
-        m = self._CONSTRAINT_RE.match(constraint_string)
-        if m is None:
-            raise InvalidMarker(f"Invalid marker for '{name}': {constraint_string}")
 
         if swapped_name_value:
             pattern = self._CONSTRAINT_RE_PATTERN_2
