@@ -304,10 +304,7 @@ print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
         dist_info = metadata_directory / self.dist_info
         dist_info.mkdir(parents=True, exist_ok=True)
 
-        if (
-            "scripts" in self._poetry.local_config
-            or "plugins" in self._poetry.local_config
-        ):
+        if self._poetry.package.entry_points:
             with (dist_info / "entry_points.txt").open(
                 "w", encoding="utf-8", newline="\n"
             ) as f:
