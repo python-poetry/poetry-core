@@ -5,6 +5,7 @@ import zipfile
 
 from contextlib import contextmanager
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 from typing import Iterator
 
@@ -12,7 +13,6 @@ import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
-from poetry.core.utils.helpers import temporary_directory
 from tests.testutils import validate_sdist_contents
 from tests.testutils import validate_wheel_contents
 
@@ -48,7 +48,9 @@ def test_get_requires_for_build_sdist() -> None:
 
 @pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_build_wheel() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
+        os.path.join(fixtures, "complete")
+    ):
         filename = api.build_wheel(tmp_dir)
         validate_wheel_contents(
             name="my_package",
@@ -59,7 +61,9 @@ def test_build_wheel() -> None:
 
 
 def test_build_wheel_with_include() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
+        os.path.join(fixtures, "with-include")
+    ):
         filename = api.build_wheel(tmp_dir)
         validate_wheel_contents(
             name="with_include",
@@ -70,14 +74,14 @@ def test_build_wheel_with_include() -> None:
 
 
 def test_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dev_dep")
     ):
         api.build_wheel(tmp_dir)
 
 
 def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> None:
-    with temporary_directory() as tmp_dir, cwd(
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.build_wheel(tmp_dir)
@@ -88,7 +92,9 @@ def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
 
 
 def test_build_wheel_extended() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "extended")):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
+        os.path.join(fixtures, "extended")
+    ):
         filename = api.build_wheel(tmp_dir)
         whl = Path(tmp_dir) / filename
         assert whl.exists()
@@ -96,7 +102,9 @@ def test_build_wheel_extended() -> None:
 
 
 def test_build_sdist() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
+        os.path.join(fixtures, "complete")
+    ):
         filename = api.build_sdist(tmp_dir)
         validate_sdist_contents(
             name="my-package",
@@ -107,7 +115,9 @@ def test_build_sdist() -> None:
 
 
 def test_build_sdist_with_include() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
+        os.path.join(fixtures, "with-include")
+    ):
         filename = api.build_sdist(tmp_dir)
         validate_sdist_contents(
             name="with-include",
@@ -118,14 +128,14 @@ def test_build_sdist_with_include() -> None:
 
 
 def test_build_sdist_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dev_dep")
     ):
         api.build_sdist(tmp_dir)
 
 
 def test_build_sdist_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> None:
-    with temporary_directory() as tmp_dir, cwd(
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.build_sdist(tmp_dir)
@@ -187,7 +197,9 @@ My Package
 ==========
 
 """
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
+        os.path.join(fixtures, "complete")
+    ):
         dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
 
         assert dirname == "my_package-1.2.3.dist-info"
@@ -209,7 +221,7 @@ My Package
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dev_dep")
     ):
         api.prepare_metadata_for_build_wheel(tmp_dir)
@@ -218,7 +230,7 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> No
 def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     caplog: LogCaptureFixture,
 ) -> None:
-    with temporary_directory() as tmp_dir, cwd(
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(
         os.path.join(fixtures, "with_bad_path_dep")
     ):
         api.prepare_metadata_for_build_wheel(tmp_dir)
@@ -232,7 +244,7 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
 def test_build_editable_wheel() -> None:
     pkg_dir = Path(fixtures) / "complete"
 
-    with temporary_directory() as tmp_dir, cwd(pkg_dir):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(pkg_dir):
         filename = api.build_editable(tmp_dir)
         wheel_pth = Path(tmp_dir) / filename
 
@@ -253,10 +265,12 @@ def test_build_editable_wheel() -> None:
 def test_build_wheel_with_metadata_directory() -> None:
     pkg_dir = Path(fixtures) / "complete"
 
-    with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as metadata_tmp_dir, cwd(
+        pkg_dir
+    ):
         metadata_directory = api.prepare_metadata_for_build_wheel(metadata_tmp_dir)
 
-        with temporary_directory() as wheel_tmp_dir:
+        with TemporaryDirectory(ignore_cleanup_errors=True) as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
             (dist_info_path / "CUSTOM").touch()
             filename = api.build_wheel(
@@ -281,10 +295,12 @@ def test_build_wheel_with_metadata_directory() -> None:
 def test_build_editable_wheel_with_metadata_directory() -> None:
     pkg_dir = Path(fixtures) / "complete"
 
-    with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as metadata_tmp_dir, cwd(
+        pkg_dir
+    ):
         metadata_directory = api.prepare_metadata_for_build_editable(metadata_tmp_dir)
 
-        with temporary_directory() as wheel_tmp_dir:
+        with TemporaryDirectory(ignore_cleanup_errors=True) as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
             (dist_info_path / "CUSTOM").touch()
             filename = api.build_editable(
