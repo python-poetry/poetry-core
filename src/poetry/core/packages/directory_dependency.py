@@ -12,6 +12,8 @@ from poetry.core.pyproject.toml import PyProjectTOML
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
+    from typing import Mapping
+    from typing import Sequence
 
 
 class DirectoryDependency(PathDependency):
@@ -23,6 +25,7 @@ class DirectoryDependency(PathDependency):
         optional: bool = False,
         base: Path | None = None,
         develop: bool = False,
+        config_settings: Mapping[str, str | Sequence[str]] | None = None,
         extras: Iterable[str] | None = None,
     ) -> None:
         super().__init__(
@@ -37,6 +40,7 @@ class DirectoryDependency(PathDependency):
         # Attributes must be immutable for clone() to be safe!
         # (For performance reasons, clone only creates a copy instead of a deep copy).
         self._develop = develop
+        self._config_settings = config_settings
 
         # cache this function to avoid multiple IO reads and parsing
         self.supports_poetry = functools.lru_cache(maxsize=1)(self._supports_poetry)
@@ -44,6 +48,10 @@ class DirectoryDependency(PathDependency):
     @property
     def develop(self) -> bool:
         return self._develop
+
+    @property
+    def config_settings(self) -> Mapping[str, str | Sequence[str]] | None:
+        return self._config_settings
 
     def _validate(self) -> str:
         message = super()._validate()
