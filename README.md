@@ -4,6 +4,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/poetry-core)](https://pypi.org/project/poetry-core/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://github.com/python-poetry/poetry-core/workflows/Tests/badge.svg)](https://github.com/python-poetry/poetry-core/actions?query=workflow%3ATests)
+[![poetry-core Downloads Last Month](https://assets.piptrends.com/get-last-month-downloads-badge/poetry-core.svg 'poetry-core Downloads Last Month by pip Trends')](https://piptrends.com/package/poetry-core)
 
 A [PEP 517](https://www.python.org/dev/peps/pep-0517/) build backend implementation developed for
 [Poetry](https://github.com/python-poetry/poetry). This project is intended to be a lightweight, fully compliant,
