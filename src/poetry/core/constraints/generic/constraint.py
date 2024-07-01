@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import operator
 
-from typing import Any
 from typing import Callable
 from typing import ClassVar
 
@@ -11,7 +10,7 @@ from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
 
 
-OperatorType = Callable[[object, object], Any]
+OperatorType = Callable[[object, object], bool]
 
 
 def contains(a: object, b: object, /) -> bool:
@@ -67,57 +66,22 @@ class Constraint(BaseConstraint):
         return self._operator
 
     def allows(self, other: BaseConstraint) -> bool:
-        """Logic table to help
-
-                ||   !=   |   ==   |   in   | not in
-        --------||--------|--------|--------|--------
-           !=   ||   !=   |   !=   | not in | not in
-           ==   ||   !=   |   ==   |   in   | not in
-           in   || not in |   in   |   in   | not in
-         not in || not in | not in | not in | false
-
-        """
-
-        if not isinstance(other, Constraint) or other.operator not in {
-            "==",
-            "in",
-            "not in",
-        }:
+        if not isinstance(other, Constraint) or other.operator != "==":
             raise ValueError(
                 f"Invalid argument for allows"
                 f' ("other" must be a constraint with operator "=="): {other}'
             )
 
-        is_equal_op = self._operator == "=="
-        is_non_equal_op = self._operator == "!="
-        is_other_equal_op = other.operator == "=="
-        is_other_non_equal_op = other.operator == "!="
-        is_in_op = self._operator == "in"
-        is_not_in_op = self._operator == "not in"
-        is_other_in_op = other.operator == "in"
-        is_other_not_in_op = other.operator == "not in"
-
-        if is_equal_op:
+        if self._operator == "==":
             return self._value == other.value
 
-        if is_in_op and is_other_in_op or is_in_op and is_other_equal_op:
+        if self._operator == "in":
             return bool(self._trans_op_str["in"](other.value, self._value))
 
-        if is_non_equal_op and not (is_other_in_op or is_other_not_in_op):
+        if self._operator == "!=":
             return self._value != other.value
 
-        if (
-            is_in_op
-            and is_other_non_equal_op
-            or is_in_op
-            and is_other_not_in_op
-            or is_not_in_op
-            and is_other_non_equal_op
-            or is_not_in_op
-            and is_other_equal_op
-            or is_non_equal_op
-            and is_other_not_in_op
-        ):
+        if self._operator == "not in":
             return bool(self._trans_op_str["not in"](other.value, self._value))
 
         return False
@@ -127,8 +91,21 @@ class Constraint(BaseConstraint):
         from poetry.core.constraints.generic import UnionConstraint
 
         if isinstance(other, Constraint):
-            if other.operator == "==":
+            is_in_op = self._operator == "in"
+            is_not_in_op = self._operator == "not in"
+
+            is_other_equal_op = other.operator == "=="
+            is_other_in_op = other.operator == "in"
+            is_other_not_in_op = other.operator == "not in"
+
+            if is_other_equal_op:
                 return self.allows(other)
+
+            if is_other_in_op and is_in_op:
+                return self._op(self.value, other.value)
+
+            if is_other_not_in_op and not is_not_in_op:
+                return self._trans_op_str["not in"](other.value, self.value)
 
             return self == other
 
@@ -146,6 +123,8 @@ class Constraint(BaseConstraint):
 
         is_equal_op = self._operator == "=="
         is_non_equal_op = self._operator == "!="
+        is_in_op = self._operator == "in"
+        is_not_in_op = self._operator == "not in"
 
         if is_equal_op:
             return other.allows(self)
@@ -153,6 +132,8 @@ class Constraint(BaseConstraint):
         if isinstance(other, Constraint):
             is_other_equal_op = other.operator == "=="
             is_other_non_equal_op = other.operator == "!="
+            is_other_in_op = other.operator == "in"
+            is_other_not_in_op = other.operator == "not in"
 
             if is_other_equal_op:
                 return self.allows(other)
@@ -160,7 +141,14 @@ class Constraint(BaseConstraint):
             if is_equal_op and is_other_non_equal_op:
                 return self._value != other.value
 
-            return is_non_equal_op and is_other_non_equal_op
+            return (
+                is_in_op
+                and is_other_in_op
+                or is_not_in_op
+                and is_other_not_in_op
+                or is_non_equal_op
+                and other.operator in {"!=", "in", "not in"}
+            )
 
         elif isinstance(other, MultiConstraint):
             return is_non_equal_op
@@ -188,22 +176,50 @@ class Constraint(BaseConstraint):
             if other == self:
                 return self
 
-            if (
-                self.operator in {"!=", "not in", "in"}
-                and other.operator in {"==", "in", "not in"}
-                and self.allows(other)
-            ):
+            if self.operator == "!=" and other.operator == "==" and self.allows(other):
                 return other
 
-            if (
-                other.operator in {"!=", "not in", "in"}
-                and self.operator in {"==", "in", "not in"}
-                and other.allows(self)
-            ):
+            if other.operator == "!=" and self.operator == "==" and other.allows(self):
                 return self
 
-            if other.operator in {"!=", "not in"} and self.operator in {"!=", "not in"}:
+            if (
+                other.operator == "!="
+                and self.operator == "!="
+                or self.operator == "not in"
+                and other.operator == "not in"
+            ):
                 return MultiConstraint(self, other)
+
+            other_in_self = self._trans_op_str["in"](self.value, other.value)
+            self_in_other = self._trans_op_str["in"](other.value, self.value)
+            is_in_op = self._operator == "in"
+            is_other_in_op = other.operator == "in"
+
+            if is_in_op or other.operator == "not in":
+                # If self is a subset of other, return self
+                if is_other_in_op and other_in_self:
+                    return self
+                # If neither are subsets of each other then its a MC
+                if (is_other_in_op and not self_in_other) or (
+                    other.operator == "!=" and self_in_other
+                ):
+                    return MultiConstraint(self, other)
+                # if it allows any of other, return other
+                if self.allows_any(other):
+                    return other
+
+            if is_other_in_op or self.operator == "not in":
+                # If other is a subset of self, return other
+                if is_in_op and self_in_other:
+                    return other
+                # If neither are subsets of each other then its a MC
+                if (is_in_op and not other_in_self) or (
+                    self.operator == "!=" and other_in_self
+                ):
+                    return MultiConstraint(self, other)
+                # if other allows any of self, return self
+                if other.allows_any(self):
+                    return self
 
             return EmptyConstraint()
 
@@ -216,20 +232,44 @@ class Constraint(BaseConstraint):
             if other == self:
                 return self
 
-            if (
-                self.operator in {"!=", "not in", "in"}
-                and other.operator in {"==", "in", "not in"}
-            ) and self.allows(other):
+            if self.operator == "!=" and other.operator == "==" and self.allows(other):
                 return self
 
-            if (
-                other.operator in {"!=", "not in", "in"}
-                and self.operator in {"==", "in", "not in"}
-            ) and other.allows(self):
+            if other.operator == "!=" and self.operator == "==" and other.allows(self):
                 return other
 
-            if other.operator in {"==", "in"} and self.operator in {"==", "in"}:
+            if (
+                other.operator == "=="
+                and self.operator == "=="
+                or self.operator == "not in"
+                and other.operator == "not in"
+            ):
                 return UnionConstraint(self, other)
+
+            other_in_self = self._trans_op_str["in"](self.value, other.value)
+            self_in_other = self._trans_op_str["in"](other.value, self.value)
+            is_in_op = self._operator == "in"
+            is_other_in_op = other.operator == "in"
+
+            if is_in_op or other.operator == "not in":
+                if is_other_in_op and self_in_other:
+                    return self
+                if (is_other_in_op and not other_in_self) or (
+                    other.operator == "!=" and other_in_self
+                ):
+                    return UnionConstraint(self, other)
+                if other.allows_all(self):
+                    return other
+
+            if is_other_in_op or self._operator == "not in":
+                if is_in_op and other_in_self:
+                    return other
+                if (is_in_op and not self_in_other) or (
+                    self.operator == "!=" and self_in_other
+                ):
+                    return UnionConstraint(self, other)
+                if self.allows_all(other):
+                    return self
 
             return AnyConstraint()
 

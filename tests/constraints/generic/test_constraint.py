@@ -127,6 +127,60 @@ def test_allows(
             True,
             False,
         ),
+        (
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+            True,
+            True,
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("tegra", "not in"),
+            False,
+            False,
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+            True,
+            True,
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("teg", "in"),
+            True,
+            True,
+        ),
+        (
+            Constraint("teg", "in"),
+            Constraint("tegra", "in"),
+            True,
+            False,
+        ),
+        (
+            Constraint("teg", "not in"),
+            Constraint("tegra", "in"),
+            False,
+            False,
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("rpi", "in"),
+            True,
+            False,
+        ),
+        (
+            Constraint("1.2.3-tegra", "!="),
+            Constraint("tegra", "in"),
+            True,
+            False,
+        ),
+        (
+            Constraint("1.2.3-tegra", "!="),
+            Constraint("tegra", "not in"),
+            True,
+            True,
+        ),
     ],
 )
 def test_allows_any_and_allows_all(
@@ -327,9 +381,9 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
             ),
         ),
         (
-            Constraint("tegra", "in"),
-            Constraint("tegra", "in"),
-            Constraint("tegra", "in"),
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
         ),
         (
             Constraint("tegra", "in"),
@@ -337,50 +391,67 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
             EmptyConstraint(),
         ),
         (
-            Constraint("tegra", "not in"),
-            Constraint("tegra", "not in"),
-            Constraint("tegra", "not in"),
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
         ),
         (
-            Constraint("tegra", "not in"),
-            Constraint("rpi-v8", "not in"),
+            Constraint("teg", "in"),
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+        ),
+        (
+            Constraint("teg", "not in"),
+            Constraint("tegra", "in"),
+            EmptyConstraint(),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("rpi", "in"),
+            (
+                MultiConstraint(Constraint("tegra", "in"), Constraint("rpi", "in")),
+                MultiConstraint(
+                    Constraint("rpi", "in"),
+                    Constraint("tegra", "in"),
+                ),
+            ),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("1.2.3-tegra", "=="),
+            Constraint("1.2.3-tegra", "=="),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("1.2.3-tegra", "!="),
             (
                 MultiConstraint(
-                    Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
+                    Constraint("tegra", "in"), Constraint("1.2.3-tegra", "!=")
                 ),
                 MultiConstraint(
-                    Constraint("rpi-v8", "not in"), Constraint("tegra", "not in")
+                    Constraint("1.2.3-tegra", "!="),
+                    Constraint("tegra", "in"),
                 ),
             ),
         ),
         (
             Constraint("tegra", "not in"),
-            MultiConstraint(
-                Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
-            ),
-            MultiConstraint(
-                Constraint("tegra", "not in"), Constraint("rpi-v8", "not in")
-            ),
-        ),
-        (
-            Constraint("5.10.123-tegra", "!="),
-            Constraint("tegra", "not in"),
+            Constraint("1.2.3-tegra", "!="),
             Constraint("tegra", "not in"),
         ),
         (
-            Constraint("5.10.123-tegra", "!="),
-            Constraint("tegra", "in"),
-            EmptyConstraint(),
-        ),
-        (
-            Constraint("5.10.123-tegra", "=="),
-            Constraint("tegra", "in"),
-            Constraint("5.10.123-tegra"),
-        ),
-        (
-            Constraint("5.10.123", "=="),
-            Constraint("tegra", "in"),
-            EmptyConstraint(),
+            Constraint("tegra", "not in"),
+            Constraint("rpi", "not in"),
+            (
+                MultiConstraint(
+                    Constraint("tegra", "not in"),
+                    Constraint("rpi", "not in"),
+                ),
+                MultiConstraint(
+                    Constraint("rpi", "not in"),
+                    Constraint("tegra", "not in"),
+                ),
+            ),
         ),
     ],
 )
@@ -585,32 +656,54 @@ def test_intersect(
             MultiConstraint(Constraint("win32", "!=")),
         ),
         (
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+            Constraint("tegra", "not in"),
+        ),
+        (
             Constraint("tegra", "in"),
-            Constraint("rpi-v8", "in"),
+            Constraint("tegra", "not in"),
+            AnyConstraint(),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+            Constraint("tegra", "in"),
+        ),
+        (
+            Constraint("teg", "in"),
+            Constraint("tegra", "in"),
+            Constraint("teg", "in"),
+        ),
+        (
+            Constraint("tegra", "in"),
+            Constraint("rpi", "in"),
             (
-                UnionConstraint(Constraint("tegra", "in"), Constraint("rpi-v8", "in")),
-                UnionConstraint(Constraint("rpi-v8", "in"), Constraint("tegra", "in")),
+                UnionConstraint(Constraint("tegra", "in"), Constraint("rpi", "in")),
+                UnionConstraint(
+                    Constraint("rpi", "in"),
+                    Constraint("tegra", "in"),
+                ),
             ),
         ),
         (
             Constraint("tegra", "in"),
+            Constraint("1.2.3-tegra", "!="),
+            AnyConstraint(),
+        ),
+        (
             Constraint("tegra", "not in"),
-            AnyConstraint(),
-        ),
-        (
-            Constraint("5.10.123-tegra", "!="),
-            Constraint("tegra", "in"),
-            AnyConstraint(),
-        ),
-        (
-            Constraint("5.10.123", "!="),
-            Constraint("tegra", "in"),
-            AnyConstraint(),
-        ),
-        (
-            Constraint("5.10.123-tegra", "!="),
-            Constraint("tegra", "not in"),
-            Constraint("5.10.123-tegra", "!="),
+            Constraint("rpi", "not in"),
+            (
+                UnionConstraint(
+                    Constraint("tegra", "not in"),
+                    Constraint("rpi", "not in"),
+                ),
+                UnionConstraint(
+                    Constraint("rpi", "not in"),
+                    Constraint("tegra", "not in"),
+                ),
+            ),
         ),
     ],
 )
