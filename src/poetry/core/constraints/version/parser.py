@@ -77,6 +77,7 @@ def parse_single_constraint(
     constraint: str, *, is_marker_constraint: bool = False
 ) -> VersionConstraint:
     from poetry.core.constraints.version.patterns import BASIC_CONSTRAINT
+    from poetry.core.constraints.version.patterns import BASIC_RELEASE_CONSTRAINT
     from poetry.core.constraints.version.patterns import CARET_CONSTRAINT
     from poetry.core.constraints.version.patterns import TILDE_CONSTRAINT
     from poetry.core.constraints.version.patterns import TILDE_PEP440_CONSTRAINT
@@ -183,6 +184,36 @@ def parse_single_constraint(
         if op == "!=":
             return VersionUnion(VersionRange(max=version), VersionRange(min=version))
 
+        return version
+
+    # These below should be reserved for comparing non python packages such as OS
+    # versions using `platform_release`
+    m = BASIC_RELEASE_CONSTRAINT.match(constraint)
+    if m:
+        op = m.group("op")
+        release_string = m.group("release")
+        build = m.group("build")
+
+        try:
+            version = Version(
+                release=Version.parse(release_string).release,
+                local=build,
+            )
+        except InvalidVersion as e:
+            raise ParseConstraintError(
+                f"Could not parse version constraint: {constraint}"
+            ) from e
+
+        if op == "<":
+            return VersionRange(max=version)
+        if op == "<=":
+            return VersionRange(max=version, include_max=True)
+        if op == ">":
+            return VersionRange(min=version)
+        if op == ">=":
+            return VersionRange(min=version, include_min=True)
+        if op == "!=":
+            return VersionUnion(VersionRange(max=version), VersionRange(min=version))
         return version
 
     raise ParseConstraintError(f"Could not parse version constraint: {constraint}")
