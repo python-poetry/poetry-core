@@ -14,8 +14,17 @@ jobs:
     runs-on: "${{ matrix.os }}-latest"
     strategy:
       matrix:
-        os: [Ubuntu, MacOS, Windows]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        os:
+          - Ubuntu
+          - MacOS
+          - Windows
+        python-version:
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
         include:
           - os: Ubuntu
             python-version: pypy-3.8
@@ -30,6 +39,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: Get full Python version
         id: full-python-version
