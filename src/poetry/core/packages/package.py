@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import warnings
 
-from contextlib import contextmanager
 from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import Mapping
@@ -14,15 +13,12 @@ from poetry.core.constraints.version import parse_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
-from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.version.exceptions import InvalidVersion
-from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Iterable
-    from collections.abc import Iterator
     from pathlib import Path
 
     from packaging.utils import NormalizedName
@@ -124,7 +120,6 @@ class Package(PackageSpecification):
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._python_marker: BaseMarker = AnyMarker()
 
         self.marker: BaseMarker = AnyMarker()
 
@@ -280,17 +275,10 @@ class Package(PackageSpecification):
 
         self._python_versions = value
         self._python_constraint = constraint
-        self._python_marker = parse_marker(
-            create_nested_marker("python_version", self._python_constraint)
-        )
 
     @property
     def python_constraint(self) -> VersionConstraint:
         return self._python_constraint
-
-    @property
-    def python_marker(self) -> BaseMarker:
-        return self._python_marker
 
     @property
     def license(self) -> License | None:
@@ -562,16 +550,6 @@ class Package(PackageSpecification):
             return dep
 
         return dep.with_constraint(self._version)
-
-    @contextmanager
-    def with_python_versions(self, python_versions: str) -> Iterator[None]:
-        original_python_versions = self.python_versions
-
-        self.python_versions = python_versions
-
-        yield
-
-        self.python_versions = original_python_versions
 
     def satisfies(
         self, dependency: Dependency, ignore_source_type: bool = False

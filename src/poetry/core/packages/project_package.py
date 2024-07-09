@@ -8,7 +8,6 @@ from typing import Mapping
 from typing import Sequence
 
 from poetry.core.constraints.version import parse_constraint
-from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
@@ -16,7 +15,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
 
 from poetry.core.packages.package import Package
-from poetry.core.packages.utils.utils import create_nested_marker
 
 
 class ProjectPackage(Package):
@@ -74,9 +72,6 @@ class ProjectPackage(Package):
             value = "~2.7 || >=3.4"
 
         self._python_constraint = parse_constraint(value)
-        self._python_marker = parse_marker(
-            create_nested_marker("python_version", self._python_constraint)
-        )
 
     @property
     def version(self) -> Version:
