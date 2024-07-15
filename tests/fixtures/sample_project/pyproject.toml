@@ -64,7 +64,7 @@ pytest = "~3.4"
 
 
 [tool.poetry.scripts]
-my-script = "my_package:main"
+my-script = { reference = "my_package:main", type = "console"}
 
 
 [tool.poetry.plugins."blogtool.parsers"]

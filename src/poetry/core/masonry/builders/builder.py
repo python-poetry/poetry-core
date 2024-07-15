@@ -298,10 +298,14 @@ class Builder:
         # Scripts -> Entry points
         for name, specification in self._poetry.local_config.get("scripts", {}).items():
             if isinstance(specification, str):
-                # TODO: deprecate this in favour or reference
+                warnings.warn(
+                    'String defined scripts are deprecated in favor of reference definition',
+                    DeprecationWarning,
+                    stacklevel=1,
+                )
                 specification = {"reference": specification, "type": "console"}
 
-            if specification.get("type") != "console":
+            if specification.get("type") != "console" and specification.get("type") != "gui":
                 continue
 
             extras = specification.get("extras", [])
@@ -318,8 +322,12 @@ class Builder:
             extras = f"[{', '.join(extras)}]" if extras else ""
             reference = specification.get("reference")
 
-            if reference:
+            if not reference:
+                continue
+            if specification.get("type") == "console":
                 result["console_scripts"].append(f"{name} = {reference}{extras}")
+            if specification.get("type") == "gui":
+                result["gui_scripts"].append(f"{name} = {reference}{extras}")
 
         # Plugins -> entry points
         plugins = self._poetry.local_config.get("plugins", {})

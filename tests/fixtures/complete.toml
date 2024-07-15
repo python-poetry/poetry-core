@@ -37,7 +37,7 @@ pytest = "^3.0"
 pytest-cov = "^2.4"
 
 [tool.poetry.scripts]
-my-script = 'my_package:main'
+my-script = { reference = "my_package:main", type = "console" }
 sample_pyscript = { reference = "script-files/sample_script.py", type= "file" }
 sample_shscript = { reference = "script-files/sample_script.sh", type= "file" }
 

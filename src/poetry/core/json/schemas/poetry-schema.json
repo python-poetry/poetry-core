@@ -621,7 +621,8 @@
           "type": "string",
           "enum": [
             "file",
-            "console"
+            "console",
+            "gui"
           ]
         },
         "extras": {
@@ -644,7 +645,7 @@
       "properties": {
         "callable": {
           "$ref": "#/definitions/script-legacy",
-          "description": "The entry point of the script. Deprecated in favour of reference."
+          "description": "The entry point of the script. Deprecated in favor of reference."
         },
         "extras": {
           "type": "array",

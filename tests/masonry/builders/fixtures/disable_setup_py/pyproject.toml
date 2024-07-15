@@ -32,4 +32,4 @@ python = "~2.7 || ^3.6"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
-my-script = "my_package:main"
+my-script = { reference = "my_package:main", type = "console" }

@@ -34,4 +34,4 @@ pytest = "7.1.3"
 preview = true
 
 [tool.poetry.scripts]
-my-script = "my_package:main"
+my-script = { reference = "my_package:main", type = "console"}

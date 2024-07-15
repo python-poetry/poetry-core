@@ -441,11 +441,15 @@ class Factory:
                             )
 
             # Checking for scripts with extras
+            # Checking for string scripts
             if "scripts" in config:
                 scripts = config["scripts"]
                 config_extras = config.get("extras", {})
 
                 for name, script in scripts.items():
+                    if isinstance(script, str):
+                        result["warnings"].append('String defined scripts are deprecated in favor of reference definition')
+
                     if not isinstance(script, dict):
                         continue
 

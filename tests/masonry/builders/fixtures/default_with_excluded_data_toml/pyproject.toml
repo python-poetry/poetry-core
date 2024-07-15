@@ -37,5 +37,5 @@ pytest = "~3.4"
 time = ["pendulum"]
 
 [tool.poetry.scripts]
-my-script = "my_package:main"
-my-2nd-script = "my_package:main2"
+my-script = { reference = "my_package:main", type = "console" }
+my-2nd-script = { reference = "my_package:main2", type = "console" }
