@@ -448,7 +448,9 @@ class Factory:
 
                 for name, script in scripts.items():
                     if isinstance(script, str):
-                        result["warnings"].append('String defined scripts are deprecated in favor of reference definition')
+                        result["warnings"].append(
+                            "String defined scripts are deprecated in favor of reference definition"
+                        )
 
                     if not isinstance(script, dict):
                         continue

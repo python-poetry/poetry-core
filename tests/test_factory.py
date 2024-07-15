@@ -332,9 +332,7 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
                 " https://packaging.python.org/en/latest/specifications/entry-points/#data-model"
                 " for details."
             ),
-            (
-                'String defined scripts are deprecated in favor of reference definition'
-            ),
+            ("String defined scripts are deprecated in favor of reference definition"),
         ],
     }
 

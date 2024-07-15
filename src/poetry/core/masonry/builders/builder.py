@@ -299,13 +299,16 @@ class Builder:
         for name, specification in self._poetry.local_config.get("scripts", {}).items():
             if isinstance(specification, str):
                 warnings.warn(
-                    'String defined scripts are deprecated in favor of reference definition',
+                    "String defined scripts are deprecated in favor of reference definition",
                     DeprecationWarning,
                     stacklevel=1,
                 )
                 specification = {"reference": specification, "type": "console"}
 
-            if specification.get("type") != "console" and specification.get("type") != "gui":
+            if (
+                specification.get("type") != "console"
+                and specification.get("type") != "gui"
+            ):
                 continue
 
             extras = specification.get("extras", [])
