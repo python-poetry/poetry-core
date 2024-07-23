@@ -588,7 +588,7 @@ class Package(PackageSpecification):
         if not dependency.constraint.allows(self.version):
             return False
 
-        if not (ignore_source_type or self.source_satisfies(dependency)):
+        if not (ignore_source_type or self.source_satisfies(dependency)):  # noqa: SIM103
             return False
 
         return True

@@ -267,17 +267,6 @@ class Link:
         return self.ext in {".tar.bz2", ".tar.gz", ".zip"}
 
     @cached_property
-    def is_artifact(self) -> bool:
-        """
-        Determines if this points to an actual artifact (e.g. a tarball) or if
-        it points to an "abstract" thing like a path or a VCS location.
-        """
-        if self.scheme in {"ssh", "git", "hg", "bzr", "sftp", "svn"}:
-            return False
-
-        return True
-
-    @cached_property
     def yanked(self) -> bool:
         return isinstance(self._yanked, str) or bool(self._yanked)
 
