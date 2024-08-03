@@ -1404,6 +1404,11 @@
     false,
     false
   ],
+  "HIDAPI": [
+    "HIDAPI License",
+    false,
+    false
+  ],
   "HP-1986": [
     "Hewlett-Packard 1986 License",
     false,
@@ -1451,6 +1456,11 @@
   ],
   "HPND-Markus-Kuhn": [
     "Historical Permission Notice and Disclaimer - Markus Kuhn variant",
+    false,
+    false
+  ],
+  "HPND-Netrek": [
+    "Historical Permission Notice and Disclaimer - Netrek variant",
     false,
     false
   ],
@@ -2564,6 +2574,11 @@
     false,
     false
   ],
+  "Ruby-pty": [
+    "Ruby pty extension license",
+    false,
+    false
+  ],
   "SAX-PD": [
     "Sax Public Domain Notice",
     false,
@@ -2936,6 +2951,11 @@
   ],
   "X11-distribute-modifications-variant": [
     "X11 License Distribution Modification Variant",
+    false,
+    false
+  ],
+  "X11-swapped": [
+    "X11 swapped final paragraphs",
     false,
     false
   ],

@@ -12,6 +12,7 @@ from poetry.core.constraints.version import parse_constraint as parse_version_co
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import AtomicMarkerUnion
 from poetry.core.version.markers import EmptyMarker
+from poetry.core.version.markers import InvalidMarker
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
@@ -62,10 +63,30 @@ EMPTY = "<empty>"
         'extra == "a" or extra != "b"',
         'extra != "a" or extra == "b"',
         'extra != "a" or extra != "b"',
+        # String comparison markers
+        '"tegra" in platform_release',
+        '"tegra" not in platform_release',
+        '"tegra" in platform_release or "rpi-v8" in platform_release',
+        '"tegra" not in platform_release and "rpi-v8" not in platform_release',
     ],
 )
 def test_parse_marker(marker: str) -> None:
     assert str(parse_marker(marker)) == marker
+
+
+@pytest.mark.parametrize(
+    ("marker", "valid"),
+    [
+        ('platform_release != "4.9.253-tegra"', True),
+        ('python_version != "4.9.253-tegra"', False),
+    ],
+)
+def test_parse_marker_non_python_versions(marker: str, valid: bool) -> None:
+    if valid:
+        assert str(parse_marker(marker)) == marker
+    else:
+        with pytest.raises(InvalidMarker):
+            parse_marker(marker)
 
 
 @pytest.mark.parametrize(
@@ -110,6 +131,10 @@ def test_parse_marker(marker: str) -> None:
             "platform_machine",
             "!=aarch64, !=loongarch64",
         ),
+        ('"tegra" not in platform_release', "platform_release", "'tegra' not in"),
+        ('"rpi-v8" in platform_release', "platform_release", "'rpi-v8' in"),
+        ('"arm" not in platform_version', "platform_version", "'arm' not in"),
+        ('"arm" in platform_version', "platform_version", "'arm' in"),
     ],
 )
 def test_parse_single_marker(
@@ -954,6 +979,39 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_machine": "x86_64"},
             False,
         ),
+        ('"tegra" in platform_release', {"platform_release": "5.10.120-tegra"}, True),
+        ('"tegra" in platform_release', {"platform_release": "5.10.120"}, False),
+        (
+            '"tegra" not in platform_release',
+            {"platform_release": "5.10.120-tegra"},
+            False,
+        ),
+        ('"tegra" not in platform_release', {"platform_release": "5.10.120"}, True),
+        (
+            "platform_machine == 'aarch64' and 'tegra' in platform_release",
+            {"platform_release": "5.10.120-tegra", "platform_machine": "aarch64"},
+            True,
+        ),
+        (
+            "platform_release != '4.9.253-tegra'",
+            {"platform_release": "4.9.254-tegra"},
+            True,
+        ),
+        (
+            "platform_release != '4.9.253-tegra'",
+            {"platform_release": "4.9.253"},
+            True,
+        ),
+        (
+            "platform_release >= '6.6.0+rpt-rpi-v8'",
+            {"platform_release": "6.6.20+rpt-rpi-v8"},
+            True,
+        ),
+        (
+            "platform_release < '5.10.123-tegra' and platform_release >= '4.9.254-tegra'",
+            {"platform_release": "4.9.254-tegra"},
+            True,
+        ),
         # extras
         # single extra
         ("extra == 'security'", {"extra": "quux"}, False),
@@ -1300,6 +1358,8 @@ def test_union_of_multi_with_a_containing_single() -> None:
             'python_full_version ~= "3.6.3"',
             'python_full_version < "3.6.3" or python_full_version >= "3.7.0"',
         ),
+        ('"tegra" in platform_release', '"tegra" not in platform_release'),
+        ('"tegra" not in platform_release', '"tegra" in platform_release'),
     ],
 )
 def test_invert(marker: str, inverse: str) -> None:
