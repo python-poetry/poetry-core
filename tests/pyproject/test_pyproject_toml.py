@@ -30,6 +30,36 @@ def test_pyproject_toml_no_poetry_config(pyproject_toml: Path) -> None:
     )
 
 
+def test_pyproject_toml_no_poetry_config_but_project_section(
+    pyproject_toml: Path, project_section: str
+) -> None:
+    pyproject = PyProjectTOML(pyproject_toml)
+
+    assert pyproject.is_poetry_project()
+
+    with pytest.raises(PyProjectException) as excval:
+        _ = pyproject.poetry_config
+
+    assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
+        excval.value
+    )
+
+
+def test_pyproject_toml_no_poetry_config_but_project_section_but_dynamic(
+    pyproject_toml: Path, project_section_dynamic: str
+) -> None:
+    pyproject = PyProjectTOML(pyproject_toml)
+
+    assert not pyproject.is_poetry_project()
+
+    with pytest.raises(PyProjectException) as excval:
+        _ = pyproject.poetry_config
+
+    assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
+        excval.value
+    )
+
+
 def test_pyproject_toml_poetry_config(
     pyproject_toml: Path, poetry_section: str
 ) -> None:

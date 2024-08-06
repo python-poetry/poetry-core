@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import logging
 import sys
-import warnings
+import textwrap
 
-from collections import defaultdict
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -250,7 +249,15 @@ class Builder:
             content += f"Home-page: {self._meta.home_page}\n"
 
         if self._meta.license:
-            content += f"License: {self._meta.license}\n"
+            license_field = "License: "
+            # Indentation is not only for readability, but required
+            # so that the line break is not treated as end of field.
+            # The exact indentation does not matter,
+            # but it is essential to also indent empty lines.
+            escaped_license = textwrap.indent(
+                self._meta.license, " " * len(license_field), lambda line: True
+            ).strip()
+            content += f"{license_field}{escaped_license}\n"
 
         if self._meta.keywords:
             content += f"Keywords: {self._meta.keywords}\n"
@@ -293,44 +300,18 @@ class Builder:
         return content
 
     def convert_entry_points(self) -> dict[str, list[str]]:
-        result = defaultdict(list)
+        result: dict[str, list[str]] = {}
 
-        # Scripts -> Entry points
-        for name, specification in self._poetry.local_config.get("scripts", {}).items():
-            if isinstance(specification, str):
-                # TODO: deprecate this in favour or reference
-                specification = {"reference": specification, "type": "console"}
+        for group_name, group in self._poetry.package.entry_points.items():
+            if group_name == "console-scripts":
+                group_name = "console_scripts"
+            elif group_name == "gui-scripts":
+                group_name = "gui_scripts"
+            result[group_name] = sorted(
+                f"{name} = {specification}" for name, specification in group.items()
+            )
 
-            if specification.get("type") != "console":
-                continue
-
-            extras = specification.get("extras", [])
-            if extras:
-                warnings.warn(
-                    f'The script "{name}" depends on an extra. Scripts depending on'
-                    " extras are deprecated and support for them will be removed in a"
-                    " future version of poetry/poetry-core. See"
-                    " https://packaging.python.org/en/latest/specifications/entry-points/#data-model"
-                    " for details.",
-                    DeprecationWarning,
-                    stacklevel=1,
-                )
-            extras = f"[{', '.join(extras)}]" if extras else ""
-            reference = specification.get("reference")
-
-            if reference:
-                result["console_scripts"].append(f"{name} = {reference}{extras}")
-
-        # Plugins -> entry points
-        plugins = self._poetry.local_config.get("plugins", {})
-        for groupname, group in plugins.items():
-            for name, specification in sorted(group.items()):
-                result[groupname].append(f"{name} = {specification}")
-
-        for groupname in result:
-            result[groupname] = sorted(result[groupname])
-
-        return dict(result)
+        return result
 
     def convert_script_files(self) -> list[Path]:
         script_files: list[Path] = []
