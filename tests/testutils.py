@@ -44,7 +44,9 @@ def temporary_project_directory(
     """
     assert (path / "pyproject.toml").exists()
 
-    with tempfile.TemporaryDirectory(prefix="poetry-core-pep517") as tmp:
+    with tempfile.TemporaryDirectory(
+        prefix="poetry-core-pep517", ignore_cleanup_errors=True
+    ) as tmp:
         dst = Path(tmp) / path.name
         shutil.copytree(str(path), dst)
         toml = dst / "pyproject.toml"
