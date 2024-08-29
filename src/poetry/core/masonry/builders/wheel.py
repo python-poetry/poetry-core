@@ -16,6 +16,7 @@ import zipfile
 from base64 import urlsafe_b64encode
 from io import StringIO
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 from typing import TextIO
 
@@ -28,7 +29,6 @@ from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.utils.helpers import distribution_name
 from poetry.core.masonry.utils.helpers import normalize_file_permissions
 from poetry.core.masonry.utils.package_include import PackageInclude
-from poetry.core.utils.helpers import temporary_directory
 
 
 if TYPE_CHECKING:
@@ -126,7 +126,7 @@ class WheelBuilder(Builder):
             self._copy_file_scripts(zip_file)
 
             if self._metadata_directory is None:
-                with temporary_directory() as temp_dir:
+                with TemporaryDirectory(ignore_cleanup_errors=True) as temp_dir:
                     metadata_directory = self.prepare_metadata(Path(temp_dir))
                     self._copy_dist_info(zip_file, metadata_directory)
             else:
