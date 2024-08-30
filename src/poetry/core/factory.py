@@ -177,9 +177,14 @@ class Factory:
             "description", ""
         )
         if project_license := project.get("license"):
-            raw_license = project_license.get("text", "")
-            if not raw_license and (license_file := project_license.get("file", "")):
-                raw_license = (root / license_file).read_text(encoding="utf-8")
+            if isinstance(project_license, str):
+                raw_license = project_license
+            else:
+                raw_license = project_license.get("text", "")
+                if not raw_license and (
+                    license_file := project_license.get("file", "")
+                ):
+                    raw_license = (root / license_file).read_text(encoding="utf-8")
         else:
             raw_license = tool_poetry.get("license", "")
         try:

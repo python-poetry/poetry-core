@@ -1,0 +1,8 @@
+[project]
+name = "my-package"
+version = "0.1"
+license = { text = """Some license text
+with multiple lines,
+
+empty lines and non-ASCII characters: éöß" """}
+keywords = ["special"]  # field that comes after license in core metadata

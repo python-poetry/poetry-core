@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "name": "Package",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "project",
   "type": "object",
   "additionalProperties": true,
   "required": [
@@ -8,209 +8,331 @@
   ],
   "properties": {
     "name": {
+      "title": "Project name",
       "type": "string",
-      "description": "The name of the project."
+      "pattern": "^([a-zA-Z\\d]|[a-zA-Z\\d][\\w.-]*[a-zA-Z\\d])$"
     },
     "version": {
+      "title": "Project version",
       "type": "string",
-      "description": "The version of the project."
-    },
-    "description": {
-      "type": "string",
-      "description": "The summary description of the project.",
-      "pattern": "^[^\n]*$"
-    },
-    "readme": {
-      "$ref": "#/definitions/readme",
-      "description": "The full description of the project (i.e. the README)."
-    },
-    "requires-python": {
-      "type": "string",
-      "description": "The Python version requirements of the project."
-    },
-    "license": {
-      "$ref": "#/definitions/license",
-      "description": "The license of the project (file or string)."
-    },
-    "authors": {
-      "$ref": "#/definitions/authors",
-      "description": "The authors of the project."
-    },
-    "maintainers": {
-      "$ref": "#/definitions/maintainers",
-      "description": "The maintainers of the project."
-    },
-    "keywords": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "description": "A tag/keyword that this project relates to."
-      }
-    },
-    "classifiers": {
-      "type": "array",
-      "description": "Trove classifiers which apply to the project."
-    },
-    "urls": {
-      "type": "object",
-      "patternProperties": {
-        "^.+$": {
-          "type": "string",
-          "description": "The full url of the custom url."
-        }
-      }
-    },
-    "scripts": {
-      "type": "object",
-      "description": "Names and object references of console scripts.",
-      "patternProperties": {
-        "^[a-zA-Z-_.0-9]+$": {
-          "type": "string"
-        }
-      }
-    },
-    "gui-scripts": {
-      "type": "object",
-      "description": "Names and object references of gui scripts.",
-      "patternProperties": {
-        "^[a-zA-Z-_.0-9]+$": {
-          "type": "string"
-        }
-      }
-    },
-    "entry-points": {
-      "type": "object",
-      "description": "Entry point groups. Each group is like scripts or gui-scripts.",
-      "patternProperties": {
-        "^[a-zA-Z-_.0-9]+$": {
-          "type": "object",
-          "patternProperties": {
-            "^[a-zA-Z-_.0-9]+$": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
-    "dependencies": {
-      "type": "array",
-      "description": "A list of runtime dependencies in the PEP 508 format.",
-      "items": {
-        "type": "string"
-      }
-    },
-    "optional-dependencies": {
-      "type": "object",
-      "description": "Extras and their dependencies.",
-      "patternProperties": {
-        "^[a-zA-Z-_.0-9]+$": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "dynamic": {
-      "type": "array",
-      "description": "Keys that are defined dynamically or in a tool specific section.",
-      "items": {
-        "type": "string"
-      }
-    }
-  },
-  "definitions": {
-    "license": {
-      "oneOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "file": {
-              "type": "string"
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "text": {
-              "type": "string"
-            }
-          }
-        }
+      "pattern": "^v?((([0-9]+)!)?([0-9]+(\\.[0-9]+)*)([-_\\.]?(alpha|a|beta|b|preview|pre|c|rc)[-_\\.]?([0-9]+)?)?((-([0-9]+))|([-_\\.]?(post|rev|r)[-_\\.]?([0-9]+)?))?([-_\\.]?(dev)[-_\\.]?([0-9]+)?)?)(\\+([a-z0-9]+([-_\\.][a-z0-9]+)*))?$",
+      "examples": [
+        "42.0.1",
+        "0.3.9rc7.post0.dev5"
       ]
     },
-    "authors": {
-      "type": "array",
-      "description": "List of authors that contributed to the package. This is typically the main maintainers, not the full list.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "maintainers": {
-      "type": "array",
-      "description": "List of maintainers, other than the original author(s), that upkeep the package.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          }
-        }
-      }
+    "description": {
+      "title": "Project summary description",
+      "type": "string"
     },
     "readme": {
+      "title": "Project full description",
+      "description": "AKA the README",
       "oneOf": [
         {
-          "type": "string",
-          "description": "Relative path to the README file"
+          "title": "README file path",
+          "type": "string"
         },
         {
+          "type": "object",
+          "required": [
+            "content-type"
+          ],
+          "properties": {
+            "content-type": {
+              "title": "README text content-type",
+              "description": "RFC 1341 compliant content-type (with optional charset, defaulting to UTF-8)",
+              "type": "string"
+            }
+          },
           "oneOf": [
             {
-              "type": "object",
-              "description": "Readme with file and content type",
+              "additionalProperties": false,
+              "required": [
+                "file"
+              ],
               "properties": {
+                "content-type": true,
                 "file": {
-                  "type": "string",
-                  "description": "The relative path to the readme file"
-                },
-                "content-type": {
-                  "type": "string",
-                  "description": "The content type of the README file content"
+                  "title": "README file path",
+                  "type": "string"
                 }
               }
             },
             {
-              "type": "object",
-              "description": "Readme with full description and content type",
+              "additionalProperties": false,
+              "required": [
+                "text"
+              ],
               "properties": {
-                "file": {
-                  "type": "string",
-                  "description": "The full content of the description"
-                },
-                "content-type": {
-                  "type": "string",
-                  "description": "The content type of the description"
+                "content-type": true,
+                "text": {
+                  "title": "README text",
+                  "type": "string"
                 }
               }
             }
           ]
         }
+      ],
+      "examples": [
+        "README.md",
+        {
+          "file": "README.txt",
+          "content-type": "text/plain"
+        },
+        {
+          "text": "# Example project\n\nAn example project",
+          "content-type": "text/markdown"
+        }
       ]
+    },
+    "requires-python": {
+      "title": "Python version compatibility",
+      "type": "string",
+      "examples": [
+        ">= 3.7"
+      ]
+    },
+    "license": {
+      "title": "Project license",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "title": "License file path",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "title": "License text",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "string",
+          "description": "A SPDX license identifier"
+        }
+      ],
+      "examples": [
+        {
+          "text": "MIT"
+        },
+        {
+          "file": "LICENSE"
+        },
+        "MIT",
+        "LicenseRef-Proprietary"
+      ]
+    },
+    "authors": {
+      "title": "Project authors",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/projectAuthor"
+      }
+    },
+    "maintainers": {
+      "title": "Project maintainers",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/projectAuthor"
+      }
+    },
+    "keywords": {
+      "title": "Project keywords",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "classifiers": {
+      "title": "Applicable Trove classifiers",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "urls": {
+      "title": "Project URLs",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      },
+      "examples": [
+        {
+          "homepage": "https://example.com/example-project"
+        }
+      ]
+    },
+    "scripts": {
+      "title": "Console scripts",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": [
+        {
+          "mycmd": "package.module:object.function"
+        }
+      ]
+    },
+    "gui-scripts": {
+      "title": "GUI scripts",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": [
+        {
+          "mycmd": "package.module:object.function"
+        }
+      ]
+    },
+    "entry-points": {
+      "title": "Other entry-point groups",
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^\\w+(\\.\\w+)*$": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "propertyNames": {
+        "not": {
+          "anyOf": [
+            {
+              "const": "console_scripts"
+            },
+            {
+              "const": "gui_scripts"
+            }
+          ]
+        }
+      },
+      "examples": [
+        {
+          "pygments.styles": {
+            "monokai": "package.module:object.attribute"
+          }
+        }
+      ]
+    },
+    "dependencies": {
+      "title": "Project dependency requirements",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "attrs",
+          "requests ~= 2.28"
+        ]
+      ]
+    },
+    "optional-dependencies": {
+      "title": "Project extra dependency requirements",
+      "description": "keys are extra names",
+      "type": "object",
+      "patternProperties": {
+        "^([a-z\\d]|[a-z\\d]([a-z\\d-](?!--))*[a-z\\d])$": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "examples": [
+        {
+          "typing": [
+            "boto3-stubs",
+            "typing-extensions ~= 4.1"
+          ]
+        }
+      ]
+    },
+    "dynamic": {
+      "title": "Dynamic metadata values",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "version",
+          "description",
+          "readme",
+          "requires-python",
+          "license",
+          "authors",
+          "maintainers",
+          "keywords",
+          "classifiers",
+          "urls",
+          "scripts",
+          "gui-scripts",
+          "entry-points",
+          "dependencies",
+          "optional-dependencies"
+        ]
+      },
+      "examples": [
+        [
+          "version"
+        ]
+      ]
+    }
+  },
+  "definitions": {
+    "projectAuthor": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": true
+          }
+        },
+        {
+          "required": [
+            "email"
+          ],
+          "properties": {
+            "email": true
+          }
+        }
+      ],
+      "properties": {
+        "name": {
+          "title": "Author name",
+          "type": "string"
+        },
+        "email": {
+          "title": "Author email",
+          "type": "string",
+          "format": "email"
+        }
+      }
     }
   }
 }
