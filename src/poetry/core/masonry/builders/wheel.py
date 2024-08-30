@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-import packaging.tags
+import poetry.core._vendor.packaging.tags
 
 from poetry.core import __version__
 from poetry.core.constraints.version import parse_constraint
@@ -34,7 +34,7 @@ from poetry.core.utils.helpers import temporary_directory
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
     from poetry.core.poetry import Poetry
 
@@ -399,14 +399,14 @@ import sys
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
-    "packaging", Path(r"{packaging.__file__}")
+    "packaging", Path(r"{poetry.core._vendor.packaging.__file__}")
 )
 
 packaging = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = packaging
 
 spec = importlib.util.spec_from_file_location(
-    "packaging.tags", Path(r"{packaging.tags.__file__}")
+    "packaging.tags", Path(r"{poetry.core._vendor.packaging.tags.__file__}")
 )
 packaging_tags = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(packaging_tags)
@@ -432,7 +432,7 @@ for t in packaging_tags.sys_tags():
                 # poetry-core is not run in the build environment
                 # -> this is probably not a PEP 517 build but a poetry build
                 return self._get_sys_tags()[0]
-            sys_tag = next(packaging.tags.sys_tags())
+            sys_tag = next(poetry.core._vendor.packaging.tags.sys_tags())
             tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
         else:
             platform = "any"

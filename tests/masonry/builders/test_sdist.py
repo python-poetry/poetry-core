@@ -14,7 +14,7 @@ from typing import Iterator
 
 import pytest
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.sdist import SdistBuilder

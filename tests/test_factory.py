@@ -7,7 +7,7 @@ from typing import cast
 
 import pytest
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory

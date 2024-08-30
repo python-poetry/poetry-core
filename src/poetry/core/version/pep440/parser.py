@@ -6,7 +6,7 @@ import re
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
-from packaging.version import VERSION_PATTERN
+from poetry.core._vendor.packaging.version import VERSION_PATTERN
 
 from poetry.core.version.exceptions import InvalidVersion
 from poetry.core.version.pep440 import Release

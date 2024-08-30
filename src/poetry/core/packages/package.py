@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
     from poetry.core.constraints.version import Version
     from poetry.core.constraints.version import VersionConstraint

@@ -1,0 +1,10 @@
+diff --git a/src/poetry/core/_vendor/lark/load_grammar.py b/src/poetry/core/_vendor/lark/load_grammar.py
+index 362a845..e9b07e6 100644
+--- a/src/poetry/core/_vendor/lark/load_grammar.py
++++ b/src/poetry/core/_vendor/lark/load_grammar.py
+@@ -861,7 +861,7 @@ class FromPackageLoader:
+         raise IOError('Cannot find grammar in given paths') from err
+
+
+-stdlib_loader = FromPackageLoader('lark', IMPORT_PATHS)
++stdlib_loader = FromPackageLoader('poetry.core._vendor.lark', IMPORT_PATHS)

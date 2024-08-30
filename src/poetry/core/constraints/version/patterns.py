@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from packaging.version import VERSION_PATTERN
+from poetry.core._vendor.packaging.version import VERSION_PATTERN
 
 
 COMPLETE_VERSION = re.compile(VERSION_PATTERN, re.VERBOSE | re.IGNORECASE)

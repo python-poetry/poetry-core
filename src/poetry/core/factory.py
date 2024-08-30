@@ -9,14 +9,14 @@ from typing import Any
 from typing import List
 from typing import Union
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import readme_content_type
 
 
 if TYPE_CHECKING:
-    from packaging.utils import NormalizedName
+    from poetry.core._vendor.packaging.utils import NormalizedName
 
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.dependency_group import DependencyGroup

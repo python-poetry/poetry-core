@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 
-from packaging.utils import canonicalize_name
+from poetry.core._vendor.packaging.utils import canonicalize_name
 
 
 if TYPE_CHECKING:
