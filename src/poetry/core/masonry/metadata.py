@@ -57,8 +57,15 @@ class Metadata:
         if package.readmes:
             descriptions = []
             for readme in package.readmes:
-                with readme.open(encoding="utf-8") as f:
-                    descriptions.append(f.read())
+                try:
+                    with readme.open(encoding="utf-8") as f:
+                        descriptions.append(f.read())
+                except FileNotFoundError as e:
+                    raise FileNotFoundError(f"Readme path `{readme}` does not exist.") from e
+                except IsADirectoryError as e:
+                    raise IsADirectoryError(f"Readme path `{readme}` is a directory.") from e
+                except PermissionError as e:
+                    raise PermissionError(f"Readme path `{readme}` is not readable.") from e
             meta.description = "\n".join(descriptions)
 
         meta.keywords = ",".join(package.keywords)
