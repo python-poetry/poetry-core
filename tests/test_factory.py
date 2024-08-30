@@ -387,11 +387,21 @@ def test_create_poetry_non_package_mode() -> None:
     assert not poetry.is_package_mode
 
 
-def test_create_poetry_with_license_type_file() -> None:
-    project_dir = fixtures_dir / "with_license_type_file"
+@pytest.mark.parametrize("license_type", ["file", "text", "str"])
+def test_create_poetry_with_license_type_file(license_type: str) -> None:
+    project_dir = fixtures_dir / f"with_license_type_{license_type}"
     poetry = Factory().create_poetry(project_dir)
 
-    license_content = (project_dir / "LICENSE").read_text(encoding="utf-8")
+    if license_type == "file":
+        license_content = (project_dir / "LICENSE").read_text(encoding="utf-8")
+    elif license_type == "text":
+        license_content = (
+            (project_dir / "pyproject.toml").read_text(encoding="utf-8").split('"""')[1]
+        )
+    elif license_type == "str":
+        license_content = "MIT"
+    else:
+        raise RuntimeError("unexpected license type")
 
     assert poetry.package.license
     assert poetry.package.license.id == license_content

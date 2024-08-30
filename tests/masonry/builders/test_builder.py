@@ -160,12 +160,27 @@ def test_metadata_homepage_default() -> None:
     assert metadata["Home-page"] is None
 
 
-def test_metadata_license_type_file() -> None:
+@pytest.mark.parametrize("license_type", ["file", "text", "str"])
+def test_metadata_license_type_file(license_type: str) -> None:
     project_path = (
-        Path(__file__).parent.parent.parent / "fixtures" / "with_license_type_file"
+        Path(__file__).parent.parent.parent
+        / "fixtures"
+        / f"with_license_type_{license_type}"
     )
     builder = Builder(Factory().create_poetry(project_path))
-    license_text = (project_path / "LICENSE").read_text(encoding="utf-8")
+
+    if license_type == "file":
+        license_text = (project_path / "LICENSE").read_text(encoding="utf-8")
+    elif license_type == "text":
+        license_text = (
+            (project_path / "pyproject.toml")
+            .read_text(encoding="utf-8")
+            .split('"""')[1]
+        )
+    elif license_type == "str":
+        license_text = "MIT"
+    else:
+        raise RuntimeError("unexpected license type")
 
     raw_content = builder.get_metadata_content()
     metadata = Parser().parsestr(raw_content)
