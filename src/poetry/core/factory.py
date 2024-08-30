@@ -152,10 +152,9 @@ class Factory:
         package.classifiers = config.get("classifiers", [])
 
         if "readme" in config:
-            if isinstance(config["readme"], str):
-                package.readmes = (root / config["readme"],)
-            else:
-                package.readmes = tuple(root / readme for readme in config["readme"])
+            readme_strs = (config["readme"],) if isinstance(config["readme"], str) else config["readme"]
+            package.readmes = tuple(root / readme for readme in readme_strs if readme.strip())
+
 
         if "dependencies" in config:
             cls._add_package_group_dependencies(
