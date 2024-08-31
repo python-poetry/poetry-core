@@ -58,8 +58,7 @@ class Metadata:
             descriptions = []
             for readme in package.readmes:
                 try:
-                    with readme.open(encoding="utf-8") as f:
-                        descriptions.append(f.read())
+                    descriptions.append(readme.read_text(encoding="utf-8"))
                 except FileNotFoundError as e:
                     raise FileNotFoundError(
                         f"Readme path `{readme}` does not exist."

@@ -151,15 +151,9 @@ class Factory:
         package.keywords = config.get("keywords", [])
         package.classifiers = config.get("classifiers", [])
 
-        if "readme" in config:
-            readme_strs = (
-                (config["readme"],)
-                if isinstance(config["readme"], str)
-                else config["readme"]
-            )
-            package.readmes = tuple(
-                root / readme for readme in readme_strs if readme.strip()
-            )
+        if readme := config.get("readme"):
+            readmes = (readme,) if isinstance(readme, str) else readme
+            package.readmes = tuple(root / readme for readme in readmes if readme)
 
         if "dependencies" in config:
             cls._add_package_group_dependencies(
