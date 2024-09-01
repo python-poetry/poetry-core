@@ -980,12 +980,12 @@
     false
   ],
   "DL-DE-BY-2.0": [
-    "Data licence Germany – attribution – version 2.0",
+    "Data licence Germany \u2013 attribution \u2013 version 2.0",
     false,
     false
   ],
   "DL-DE-ZERO-2.0": [
-    "Data licence Germany – zero – version 2.0",
+    "Data licence Germany \u2013 zero \u2013 version 2.0",
     false,
     false
   ],
@@ -1006,6 +1006,21 @@
   ],
   "DSDP": [
     "DSDP License",
+    false,
+    false
+  ],
+  "DocBook-Schema": [
+    "DocBook Schema License",
+    false,
+    false
+  ],
+  "DocBook-Stylesheet": [
+    "DocBook Stylesheet License",
+    false,
+    false
+  ],
+  "DocBook-XML": [
+    "DocBook XML License",
     false,
     false
   ],
@@ -1820,17 +1835,17 @@
     false
   ],
   "LiLiQ-P-1.1": [
-    "Licence Libre du Québec – Permissive version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 Permissive version 1.1",
     true,
     false
   ],
   "LiLiQ-R-1.1": [
-    "Licence Libre du Québec – Réciprocité version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 version 1.1",
     true,
     false
   ],
   "LiLiQ-Rplus-1.1": [
-    "Licence Libre du Québec – Réciprocité forte version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 forte version 1.1",
     true,
     false
   ],
@@ -1881,6 +1896,11 @@
   ],
   "MIT-CMU": [
     "CMU License",
+    false,
+    false
+  ],
+  "MIT-Click": [
+    "MIT Click License",
     false,
     false
   ],
@@ -2162,7 +2182,7 @@
   "Net-SNMP": [
     "Net-SNMP License",
     false,
-    false
+    true
   ],
   "NetCDF": [
     "NetCDF license",
@@ -2839,6 +2859,11 @@
     false,
     false
   ],
+  "TrustedQSL": [
+    "TrustedQSL License",
+    false,
+    false
+  ],
   "UCAR": [
     "UCAR License",
     false,
@@ -2861,6 +2886,11 @@
   ],
   "URT-RLE": [
     "Utah Raster Toolkit Run Length Encoded License",
+    false,
+    false
+  ],
+  "Ubuntu-font-1.0": [
+    "Ubuntu Font Licence v1.0",
     false,
     false
   ],
@@ -2921,7 +2951,7 @@
   ],
   "W3C-20150513": [
     "W3C Software Notice and Document License (2015-05-13)",
-    false,
+    true,
     false
   ],
   "WTFPL": [
