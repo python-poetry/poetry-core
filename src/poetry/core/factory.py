@@ -56,6 +56,9 @@ class Factory:
 
             raise RuntimeError("The Poetry configuration is invalid:\n" + message)
 
+        for warning in check_result["warnings"]:
+            logger.warning(warning)
+
         # Load package
         # If name or version were missing in package mode, we would have already
         # raised an error, so we can safely assume they might only be missing
@@ -402,6 +405,13 @@ class Factory:
                     )
 
         result["errors"] += validation_errors
+
+        if "dev-dependencies" in config:
+            result["warnings"].append(
+                'The "poetry.dev-dependencies" section is deprecated'
+                " and will be removed in a future version."
+                ' Use "poetry.group.dev.dependencies" instead.'
+            )
 
         if strict:
             # If strict, check the file more thoroughly

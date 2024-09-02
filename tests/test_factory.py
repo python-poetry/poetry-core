@@ -411,10 +411,17 @@ def test_create_poetry_with_invalid_dev_dependencies(caplog: LogCaptureFixture) 
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_with_groups_and_legacy_dev() -> None:
+def test_create_poetry_with_groups_and_legacy_dev(caplog: LogCaptureFixture) -> None:
+    assert not caplog.records
+
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_groups_and_legacy_dev"
     )
+
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert '"poetry.dev-dependencies" section is deprecated' in record.message
 
     package = poetry.package
     dependencies = package.all_requires
