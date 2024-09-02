@@ -15,7 +15,7 @@ def base_object() -> dict[str, Any]:
         "description": "Some description.",
         "authors": ["Your Name <you@example.com>"],
         "dependencies": {"python": "^3.6"},
-        "dev-dependencies": {},
+        "group": {"dev": {"dependencies": {}}},
     }
 
 
@@ -35,7 +35,6 @@ def multi_url_object() -> dict[str, Any]:
                 {"path": "../foo", "platform": "darwin"},
             ]
         },
-        "dev-dependencies": {},
     }
 
 
@@ -70,7 +69,7 @@ def test_invalid_mode() -> None:
 
 def test_path_dependencies(base_object: dict[str, Any]) -> None:
     base_object["dependencies"].update({"foo": {"path": "../foo"}})
-    base_object["dev-dependencies"].update({"foo": {"path": "../foo"}})
+    base_object["group"]["dev"]["dependencies"].update({"foo": {"path": "../foo"}})
 
     assert len(validate_object(base_object, "poetry-schema")) == 0
 

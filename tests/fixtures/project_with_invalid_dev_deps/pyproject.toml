@@ -9,5 +9,5 @@ license = "MIT"
 
 [tool.poetry.extras]
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mylib = { path = "../mylib", develop = true}
