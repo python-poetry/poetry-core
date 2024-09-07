@@ -160,6 +160,40 @@ def test_metadata_homepage_default() -> None:
     assert metadata["Home-page"] is None
 
 
+@pytest.mark.parametrize("license_type", ["file", "text", "str"])
+def test_metadata_license_type_file(license_type: str) -> None:
+    project_path = (
+        Path(__file__).parent.parent.parent
+        / "fixtures"
+        / f"with_license_type_{license_type}"
+    )
+    builder = Builder(Factory().create_poetry(project_path))
+
+    if license_type == "file":
+        license_text = (project_path / "LICENSE").read_text(encoding="utf-8")
+    elif license_type == "text":
+        license_text = (
+            (project_path / "pyproject.toml")
+            .read_text(encoding="utf-8")
+            .split('"""')[1]
+        )
+    elif license_type == "str":
+        license_text = "MIT"
+    else:
+        raise RuntimeError("unexpected license type")
+
+    raw_content = builder.get_metadata_content()
+    metadata = Parser().parsestr(raw_content)
+
+    license_lines = metadata["License"].splitlines()
+    unindented_license = "\n".join([line.strip() for line in license_lines])
+    assert unindented_license == license_text.rstrip()
+
+    # Check that field after "license" is read correctly
+    assert raw_content.index("License:") < raw_content.index("Keywords:")
+    assert metadata["Keywords"] == "special"
+
+
 def test_metadata_with_vcs_dependencies() -> None:
     builder = Builder(
         Factory().create_poetry(
@@ -229,7 +263,7 @@ def test_invalid_script_files_definition() -> None:
             "script_reference_console",
             {
                 "console_scripts": [
-                    "extra-script = my_package.extra:main[time]",
+                    "extra-script = my_package.extra:main",
                     "script = my_package.extra:main",
                 ]
             },
@@ -240,7 +274,6 @@ def test_invalid_script_files_definition() -> None:
         ),
     ],
 )
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
 def test_builder_convert_entry_points(
     fixture: str, result: dict[str, list[str]]
 ) -> None:

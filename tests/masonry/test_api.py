@@ -34,21 +34,23 @@ def cwd(directory: str | Path) -> Iterator[None]:
 fixtures = os.path.join(os.path.dirname(__file__), "builders", "fixtures")
 
 
-def test_get_requires_for_build_wheel() -> None:
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_get_requires_for_build_wheel(project: str) -> None:
     expected: list[str] = []
-    with cwd(os.path.join(fixtures, "complete")):
+    with cwd(os.path.join(fixtures, project)):
         assert api.get_requires_for_build_wheel() == expected
 
 
-def test_get_requires_for_build_sdist() -> None:
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_get_requires_for_build_sdist(project: str) -> None:
     expected: list[str] = []
-    with cwd(os.path.join(fixtures, "complete")):
+    with cwd(os.path.join(fixtures, project)):
         assert api.get_requires_for_build_sdist() == expected
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_build_wheel() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_build_wheel(project: str) -> None:
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, project)):
         filename = api.build_wheel(tmp_dir)
         validate_wheel_contents(
             name="my_package",
@@ -95,8 +97,9 @@ def test_build_wheel_extended() -> None:
         validate_wheel_contents(name="extended", version="0.1", path=whl.as_posix())
 
 
-def test_build_sdist() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_build_sdist(project: str) -> None:
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, project)):
         filename = api.build_sdist(tmp_dir)
         validate_sdist_contents(
             name="my-package",
@@ -135,13 +138,16 @@ def test_build_sdist_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
     assert "does not exist" in record.message
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_prepare_metadata_for_build_wheel() -> None:
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_prepare_metadata_for_build_wheel(project: str) -> None:
     entry_points = """\
 [console_scripts]
-extra-script=my_package.extra:main[time]
+extra-script=my_package.extra:main
 my-2nd-script=my_package:main2
 my-script=my_package:main
+
+[poetry.application.plugin]
+my-command=my_package.plugins:MyApplicationPlugin
 
 """
     wheel_data = f"""\
@@ -188,7 +194,7 @@ My Package
 ==========
 
 """
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "complete")):
+    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, project)):
         dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
 
         assert dirname == "my_package-1.2.3.dist-info"
@@ -229,9 +235,9 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     assert "does not exist" in record.message
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_build_editable_wheel() -> None:
-    pkg_dir = Path(fixtures) / "complete"
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_build_editable_wheel(project: str) -> None:
+    pkg_dir = Path(fixtures) / project
 
     with temporary_directory() as tmp_dir, cwd(pkg_dir):
         filename = api.build_editable(tmp_dir)
@@ -250,9 +256,9 @@ def test_build_editable_wheel() -> None:
             assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_build_wheel_with_metadata_directory() -> None:
-    pkg_dir = Path(fixtures) / "complete"
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_build_wheel_with_metadata_directory(project: str) -> None:
+    pkg_dir = Path(fixtures) / project
 
     with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
         metadata_directory = api.prepare_metadata_for_build_wheel(metadata_tmp_dir)
@@ -278,9 +284,9 @@ def test_build_wheel_with_metadata_directory() -> None:
                 assert f"{metadata_directory}/CUSTOM" in namelist
 
 
-@pytest.mark.filterwarnings("ignore:.* script .* extra:DeprecationWarning")
-def test_build_editable_wheel_with_metadata_directory() -> None:
-    pkg_dir = Path(fixtures) / "complete"
+@pytest.mark.parametrize("project", ["complete", "complete_new"])
+def test_build_editable_wheel_with_metadata_directory(project: str) -> None:
+    pkg_dir = Path(fixtures) / project
 
     with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
         metadata_directory = api.prepare_metadata_for_build_editable(metadata_tmp_dir)

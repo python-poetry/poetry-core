@@ -15,7 +15,7 @@ def base_object() -> dict[str, Any]:
         "description": "Some description.",
         "authors": ["Your Name <you@example.com>"],
         "dependencies": {"python": "^3.6"},
-        "dev-dependencies": {},
+        "group": {"dev": {"dependencies": {}}},
     }
 
 
@@ -35,24 +35,7 @@ def multi_url_object() -> dict[str, Any]:
                 {"path": "../foo", "platform": "darwin"},
             ]
         },
-        "dev-dependencies": {},
     }
-
-
-@pytest.mark.parametrize("explicit", [True, False])
-@pytest.mark.parametrize(
-    "missing_required", ["", "name", "version", "description", "authors"]
-)
-def test_package_mode(
-    base_object: dict[str, Any], explicit: bool, missing_required: str
-) -> None:
-    if explicit:
-        base_object["package-mode"] = True
-    if missing_required:
-        del base_object[missing_required]
-        assert len(validate_object(base_object, "poetry-schema")) == 1
-    else:
-        assert len(validate_object(base_object, "poetry-schema")) == 0
 
 
 def test_non_package_mode_no_metadata() -> None:
@@ -70,7 +53,7 @@ def test_invalid_mode() -> None:
 
 def test_path_dependencies(base_object: dict[str, Any]) -> None:
     base_object["dependencies"].update({"foo": {"path": "../foo"}})
-    base_object["dev-dependencies"].update({"foo": {"path": "../foo"}})
+    base_object["group"]["dev"]["dependencies"].update({"foo": {"path": "../foo"}})
 
     assert len(validate_object(base_object, "poetry-schema")) == 0
 

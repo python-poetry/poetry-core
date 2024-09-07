@@ -21,7 +21,6 @@ from poetry.core.masonry.utils.helpers import distribution_name
 
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
     from collections.abc import Iterator
     from tarfile import TarInfo
 
@@ -199,10 +198,8 @@ class SdistBuilder(Builder):
             before.append(f"scripts = \\\n{pformat(rel_paths)}\n")
             extra.append("'scripts': scripts,")
 
-        if self._package.python_versions != "*":
-            python_requires = self._meta.requires_python
-
-            extra.append(f"'python_requires': {python_requires!r},")
+        if self._meta.requires_python:
+            extra.append(f"'python_requires': {self._meta.requires_python!r},")
 
         return SETUP.format(
             before="\n".join(before),
@@ -333,12 +330,7 @@ class SdistBuilder(Builder):
         additional_files.add(Path("pyproject.toml"))
 
         # add readme files if specified
-        if "readme" in self._poetry.local_config:
-            readme: str | Iterable[str] = self._poetry.local_config["readme"]
-            if isinstance(readme, str):
-                additional_files.add(Path(readme))
-            else:
-                additional_files.update(Path(r) for r in readme)
+        additional_files.update(Path(r) for r in self._poetry.package.readmes)
 
         for additional_file in additional_files:
             file = BuildIncludeFile(

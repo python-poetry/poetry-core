@@ -41,3 +41,28 @@ python = "^3.5"
     with pyproject_toml.open(mode="a", encoding="utf-8") as f:
         f.write(content)
     return content
+
+
+@pytest.fixture
+def project_section(pyproject_toml: Path) -> str:
+    content = """
+[project]
+name = "poetry"
+version = "1.0.0"
+"""
+    with pyproject_toml.open(mode="a", encoding="utf-8") as f:
+        f.write(content)
+    return content
+
+
+@pytest.fixture
+def project_section_dynamic(pyproject_toml: Path) -> str:
+    content = """
+[project]
+name = "not-poetry"
+version = "1.0.0"
+dynamic = ["description"]
+"""
+    with pyproject_toml.open(mode="a", encoding="utf-8") as f:
+        f.write(content)
+    return content

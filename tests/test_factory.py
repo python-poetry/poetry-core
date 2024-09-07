@@ -12,6 +12,7 @@ from packaging.utils import canonicalize_name
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
+from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
 
@@ -22,14 +23,147 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
-    from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 fixtures_dir = Path(__file__).parent / "fixtures"
 
 
-def test_create_poetry() -> None:
-    poetry = Factory().create_poetry(fixtures_dir / "sample_project")
+@pytest.fixture
+def complete_legacy_warnings() -> list[str]:
+    return [
+        "[tool.poetry.name] is deprecated. Use [project.name] instead.",
+        (
+            "[tool.poetry.version] is set but 'version' is not in "
+            "[project.dynamic]. If it is static use [project.version]. If it "
+            "is dynamic, add 'version' to [project.dynamic].\n"
+            "If you want to set the version dynamically via `poetry build "
+            "--local-version` or you are using a plugin, which sets the "
+            "version dynamically, you should define the version in "
+            "[tool.poetry] and add 'version' to [project.dynamic]."
+        ),
+        "[tool.poetry.description] is deprecated. Use [project.description] instead.",
+        (
+            "[tool.poetry.readme] is set but 'readme' is not in "
+            "[project.dynamic]. If it is static use [project.readme]. If it "
+            "is dynamic, add 'readme' to [project.dynamic].\n"
+            "If you want to define multiple readmes, you should define them "
+            "in [tool.poetry] and add 'readme' to [project.dynamic]."
+        ),
+        "[tool.poetry.license] is deprecated. Use [project.license] instead.",
+        "[tool.poetry.authors] is deprecated. Use [project.authors] instead.",
+        "[tool.poetry.maintainers] is deprecated. Use [project.maintainers] instead.",
+        "[tool.poetry.keywords] is deprecated. Use [project.keywords] instead.",
+        (
+            "[tool.poetry.classifiers] is set but 'classifiers' is not in "
+            "[project.dynamic]. If it is static use [project.classifiers]. If it "
+            "is dynamic, add 'classifiers' to [project.dynamic].\n"
+            "ATTENTION: Per default Poetry determines classifiers for "
+            "supported Python versions and license automatically. If you "
+            "define classifiers in [project], you disable the automatic "
+            "enrichment. In other words, you have to define all classifiers "
+            "manually. If you want to use Poetry's automatic enrichment of "
+            "classifiers, you should define them in [tool.poetry] and add "
+            "'classifiers' to [project.dynamic]."
+        ),
+        "[tool.poetry.homepage] is deprecated. Use [project.urls] instead.",
+        "[tool.poetry.repository] is deprecated. Use [project.urls] instead.",
+        "[tool.poetry.documentation] is deprecated. Use [project.urls] instead.",
+        "[tool.poetry.plugins] is deprecated. Use [project.entry-points] instead.",
+        (
+            "[tool.poetry.extras] is deprecated. Use "
+            "[project.optional-dependencies] instead."
+        ),
+        (
+            "Defining console scripts in [tool.poetry.scripts] is deprecated. "
+            "Use [project.scripts] instead. "
+            "([tool.poetry.scripts] should only be used for scripts of type 'file')."
+        ),
+    ]
+
+
+@pytest.fixture
+def complete_legacy_duplicate_warnings() -> list[str]:
+    return [
+        (
+            "[project.name] and [tool.poetry.name] are both set. The latter "
+            "will be ignored."
+        ),
+        (
+            "[project.version] and [tool.poetry.version] are both set. The "
+            "latter will be ignored.\n"
+            "If you want to set the version dynamically via `poetry build "
+            "--local-version` or you are using a plugin, which sets the "
+            "version dynamically, you should define the version in "
+            "[tool.poetry] and add 'version' to [project.dynamic]."
+        ),
+        (
+            "[project.description] and [tool.poetry.description] are both "
+            "set. The latter will be ignored."
+        ),
+        (
+            "[project.readme] and [tool.poetry.readme] are both set. The "
+            "latter will be ignored.\n"
+            "If you want to define multiple readmes, you should define them "
+            "in [tool.poetry] and add 'readme' to [project.dynamic]."
+        ),
+        (
+            "[project.license] and [tool.poetry.license] are both set. The "
+            "latter will be ignored."
+        ),
+        (
+            "[project.authors] and [tool.poetry.authors] are both set. The "
+            "latter will be ignored."
+        ),
+        (
+            "[project.maintainers] and [tool.poetry.maintainers] are both "
+            "set. The latter will be ignored."
+        ),
+        (
+            "[project.keywords] and [tool.poetry.keywords] are both set. The "
+            "latter will be ignored."
+        ),
+        (
+            "[project.classifiers] and [tool.poetry.classifiers] are both "
+            "set. The latter will be ignored.\n"
+            "ATTENTION: Per default Poetry determines classifiers for "
+            "supported Python versions and license automatically. If you "
+            "define classifiers in [project], you disable the automatic "
+            "enrichment. In other words, you have to define all classifiers "
+            "manually. If you want to use Poetry's automatic enrichment of "
+            "classifiers, you should define them in [tool.poetry] and add "
+            "'classifiers' to [project.dynamic]."
+        ),
+        (
+            "[project.urls] and [tool.poetry.homepage] are both set. The "
+            "latter will be ignored."
+        ),
+        (
+            "[project.urls] and [tool.poetry.repository] are both set. The "
+            "latter will be ignored."
+        ),
+        (
+            "[project.urls] and [tool.poetry.documentation] are both set. "
+            "The latter will be ignored."
+        ),
+        (
+            "[project.entry-points] and [tool.poetry.plugins] are both set. The "
+            "latter will be ignored."
+        ),
+        (
+            "[project.optional-dependencies] and [tool.poetry.extras] are "
+            "both set. The latter will be ignored."
+        ),
+        (
+            "[project.scripts] is set and there are console scripts "
+            "in [tool.poetry.scripts]. The latter will be ignored."
+        ),
+    ]
+
+
+@pytest.mark.parametrize("new_format", [False, True])
+def test_create_poetry(new_format: str) -> None:
+    project = "sample_project_new" if new_format else "sample_project"
+    poetry = Factory().create_poetry(fixtures_dir / project)
 
     assert poetry.is_package_mode
 
@@ -39,33 +173,34 @@ def test_create_poetry() -> None:
     assert package.version.text == "1.2.3"
     assert package.description == "Some description."
     assert package.authors == ["Sébastien Eustace <sebastien@eustace.io>"]
+    assert package.maintainers == ["Sébastien Eustace <sebastien@eustace.io>"]
     assert package.license
     assert package.license.id == "MIT"
     assert (
         package.readmes[0].relative_to(fixtures_dir).as_posix()
-        == "sample_project/README.rst"
+        == f"{project}/README.rst"
     )
     assert package.homepage == "https://python-poetry.org"
     assert package.repository_url == "https://github.com/python-poetry/poetry"
     assert package.keywords == ["packaging", "dependency", "poetry"]
 
-    assert package.python_versions == "~2.7 || ^3.6"
-    assert str(package.python_constraint) == ">=2.7,<2.8 || >=3.6,<4.0"
+    assert package.python_versions == ">=3.6"
+    assert str(package.python_constraint) == ">=3.6"
 
     dependencies: dict[str, Dependency] = {}
     for dep in package.requires:
         dependencies[dep.name] = dep
 
     cleo = dependencies["cleo"]
-    assert cleo.pretty_constraint == "^0.6"
+    assert cleo.pretty_constraint == (">=0.6,<1.0" if new_format else "^0.6")
     assert not cleo.is_optional()
 
     pendulum = dependencies["pendulum"]
-    assert pendulum.pretty_constraint == "branch 2.0"
+    assert pendulum.pretty_constraint == ("rev 2.0" if new_format else "branch 2.0")
     assert pendulum.is_vcs()
     pendulum = cast("VCSDependency", pendulum)
     assert pendulum.vcs == "git"
-    assert pendulum.branch == "2.0"
+    assert pendulum.rev == "2.0" if new_format else pendulum.branch == "2.0"
     assert pendulum.source == "https://github.com/sdispater/pendulum.git"
     assert pendulum.allows_prereleases()
     assert not pendulum.develop
@@ -78,18 +213,21 @@ def test_create_poetry() -> None:
     assert tomlkit.rev == "3bff550"
     assert tomlkit.source == "https://github.com/sdispater/tomlkit.git"
     assert tomlkit.allows_prereleases()
-    assert not tomlkit.develop
+    assert not tomlkit.develop if new_format else tomlkit.develop
+    tomlkit_for_locking = next(d for d in package.all_requires if d.name == "tomlkit")
+    assert isinstance(tomlkit_for_locking, VCSDependency)
+    assert tomlkit_for_locking.develop
 
     requests = dependencies["requests"]
-    assert requests.pretty_constraint == "^2.18"
+    assert requests.pretty_constraint == (">=2.18,<3.0" if new_format else "^2.18")
     assert not requests.is_vcs()
     assert not requests.allows_prereleases()
     assert requests.is_optional()
     assert requests.extras == frozenset({"security"})
 
     pathlib2 = dependencies["pathlib2"]
-    assert pathlib2.pretty_constraint == "^2.2"
-    assert pathlib2.python_versions == ">=2.7 <2.8"
+    assert pathlib2.pretty_constraint == (">=2.2,<3.0" if new_format else "^2.2")
+    assert pathlib2.python_versions in {"~2.7", ">=2.7 <2.8"}
     assert not pathlib2.is_optional()
 
     demo = dependencies["demo"]
@@ -114,7 +252,9 @@ def test_create_poetry() -> None:
 
     functools32 = dependencies["functools32"]
     assert functools32.name == "functools32"
-    assert functools32.pretty_constraint == "^3.2.3"
+    assert functools32.pretty_constraint == (
+        ">=3.2.3,<3.3.0" if new_format else "^3.2.3"
+    )
     assert (
         str(functools32.marker)
         == 'python_version ~= "2.7" and sys_platform == "win32" or python_version in'
@@ -123,7 +263,7 @@ def test_create_poetry() -> None:
 
     dataclasses = dependencies["dataclasses"]
     assert dataclasses.name == "dataclasses"
-    assert dataclasses.pretty_constraint == "^0.7"
+    assert dataclasses.pretty_constraint == (">=0.7,<1.0" if new_format else "^0.7")
     assert dataclasses.python_versions == ">=3.6.1 <3.7"
     assert (
         str(dataclasses.marker)
@@ -139,22 +279,23 @@ def test_create_poetry() -> None:
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
 
-    assert package.all_classifiers == [
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
-        "Topic :: Software Development :: Build Tools",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ]
+    if new_format:
+        assert package.all_classifiers == package.classifiers
+    else:
+        assert package.all_classifiers == [
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: Python :: 3.13",
+            "Topic :: Software Development :: Build Tools",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+        ]
 
 
 def test_create_poetry_with_dependencies_with_subdirectory() -> None:
@@ -246,6 +387,129 @@ def test_create_poetry_non_package_mode() -> None:
     assert not poetry.is_package_mode
 
 
+@pytest.mark.parametrize("license_type", ["file", "text", "str"])
+def test_create_poetry_with_license_type_file(license_type: str) -> None:
+    project_dir = fixtures_dir / f"with_license_type_{license_type}"
+    poetry = Factory().create_poetry(project_dir)
+
+    if license_type == "file":
+        license_content = (project_dir / "LICENSE").read_text(encoding="utf-8")
+    elif license_type == "text":
+        license_content = (
+            (project_dir / "pyproject.toml").read_text(encoding="utf-8").split('"""')[1]
+        )
+    elif license_type == "str":
+        license_content = "MIT"
+    else:
+        raise RuntimeError("unexpected license type")
+
+    assert poetry.package.license
+    assert poetry.package.license.id == license_content
+
+
+@pytest.mark.parametrize(
+    ("requires_python", "python", "expected_versions", "expected_constraint"),
+    [
+        (">=3.8", None, ">=3.8", ">=3.8"),
+        (None, "^3.8", "^3.8", ">=3.8,<4.0"),
+        (">=3.8", "^3.8", "^3.8", ">=3.8,<4.0"),
+    ],
+)
+def test_create_poetry_python_version(
+    requires_python: str,
+    python: str,
+    expected_versions: str,
+    expected_constraint: str,
+    tmp_path: Path,
+) -> None:
+    content = '[project]\nname = "foo"\nversion = "1"\n'
+    if requires_python:
+        content += f'requires-python = "{requires_python}"\n'
+    if python:
+        content += f'[tool.poetry.dependencies]\npython = "{python}"\n'
+    (tmp_path / "pyproject.toml").write_text(content)
+    poetry = Factory().create_poetry(tmp_path)
+
+    package = poetry.package
+    assert package.requires_python == requires_python or python
+    assert package.python_versions == expected_versions
+    assert str(package.python_constraint) == expected_constraint
+
+
+def test_create_poetry_python_version_not_compatible(tmp_path: Path) -> None:
+    content = """
+[project]
+name = "foo"
+version = "1"
+requires-python = ">=3.8"
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+"""
+    (tmp_path / "pyproject.toml").write_text(content)
+    with pytest.raises(ValueError) as e:
+        Factory().create_poetry(tmp_path)
+
+    assert "not a subset" in str(e.value)
+
+
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        (  # static
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = ["License :: OSI Approved :: MIT License"]
+""",
+            ["License :: OSI Approved :: MIT License"],
+        ),
+        (  # dynamic
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+dynamic = [ "classifiers" ]
+
+[tool.poetry]
+classifiers = ["License :: OSI Approved :: MIT License"]
+""",
+            [
+                "License :: OSI Approved :: MIT License",
+                "Programming Language :: Python :: 3",
+                "Programming Language :: Python :: 3.10",
+            ],
+        ),
+        (  # legacy
+            """\
+[tool.poetry]
+name = "foo"
+version = "1"
+classifiers = ["License :: OSI Approved :: MIT License"]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+""",
+            [
+                "License :: OSI Approved :: MIT License",
+                "Programming Language :: Python :: 3",
+                "Programming Language :: Python :: 3.10",
+            ],
+        ),
+    ],
+)
+def test_create_poetry_classifiers(
+    content: str, expected: list[str], tmp_path: Path
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(content)
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.all_classifiers == expected
+
+
 def test_create_poetry_no_readme(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -272,20 +536,88 @@ def test_create_poetry_empty_readme(tmp_path: Path) -> None:
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
-        doc = tomllib.load(f)
-    content = doc["tool"]["poetry"]
+        content = tomllib.load(f)
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
+
+
+def test_validate_strict_legacy_warnings(complete_legacy_warnings: list[str]) -> None:
+    complete = fixtures_dir / "complete.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [],
+        "warnings": complete_legacy_warnings,
+    }
+
+
+def test_validate_strict_legacy_duplicate_warnings(
+    complete_legacy_duplicate_warnings: list[str],
+) -> None:
+    complete = fixtures_dir / "complete_duplicates.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [],
+        "warnings": complete_legacy_duplicate_warnings,
+    }
+
+
+def test_validate_strict_new_no_warnings() -> None:
+    complete = fixtures_dir / "complete_new.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
+
+
+def test_validate_strict_dynamic_warnings() -> None:
+    # some fields are allowed to be dynamic, but some are not
+    complete = fixtures_dir / "complete_new_dynamic_invalid.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": ["project must contain ['name'] properties"],
+        "warnings": [
+            # version, readme and classifiers are allowed to be dynamic!
+            "[tool.poetry.name] is deprecated. Use [project.name] instead.",
+            (
+                "[tool.poetry.description] is deprecated. Use "
+                "[project.description] instead."
+            ),
+            "[tool.poetry.license] is deprecated. Use [project.license] instead.",
+            "[tool.poetry.authors] is deprecated. Use [project.authors] instead.",
+            (
+                "[tool.poetry.maintainers] is deprecated. Use "
+                "[project.maintainers] instead."
+            ),
+            "[tool.poetry.keywords] is deprecated. Use [project.keywords] instead.",
+            "[tool.poetry.homepage] is deprecated. Use [project.urls] instead.",
+            "[tool.poetry.repository] is deprecated. Use [project.urls] instead.",
+            "[tool.poetry.documentation] is deprecated. Use [project.urls] instead.",
+            (
+                "[tool.poetry.extras] is deprecated. Use "
+                "[project.optional-dependencies] instead."
+            ),
+            (
+                "Defining console scripts in [tool.poetry.scripts] is deprecated. "
+                "Use [project.scripts] instead. "
+                "([tool.poetry.scripts] should only be used for scripts of type 'file')."
+            ),
+        ],
+    }
 
 
 def test_validate_fails() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
-        doc = tomllib.load(f)
-    content = doc["tool"]["poetry"]
-    content["authors"] = "this is not a valid array"
+        content = tomllib.load(f)
+    content["tool"]["poetry"]["authors"] = "this is not a valid array"
 
-    expected = "data.authors must be array"
+    expected = "tool.poetry.authors must be array"
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
@@ -295,14 +627,14 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
     )
     with project_failing_strict_validation.open("rb") as f:
-        doc = tomllib.load(f)
-    content = doc["tool"]["poetry"]
+        content = tomllib.load(f)
 
     assert Factory.validate(content) == {
         "errors": [
+            "Either [project.name] or [tool.poetry.name] is required in package mode.",
             (
-                "The fields ['authors', 'description', 'name', 'version']"
-                " are required in package mode."
+                "Either [project.version] or [tool.poetry.version] is required in "
+                "package mode."
             ),
         ],
         "warnings": [],
@@ -314,14 +646,14 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
     )
     with project_failing_strict_validation.open("rb") as f:
-        doc = tomllib.load(f)
-    content = doc["tool"]["poetry"]
+        content = tomllib.load(f)
 
     assert Factory.validate(content, strict=True) == {
         "errors": [
+            "Either [project.name] or [tool.poetry.name] is required in package mode.",
             (
-                "The fields ['authors', 'description', 'name', 'version']"
-                " are required in package mode."
+                "Either [project.version] or [tool.poetry.version] is required in "
+                "package mode."
             ),
             (
                 'Cannot find dependency "missing_extra" for extra "some-extras" in '
@@ -342,6 +674,22 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
         ],
         "warnings": [
             (
+                "[tool.poetry.readme] is set but 'readme' is not in "
+                "[project.dynamic]. If it is static use [project.readme]. If it "
+                "is dynamic, add 'readme' to [project.dynamic].\n"
+                "If you want to define multiple readmes, you should define them "
+                "in [tool.poetry] and add 'readme' to [project.dynamic]."
+            ),
+            (
+                "[tool.poetry.extras] is deprecated. Use "
+                "[project.optional-dependencies] instead."
+            ),
+            (
+                "Defining console scripts in [tool.poetry.scripts] is deprecated. "
+                "Use [project.scripts] instead. "
+                "([tool.poetry.scripts] should only be used for scripts of type 'file')."
+            ),
+            (
                 "A wildcard Python dependency is ambiguous. Consider specifying a more"
                 " explicit one."
             ),
@@ -360,11 +708,49 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
     }
 
 
+@pytest.mark.parametrize("with_project_section", [True, False])
+def test_validate_dependencies_non_package_mode(with_project_section: bool) -> None:
+    content: dict[str, Any] = {
+        "tool": {"poetry": {"package-mode": False, "dependencies": {"foo": "*"}}}
+    }
+    expected: dict[str, list[str]] = {"errors": [], "warnings": []}
+    if with_project_section:
+        content["project"] = {"name": "my-project"}
+        expected["warnings"] = [
+            (
+                "[tool.poetry.dependencies] is set but [project.dependencies] is "
+                "not and 'dependencies' is not in [project.dynamic]. You should "
+                "either migrate [tool.poetry.depencencies] to "
+                "[project.dependencies] (if you do not need Poetry-specific "
+                "features) or add [project.dependencies] in addition to "
+                "[tool.poetry.dependencies] or add 'dependencies' to "
+                "[project.dynamic]."
+            )
+        ]
+    assert Factory.validate(content, strict=True) == expected
+
+
+@pytest.mark.parametrize("with_project_section", [True, False])
+def test_validate_python_non_package_mode(with_project_section: bool) -> None:
+    content: dict[str, Any] = {
+        "tool": {"poetry": {"package-mode": False, "dependencies": {"python": ">=3.9"}}}
+    }
+    expected: dict[str, list[str]] = {"errors": [], "warnings": []}
+    if with_project_section:
+        content["project"] = {"name": "my-project", "dynamic": ["dependencies"]}
+        expected["warnings"] = [
+            (
+                "[tool.poetry.dependencies.python] is set but [project.requires-python]"
+                " is not set and 'requires-python' is not in [project.dynamic]."
+            )
+        ]
+    assert Factory.validate(content, strict=True) == expected
+
+
 def test_strict_validation_success_on_multiple_readme_files() -> None:
     with_readme_files = fixtures_dir / "with_readme_files" / "pyproject.toml"
     with with_readme_files.open("rb") as f:
-        doc = tomllib.load(f)
-    content = doc["tool"]["poetry"]
+        content = tomllib.load(f)
 
     assert Factory.validate(content, strict=True) == {"errors": [], "warnings": []}
 
@@ -372,9 +758,8 @@ def test_strict_validation_success_on_multiple_readme_files() -> None:
 def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None:
     with_readme_files = fixtures_dir / "with_readme_files" / "pyproject.toml"
     with with_readme_files.open("rb") as f:
-        doc = tomllib.load(f)
-    content = doc["tool"]["poetry"]
-    content["readme"][0] = "README.md"
+        content = tomllib.load(f)
+    content["tool"]["poetry"]["readme"][0] = "README.md"
 
     assert Factory.validate(content, strict=True) == {
         "errors": [
@@ -393,7 +778,8 @@ def test_create_poetry_fails_on_invalid_configuration() -> None:
 
     expected = """\
 The Poetry configuration is invalid:
-  - The fields ['description'] are required in package mode.
+  - Either [project.name] or [tool.poetry.name] is required in package mode.
+  - Either [project.version] or [tool.poetry.version] is required in package mode.
 """
     assert str(e.value) == expected
 
@@ -406,7 +792,9 @@ def test_create_poetry_fails_on_invalid_mode() -> None:
 
     expected = """\
 The Poetry configuration is invalid:
-  - Invalid value for package-mode: invalid
+  - tool.poetry.package-mode must be boolean
+  - Either [project.name] or [tool.poetry.name] is required in package mode.
+  - Either [project.version] or [tool.poetry.version] is required in package mode.
 """
     assert str(e.value) == expected
 
@@ -434,10 +822,17 @@ def test_create_poetry_with_invalid_dev_dependencies(caplog: LogCaptureFixture) 
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
-def test_create_poetry_with_groups_and_legacy_dev() -> None:
+def test_create_poetry_with_groups_and_legacy_dev(caplog: LogCaptureFixture) -> None:
+    assert not caplog.records
+
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_groups_and_legacy_dev"
     )
+
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.levelname == "WARNING"
+    assert '"poetry.dev-dependencies" section is deprecated' in record.message
 
     package = poetry.package
     dependencies = package.all_requires

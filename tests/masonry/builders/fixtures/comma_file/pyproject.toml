@@ -8,5 +8,5 @@ authors = [
 [tool.poetry.dependencies]
 python = "^3.6"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 

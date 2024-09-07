@@ -8,7 +8,7 @@ from poetry.core.utils.helpers import readme_content_type
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
 
-    from poetry.core.packages.package import Package
+    from poetry.core.packages.project_package import ProjectPackage
 
 
 class Metadata:
@@ -46,7 +46,7 @@ class Metadata:
     provides_extra: list[NormalizedName] = []  # noqa: RUF012
 
     @classmethod
-    def from_package(cls, package: Package) -> Metadata:
+    def from_package(cls, package: ProjectPackage) -> Metadata:
         from poetry.core.version.helpers import format_python_constraint
 
         meta = cls()
@@ -54,7 +54,9 @@ class Metadata:
         meta.name = package.pretty_name
         meta.version = package.version.to_string()
         meta.summary = package.description
-        if package.readmes:
+        if package.readme_content:
+            meta.description = package.readme_content
+        elif package.readmes:
             descriptions = []
             for readme in package.readmes:
                 try:
@@ -88,20 +90,28 @@ class Metadata:
         meta.maintainer_email = package.maintainer_email
 
         # Requires python
-        if package.python_versions != "*":
+        if package.requires_python != "*":
+            meta.requires_python = package.requires_python
+        elif package.python_versions != "*":
             meta.requires_python = format_python_constraint(package.python_constraint)
 
         meta.requires_dist = [d.to_pep_508() for d in package.requires]
 
         # Version 2.1
-        if package.readmes:
+        if package.readme_content_type:
+            meta.description_content_type = package.readme_content_type
+        elif package.readmes:
             meta.description_content_type = readme_content_type(package.readmes[0])
 
         meta.provides_extra = list(package.extras)
 
         if package.urls:
             for name, url in package.urls.items():
-                if name == "Homepage" and meta.home_page == url:
+                if name.lower() == "homepage" and meta.home_page == url:
+                    continue
+                if name == "repository" and url == package.urls["Repository"]:
+                    continue
+                if name == "documentation" and url == package.urls["Documentation"]:
                     continue
 
                 meta.project_urls += (f"{name}, {url}",)

@@ -1,0 +1,75 @@
+[project]
+dynamic = [
+    "name",  # This is not valid and will trigger an error in Factory.validate()
+    "version",
+    "description",
+    "readme",
+    "requires-python",
+    "license",
+    "authors",
+    "maintainers",
+    "keywords",
+    "classifiers",
+    "urls",
+    "dependencies",
+    "optional-dependencies",
+    "scripts",
+]
+
+[tool.poetry]
+name = "poetry"
+version = "0.5.0"
+description = "Python dependency management and packaging made easy."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
+maintainers = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
+license = "MIT"
+
+readme = "README.rst"
+
+homepage = "https://python-poetry.org/"
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs"
+
+keywords = ["packaging", "dependency", "poetry"]
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+# Requirements
+[tool.poetry.dependencies]
+python = "^3.8"  # Compatible python versions must be declared here
+toml = "^0.9"
+# Dependencies with extras
+requests = { version = "^2.13", extras = [ "security" ] }
+# Python specific dependencies with prereleases allowed
+pathlib2 = { version = "^2.2", python = "~3.8", allow-prereleases = true }
+# Git dependencies
+cleo = { git = "https://github.com/sdispater/cleo.git", branch = "master" }
+
+# Optional dependencies (extras)
+pendulum = { version = "^1.4", optional = true }
+
+[tool.poetry.extras]
+time = [ "pendulum" ]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^3.0"
+pytest-cov = "^2.4"
+
+[tool.poetry.scripts]
+my-script = 'my_package:main'
+sample_pyscript = { reference = "script-files/sample_script.py", type= "file" }
+sample_shscript = { reference = "script-files/sample_script.sh", type= "file" }
+
+[project.entry-points."poetry.application.plugin"]
+my-command = "my_package.plugins:MyApplicationPlugin"
+
+
+[[tool.poetry.source]]
+name = "foo"
+url = "https://bar.com"

@@ -39,7 +39,7 @@ version = "^1.4"
 markers = 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
 optional = true
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "~3.4"
 
 [tool.poetry.extras]
@@ -51,6 +51,8 @@ my-2nd-script = "my_package:main2"
 file-script = { reference = "bin/script.sh", type = "file" }
 extra-script = { reference = "my_package.extra:main", extras = ["time"], type = "console" }
 
+[tool.poetry.plugins."poetry.application.plugin"]
+my-command = "my_package.plugins:MyApplicationPlugin"
 
 [tool.poetry.urls]
 "Issue Tracker" = "https://github.com/python-poetry/poetry/issues"
