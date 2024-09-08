@@ -224,10 +224,10 @@ class Factory:
                 package.readme_content = root / readme["text"]
                 package.readme_content_type = readme["content-type"]
         elif custom_readme := tool_poetry.get("readme"):
-            if isinstance(custom_readme, str):
-                package.readmes = (root / custom_readme,)
-            else:
-                package.readmes = tuple(root / readme for readme in custom_readme)
+            custom_readmes = (
+                (custom_readme,) if isinstance(custom_readme, str) else custom_readme
+            )
+            package.readmes = tuple(root / r for r in custom_readmes if r)
 
     @classmethod
     def _configure_entry_points(

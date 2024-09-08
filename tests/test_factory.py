@@ -510,6 +510,29 @@ def test_create_poetry_classifiers(
     assert poetry.package.all_classifiers == expected
 
 
+def test_create_poetry_no_readme(tmp_path: Path) -> None:
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[tool.poetry]\nname="foo"\nversion="1"\nauthors = []\ndescription = ""\n',
+        encoding="utf-8",
+    )
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert not poetry.package.readmes
+
+
+def test_create_poetry_empty_readme(tmp_path: Path) -> None:
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[tool.poetry]\nname="foo"\nversion="1"\nauthors = []\ndescription = ""\n'
+        'readme = ""\n',
+        encoding="utf-8",
+    )
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert not poetry.package.readmes
+
+
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
