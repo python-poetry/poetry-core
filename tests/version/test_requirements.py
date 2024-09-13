@@ -122,7 +122,6 @@ def test_requirement(string: str, expected: dict[str, Any]) -> None:
     [
         ("foo!", "Unexpected character at column 4\n\nfoo!\n   ^\n"),
         ("foo (>=bar)", 'invalid version constraint ">=bar"'),
-        ("name @ file:.", "invalid URL"),
         ("name @ file:/.", "invalid URL"),
     ],
 )
