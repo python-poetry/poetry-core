@@ -2,10 +2,9 @@ name: Poetry Downstream Tests
 
 on:
   workflow_dispatch:
-# TODO: enable again after updating Poetry to use poetry-core 2.0.0
-#  pull_request: {}
-#  push:
-#    branches: [main]
+  pull_request: {}
+  push:
+    branches: [main]
 
 jobs:
   tests:
