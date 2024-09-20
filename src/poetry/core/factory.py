@@ -797,17 +797,23 @@ class Factory:
 
     @classmethod
     def locate(cls, cwd: Path | None = None) -> Path:
-        cwd = Path(cwd or Path.cwd())
-        candidates = [cwd]
-        candidates.extend(cwd.parents)
+        if cwd is not None:
+            poetry_file = cwd / "pyproject.toml"
+            if poetry_file.exists():
+                return poetry_file
 
+            raise RuntimeError(
+                f"Poetry could not find pyproject.toml file {poetry_file} in {cwd}"
+            )
+
+        cwd = Path.cwd()
+        candidates = [cwd, *cwd.parents]
         for path in candidates:
             poetry_file = path / "pyproject.toml"
 
             if poetry_file.exists():
                 return poetry_file
 
-        else:
-            raise RuntimeError(
-                f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
-            )
+        raise RuntimeError(
+            f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
+        )
