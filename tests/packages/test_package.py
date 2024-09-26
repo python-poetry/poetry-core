@@ -658,3 +658,12 @@ def test_package_invalid_python_versions() -> None:
 
     expected = "Invalid python versions '>=3.6.y' on foo (1.2.3)"
     assert str(exc_info.value) == expected
+
+
+def test_package_empty_python_versions() -> None:
+    package = Package("foo", "1.2.3")
+    with pytest.raises(ParseConstraintError) as exc_info:
+        package.python_versions = "~2.7, >=3.4, <3.8"
+
+    expected = "Python versions '~2.7, >=3.4, <3.8' on foo (1.2.3) is empty"
+    assert str(exc_info.value) == expected

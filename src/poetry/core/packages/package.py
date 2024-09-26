@@ -278,6 +278,9 @@ class Package(PackageSpecification):
         except ParseConstraintError:
             raise ParseConstraintError(f"Invalid python versions '{value}' on {self}")
 
+        if constraint.is_empty():
+            raise ParseConstraintError(f"Python versions '{value}' on {self} is empty")
+
         self._python_versions = value
         self._python_constraint = constraint
         self._python_marker = parse_marker(
