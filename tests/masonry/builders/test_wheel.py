@@ -89,13 +89,13 @@ def test_wheel_package_output(output: str) -> None:
 
     WheelBuilder.make_in(
         Factory().create_poetry(module_path),
-        directory=module_path / output if output is not None else None
+        directory=module_path / output if output is not None else None,
     )
 
     if output is None:
         whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
     else:
-        whl = module_path/ output / "my_package-1.2.3-py3-none-any.whl"
+        whl = module_path / output / "my_package-1.2.3-py3-none-any.whl"
 
     assert whl.exists()
 
