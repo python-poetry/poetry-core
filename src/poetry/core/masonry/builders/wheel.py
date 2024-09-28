@@ -102,7 +102,7 @@ class WheelBuilder(Builder):
 
         target_dir = target_dir or self.default_target_dir
         if not target_dir.exists():
-            target_dir.mkdir()
+            target_dir.mkdir(parents=True)
 
         fd, temp_path = tempfile.mkstemp(suffix=".whl")
 
