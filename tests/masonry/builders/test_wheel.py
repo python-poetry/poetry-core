@@ -89,8 +89,7 @@ def test_wheel_package_output(output: str) -> None:
 
     WheelBuilder.make_in(
         Factory().create_poetry(module_path),
-        directory=module_path / output
-            if output is not None else None # type: ignore[redundant-expr]
+        directory=module_path / output if output is not None else None,  # type: ignore[redundant-expr]
     )
 
     if output is None:
