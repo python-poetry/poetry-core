@@ -288,6 +288,23 @@ def test_package(project_name: str) -> None:
         assert "my_package-1.2.3/LICENSE" in tar.getnames()
 
 
+@pytest.mark.parametrize("target_dir", [None, "dist", "dist/build"])
+def test_package_target_dir(tmp_path: Path, target_dir: str | None) -> None:
+    poetry = Factory().create_poetry(project("complete"))
+
+    builder = SdistBuilder(poetry)
+    builder.build(target_dir=tmp_path / target_dir if target_dir else None)
+
+    sdist = (
+        tmp_path / target_dir if target_dir else fixtures_dir / "complete" / "dist"
+    ) / "my_package-1.2.3.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        assert "my_package-1.2.3/LICENSE" in tar.getnames()
+
+
 @pytest.mark.parametrize("project_name", ["complete", "complete_new"])
 def test_sdist_reproducibility(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
