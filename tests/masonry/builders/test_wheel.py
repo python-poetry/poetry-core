@@ -83,6 +83,25 @@ def test_wheel_package(project: str) -> None:
         assert "my_package/sub_pkg1/__init__.py" in z.namelist()
 
 
+@pytest.mark.parametrize("target_dir", [None, "dist", "dist/build"])
+def test_wheel_package_target_dir(tmp_path: Path, target_dir: str | None) -> None:
+    module_path = fixtures_dir / "complete"
+
+    WheelBuilder.make_in(
+        Factory().create_poetry(module_path),
+        directory=tmp_path / target_dir if target_dir else None,
+    )
+
+    whl = (
+        tmp_path / target_dir if target_dir else module_path / "dist"
+    ) / "my_package-1.2.3-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert "my_package/sub_pkg1/__init__.py" in z.namelist()
+
+
 def test_wheel_prerelease() -> None:
     module_path = fixtures_dir / "prerelease"
     WheelBuilder.make(Factory().create_poetry(module_path))
