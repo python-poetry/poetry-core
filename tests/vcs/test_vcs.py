@@ -342,6 +342,18 @@ def test_normalize_url(url: str, normalized: GitUrl) -> None:
             ),
         ),
         (
+            "git+ssh://git@git.example.com:sdispater/project/+git/my_repo.git",
+            ParsedUrl(
+                "ssh",
+                "git.example.com",
+                ":sdispater/project/+git/my_repo.git",
+                "git",
+                None,
+                "my_repo",
+                None,
+            ),
+        ),
+        (
             "git+ssh://git@git.example.com:sdispater/project/my_repo.git#subdirectory=project-dir",
             ParsedUrl(
                 "ssh",
