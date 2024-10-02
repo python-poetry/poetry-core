@@ -469,6 +469,11 @@
     false,
     false
   ],
+  "Boehm-GC-without-fee": [
+    "Boehm-Demers-Weiser GC License (without fee)",
+    false,
+    false
+  ],
   "Borceux": [
     "Borceux license",
     false,
