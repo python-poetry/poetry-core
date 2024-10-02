@@ -25,6 +25,8 @@ from poetry.core.packages.vcs_dependency import VCSDependency
 
 
 if TYPE_CHECKING:
+    from pytest import LogCaptureFixture
+    from pytest import MonkeyPatch
     from pytest_mock import MockerFixture
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -496,7 +498,6 @@ def test_default_with_excluded_data(mocker: MockerFixture) -> None:
     )
 
     assert sdist.exists()
-
     with tarfile.open(str(sdist), "r") as tar:
         names = tar.getnames()
         assert len(names) == len(set(names))
@@ -506,16 +507,6 @@ def test_default_with_excluded_data(mocker: MockerFixture) -> None:
         assert "my_package-1.2.3/my_package/data/data1.txt" in names
         assert "my_package-1.2.3/pyproject.toml" in names
         assert "my_package-1.2.3/PKG-INFO" in names
-        # all last modified times should be set to a valid timestamp
-        for tarinfo in tar.getmembers():
-            if tarinfo.name in [
-                "my_package-1.2.3/setup.py",
-                "my_package-1.2.3/PKG-INFO",
-            ]:
-                # generated files have timestamp set to 0
-                assert tarinfo.mtime == 0
-                continue
-            assert tarinfo.mtime > 0
 
 
 def test_src_excluded_nested_data() -> None:
@@ -693,3 +684,59 @@ def test_split_source() -> None:
     ns: dict[str, Any] = {}
     exec(compile(setup_ast, filename="setup.py", mode="exec"), ns)
     assert "" in ns["package_dir"] and "module_b" in ns["package_dir"]
+
+
+def test_sdist_members_mtime_default(caplog: LogCaptureFixture) -> None:
+    import logging
+
+    caplog.set_level(logging.INFO)
+    poetry = Factory().create_poetry(project("module1"))
+
+    builder = SdistBuilder(poetry)
+    builder.build()
+
+    sdist = fixtures_dir / "module1" / "dist" / "module1-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        for tarinfo in tar.getmembers():
+            assert tarinfo.mtime == 0
+
+    assert (
+        "SOURCE_DATE_EPOCH environment variable is not set," " using mtime=0"
+    ) in caplog.messages
+
+
+def test_sdist_mtime_set_from_envvar(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1727883000")
+    poetry = Factory().create_poetry(project("module1"))
+
+    builder = SdistBuilder(poetry)
+    builder.build()
+
+    sdist = fixtures_dir / "module1" / "dist" / "module1-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        for tarinfo in tar.getmembers():
+            assert tarinfo.mtime == 1727883000
+
+
+def test_sdist_mtime_set_from_envvar_not_int(
+    monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
+) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "october")
+    poetry = Factory().create_poetry(project("module1"))
+
+    builder = SdistBuilder(poetry)
+    builder.build()
+
+    sdist = fixtures_dir / "module1" / "dist" / "module1-0.1.tar.gz"
+
+    assert sdist.exists()
+
+    assert (
+        "SOURCE_DATE_EPOCH environment variable is not an " "int, using mtime=0"
+    ) in caplog.messages
