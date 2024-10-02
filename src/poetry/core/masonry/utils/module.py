@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from poetry.core.masonry.utils.include import Include
 
 
-class ModuleOrPackageNotFound(ValueError):
+class ModuleOrPackageNotFoundError(ValueError):
     pass
 
 
@@ -66,7 +66,7 @@ class Module:
                         }
                     ]
                 else:
-                    raise ModuleOrPackageNotFound(
+                    raise ModuleOrPackageNotFoundError(
                         f"No file/folder found for package {name}"
                     )
 

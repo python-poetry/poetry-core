@@ -12,7 +12,7 @@ from poetry.core.constraints.version import parse_constraint as parse_version_co
 from poetry.core.version.markers import AnyMarker
 from poetry.core.version.markers import AtomicMarkerUnion
 from poetry.core.version.markers import EmptyMarker
-from poetry.core.version.markers import InvalidMarker
+from poetry.core.version.markers import InvalidMarkerError
 from poetry.core.version.markers import MarkerUnion
 from poetry.core.version.markers import MultiMarker
 from poetry.core.version.markers import SingleMarker
@@ -85,7 +85,7 @@ def test_parse_marker_non_python_versions(marker: str, valid: bool) -> None:
     if valid:
         assert str(parse_marker(marker)) == marker
     else:
-        with pytest.raises(InvalidMarker):
+        with pytest.raises(InvalidMarkerError):
             parse_marker(marker)
 
 

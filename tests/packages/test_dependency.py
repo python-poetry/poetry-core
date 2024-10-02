@@ -10,9 +10,9 @@ from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
-from poetry.core.version.markers import InvalidMarker
+from poetry.core.version.markers import InvalidMarkerError
 from poetry.core.version.markers import parse_marker
-from poetry.core.version.requirements import InvalidRequirement
+from poetry.core.version.requirements import InvalidRequirementError
 
 
 @pytest.mark.parametrize(
@@ -196,7 +196,7 @@ def test_to_pep_508_combination() -> None:
     ],
 )
 def test_to_pep_508_with_invalid_marker(requirement: str) -> None:
-    with pytest.raises(InvalidMarker):
+    with pytest.raises(InvalidMarkerError):
         _ = Dependency.create_from_pep_508(requirement)
 
 
@@ -207,7 +207,7 @@ def test_to_pep_508_with_invalid_marker(requirement: str) -> None:
     ],
 )
 def test_to_pep_508_with_invalid_requirement(requirement: str) -> None:
-    with pytest.raises(InvalidRequirement):
+    with pytest.raises(InvalidRequirementError):
         _ = Dependency.create_from_pep_508(requirement)
 
 

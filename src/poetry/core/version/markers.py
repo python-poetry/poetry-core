@@ -35,19 +35,19 @@ if TYPE_CHECKING:
     from lark import Tree
 
 
-class InvalidMarker(ValueError):
+class InvalidMarkerError(ValueError):
     """
     An invalid marker was found, users should refer to PEP 508.
     """
 
 
-class UndefinedComparison(ValueError):
+class UndefinedComparisonError(ValueError):
     """
     An invalid operation was attempted on a value that doesn't support it.
     """
 
 
-class UndefinedEnvironmentName(ValueError):
+class UndefinedEnvironmentNameError(ValueError):
     """
     A name was attempted to be used that does not exist inside of the
     environment.
@@ -372,7 +372,9 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
 
         m = pattern.match(constraint_string)
         if m is None:
-            raise InvalidMarker(f"Invalid marker for '{name}': {constraint_string}")
+            raise InvalidMarkerError(
+                f"Invalid marker for '{name}': {constraint_string}"
+            )
 
         self._operator = m.group("op")
         if self._operator is None:
@@ -418,7 +420,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         try:
             parsed_constraint = parser(constraint_string)
         except ParseConstraintError as e:
-            raise InvalidMarker(
+            raise InvalidMarkerError(
                 f"Invalid marker for '{name}': {original_constraint_string}"
             ) from e
 

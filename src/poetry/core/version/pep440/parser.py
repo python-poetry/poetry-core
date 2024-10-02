@@ -8,7 +8,7 @@ from typing import TypeVar
 
 from packaging.version import VERSION_PATTERN
 
-from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.exceptions import InvalidVersionError
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440 import ReleaseTag
 
@@ -67,7 +67,7 @@ class PEP440Parser:
     def parse(cls, value: str, version_class: type[T]) -> T:
         match = cls._regex.search(value) if value else None
         if not match:
-            raise InvalidVersion(f"Invalid PEP 440 version: '{value}'")
+            raise InvalidVersionError(f"Invalid PEP 440 version: '{value}'")
 
         return version_class(
             epoch=int(match.group("epoch")) if match.group("epoch") else 0,

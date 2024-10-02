@@ -15,7 +15,7 @@ from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.package import Package
 from poetry.core.packages.project_package import ProjectPackage
-from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.exceptions import InvalidVersionError
 
 
 if TYPE_CHECKING:
@@ -644,7 +644,7 @@ def test_project_package_hash_not_changed_when_version_is_changed() -> None:
 
 
 def test_package_invalid_version() -> None:
-    with pytest.raises(InvalidVersion) as exc_info:
+    with pytest.raises(InvalidVersionError) as exc_info:
         Package("foo", "1.2.3.bogus")
 
     expected = "Invalid version '1.2.3.bogus' on package foo"

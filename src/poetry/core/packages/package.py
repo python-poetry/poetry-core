@@ -14,7 +14,7 @@ from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import create_nested_marker
-from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.exceptions import InvalidVersionError
 from poetry.core.version.markers import parse_marker
 
 
@@ -226,8 +226,8 @@ class Package(PackageSpecification):
         if not isinstance(version, Version):
             try:
                 version = Version.parse(version)
-            except InvalidVersion:
-                raise InvalidVersion(
+            except InvalidVersionError:
+                raise InvalidVersionError(
                     f"Invalid version '{version}' on package {self.name}"
                 )
 

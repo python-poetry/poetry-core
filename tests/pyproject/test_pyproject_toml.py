@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from poetry.core.pyproject.exceptions import PyProjectException
+from poetry.core.pyproject.exceptions import PyProjectError
 from poetry.core.pyproject.toml import PyProjectTOML
 from poetry.core.utils._compat import tomllib
 
@@ -22,7 +22,7 @@ def test_pyproject_toml_no_poetry_config(pyproject_toml: Path) -> None:
 
     assert not pyproject.is_poetry_project()
 
-    with pytest.raises(PyProjectException) as excval:
+    with pytest.raises(PyProjectError) as excval:
         _ = pyproject.poetry_config
 
     assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
@@ -37,7 +37,7 @@ def test_pyproject_toml_no_poetry_config_but_project_section(
 
     assert pyproject.is_poetry_project()
 
-    with pytest.raises(PyProjectException) as excval:
+    with pytest.raises(PyProjectError) as excval:
         _ = pyproject.poetry_config
 
     assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
@@ -52,7 +52,7 @@ def test_pyproject_toml_no_poetry_config_but_project_section_but_dynamic(
 
     assert not pyproject.is_poetry_project()
 
-    with pytest.raises(PyProjectException) as excval:
+    with pytest.raises(PyProjectError) as excval:
         _ = pyproject.poetry_config
 
     assert f"[tool.poetry] section not found in {pyproject_toml.as_posix()}" in str(
@@ -112,7 +112,7 @@ def test_unparseable_pyproject_toml() -> None:
         / "pyproject.toml"
     )
 
-    with pytest.raises(PyProjectException) as excval:
+    with pytest.raises(PyProjectError) as excval:
         _ = PyProjectTOML(pyproject_toml).build_system
 
     assert (

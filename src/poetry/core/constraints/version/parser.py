@@ -6,7 +6,7 @@ import re
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
-from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.exceptions import InvalidVersionError
 
 
 if TYPE_CHECKING:
@@ -103,7 +103,7 @@ def parse_single_constraint(
     if m:
         try:
             version = Version.parse(m.group("version"))
-        except InvalidVersion as e:
+        except InvalidVersionError as e:
             raise ParseConstraintError(
                 f"Could not parse version constraint: {constraint}"
             ) from e
@@ -119,7 +119,7 @@ def parse_single_constraint(
     if m:
         try:
             version = Version.parse(m.group("version"))
-        except InvalidVersion as e:
+        except InvalidVersionError as e:
             raise ParseConstraintError(
                 f"Could not parse version constraint: {constraint}"
             ) from e
@@ -136,7 +136,7 @@ def parse_single_constraint(
     if m:
         try:
             version = Version.parse(m.group("version"))
-        except InvalidVersion as e:
+        except InvalidVersionError as e:
             raise ParseConstraintError(
                 f"Could not parse version constraint: {constraint}"
             ) from e
@@ -168,7 +168,7 @@ def parse_single_constraint(
 
         try:
             version = Version.parse(version_string)
-        except InvalidVersion as e:
+        except InvalidVersionError as e:
             raise ParseConstraintError(
                 f"Could not parse version constraint: {constraint}"
             ) from e
@@ -206,7 +206,7 @@ def parse_single_constraint(
                 release=Version.parse(release_string).release,
                 local=build,
             )
-        except InvalidVersion as e:
+        except InvalidVersionError as e:
             raise ParseConstraintError(
                 f"Could not parse version constraint: {constraint}"
             ) from e
