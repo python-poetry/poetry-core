@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from poetry.core.exceptions.base import PoetryCoreException
+from poetry.core.exceptions.base import PoetryCoreError
 
 
-__all__ = ("PoetryCoreException",)
+__all__ = ("PoetryCoreError",)

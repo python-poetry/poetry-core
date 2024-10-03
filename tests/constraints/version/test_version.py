@@ -7,7 +7,7 @@ import pytest
 from poetry.core.constraints.version import EmptyConstraint
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
-from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.exceptions import InvalidVersionError
 from poetry.core.version.pep440 import ReleaseTag
 
 
@@ -45,7 +45,7 @@ def test_parse_valid(text: str, version: Version) -> None:
 
 @pytest.mark.parametrize("value", [None, "example"])
 def test_parse_invalid(value: str | None) -> None:
-    with pytest.raises(InvalidVersion):
+    with pytest.raises(InvalidVersionError):
         Version.parse(value)  # type: ignore[arg-type]
 
 

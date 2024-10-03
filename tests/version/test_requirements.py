@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from poetry.core.constraints.version import parse_constraint
-from poetry.core.version.requirements import InvalidRequirement
+from poetry.core.version.requirements import InvalidRequirementError
 from poetry.core.version.requirements import Requirement
 
 
@@ -139,7 +139,7 @@ def test_requirement(string: str, expected: dict[str, Any]) -> None:
 )
 def test_invalid_requirement(string: str, exception: str) -> None:
     with pytest.raises(
-        InvalidRequirement,
+        InvalidRequirementError,
         match=re.escape(f"The requirement is invalid: {exception}"),
     ):
         Requirement(string)

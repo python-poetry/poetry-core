@@ -32,7 +32,7 @@ class PyProjectTOML:
                     with self.path.open("rb") as f:
                         self._data = tomllib.load(f)
                 except tomllib.TOMLDecodeError as e:
-                    from poetry.core.pyproject.exceptions import PyProjectException
+                    from poetry.core.pyproject.exceptions import PyProjectError
 
                     msg = (
                         f"{self._path.as_posix()} is not a valid TOML file.\n"
@@ -42,7 +42,7 @@ class PyProjectTOML:
                     if str(e).startswith("Cannot overwrite a value"):
                         msg += "\nThis is often caused by a duplicate entry."
 
-                    raise PyProjectException(msg) from e
+                    raise PyProjectError(msg) from e
 
         return self._data
 
@@ -73,17 +73,17 @@ class PyProjectTOML:
             assert isinstance(config, dict)
             return config
         except KeyError as e:
-            from poetry.core.pyproject.exceptions import PyProjectException
+            from poetry.core.pyproject.exceptions import PyProjectError
 
-            raise PyProjectException(
+            raise PyProjectError(
                 f"[tool.poetry] section not found in {self._path.as_posix()}"
             ) from e
 
     def is_poetry_project(self) -> bool:
-        from poetry.core.pyproject.exceptions import PyProjectException
+        from poetry.core.pyproject.exceptions import PyProjectError
 
         if self.path.exists():
-            with suppress(PyProjectException):
+            with suppress(PyProjectError):
                 _ = self.poetry_config
                 return True
 

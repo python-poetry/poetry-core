@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from poetry.core.version.exceptions import InvalidVersion
+from poetry.core.version.exceptions import InvalidVersionError
 from poetry.core.version.pep440 import PEP440Version
 from poetry.core.version.pep440 import Release
 from poetry.core.version.pep440 import ReleaseTag
@@ -114,7 +114,7 @@ def test_pep440_parse_text(text: str, result: PEP440Version) -> None:
     "text", ["1.2.3.dev1-1", "example-1", "1.2.3-random1", "1.2.3-1-1"]
 )
 def test_pep440_parse_text_invalid_versions(text: str) -> None:
-    with pytest.raises(InvalidVersion):
+    with pytest.raises(InvalidVersionError):
         PEP440Version.parse(text)
 
 
