@@ -427,7 +427,7 @@ def test_create_poetry_python_version(
         content += f'requires-python = "{requires_python}"\n'
     if python:
         content += f'[tool.poetry.dependencies]\npython = "{python}"\n'
-    (tmp_path / "pyproject.toml").write_text(content)
+    (tmp_path / "pyproject.toml").write_text(content, encoding="utf-8")
     poetry = Factory().create_poetry(tmp_path)
 
     package = poetry.package
@@ -446,7 +446,7 @@ requires-python = ">=3.8"
 [tool.poetry.dependencies]
 python = ">=3.7"
 """
-    (tmp_path / "pyproject.toml").write_text(content)
+    (tmp_path / "pyproject.toml").write_text(content, encoding="utf-8")
     with pytest.raises(ValueError) as e:
         Factory().create_poetry(tmp_path)
 
@@ -504,7 +504,7 @@ python = "~3.10"
 def test_create_poetry_classifiers(
     content: str, expected: list[str], tmp_path: Path
 ) -> None:
-    (tmp_path / "pyproject.toml").write_text(content)
+    (tmp_path / "pyproject.toml").write_text(content, encoding="utf-8")
     poetry = Factory().create_poetry(tmp_path)
 
     assert poetry.package.all_classifiers == expected
