@@ -396,9 +396,9 @@ class Dependency(PackageSpecification):
         elif req.url:
             link = Link(req.url)
         else:
-            path_str = os.path.normpath(os.path.abspath(name))
+            path_str = os.path.normpath(os.path.abspath(name))  # noqa: PTH100
             p, extras = strip_extras(path_str)
-            if os.path.isdir(p) and (os.path.sep in name or name.startswith(".")):
+            if p.is_dir() and (os.path.sep in name or name.startswith(".")):
                 if not is_python_project(Path(name)):
                     raise ValueError(
                         f"Directory {name!r} is not installable. Not a Python project."

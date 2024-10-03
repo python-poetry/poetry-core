@@ -67,6 +67,7 @@ extend-select = [
   "TCH", # flake8-type-checking
   "TID", # flake8-tidy-imports
   "UP",  # pyupgrade
+  "PTH", # flake8-use-pathlib
 ]
 ignore = [
   "B904", # use 'raise ... from err'

@@ -339,7 +339,7 @@ def test_setup_py_context(project_name: str) -> None:
             assert setup.exists()
             assert project_setup_py == setup
 
-            with open(str(setup), "rb") as f:
+            with setup.open(mode="rb") as f:
                 # we convert to string  and replace line endings here for compatibility
                 data = f.read().decode().replace("\r\n", "\n")
                 assert data == builder.build_setup().decode()

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 @contextmanager
 def cwd(directory: str | Path) -> Iterator[None]:
-    prev = os.getcwd()
+    prev = Path.cwd()
     os.chdir(str(directory))
     try:
         yield
@@ -31,58 +31,54 @@ def cwd(directory: str | Path) -> Iterator[None]:
         os.chdir(prev)
 
 
-fixtures = os.path.join(os.path.dirname(__file__), "builders", "fixtures")
+fixtures = Path(__file__).parent / "builders" / "fixtures"
 
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_get_requires_for_build_wheel(project: str) -> None:
     expected: list[str] = []
-    with cwd(os.path.join(fixtures, project)):
+    with cwd(fixtures / project):
         assert api.get_requires_for_build_wheel() == expected
 
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_get_requires_for_build_sdist(project: str) -> None:
     expected: list[str] = []
-    with cwd(os.path.join(fixtures, project)):
+    with cwd(fixtures / project):
         assert api.get_requires_for_build_sdist() == expected
 
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_build_wheel(project: str) -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, project)):
-        filename = api.build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / project):
+        filename = api.build_wheel(str(tmp_dir))
         validate_wheel_contents(
             name="my_package",
             version="1.2.3",
-            path=str(os.path.join(tmp_dir, filename)),
+            path=tmp_dir / filename,
             files=["entry_points.txt"],
         )
 
 
 def test_build_wheel_with_include() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
-        filename = api.build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with-include"):
+        filename = api.build_wheel(str(tmp_dir))
         validate_wheel_contents(
             name="with_include",
             version="1.2.3",
-            path=str(os.path.join(tmp_dir, filename)),
+            path=tmp_dir / filename,
             files=["entry_points.txt"],
         )
 
 
 def test_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(
-        os.path.join(fixtures, "with_bad_path_dev_dep")
-    ):
-        api.build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
+        api.build_wheel(str(tmp_dir))
 
 
 def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> None:
-    with temporary_directory() as tmp_dir, cwd(
-        os.path.join(fixtures, "with_bad_path_dep")
-    ):
-        api.build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dep"):
+        api.build_wheel(str(tmp_dir))
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "WARNING"
@@ -90,48 +86,44 @@ def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
 
 
 def test_build_wheel_extended() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "extended")):
-        filename = api.build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "extended"):
+        filename = api.build_wheel(str(tmp_dir))
         whl = Path(tmp_dir) / filename
         assert whl.exists()
-        validate_wheel_contents(name="extended", version="0.1", path=whl.as_posix())
+        validate_wheel_contents(name="extended", version="0.1", path=whl)
 
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_build_sdist(project: str) -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, project)):
-        filename = api.build_sdist(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / project):
+        filename = api.build_sdist(str(tmp_dir))
         validate_sdist_contents(
             name="my-package",
             version="1.2.3",
-            path=str(os.path.join(tmp_dir, filename)),
+            path=tmp_dir / filename,
             files=["LICENSE"],
         )
 
 
 def test_build_sdist_with_include() -> None:
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, "with-include")):
-        filename = api.build_sdist(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with-include"):
+        filename = api.build_sdist(str(tmp_dir))
         validate_sdist_contents(
             name="with-include",
             version="1.2.3",
-            path=str(os.path.join(tmp_dir, filename)),
+            path=tmp_dir / filename,
             files=["LICENSE"],
         )
 
 
 def test_build_sdist_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(
-        os.path.join(fixtures, "with_bad_path_dev_dep")
-    ):
-        api.build_sdist(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
+        api.build_sdist(str(tmp_dir))
 
 
 def test_build_sdist_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> None:
-    with temporary_directory() as tmp_dir, cwd(
-        os.path.join(fixtures, "with_bad_path_dep")
-    ):
-        api.build_sdist(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dep"):
+        api.build_sdist(str(tmp_dir))
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "WARNING"
@@ -194,8 +186,8 @@ My Package
 ==========
 
 """
-    with temporary_directory() as tmp_dir, cwd(os.path.join(fixtures, project)):
-        dirname = api.prepare_metadata_for_build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / project):
+        dirname = api.prepare_metadata_for_build_wheel(str(tmp_dir))
 
         assert dirname == "my_package-1.2.3.dist-info"
 
@@ -216,19 +208,15 @@ My Package
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(
-        os.path.join(fixtures, "with_bad_path_dev_dep")
-    ):
-        api.prepare_metadata_for_build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
+        api.prepare_metadata_for_build_wheel(str(tmp_dir))
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     caplog: LogCaptureFixture,
 ) -> None:
-    with temporary_directory() as tmp_dir, cwd(
-        os.path.join(fixtures, "with_bad_path_dep")
-    ):
-        api.prepare_metadata_for_build_wheel(tmp_dir)
+    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dep"):
+        api.prepare_metadata_for_build_wheel(str(tmp_dir))
     assert len(caplog.records) == 1
     record = caplog.records[0]
     assert record.levelname == "WARNING"
@@ -237,16 +225,15 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_build_editable_wheel(project: str) -> None:
-    pkg_dir = Path(fixtures) / project
-
+    pkg_dir = fixtures / project
     with temporary_directory() as tmp_dir, cwd(pkg_dir):
-        filename = api.build_editable(tmp_dir)
+        filename = api.build_editable(str(tmp_dir))
         wheel_pth = Path(tmp_dir) / filename
 
         validate_wheel_contents(
             name="my_package",
             version="1.2.3",
-            path=str(wheel_pth),
+            path=wheel_pth,
         )
 
         with zipfile.ZipFile(wheel_pth) as z:
@@ -258,23 +245,23 @@ def test_build_editable_wheel(project: str) -> None:
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_build_wheel_with_metadata_directory(project: str) -> None:
-    pkg_dir = Path(fixtures) / project
+    pkg_dir = fixtures / project
 
     with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
-        metadata_directory = api.prepare_metadata_for_build_wheel(metadata_tmp_dir)
+        metadata_directory = api.prepare_metadata_for_build_wheel(str(metadata_tmp_dir))
 
         with temporary_directory() as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
             (dist_info_path / "CUSTOM").touch()
             filename = api.build_wheel(
-                wheel_tmp_dir, metadata_directory=str(dist_info_path)
+                str(wheel_tmp_dir), metadata_directory=str(dist_info_path)
             )
             wheel_pth = Path(wheel_tmp_dir) / filename
 
             validate_wheel_contents(
                 name="my_package",
                 version="1.2.3",
-                path=str(wheel_pth),
+                path=wheel_pth,
                 files=["entry_points.txt"],
             )
 
@@ -286,23 +273,25 @@ def test_build_wheel_with_metadata_directory(project: str) -> None:
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
 def test_build_editable_wheel_with_metadata_directory(project: str) -> None:
-    pkg_dir = Path(fixtures) / project
+    pkg_dir = fixtures / project
 
     with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
-        metadata_directory = api.prepare_metadata_for_build_editable(metadata_tmp_dir)
+        metadata_directory = api.prepare_metadata_for_build_editable(
+            str(metadata_tmp_dir)
+        )
 
         with temporary_directory() as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
             (dist_info_path / "CUSTOM").touch()
             filename = api.build_editable(
-                wheel_tmp_dir, metadata_directory=str(dist_info_path)
+                str(wheel_tmp_dir), metadata_directory=str(dist_info_path)
             )
             wheel_pth = Path(wheel_tmp_dir) / filename
 
             validate_wheel_contents(
                 name="my_package",
                 version="1.2.3",
-                path=str(wheel_pth),
+                path=wheel_pth,
                 files=["entry_points.txt"],
             )
 

@@ -530,8 +530,7 @@ def test_get_vcs_ignored_subdir(tmp_path: Path) -> None:
     repo_path.mkdir()
     assert repo_path.exists()
     assert subprocess.check_call([executable(), "init"], cwd=repo_path) == 0
-    with open(repo_path / ".gitignore", "w", encoding="utf-8") as f:
-        f.write("/ignored")
+    (repo_path / ".gitignore").write_text("/ignored", encoding="utf-8")
     subdir = repo_path / "ignored"
     subdir.mkdir()
 
