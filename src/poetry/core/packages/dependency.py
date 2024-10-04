@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import warnings
 
 from contextlib import suppress
 from pathlib import Path
@@ -81,8 +80,6 @@ class Dependency(PackageSpecification):
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._transitive_python_versions: str | None = None
-        self._transitive_python_constraint: VersionConstraint | None = None
         self._transitive_marker: BaseMarker | None = None
 
         self._in_extras: Sequence[NormalizedName] = []
@@ -136,28 +133,6 @@ class Dependency(PackageSpecification):
                     create_nested_marker("python_version", self._python_constraint)
                 )
             )
-
-    @property
-    def transitive_python_versions(self) -> str:
-        warnings.warn(
-            "'transitive_python_versions' is deprecated and will be removed.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self._transitive_python_versions is None:
-            return self._python_versions
-
-        return self._transitive_python_versions
-
-    @transitive_python_versions.setter
-    def transitive_python_versions(self, value: str) -> None:
-        warnings.warn(
-            "'transitive_python_versions' is deprecated and will be removed.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self._transitive_python_versions = value
-        self._transitive_python_constraint = parse_constraint(value)
 
     @property
     def marker(self) -> BaseMarker:
@@ -215,18 +190,6 @@ class Dependency(PackageSpecification):
     @property
     def python_constraint(self) -> VersionConstraint:
         return self._python_constraint
-
-    @property
-    def transitive_python_constraint(self) -> VersionConstraint:
-        warnings.warn(
-            "'transitive_python_constraint' is deprecated and will be removed.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self._transitive_python_constraint is None:
-            return self._python_constraint
-
-        return self._transitive_python_constraint
 
     @property
     def extras(self) -> frozenset[NormalizedName]:

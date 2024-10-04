@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from contextlib import AbstractContextManager
-from contextlib import nullcontext
-from typing import Any
-
 import pytest
 
 from packaging.utils import canonicalize_name
@@ -304,8 +300,6 @@ def test_with_constraint() -> None:
         'python_version >= "3.7" and python_version < "4.0"'
     )
     dependency.python_versions = "^3.6"
-    with pytest.warns(DeprecationWarning):
-        dependency.transitive_python_versions = "^3.7"
 
     new = dependency.with_constraint("^1.2.6")
 
@@ -318,10 +312,6 @@ def test_with_constraint() -> None:
     assert new.marker == dependency.marker
     assert new.transitive_marker == dependency.transitive_marker
     assert new.python_constraint == dependency.python_constraint
-    with pytest.warns(DeprecationWarning):
-        assert (
-            new.transitive_python_constraint == dependency.transitive_python_constraint
-        )
 
 
 @pytest.mark.parametrize(
@@ -399,7 +389,6 @@ def test_eq(dependency1: Dependency, dependency2: Dependency, expected: bool) ->
     [
         ("constraint", "2.0"),
         ("python_versions", "<3.8"),
-        ("transitive_python_versions", "<3.8"),
         ("marker", "sys_platform == 'linux'"),
         ("transitive_marker", "sys_platform == 'linux'"),
     ],
@@ -407,15 +396,9 @@ def test_eq(dependency1: Dependency, dependency2: Dependency, expected: bool) ->
 def test_mutable_attributes_not_in_hash(attr_name: str, value: str) -> None:
     dependency = Dependency("foo", "^1.2.3")
     ref_hash = hash(dependency)
+    ref_value = getattr(dependency, attr_name)
 
-    if attr_name == "transitive_python_versions":
-        context: AbstractContextManager[Any] = pytest.warns(DeprecationWarning)
-    else:
-        context = nullcontext()
+    setattr(dependency, attr_name, value)
 
-    with context:
-        ref_value = getattr(dependency, attr_name)
-    with context:
-        setattr(dependency, attr_name, value)
     assert value != ref_value
     assert hash(dependency) == ref_hash

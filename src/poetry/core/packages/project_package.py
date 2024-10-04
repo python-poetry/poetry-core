@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import warnings
-
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Mapping
@@ -24,16 +22,7 @@ class ProjectPackage(Package):
         self,
         name: str,
         version: str | Version,
-        pretty_version: str | None = None,
     ) -> None:
-        if pretty_version is not None:
-            warnings.warn(
-                "The `pretty_version` parameter is deprecated and will be removed"
-                " in a future release.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
         super().__init__(name, version)
 
         # Attributes must be immutable for clone() to be safe!

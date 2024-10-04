@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import warnings
 
 from typing import TYPE_CHECKING
 from typing import ClassVar
@@ -60,7 +59,6 @@ class Package(PackageSpecification):
         self,
         name: str,
         version: str | Version,
-        pretty_version: str | None = None,
         source_type: str | None = None,
         source_url: str | None = None,
         source_reference: str | None = None,
@@ -74,14 +72,6 @@ class Package(PackageSpecification):
         Creates a new in memory package.
         """
         from poetry.core.version.markers import AnyMarker
-
-        if pretty_version is not None:
-            warnings.warn(
-                "The `pretty_version` parameter is deprecated and will be removed"
-                " in a future release.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         super().__init__(
             name,
@@ -116,8 +106,6 @@ class Package(PackageSpecification):
 
         self._dependency_groups: Mapping[str, DependencyGroup] = {}
 
-        # Category is heading towards deprecation.
-        self._category = "main"
         self.files: Sequence[Mapping[str, str]] = []
         self.optional = False
 
@@ -375,24 +363,6 @@ class Package(PackageSpecification):
             urls["Documentation"] = self.documentation_url
 
         return urls
-
-    @property
-    def category(self) -> str:
-        warnings.warn(
-            "`category` is deprecated and will be removed in a future release.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._category
-
-    @category.setter
-    def category(self, category: str) -> None:
-        warnings.warn(
-            "Setting `category` is deprecated and will be removed in a future release.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self._category = category
 
     @property
     def yanked(self) -> bool:

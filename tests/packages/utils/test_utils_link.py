@@ -43,29 +43,17 @@ def make_url(
 def test_package_link_hash(file_checksum: str) -> None:
     link = make_url(ext="whl", file_checksum=file_checksum)
     assert link.hashes == {"sha256": file_checksum}
-    with pytest.warns(DeprecationWarning):
-        assert link.hash_name == "sha256"
-    with pytest.warns(DeprecationWarning):
-        assert link.hash == file_checksum
     assert link.show_url == "demo-1.0.0.whl"
 
     # this is legacy PEP 503, no metadata hash is present
     assert not link.has_metadata
     assert not link.metadata_url
     assert not link.metadata_hashes
-    with pytest.warns(DeprecationWarning):
-        assert not link.metadata_hash
-    with pytest.warns(DeprecationWarning):
-        assert not link.metadata_hash_name
 
 
 def test_package_link_hashes(file_checksum: str) -> None:
     link = make_url(ext="whl", hashes={"sha256": file_checksum, "other": "1234"})
     assert link.hashes == {"sha256": file_checksum, "other": "1234"}
-    with pytest.warns(DeprecationWarning):
-        assert link.hash_name is None
-    with pytest.warns(DeprecationWarning):
-        assert link.hash is None
     assert link.show_url == "demo-1.0.0.whl"
 
 
@@ -97,18 +85,10 @@ def test_package_link_pep658(
         assert link.has_metadata
         assert link.metadata_url == f"{link.url_without_fragment}.metadata"
         assert link.metadata_hashes == {"sha256": metadata_checksum}
-        with pytest.warns(DeprecationWarning):
-            assert link.metadata_hash == metadata_checksum
-        with pytest.warns(DeprecationWarning):
-            assert link.metadata_hash_name == "sha256"
     else:
         assert not link.has_metadata
         assert not link.metadata_url
         assert not link.metadata_hashes
-        with pytest.warns(DeprecationWarning):
-            assert not link.metadata_hash
-        with pytest.warns(DeprecationWarning):
-            assert not link.metadata_hash_name
 
 
 def test_package_link_pep658_no_default_metadata() -> None:
@@ -152,10 +132,6 @@ def test_package_link_pep691() -> None:
     assert link.has_metadata
     assert link.metadata_url == f"{link.url_without_fragment}.metadata"
     assert link.metadata_hashes == {"sha256": "abcd", "sha512": "1234"}
-    with pytest.warns(DeprecationWarning):
-        assert link.metadata_hash is None
-    with pytest.warns(DeprecationWarning):
-        assert link.metadata_hash_name is None
 
 
 def test_package_link_pep592_default_not_yanked() -> None:
