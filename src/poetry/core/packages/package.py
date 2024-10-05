@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import warnings
 
 from typing import TYPE_CHECKING
 from typing import ClassVar
@@ -272,6 +273,21 @@ class Package(PackageSpecification):
     @property
     def python_constraint(self) -> VersionConstraint:
         return self._python_constraint
+
+    @property
+    def python_marker(self) -> BaseMarker:
+        from poetry.core.packages.utils.utils import create_nested_marker
+        from poetry.core.version.markers import parse_marker
+
+        warnings.warn(
+            "`python_marker` is deprecated and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return parse_marker(
+            create_nested_marker("python_version", self._python_constraint)
+        )
 
     @property
     def license(self) -> License | None:
