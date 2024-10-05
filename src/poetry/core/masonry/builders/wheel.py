@@ -67,6 +67,7 @@ class WheelBuilder(Builder):
             self._original_path = original.parent
         self._editable = editable
         self._metadata_directory = metadata_directory
+        self._has_libs: bool | None = None
 
     @classmethod
     def make_in(
@@ -194,6 +195,7 @@ class WheelBuilder(Builder):
                         # The result of building the extensions
                         # does not exist, this may due to conditional
                         # builds, so we assume that it's okay
+                        self._has_libs = False
                         return
 
                     for pkg in sorted(lib.glob("**/*")):
@@ -424,8 +426,12 @@ for t in packaging_tags.sys_tags():
         return output.strip().splitlines()
 
     @property
+    def is_pure_lib(self) -> bool:
+        return self._package.build_script is None or self._has_libs is False
+
+    @property
     def tag(self) -> str:
-        if self._package.build_script:
+        if not self.is_pure_lib:
             if self.executable != Path(sys.executable):
                 # poetry-core is not run in the build environment
                 # -> this is probably not a PEP 517 build but a poetry build
@@ -509,7 +515,7 @@ for t in packaging_tags.sys_tags():
         fp.write(
             wheel_file_template.format(
                 version=__version__,
-                pure_lib="true" if self._package.build_script is None else "false",
+                pure_lib=str(self.is_pure_lib).lower(),
                 tag=self.tag,
             )
         )
