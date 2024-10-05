@@ -244,7 +244,7 @@ def test_find_packages(project_name: str) -> None:
     builder = SdistBuilder(poetry)
 
     base = project(project_name)
-    include = PackageInclude(base, "my_package")
+    include = PackageInclude(base, "my_package", formats=["sdist"])
 
     pkg_dir, packages, pkg_data = builder.find_packages(include)
 
@@ -266,7 +266,7 @@ def test_find_packages(project_name: str) -> None:
     builder = SdistBuilder(poetry)
 
     base = project("source_package")
-    include = PackageInclude(base, "package_src", source="src")
+    include = PackageInclude(base, "package_src", source="src", formats=["sdist"])
 
     pkg_dir, packages, pkg_data = builder.find_packages(include)
 
@@ -579,27 +579,47 @@ def test_includes() -> None:
         assert "with_include-1.2.3/notes.txt" in tar.getnames()
 
 
-def test_includes_with_inline_table() -> None:
-    poetry = Factory().create_poetry(project("with_include_inline_table"))
+def test_include_formats() -> None:
+    poetry = Factory().create_poetry(project("with-include-formats"))
 
     builder = SdistBuilder(poetry)
 
     builder.build()
 
-    sdist = (
-        fixtures_dir
-        / "with_include_inline_table"
-        / "dist"
-        / "with_include-1.2.3.tar.gz"
-    )
+    sdist = fixtures_dir / "with-include-formats" / "dist" / "with_include-1.2.3.tar.gz"
 
     assert sdist.exists()
 
     with tarfile.open(str(sdist), "r") as tar:
-        assert "with_include-1.2.3/both.txt" in tar.getnames()
+        # packages
+        assert "with_include-1.2.3/src/mod_default.py" in tar.getnames()
+        assert "with_include-1.2.3/src/mod_sdist_only.py" in tar.getnames()
+        assert "with_include-1.2.3/src/mod_wheel_only.py" not in tar.getnames()
+        assert "with_include-1.2.3/src/mod_both.py" in tar.getnames()
+        assert "with_include-1.2.3/src/pkg_default/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/src/pkg_default/sub/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/src/pkg_sdist_only/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/src/pkg_sdist_only/sub/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/src/pkg_wheel_only/__init__.py" not in tar.getnames()
+        assert (
+            "with_include-1.2.3/src/pkg_wheel_only/sub/__init__.py"
+            not in tar.getnames()
+        )
+        assert "with_include-1.2.3/src/pkg_both/__init__.py" in tar.getnames()
+        assert "with_include-1.2.3/src/pkg_both/sub/__init__.py" in tar.getnames()
+        # other includes
+        assert "with_include-1.2.3/default.txt" in tar.getnames()
+        assert "with_include-1.2.3/sdist_only.txt" in tar.getnames()
         assert "with_include-1.2.3/wheel_only.txt" not in tar.getnames()
-        assert "with_include-1.2.3/tests/__init__.py" in tar.getnames()
-        assert "with_include-1.2.3/tests/test_foo/test.py" in tar.getnames()
+        assert "with_include-1.2.3/both.txt" in tar.getnames()
+        assert "with_include-1.2.3/default/file.txt" in tar.getnames()
+        assert "with_include-1.2.3/default/sub/file.txt" in tar.getnames()
+        assert "with_include-1.2.3/sdist_only/file.txt" in tar.getnames()
+        assert "with_include-1.2.3/sdist_only/sub/file.txt" in tar.getnames()
+        assert "with_include-1.2.3/wheel_only/file.txt" not in tar.getnames()
+        assert "with_include-1.2.3/wheel_only/sub/file.txt" not in tar.getnames()
+        assert "with_include-1.2.3/both/file.txt" in tar.getnames()
+        assert "with_include-1.2.3/both/sub/file.txt" in tar.getnames()
 
 
 def test_excluded_subpackage() -> None:
