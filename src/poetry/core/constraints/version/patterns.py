@@ -17,7 +17,7 @@ TILDE_PEP440_CONSTRAINT = re.compile(
     rf"^~=\s*(?P<version>{VERSION_PATTERN})$", re.VERBOSE | re.IGNORECASE
 )
 X_CONSTRAINT = re.compile(
-    r"^(?P<op>!=|==)?\s*v?(?P<version>(\d+)(?:\.(\d+))?(?:\.(\d+))?)(?:\.[xX*])+$"
+    r"^(?P<op>!=|==)?\s*v?(?P<version>(\d+)(?:\.(\d+))?(?:\.(\d+))?)(?:\.\*)+$"
 )
 
 # note that we also allow technically incorrect version patterns with astrix (eg: 3.5.*)
