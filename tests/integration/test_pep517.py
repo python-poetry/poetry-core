@@ -15,7 +15,7 @@ from tests.testutils import temporary_project_directory
 
 
 if TYPE_CHECKING:
-    from _pytest.fixtures import FixtureRequest
+    from pytest import FixtureRequest
 
 pytestmark = pytest.mark.integration
 
