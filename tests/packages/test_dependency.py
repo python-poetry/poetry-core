@@ -30,6 +30,17 @@ def test_allows_prerelease(constraint: str, allows_prereleases: bool) -> None:
     assert dependency.allows_prereleases() == allows_prereleases
 
 
+def test_python_versions_are_made_precise() -> None:
+    dependency = Dependency("Django", "^1.23")
+    dependency.python_versions = ">3.6,<=3.10"
+
+    assert (
+        str(dependency.marker)
+        == 'python_full_version > "3.6.0" and python_full_version <= "3.10.0"'
+    )
+    assert str(dependency.python_constraint) == ">3.6,<=3.10"
+
+
 def test_to_pep_508() -> None:
     dependency = Dependency("Django", "^1.23")
 

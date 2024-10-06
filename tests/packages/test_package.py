@@ -604,10 +604,11 @@ def test_python_versions_are_made_precise() -> None:
     package = Package("foo", "1.2.3")
     package.python_versions = ">3.6,<=3.10"
 
-    assert (
-        str(package.python_marker)
-        == 'python_full_version > "3.6.0" and python_full_version <= "3.10.0"'
-    )
+    with pytest.warns(DeprecationWarning):
+        assert (
+            str(package.python_marker)
+            == 'python_full_version > "3.6.0" and python_full_version <= "3.10.0"'
+        )
     assert str(package.python_constraint) == ">3.6,<=3.10"
 
 

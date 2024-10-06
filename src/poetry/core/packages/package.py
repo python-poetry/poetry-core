@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import warnings
 
 from typing import TYPE_CHECKING
 from typing import ClassVar
@@ -12,9 +13,7 @@ from poetry.core.constraints.version import parse_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
-from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.version.exceptions import InvalidVersionError
-from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
@@ -113,7 +112,6 @@ class Package(PackageSpecification):
 
         self._python_versions = "*"
         self._python_constraint = parse_constraint("*")
-        self._python_marker: BaseMarker = AnyMarker()
 
         self.marker: BaseMarker = AnyMarker()
 
@@ -271,9 +269,6 @@ class Package(PackageSpecification):
 
         self._python_versions = value
         self._python_constraint = constraint
-        self._python_marker = parse_marker(
-            create_nested_marker("python_version", self._python_constraint)
-        )
 
     @property
     def python_constraint(self) -> VersionConstraint:
@@ -281,7 +276,18 @@ class Package(PackageSpecification):
 
     @property
     def python_marker(self) -> BaseMarker:
-        return self._python_marker
+        from poetry.core.packages.utils.utils import create_nested_marker
+        from poetry.core.version.markers import parse_marker
+
+        warnings.warn(
+            "`python_marker` is deprecated and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return parse_marker(
+            create_nested_marker("python_version", self._python_constraint)
+        )
 
     @property
     def license(self) -> License | None:
