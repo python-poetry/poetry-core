@@ -28,8 +28,7 @@ def test_building_not_possible_in_non_package_mode() -> None:
 
 
 def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = []
+    mocker.patch("poetry.core.vcs.git.Git.get_ignored_files", return_value=[])
 
     builder = Builder(
         Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
@@ -43,8 +42,7 @@ def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
     reason="Windows is case insensitive for the most part",
 )
 def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> None:
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = []
+    mocker.patch("poetry.core.vcs.git.Git.get_ignored_files", return_value=[])
 
     builder = Builder(
         Factory().create_poetry(
@@ -70,8 +68,7 @@ def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> No
 def test_builder_find_invalid_case_sensitive_excluded_files(
     mocker: MockerFixture,
 ) -> None:
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = []
+    mocker.patch("poetry.core.vcs.git.Git.get_ignored_files", return_value=[])
 
     builder = Builder(
         Factory().create_poetry(
