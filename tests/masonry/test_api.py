@@ -18,7 +18,7 @@ from tests.testutils import validate_wheel_contents
 
 
 if TYPE_CHECKING:
-    from _pytest.logging import LogCaptureFixture
+    from pytest import LogCaptureFixture
 
 
 @contextmanager

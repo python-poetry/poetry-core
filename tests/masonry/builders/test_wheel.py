@@ -20,7 +20,7 @@ from tests.masonry.builders.test_sdist import project
 
 
 if TYPE_CHECKING:
-    from _pytest.monkeypatch import MonkeyPatch
+    from pytest import MonkeyPatch
     from pytest_mock import MockerFixture
 
 fixtures_dir = Path(__file__).parent / "fixtures"
