@@ -16,8 +16,8 @@ from poetry.core.utils._compat import WINDOWS
 
 
 if TYPE_CHECKING:
-    from _pytest.config import Config
-    from _pytest.config.argparsing import Parser
+    from pytest import Config
+    from pytest import Parser
 
 
 def pytest_addoption(parser: Parser) -> None:

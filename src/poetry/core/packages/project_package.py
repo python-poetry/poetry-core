@@ -6,7 +6,6 @@ from typing import Mapping
 from typing import Sequence
 
 from poetry.core.constraints.version import parse_constraint
-from poetry.core.version.markers import parse_marker
 
 
 if TYPE_CHECKING:
@@ -14,7 +13,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
 
 from poetry.core.packages.package import Package
-from poetry.core.packages.utils.utils import create_nested_marker
 
 
 class ProjectPackage(Package):
@@ -90,9 +88,6 @@ class ProjectPackage(Package):
                 ' is not a subset of "requires-python" in [project]'
                 f' "{self._requires_python}"'
             )
-        self._python_marker = parse_marker(
-            create_nested_marker("python_version", self._python_constraint)
-        )
 
     @property
     def version(self) -> Version:

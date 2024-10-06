@@ -18,7 +18,7 @@ from poetry.core.version.markers import SingleMarker
 
 
 if TYPE_CHECKING:
-    from _pytest.logging import LogCaptureFixture
+    from pytest import LogCaptureFixture
 
     from poetry.core.packages.dependency import Dependency
     from poetry.core.packages.directory_dependency import DirectoryDependency
@@ -366,7 +366,7 @@ def test_create_poetry_with_packages_and_includes() -> None:
     ]
 
     assert package.include == [
-        {"path": "extra_dir/vcs_excluded.txt", "format": []},
+        {"path": "extra_dir/vcs_excluded.py", "format": []},
         {"path": "notes.txt", "format": []},
     ]
 

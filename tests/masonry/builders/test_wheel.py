@@ -20,7 +20,7 @@ from tests.masonry.builders.test_sdist import project
 
 
 if TYPE_CHECKING:
-    from _pytest.monkeypatch import MonkeyPatch
+    from pytest import MonkeyPatch
     from pytest_mock import MockerFixture
 
 fixtures_dir = Path(__file__).parent / "fixtures"
@@ -344,28 +344,10 @@ def test_wheel_with_file_with_comma() -> None:
 
 
 def test_default_src_with_excluded_data(mocker: MockerFixture) -> None:
-    class MockGit:
-        def get_ignored_files(self, folder: Path | None = None) -> list[str]:
-            # Patch git module to return specific excluded files
-            return [
-                (
-                    (
-                        Path(__file__).parent
-                        / "fixtures"
-                        / "default_src_with_excluded_data"
-                        / "src"
-                        / "my_package"
-                        / "data"
-                        / "sub_data"
-                        / "data2.txt"
-                    )
-                    .relative_to(project("default_src_with_excluded_data"))
-                    .as_posix()
-                )
-            ]
-
-    p = mocker.patch("poetry.core.vcs.get_vcs")
-    p.return_value = MockGit()
+    mocker.patch(
+        "poetry.core.vcs.git.Git.get_ignored_files",
+        return_value=["src/my_package/data/sub_data/data2.txt"],
+    )
     poetry = Factory().create_poetry(project("default_src_with_excluded_data"))
 
     builder = WheelBuilder(poetry)
