@@ -301,24 +301,10 @@ def test_package_with_include(mocker: MockerFixture) -> None:
     module_path = fixtures_dir / "with-include"
 
     # Patch git module to return specific excluded files
-    p = mocker.patch("poetry.core.vcs.git.Git.get_ignored_files")
-    p.return_value = [
-        str(
-            Path(__file__).parent
-            / "fixtures"
-            / "with-include"
-            / "extra_dir"
-            / "vcs_excluded.txt"
-        ),
-        str(
-            Path(__file__).parent
-            / "fixtures"
-            / "with-include"
-            / "extra_dir"
-            / "sub_pkg"
-            / "vcs_excluded.txt"
-        ),
-    ]
+    mocker.patch(
+        "poetry.core.vcs.git.Git.get_ignored_files",
+        return_value=["extra_dir/vcs_excluded.py", "extra_dir/sub_pkg/vcs_excluded.py"],
+    )
 
     poetry = Factory().create_poetry(module_path)
     SdistBuilder(poetry).build()
@@ -334,9 +320,9 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "with_include-1.2.3/LICENSE" in names
         assert "with_include-1.2.3/README.rst" in names
         assert "with_include-1.2.3/extra_dir/__init__.py" in names
-        assert "with_include-1.2.3/extra_dir/vcs_excluded.txt" in names
+        assert "with_include-1.2.3/extra_dir/vcs_excluded.py" in names
         assert "with_include-1.2.3/extra_dir/sub_pkg/__init__.py" in names
-        assert "with_include-1.2.3/extra_dir/sub_pkg/vcs_excluded.txt" not in names
+        assert "with_include-1.2.3/extra_dir/sub_pkg/vcs_excluded.py" not in names
         assert "with_include-1.2.3/my_module.py" in names
         assert "with_include-1.2.3/notes.txt" in names
         assert "with_include-1.2.3/package_with_include/__init__.py" in names
@@ -356,9 +342,9 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert len(names) == len(set(names))
         assert "with_include-1.2.3.dist-info/LICENSE" in names
         assert "extra_dir/__init__.py" in names
-        assert "extra_dir/vcs_excluded.txt" in names
+        assert "extra_dir/vcs_excluded.py" in names
         assert "extra_dir/sub_pkg/__init__.py" in names
-        assert "extra_dir/sub_pkg/vcs_excluded.txt" not in names
+        assert "extra_dir/sub_pkg/vcs_excluded.py" not in names
         assert "for_wheel_only/__init__.py" in names
         assert "my_module.py" in names
         assert "notes.txt" in names
