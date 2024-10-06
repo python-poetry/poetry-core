@@ -33,7 +33,7 @@ packages = [
 ]
 
 include = [
-    "extra_dir/vcs_excluded.txt",
+    "extra_dir/vcs_excluded.py",
     "notes.txt"
 ]
 
