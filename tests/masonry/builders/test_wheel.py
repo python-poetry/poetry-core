@@ -20,6 +20,7 @@ from tests.masonry.builders.test_sdist import project
 
 
 if TYPE_CHECKING:
+    from pytest import LogCaptureFixture
     from pytest import MonkeyPatch
     from pytest_mock import MockerFixture
 
@@ -469,3 +470,84 @@ def test_generated_script_file(tmp_path: Path) -> None:
 
     with zipfile.ZipFile(str(whl)) as z:
         assert "generated_script_file-0.1.data/scripts/script.sh" in z.namelist()
+
+
+def test_dist_info_date_time_default_value(caplog: LogCaptureFixture) -> None:
+    import logging
+
+    caplog.set_level(logging.INFO)
+    module_path = fixtures_dir / "complete"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
+
+    default_date_time = (2016, 1, 1, 0, 0, 0)
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").date_time == default_date_time
+        )
+
+    assert (
+        "SOURCE_DATE_EPOCH environment variable not set,"
+        f" setting zipinfo date to default={default_date_time}"
+    ) in caplog.messages
+
+
+def test_dist_info_date_time_value_from_envvar(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1727883000")
+    expected_date_time = (2024, 10, 2, 15, 30, 0)
+    module_path = fixtures_dir / "complete"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").date_time
+            == expected_date_time
+        )
+
+
+def test_dist_info_date_time_value_from_envvar_not_int(
+    monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
+) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "october")
+    module_path = fixtures_dir / "complete"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
+
+    default_date_time = (2016, 1, 1, 0, 0, 0)
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").date_time == default_date_time
+        )
+
+    assert (
+        "SOURCE_DATE_EPOCH environment variable value"
+        f" is not an int, setting zipinfo date to default={default_date_time}"
+    ) in caplog.messages
+
+
+def test_dist_info_date_time_value_from_envvar_older_than_1980(
+    monkeypatch: MonkeyPatch, caplog: LogCaptureFixture
+) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1000")
+    module_path = fixtures_dir / "complete"
+    WheelBuilder.make(Factory().create_poetry(module_path))
+
+    whl = module_path / "dist" / "my_package-1.2.3-py3-none-any.whl"
+
+    default_date_time = (2016, 1, 1, 0, 0, 0)
+
+    with zipfile.ZipFile(str(whl)) as z:
+        assert (
+            z.getinfo("my_package-1.2.3.dist-info/WHEEL").date_time == default_date_time
+        )
+
+    assert (
+        "zipinfo date can't be earlier than 1980,"
+        f" setting zipinfo date to default={default_date_time}"
+    ) in caplog.messages

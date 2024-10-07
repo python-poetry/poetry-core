@@ -68,7 +68,7 @@ class SdistBuilder(Builder):
 
         name = distribution_name(self._package.name)
         target = target_dir / f"{name}-{self._meta.version}.tar.gz"
-        gz = GzipFile(target.as_posix(), mode="wb", mtime=0)
+        gz = GzipFile(target.as_posix(), mode="wb", mtime=self._get_archive_mtime())
         tar = tarfile.TarFile(
             target.as_posix(), mode="w", fileobj=gz, format=tarfile.PAX_FORMAT
         )
@@ -93,25 +93,24 @@ class SdistBuilder(Builder):
 
             if self._poetry.package.build_should_generate_setup():
                 setup = self.build_setup()
-                tar_info = tarfile.TarInfo(pjoin(tar_dir, "setup.py"))
-                tar_info.size = len(setup)
-                tar_info.mtime = 0
-                tar_info = self.clean_tarinfo(tar_info)
-                tar.addfile(tar_info, BytesIO(setup))
+                self.add_file_to_tar(tar, pjoin(tar_dir, "setup.py"), setup)
 
             pkg_info = self.build_pkg_info()
-
-            tar_info = tarfile.TarInfo(pjoin(tar_dir, "PKG-INFO"))
-            tar_info.size = len(pkg_info)
-            tar_info.mtime = 0
-            tar_info = self.clean_tarinfo(tar_info)
-            tar.addfile(tar_info, BytesIO(pkg_info))
+            self.add_file_to_tar(tar, pjoin(tar_dir, "PKG-INFO"), pkg_info)
         finally:
             tar.close()
             gz.close()
 
         logger.info(f"Built <comment>{target.name}</comment>")
         return target
+
+    def add_file_to_tar(
+        self, tar: tarfile.TarFile, file_name: str, content: bytes
+    ) -> None:
+        tar_info = tarfile.TarInfo(file_name)
+        tar_info.size = len(content)
+        tar_info = self.clean_tarinfo(tar_info)
+        tar.addfile(tar_info, BytesIO(content))
 
     def build_setup(self) -> bytes:
         from poetry.core.masonry.utils.package_include import PackageInclude
@@ -399,8 +398,7 @@ class SdistBuilder(Builder):
 
         return main, dict(extras)
 
-    @classmethod
-    def clean_tarinfo(cls, tar_info: TarInfo) -> TarInfo:
+    def clean_tarinfo(self, tar_info: TarInfo) -> TarInfo:
         """
         Clean metadata from a TarInfo object to make it more reproducible.
 
@@ -416,6 +414,21 @@ class SdistBuilder(Builder):
         ti.gid = 0
         ti.uname = ""
         ti.gname = ""
+        ti.mtime = self._get_archive_mtime()
         ti.mode = normalize_file_permissions(ti.mode)
 
         return ti
+
+    @staticmethod
+    def _get_archive_mtime() -> int:
+        if source_date_epoch := os.getenv("SOURCE_DATE_EPOCH"):
+            try:
+                return int(source_date_epoch)
+            except ValueError:
+                logger.warning(
+                    "SOURCE_DATE_EPOCH environment variable is not an int,"
+                    " using mtime=0"
+                )
+                return 0
+        logger.info("SOURCE_DATE_EPOCH environment variable is not set, using mtime=0")
+        return 0

@@ -33,10 +33,13 @@ from poetry.core.utils.helpers import temporary_directory
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from typing import Tuple
 
     from packaging.utils import NormalizedName
 
     from poetry.core.poetry import Poetry
+
+    ZipInfoTimestamp = Tuple[int, int, int, int, int, int]
 
 wheel_file_template = """\
 Wheel-Version: 1.0
@@ -446,7 +449,7 @@ for t in packaging_tags.sys_tags():
     ) -> None:
         # We always want to have /-separated paths in the zip file and in RECORD
         rel_path_name = rel_path.as_posix()
-        zinfo = zipfile.ZipInfo(rel_path_name)
+        zinfo = zipfile.ZipInfo(rel_path_name, self._get_zipfile_date_time())
 
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = full_path.stat().st_mode
@@ -479,10 +482,7 @@ for t in packaging_tags.sys_tags():
         sio = StringIO()
         yield sio
 
-        # The default is a fixed timestamp rather than the current time, so
-        # that building a wheel twice on the same computer can automatically
-        # give you the exact same result.
-        date_time = (2016, 1, 1, 0, 0, 0)
+        date_time = self._get_zipfile_date_time()
         zi = zipfile.ZipInfo(rel_path, date_time)
         zi.external_attr = (0o644 & 0xFFFF) << 16  # Unix attributes
         b = sio.getvalue().encode("utf-8")
@@ -491,6 +491,40 @@ for t in packaging_tags.sys_tags():
 
         wheel.writestr(zi, b, compress_type=zipfile.ZIP_DEFLATED)
         self._records.append((rel_path, hash_digest, len(b)))
+
+    @staticmethod
+    def _get_zipfile_date_time() -> ZipInfoTimestamp:
+        import time
+
+        # The default is a fixed timestamp rather than the current time, so
+        # that building a wheel twice on the same computer can automatically
+        # give you the exact same result.
+        default = (2016, 1, 1, 0, 0, 0)
+        try:
+            _env_date = time.gmtime(int(os.environ["SOURCE_DATE_EPOCH"]))[:6]
+        except ValueError:
+            logger.warning(
+                "SOURCE_DATE_EPOCH environment variable value"
+                " is not an int, setting zipinfo date to default=%s",
+                default,
+            )
+            return default
+        except KeyError:
+            logger.info(
+                "SOURCE_DATE_EPOCH environment variable not set,"
+                " setting zipinfo date to default=%s",
+                default,
+            )
+            return default
+        else:
+            if _env_date[0] < 1980:
+                logger.warning(
+                    "zipinfo date can't be earlier than 1980,"
+                    " setting zipinfo date to default=%s",
+                    default,
+                )
+                return default
+            return _env_date
 
     def _write_entry_points(self, fp: TextIO) -> None:
         """
