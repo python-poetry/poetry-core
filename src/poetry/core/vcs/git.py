@@ -168,12 +168,10 @@ def executable() -> str:
             if not path:
                 continue
 
-            _path = Path(path.strip())
-            try:
-                _path.relative_to(Path.cwd())
-            except ValueError:
+            _path = Path(path.strip()).resolve()
+            # Skip git in the current directory
+            if _path != Path.cwd().resolve() / "git.exe":
                 _executable = str(_path)
-
                 break
     else:
         _executable = "git"
