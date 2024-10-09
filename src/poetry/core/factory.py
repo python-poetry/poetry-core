@@ -368,18 +368,10 @@ class Factory:
             package.build_config = build or {}
 
         if includes := tool_poetry.get("include"):
-            package.include = []
-
-            for include in includes:
-                if not isinstance(include, dict):
-                    include = {"path": include}
-
-                formats = include.get("format", [])
-                if formats and not isinstance(formats, list):
-                    formats = [formats]
-                include["format"] = formats
-
-                package.include.append(include)
+            package.include = [
+                include if isinstance(include, dict) else {"path": include}
+                for include in includes
+            ]
 
         if exclude := tool_poetry.get("exclude"):
             package.exclude = exclude

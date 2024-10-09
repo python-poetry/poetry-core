@@ -256,8 +256,8 @@ def test_dist_info_file_permissions(project: str) -> None:
         )
 
 
-def test_wheel_includes_inline_table() -> None:
-    module_path = fixtures_dir / "with_include_inline_table"
+def test_wheel_include_formats() -> None:
+    module_path = fixtures_dir / "with-include-formats"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
     whl = module_path / "dist" / "with_include-1.2.3-py3-none-any.whl"
@@ -265,9 +265,32 @@ def test_wheel_includes_inline_table() -> None:
     assert whl.exists()
 
     with zipfile.ZipFile(str(whl)) as z:
-        assert "both.txt" in z.namelist()
+        # packages
+        assert "mod_default.py" in z.namelist()
+        assert "mod_sdist_only.py" not in z.namelist()
+        assert "mod_wheel_only.py" in z.namelist()
+        assert "mod_both.py" in z.namelist()
+        assert "pkg_default/__init__.py" in z.namelist()
+        assert "pkg_default/sub/__init__.py" in z.namelist()
+        assert "pkg_sdist_only/__init__.py" not in z.namelist()
+        assert "pkg_sdist_only/sub/__init__.py" not in z.namelist()
+        assert "pkg_wheel_only/__init__.py" in z.namelist()
+        assert "pkg_wheel_only/sub/__init__.py" in z.namelist()
+        assert "pkg_both/__init__.py" in z.namelist()
+        assert "pkg_both/sub/__init__.py" in z.namelist()
+        # other includes
+        assert "default.txt" in z.namelist()
+        assert "sdist_only.txt" not in z.namelist()
         assert "wheel_only.txt" in z.namelist()
-        assert "notes.txt" not in z.namelist()
+        assert "both.txt" in z.namelist()
+        assert "default/file.txt" in z.namelist()
+        assert "default/sub/file.txt" in z.namelist()
+        assert "sdist_only/file.txt" not in z.namelist()
+        assert "sdist_only/sub/file.txt" not in z.namelist()
+        assert "wheel_only/file.txt" in z.namelist()
+        assert "wheel_only/sub/file.txt" in z.namelist()
+        assert "both/file.txt" in z.namelist()
+        assert "both/sub/file.txt" in z.namelist()
 
 
 @pytest.mark.parametrize(

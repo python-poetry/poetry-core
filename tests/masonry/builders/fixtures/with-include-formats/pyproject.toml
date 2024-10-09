@@ -1,0 +1,64 @@
+[tool.poetry]
+name = "with-include"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "Sébastien Eustace <sebastien@eustace.io>"
+]
+license = "MIT"
+
+homepage = "https://python-poetry.org/"
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs"
+
+keywords = ["packaging", "dependency", "poetry"]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+packages = [
+    # modules
+    { include = "mod_default.py", from = "src" },
+    { include = "mod_sdist_only.py", from = "src", format = "sdist" },
+    { include = "mod_wheel_only.py", from = "src", format = "wheel" },
+    { include = "mod_both.py", from = "src", format = [ "sdist", "wheel" ]},
+    # packages
+    { include = "pkg_default", from = "src" },
+    { include = "pkg_sdist_only", from = "src", format = "sdist" },
+    { include = "pkg_wheel_only", from = "src", format = "wheel" },
+    { include = "pkg_both", from = "src", format = [ "sdist", "wheel" ]},
+]
+
+include = [
+    # files
+    { path = "default.txt" },
+    { path = "sdist_only.txt", format = "sdist" },
+    { path = "wheel_only.txt", format = "wheel" },
+    { path = "both.txt", format = [ "sdist", "wheel" ] },
+    # directories
+    { path = "default" },
+    { path = "sdist_only", format = "sdist" },
+    { path = "wheel_only", format = "wheel" },
+    { path = "both", format = [ "sdist", "wheel" ] },
+]
+
+
+# Requirements
+[tool.poetry.dependencies]
+python = "^3.6"
+cleo = "^0.6"
+cachy = { version = "^0.2.0", extras = ["msgpack"] }
+
+pendulum = { version = "^1.4", optional = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "~3.4"
+
+[tool.poetry.extras]
+time = ["pendulum"]
+
+[tool.poetry.scripts]
+my-script = "my_package:main"
+my-2nd-script = "my_package:main2"

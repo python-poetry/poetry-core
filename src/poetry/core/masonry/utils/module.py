@@ -31,18 +31,20 @@ class Module:
         self._in_src = False
         self._is_package = False
         self._path = Path(directory)
-        self._includes: list[Include] = []
+        self._package_includes: list[PackageInclude] = []
+        self._explicit_includes: list[Include] = []
 
         if not packages:
             # It must exist either as a .py file or a directory, but not both
             pkg_dir = Path(directory, self._name)
             py_file = Path(directory, self._name + ".py")
+            default_package: dict[str, Any]
             if pkg_dir.is_dir() and py_file.is_file():
                 raise ValueError(f"Both {pkg_dir} and {py_file} exist")
             elif pkg_dir.is_dir():
-                packages = [{"include": str(pkg_dir.relative_to(self._path))}]
+                default_package = {"include": str(pkg_dir.relative_to(self._path))}
             elif py_file.is_file():
-                packages = [{"include": str(py_file.relative_to(self._path))}]
+                default_package = {"include": str(py_file.relative_to(self._path))}
             else:
                 # Searching for a src module
                 src = Path(directory, "src")
@@ -52,41 +54,35 @@ class Module:
                 if src_pkg_dir.is_dir() and src_py_file.is_file():
                     raise ValueError(f"Both {pkg_dir} and {py_file} exist")
                 elif src_pkg_dir.is_dir():
-                    packages = [
-                        {
-                            "include": str(src_pkg_dir.relative_to(src)),
-                            "from": str(src.relative_to(self._path)),
-                        }
-                    ]
+                    default_package = {
+                        "include": str(src_pkg_dir.relative_to(src)),
+                        "from": str(src.relative_to(self._path)),
+                    }
                 elif src_py_file.is_file():
-                    packages = [
-                        {
-                            "include": str(src_py_file.relative_to(src)),
-                            "from": str(src.relative_to(self._path)),
-                        }
-                    ]
+                    default_package = {
+                        "include": str(src_py_file.relative_to(src)),
+                        "from": str(src.relative_to(self._path)),
+                    }
                 else:
                     raise ModuleOrPackageNotFoundError(
                         f"No file/folder found for package {name}"
                     )
+            default_package["format"] = ["sdist", "wheel"]
+            packages = [default_package]
 
         for package in packages:
-            formats = package.get("format")
-            if formats and not isinstance(formats, list):
-                formats = [formats]
-
-            self._includes.append(
+            self._package_includes.append(
                 PackageInclude(
                     self._path,
                     package["include"],
-                    formats=formats,
+                    formats=package["format"],
                     source=package.get("from"),
                     target=package.get("to"),
                 )
             )
 
         for include in includes:
-            self._includes.append(
+            self._explicit_includes.append(
                 Include(self._path, include["path"], formats=include["format"])
             )
 
@@ -107,7 +103,11 @@ class Module:
 
     @property
     def includes(self) -> list[Include]:
-        return self._includes
+        return [*self._package_includes, *self._explicit_includes]
+
+    @property
+    def explicit_includes(self) -> list[Include]:
+        return self._explicit_includes
 
     def is_package(self) -> bool:
         return self._is_package
