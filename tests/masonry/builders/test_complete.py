@@ -347,7 +347,7 @@ def test_package_with_include(mocker: MockerFixture) -> None:
         assert "extra_dir/sub_pkg/vcs_excluded.py" not in names
         assert "for_wheel_only/__init__.py" in names
         assert "my_module.py" in names
-        assert "notes.txt" in names
+        assert "notes.txt" not in names
         assert "package_with_include/__init__.py" in names
         assert "tests/__init__.py" not in names
         assert "src_package/__init__.py" in names

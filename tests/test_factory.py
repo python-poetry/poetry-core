@@ -366,7 +366,7 @@ def test_create_poetry_with_packages_and_includes() -> None:
     ]
 
     assert package.include == [
-        {"path": "extra_dir/vcs_excluded.py"},
+        {"path": "extra_dir/vcs_excluded.py", "format": ["sdist", "wheel"]},
         {"path": "notes.txt"},
     ]
 

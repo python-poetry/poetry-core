@@ -55,14 +55,14 @@ class Builder:
 
         packages: list[dict[str, Any]] = []
         includes: list[dict[str, Any]] = []
-        for source_list, target_list in [
-            (self._package.packages, packages),
-            (self._package.include, includes),
+        for source_list, target_list, default in [
+            (self._package.packages, packages, ["sdist", "wheel"]),
+            (self._package.include, includes, ["sdist"]),
         ]:
             for item in source_list:
                 # Default to including in both sdist & wheel
                 # if the `format` key is not provided.
-                formats = item.get("format", ["sdist", "wheel"])
+                formats = item.get("format", default)
                 if not isinstance(formats, list):
                     formats = [formats]
 
