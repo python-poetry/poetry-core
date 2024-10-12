@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [1.9.1] - 2024-10-12
+
+### Added
+
+- Add `3.13` to the list of available Python versions ([#747](https://github.com/python-poetry/poetry-core/pull/747)).
+
+
 ## [1.9.0] - 2024-02-02
 
 ### Added
@@ -633,7 +640,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.9.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/1.9.1...main
+[1.9.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.9.1
 [1.9.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.9.0
 [1.8.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.1
 [1.8.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.8.0
