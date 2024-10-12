@@ -76,7 +76,12 @@ class Metadata:
             meta.description = "\n".join(descriptions)
 
         meta.keywords = ",".join(package.keywords)
-        meta.home_page = package.homepage or package.repository_url
+        homepage = package.homepage or package.repository_url
+        meta.home_page = homepage
+        # Workaround for PyPI weird behaviour about Homepage metadata
+        # See: https://github.com/python-poetry/poetry/issues/9646
+        # and https://github.com/pypi/warehouse/issues/11220
+        meta.project_urls += (f"Homepage, {homepage}",)
         meta.author = package.author_name
         meta.author_email = package.author_email
 

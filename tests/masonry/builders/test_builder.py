@@ -132,6 +132,7 @@ def test_get_metadata_content() -> None:
     urls = parsed.get_all("Project-URL")
     assert urls == [
         "Documentation, https://python-poetry.org/docs",
+        "Homepage, https://python-poetry.org/",
         "Issue Tracker, https://github.com/python-poetry/poetry/issues",
         "Repository, https://github.com/python-poetry/poetry",
     ]
