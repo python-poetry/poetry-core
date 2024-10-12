@@ -7,7 +7,6 @@ import textwrap
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Any
 
 
 if TYPE_CHECKING:
@@ -28,12 +27,7 @@ logger = logging.getLogger(__name__)
 class Builder:
     format: str | None = None
 
-    def __init__(
-        self,
-        poetry: Poetry,
-        ignore_packages_formats: bool = False,
-        executable: Path | None = None,
-    ) -> None:
+    def __init__(self, poetry: Poetry, executable: Path | None = None) -> None:
         from poetry.core.masonry.metadata import Metadata
 
         if not poetry.is_package_mode:
@@ -44,7 +38,6 @@ class Builder:
         self._poetry = poetry
         self._package = poetry.package
         self._path: Path = poetry.pyproject_path.parent
-        self._ignore_packages_formats = ignore_packages_formats
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
         self._meta = Metadata.from_package(self._package)
@@ -53,8 +46,8 @@ class Builder:
     def _module(self) -> Module:
         from poetry.core.masonry.utils.module import Module
 
-        packages: list[dict[str, Any]] = []
-        includes: list[dict[str, Any]] = []
+        packages: list[dict[str, str | dict[str, str]]] = []
+        includes: list[dict[str, str | dict[str, str]]] = []
         for source_list, target_list, default in [
             (self._package.packages, packages, ["sdist", "wheel"]),
             (self._package.include, includes, ["sdist"]),
@@ -66,11 +59,7 @@ class Builder:
                 if not isinstance(formats, list):
                     formats = [formats]
 
-                if (
-                    self.format
-                    and self.format not in formats
-                    and not self._ignore_packages_formats
-                ):
+                if self.format and self.format not in formats:
                     continue
 
                 target_list.append({**item, "format": formats})
