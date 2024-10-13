@@ -27,12 +27,7 @@ logger = logging.getLogger(__name__)
 class Builder:
     format: str | None = None
 
-    def __init__(
-        self,
-        poetry: Poetry,
-        ignore_packages_formats: bool = False,
-        executable: Path | None = None,
-    ) -> None:
+    def __init__(self, poetry: Poetry, executable: Path | None = None) -> None:
         from poetry.core.masonry.metadata import Metadata
 
         if not poetry.is_package_mode:
@@ -43,7 +38,6 @@ class Builder:
         self._poetry = poetry
         self._package = poetry.package
         self._path: Path = poetry.pyproject_path.parent
-        self._ignore_packages_formats = ignore_packages_formats
         self._excluded_files: set[str] | None = None
         self._executable = Path(executable or sys.executable)
         self._meta = Metadata.from_package(self._package)
@@ -52,41 +46,23 @@ class Builder:
     def _module(self) -> Module:
         from poetry.core.masonry.utils.module import Module
 
-        packages = []
-        for p in self._package.packages:
-            formats = p.get("format") or None
+        packages: list[dict[str, str | dict[str, str]]] = []
+        includes: list[dict[str, str | dict[str, str]]] = []
+        for source_list, target_list, default in [
+            (self._package.packages, packages, ["sdist", "wheel"]),
+            (self._package.include, includes, ["sdist"]),
+        ]:
+            for item in source_list:
+                # Default to including in both sdist & wheel
+                # if the `format` key is not provided.
+                formats = item.get("format", default)
+                if not isinstance(formats, list):
+                    formats = [formats]
 
-            # Default to including the package in both sdist & wheel
-            # if the `format` key is not provided in the inline include table.
-            if formats is None:
-                formats = ["sdist", "wheel"]
+                if self.format and self.format not in formats:
+                    continue
 
-            if not isinstance(formats, list):
-                formats = [formats]
-
-            if (
-                formats
-                and self.format
-                and self.format not in formats
-                and not self._ignore_packages_formats
-            ):
-                continue
-
-            packages.append(p)
-
-        includes = []
-        for include in self._package.include:
-            formats = include.get("format", [])
-
-            if (
-                formats
-                and self.format
-                and self.format not in formats
-                and not self._ignore_packages_formats
-            ):
-                continue
-
-            includes.append(include)
+                target_list.append({**item, "format": formats})
 
         return Module(
             self._package.name,
@@ -122,15 +98,12 @@ class Builder:
                     )
 
             explicitly_included = set()
-            for inc in self._package.include:
-                if fmt and inc["format"] and fmt not in inc["format"]:
+            for inc in self._module.explicit_includes:
+                if fmt and fmt not in inc.formats:
                     continue
 
-                included_glob = inc["path"]
-                for included in self._path.glob(str(included_glob)):
-                    explicitly_included.add(
-                        Path(included).relative_to(self._path).as_posix()
-                    )
+                for included in inc.elements:
+                    explicitly_included.add(included.relative_to(self._path).as_posix())
 
             ignored = (vcs_ignored_files | explicitly_excluded) - explicitly_included
             for ignored_file in ignored:
@@ -164,7 +137,7 @@ class Builder:
 
         for include in self._module.includes:
             include.refresh()
-            formats = include.formats or ["sdist"]
+            formats = include.formats
 
             for file in include.elements:
                 if "__pycache__" in str(file):
@@ -201,7 +174,7 @@ class Builder:
                             if not (
                                 current_file.is_dir()
                                 or self.is_excluded(
-                                    include_file.relative_to_source_root()
+                                    include_file.relative_to_project_root()
                                 )
                             ):
                                 to_add.add(include_file)
