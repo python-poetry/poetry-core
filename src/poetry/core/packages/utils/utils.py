@@ -116,6 +116,7 @@ def strip_extras(path: str) -> tuple[Path, str | None]:
 
     return Path(path_no_extras), extras
 
+
 @functools.lru_cache(maxsize=None)
 def cached_is_dir(path: Path) -> bool:
     """A cached version of `Path.is_dir`."""
