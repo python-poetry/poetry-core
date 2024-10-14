@@ -116,11 +116,16 @@ def strip_extras(path: str) -> tuple[Path, str | None]:
 
     return Path(path_no_extras), extras
 
+@functools.lru_cache(maxsize=None)
+def cached_is_dir(path: Path) -> bool:
+    """A cached version of `Path.is_dir`."""
+    return path.is_dir()
+
 
 @functools.lru_cache(maxsize=None)
 def is_python_project(path: Path) -> bool:
     """Return true if the directory is a Python project"""
-    if not path.is_dir():
+    if not cached_is_dir(path):
         return False
 
     setup_py = path / "setup.py"
