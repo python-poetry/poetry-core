@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from functools import cached_property
 from typing import TYPE_CHECKING
 from typing import Any
 
@@ -16,7 +17,6 @@ class PyProjectTOML:
     def __init__(self, path: Path) -> None:
         self._path = path
         self._data: dict[str, Any] | None = None
-        self._build_system: BuildSystem | None = None
 
     @property
     def path(self) -> Path:
@@ -46,23 +46,20 @@ class PyProjectTOML:
 
         return self._data
 
-    @property
+    @cached_property
     def build_system(self) -> BuildSystem:
-        if self._build_system is None:
-            build_backend = None
-            requires = None
+        build_backend = None
+        requires = None
 
-            if not self.path.exists():
-                build_backend = "poetry.core.masonry.api"
-                requires = ["poetry-core"]
+        if not self.path.exists():
+            build_backend = "poetry.core.masonry.api"
+            requires = ["poetry-core"]
 
-            container = self.data.get("build-system", {})
-            self._build_system = BuildSystem(
-                build_backend=container.get("build-backend", build_backend),
-                requires=container.get("requires", requires),
-            )
-
-        return self._build_system
+        container = self.data.get("build-system", {})
+        return BuildSystem(
+            build_backend=container.get("build-backend", build_backend),
+            requires=container.get("requires", requires),
+        )
 
     @property
     def poetry_config(self) -> dict[str, Any]:
