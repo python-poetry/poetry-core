@@ -8,7 +8,7 @@ packages = [{include='my_package', from='lib'}]
 # Simulate excluding due to .gitignore
 exclude = ['lib/my_package/generated.py']
 # Include again
-include = ['lib/my_package/generated.py']
+include = [{ path = 'lib/my_package/generated.py', format = ["sdist", "wheel"] }]
 
 [tool.poetry.dependencies]
 python = "^3.8"

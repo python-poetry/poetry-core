@@ -33,8 +33,8 @@ packages = [
 ]
 
 include = [
-    "extra_dir/vcs_excluded.py",
-    "notes.txt"
+    { path = "extra_dir/vcs_excluded.py", format = ["sdist", "wheel"] },
+    "notes.txt",  # default is sdist only
 ]
 
 

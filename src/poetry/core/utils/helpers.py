@@ -37,8 +37,10 @@ def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[Path]:
             yield Path(name)
     else:
         name = tempfile.mkdtemp(*args, **kwargs)
-        yield Path(name)
-        robust_rmtree(name)
+        try:
+            yield Path(name)
+        finally:
+            robust_rmtree(name)
 
 
 def parse_requires(requires: str) -> list[str]:
