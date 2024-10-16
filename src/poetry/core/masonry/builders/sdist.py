@@ -104,12 +104,13 @@ class SdistBuilder(Builder):
         logger.info(f"Built <comment>{target.name}</comment>")
         return target
 
+    @classmethod
     def add_file_to_tar(
-        self, tar: tarfile.TarFile, file_name: str, content: bytes
+        cls, tar: tarfile.TarFile, file_name: str, content: bytes
     ) -> None:
         tar_info = tarfile.TarInfo(file_name)
         tar_info.size = len(content)
-        tar_info = self.clean_tarinfo(tar_info)
+        tar_info = cls.clean_tarinfo(tar_info)
         tar.addfile(tar_info, BytesIO(content))
 
     def build_setup(self) -> bytes:
@@ -398,7 +399,8 @@ class SdistBuilder(Builder):
 
         return main, dict(extras)
 
-    def clean_tarinfo(self, tar_info: TarInfo) -> TarInfo:
+    @classmethod
+    def clean_tarinfo(cls, tar_info: TarInfo) -> TarInfo:
         """
         Clean metadata from a TarInfo object to make it more reproducible.
 
@@ -414,7 +416,7 @@ class SdistBuilder(Builder):
         ti.gid = 0
         ti.uname = ""
         ti.gname = ""
-        ti.mtime = self._get_archive_mtime()
+        ti.mtime = cls._get_archive_mtime()
         ti.mode = normalize_file_permissions(ti.mode)
 
         return ti
