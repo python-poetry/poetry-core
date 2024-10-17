@@ -330,6 +330,7 @@ class Dependency(PackageSpecification):
         """
         from poetry.core.packages.url_dependency import URLDependency
         from poetry.core.packages.utils.link import Link
+        from poetry.core.packages.utils.utils import cached_is_dir
         from poetry.core.packages.utils.utils import is_archive_file
         from poetry.core.packages.utils.utils import is_python_project
         from poetry.core.packages.utils.utils import is_url
@@ -361,7 +362,7 @@ class Dependency(PackageSpecification):
         else:
             path_str = os.path.normpath(os.path.abspath(name))  # noqa: PTH100
             p, extras = strip_extras(path_str)
-            if p.is_dir() and (os.path.sep in name or name.startswith(".")):
+            if cached_is_dir(p) and (os.path.sep in name or name.startswith(".")):
                 if not is_python_project(Path(name)):
                     raise ValueError(
                         f"Directory {name!r} is not installable. Not a Python project."
