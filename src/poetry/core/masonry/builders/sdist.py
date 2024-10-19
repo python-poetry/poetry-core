@@ -8,6 +8,7 @@ import tarfile
 from collections import defaultdict
 from contextlib import contextmanager
 from copy import copy
+from functools import cached_property
 from gzip import GzipFile
 from io import BytesIO
 from pathlib import Path
@@ -68,7 +69,7 @@ class SdistBuilder(Builder):
 
         name = distribution_name(self._package.name)
         target = target_dir / f"{name}-{self._meta.version}.tar.gz"
-        gz = GzipFile(target.as_posix(), mode="wb", mtime=self._get_archive_mtime())
+        gz = GzipFile(target.as_posix(), mode="wb", mtime=self._archive_mtime)
         tar = tarfile.TarFile(
             target.as_posix(), mode="w", fileobj=gz, format=tarfile.PAX_FORMAT
         )
@@ -414,13 +415,13 @@ class SdistBuilder(Builder):
         ti.gid = 0
         ti.uname = ""
         ti.gname = ""
-        ti.mtime = self._get_archive_mtime()
+        ti.mtime = self._archive_mtime
         ti.mode = normalize_file_permissions(ti.mode)
 
         return ti
 
-    @staticmethod
-    def _get_archive_mtime() -> int:
+    @cached_property
+    def _archive_mtime(self) -> int:
         if source_date_epoch := os.getenv("SOURCE_DATE_EPOCH"):
             try:
                 return int(source_date_epoch)
@@ -430,5 +431,5 @@ class SdistBuilder(Builder):
                     " using mtime=0"
                 )
                 return 0
-        logger.info("SOURCE_DATE_EPOCH environment variable is not set, using mtime=0")
+        logger.debug("SOURCE_DATE_EPOCH environment variable is not set, using mtime=0")
         return 0

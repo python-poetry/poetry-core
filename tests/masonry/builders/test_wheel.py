@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.machinery
+import logging
 import os
 import re
 import shutil
@@ -495,10 +496,11 @@ def test_generated_script_file(tmp_path: Path) -> None:
         assert "generated_script_file-0.1.data/scripts/script.sh" in z.namelist()
 
 
-def test_dist_info_date_time_default_value(caplog: LogCaptureFixture) -> None:
-    import logging
-
-    caplog.set_level(logging.INFO)
+@pytest.mark.parametrize("log_level", [logging.INFO, logging.DEBUG])
+def test_dist_info_date_time_default_value(
+    caplog: LogCaptureFixture, log_level: int
+) -> None:
+    caplog.set_level(log_level)
     module_path = fixtures_dir / "complete"
     WheelBuilder.make(Factory().create_poetry(module_path))
 
@@ -511,10 +513,14 @@ def test_dist_info_date_time_default_value(caplog: LogCaptureFixture) -> None:
             z.getinfo("my_package-1.2.3.dist-info/WHEEL").date_time == default_date_time
         )
 
-    assert (
+    source_data_epoch_message = (
         "SOURCE_DATE_EPOCH environment variable not set,"
         f" setting zipinfo date to default={default_date_time}"
-    ) in caplog.messages
+    )
+    if log_level == logging.DEBUG:
+        assert source_data_epoch_message in caplog.messages
+    else:
+        assert source_data_epoch_message not in caplog.messages
 
 
 def test_dist_info_date_time_value_from_envvar(monkeypatch: MonkeyPatch) -> None:
