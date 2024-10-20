@@ -14,6 +14,7 @@ import tempfile
 import zipfile
 
 from base64 import urlsafe_b64encode
+from functools import cached_property
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -449,7 +450,7 @@ for t in packaging_tags.sys_tags():
     ) -> None:
         # We always want to have /-separated paths in the zip file and in RECORD
         rel_path_name = rel_path.as_posix()
-        zinfo = zipfile.ZipInfo(rel_path_name, self._get_zipfile_date_time())
+        zinfo = zipfile.ZipInfo(rel_path_name, self._zipfile_date_time)
 
         # Normalize permission bits to either 755 (executable) or 644
         st_mode = full_path.stat().st_mode
@@ -482,7 +483,7 @@ for t in packaging_tags.sys_tags():
         sio = StringIO()
         yield sio
 
-        date_time = self._get_zipfile_date_time()
+        date_time = self._zipfile_date_time
         zi = zipfile.ZipInfo(rel_path, date_time)
         zi.external_attr = (0o644 & 0xFFFF) << 16  # Unix attributes
         b = sio.getvalue().encode("utf-8")
@@ -492,8 +493,8 @@ for t in packaging_tags.sys_tags():
         wheel.writestr(zi, b, compress_type=zipfile.ZIP_DEFLATED)
         self._records.append((rel_path, hash_digest, len(b)))
 
-    @staticmethod
-    def _get_zipfile_date_time() -> ZipInfoTimestamp:
+    @cached_property
+    def _zipfile_date_time(self) -> ZipInfoTimestamp:
         import time
 
         # The default is a fixed timestamp rather than the current time, so
@@ -510,7 +511,7 @@ for t in packaging_tags.sys_tags():
             )
             return default
         except KeyError:
-            logger.info(
+            logger.debug(
                 "SOURCE_DATE_EPOCH environment variable not set,"
                 " setting zipinfo date to default=%s",
                 default,
