@@ -221,7 +221,7 @@ def test_create_poetry(new_format: str) -> None:
     requests = dependencies["requests"]
     assert requests.pretty_constraint == (">=2.18,<3.0" if new_format else "^2.18")
     assert not requests.is_vcs()
-    assert not requests.allows_prereleases()
+    assert requests.allows_prereleases() is None
     assert requests.is_optional()
     assert requests.extras == frozenset({"security"})
 
@@ -928,6 +928,22 @@ def test_create_dependency_marker_variants(
     assert dep.python_versions == exp_python
     assert dep.python_constraint == parse_constraint(exp_python)
     assert str(dep.marker) == exp_marker
+
+
+@pytest.mark.parametrize(
+    ("constraint", "expected"),
+    [
+        ("1", None),
+        ({"version": "1"}, None),
+        ({"version": "1", "allow-prereleases": False}, False),
+        ({"version": "1", "allow-prereleases": True}, True),
+    ],
+)
+def test_create_dependency_allow_prereleases(
+    constraint: str | dict[str, str], expected: bool | None
+) -> None:
+    dep = Factory.create_dependency("foo", constraint)
+    assert dep.allows_prereleases() is expected
 
 
 def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:

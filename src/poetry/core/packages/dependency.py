@@ -41,7 +41,7 @@ class Dependency(PackageSpecification):
         constraint: str | VersionConstraint,
         optional: bool = False,
         groups: Iterable[str] | None = None,
-        allows_prereleases: bool = False,
+        allows_prereleases: bool | None = None,
         extras: Iterable[str] | None = None,
         source_type: str | None = None,
         source_url: str | None = None,
@@ -233,7 +233,14 @@ class Dependency(PackageSpecification):
     def base_pep_508_name_resolved(self) -> str:
         return self.base_pep_508_name
 
-    def allows_prereleases(self) -> bool:
+    def allows_prereleases(self) -> bool | None:
+        """
+        None (default): only use pre-release versions
+                        if no stable version satisfies the constraint
+        False: do not allow pre-release versions
+               even if this means there is no solution
+        True: do not distinguish between stable and pre-release versions
+        """
         return self._allows_prereleases
 
     def is_optional(self) -> bool:
