@@ -107,6 +107,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
         "CECILL-2.1": "CEA CNRS Inria Logiciel Libre License, version 2.1 (CeCILL-2.1)",
         "CPL-1.0": "Common Public License",
         "EPL-1.0": "Eclipse Public License 1.0 (EPL-1.0)",
+        "EPL-2.0": "Eclipse Public License 2.0 (EPL-2.0)",
         "EFL-1.0": "Eiffel Forum License",
         "EFL-2.0": "Eiffel Forum License",
         "EUPL-1.1": "European Union Public Licence 1.1 (EUPL 1.1)",
