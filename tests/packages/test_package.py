@@ -83,6 +83,8 @@ def test_package_authors_invalid() -> None:
         ("John-Paul: Doe", None),
         ("John-Paul: Doe", "jp@nomail.none"),
         ("John Doe the 3rd", "3rd@jd.net"),
+        ("FirstName LastName firstname.lastname@company.com", None),
+        ("Surname, Given Name [Department]", None),
     ],
 )
 def test_package_authors_valid(name: str, email: str | None) -> None:
@@ -98,12 +100,9 @@ def test_package_authors_valid(name: str, email: str | None) -> None:
     ("name",),
     [
         ("<john@john.doe>",),
-        ("john@john.doe",),
+        ("<john@john.doe",),
+        ("john@john.doe>",),
         ("<John Doe",),
-        ("John? Doe",),
-        ("Jane+Doe",),
-        ("~John Doe",),
-        ("John~Doe",),
     ],
 )
 def test_package_author_names_invalid(name: str) -> None:
