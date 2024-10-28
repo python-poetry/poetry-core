@@ -62,5 +62,6 @@ def test_valid_trove_classifiers() -> None:
 
     for license_id, license in licenses.items():
         classifier = license.classifier
-
-        assert classifier in trove_classifiers.classifiers
+        valid_classifier = classifier in trove_classifiers.classifiers
+        
+        assert valid_classifier, f"'{license_id}' returns invalid classifier '{classifier}'"
