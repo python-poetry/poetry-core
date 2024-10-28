@@ -77,6 +77,7 @@ class License(namedtuple("License", "id name is_osi_approved is_deprecated")):
 
     CLASSIFIER_NAMES: ClassVar[dict[str, str]] = {
         # Not OSI Approved
+        "Aladdin": "Aladdin Free Public License (AFPL)",
         "AFPL": "Aladdin Free Public License (AFPL)",
         "CC0-1.0": "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
         "CECILL-B": "CeCILL-B Free Software License Agreement (CECILL-B)",

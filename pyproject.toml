@@ -37,6 +37,7 @@ build = ">=0.10.0"
 setuptools = ">=60"
 tomli-w = "^1.0.0"
 virtualenv = ">=20.21"
+trove-classifiers = ">=2022.5.19"
 
 [tool.poetry.group.typing.dependencies]
 mypy = ">=1.0"
