@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from poetry.core.spdx.helpers import _load_licenses
 from poetry.core.spdx.helpers import license_by_id
 
 
@@ -52,3 +53,17 @@ def test_license_by_id_custom() -> None:
     assert license.name == "Custom"
     assert not license.is_osi_approved
     assert not license.is_deprecated
+
+
+def test_valid_trove_classifiers() -> None:
+    import trove_classifiers
+
+    licenses = _load_licenses()
+
+    for license_id, license in licenses.items():
+        classifier = license.classifier
+        valid_classifier = classifier in trove_classifiers.classifiers
+
+        assert (
+            valid_classifier
+        ), f"'{license_id}' returns invalid classifier '{classifier}'"
