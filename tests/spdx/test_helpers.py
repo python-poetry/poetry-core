@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from poetry.core.spdx.helpers import license_by_id, _load_licenses
+from poetry.core.spdx.helpers import _load_licenses
+from poetry.core.spdx.helpers import license_by_id
 
 
 def test_license_by_id() -> None:
