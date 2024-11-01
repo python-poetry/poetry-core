@@ -2734,6 +2734,11 @@
     false,
     false
   ],
+  "Sendmail-Open-Source-1.1": [
+    "Sendmail Open Source License v1.1",
+    false,
+    false
+  ],
   "SimPL-2.0": [
     "Simple Public License 2.0",
     true,
