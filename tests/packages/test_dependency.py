@@ -24,7 +24,7 @@ from poetry.core.version.requirements import InvalidRequirementError
         "^1.0.0-1",
     ],
 )
-@pytest.mark.parametrize("allows_prereleases", [False, True])
+@pytest.mark.parametrize("allows_prereleases", [None, False, True])
 def test_allows_prerelease(constraint: str, allows_prereleases: bool) -> None:
     dependency = Dependency("A", constraint, allows_prereleases=allows_prereleases)
     assert dependency.allows_prereleases() == allows_prereleases

@@ -414,7 +414,7 @@ class Factory:
             python_versions = constraint.get("python")
             platform = constraint.get("platform")
             markers = constraint.get("markers")
-            allows_prereleases = constraint.get("allow-prereleases", False)
+            allows_prereleases = constraint.get("allow-prereleases")
 
             dependency: Dependency
             if "git" in constraint:

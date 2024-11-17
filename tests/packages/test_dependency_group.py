@@ -15,7 +15,7 @@ def create_dependency(
     constraint: str = "*",
     *,
     extras: tuple[str, ...] = (),
-    allows_prereleases: bool = False,
+    allows_prereleases: bool | None = None,
     develop: bool = False,
     source_name: str | None = None,
     marker: str | None = None,
@@ -146,6 +146,11 @@ def test_remove_dependency_removes_from_both_lists() -> None:
             [Dependency.create_from_pep_508("foo>=1")],
             [create_dependency("foo", allows_prereleases=True)],
             [create_dependency("foo", ">=1", allows_prereleases=True)],
+        ),
+        (
+            [Dependency.create_from_pep_508("foo>=1")],
+            [create_dependency("foo", allows_prereleases=False)],
+            [create_dependency("foo", ">=1", allows_prereleases=False)],
         ),
         # directory dependency - develop
         (
