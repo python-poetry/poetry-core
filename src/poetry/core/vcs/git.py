@@ -18,6 +18,16 @@ PATH = r"[%\w~.\-\+/\\\$]+"
 NAME = r"[%\w~.\-]+"
 REV = r"[^@#]+?"
 SUBDIR = r"[\w\-/\\]+"
+PATTERN_SUFFIX = (
+    r"(?:"
+    rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
+    r"|"
+    r"#egg=?.+"
+    r"|"
+    rf"[@#](?P<rev>{REV})(?:[&#](?:(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})|egg=.+?))?"
+    r")?"
+    r"$"
+)
 
 PATTERNS = [
     re.compile(
@@ -28,14 +38,7 @@ PATTERNS = [
         rf"(:(?P<port>{PORT}))?"
         rf"(?P<pathname>[:/\\]({PATH}[/\\])?"
         rf"((?P<name>{NAME}?)(\.git|[/\\])?)?)"
-        r"(?:"
-        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
-        r"|"
-        r"#egg=?.+"
-        r"|"
-        rf"[@#](?P<rev>{REV})(?:[&#](?:(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})|egg=.+?))?"
-        r")?"
-        r"$"
+        rf"{PATTERN_SUFFIX}"
     ),
     re.compile(
         r"(git\+)?"
@@ -45,14 +48,7 @@ PATTERNS = [
         rf"(:(?P<port>{PORT}))?"
         rf"(?P<pathname>({PATH})"
         rf"(?P<name>{NAME})(\.git|/)?)"
-        r"(?:"
-        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
-        r"|"
-        r"#egg=?.+"
-        r"|"
-        rf"[@#](?P<rev>{REV})(?:[&#](?:(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})|egg=.+?))?"
-        r")?"
-        r"$"
+        rf"{PATTERN_SUFFIX}"
     ),
     re.compile(
         rf"^(?:(?P<user>{USER})@)?"
@@ -60,14 +56,7 @@ PATTERNS = [
         rf"(:(?P<port>{PORT}))?"
         rf"(?P<pathname>([:/]{PATH}/)"
         rf"(?P<name>{NAME})(\.git|/)?)"
-        r"(?:"
-        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
-        r"|"
-        r"#egg=?.+"
-        r"|"
-        rf"[@#](?P<rev>{REV})(?:[&#](?:(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})|egg=.+?))?"
-        r")?"
-        r"$"
+        rf"{PATTERN_SUFFIX}"
     ),
     re.compile(
         rf"((?P<user>{USER})@)?"
@@ -75,14 +64,7 @@ PATTERNS = [
         r"[:/]{{1,2}}"
         rf"(?P<pathname>({PATH})"
         rf"(?P<name>{NAME})(\.git|/)?)"
-        r"(?:"
-        rf"#(?:egg=.+?&subdirectory=|subdirectory=)(?P<subdirectory>{SUBDIR})"
-        r"|"
-        r"#egg=?.+"
-        r"|"
-        rf"[@#](?P<rev>{REV})(?:[&#](?:(?:egg=.+?&subdirectory=|subdirectory=)(?P<rev_subdirectory>{SUBDIR})|egg=.+?))?"
-        r")?"
-        r"$"
+        rf"{PATTERN_SUFFIX}"
     ),
 ]
 
