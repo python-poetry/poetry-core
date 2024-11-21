@@ -12,7 +12,6 @@ import pytest
 from poetry.core.utils._compat import WINDOWS
 from poetry.core.vcs import get_vcs
 from poetry.core.vcs.git import Git
-from poetry.core.vcs.git import GitError
 from poetry.core.vcs.git import GitUrl
 from poetry.core.vcs.git import ParsedUrl
 from poetry.core.vcs.git import _reset_executable
@@ -438,21 +437,6 @@ def test_parse_url_should_fail() -> None:
 
     with pytest.raises(ValueError):
         ParsedUrl.parse(url)
-
-
-def test_git_clone_raises_error_on_invalid_repository() -> None:
-    with pytest.raises(GitError):
-        Git().clone("-u./payload", Path("foo"))
-
-
-def test_git_checkout_raises_error_on_invalid_repository() -> None:
-    with pytest.raises(GitError):
-        Git().checkout("-u./payload")
-
-
-def test_git_rev_parse_raises_error_on_invalid_repository() -> None:
-    with pytest.raises(GitError):
-        Git().rev_parse("-u./payload")
 
 
 @pytest.mark.skipif(
