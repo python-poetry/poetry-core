@@ -11,7 +11,10 @@ from poetry.core.utils._compat import WINDOWS
 
 
 PROTOCOL = r"\w+"
-USER = r"[a-zA-Z0-9_.-]+"
+# https://url.spec.whatwg.org/#forbidden-host-code-point
+URL_RESTRICTED = r"[^/\?#:@<>\[\]\|]"
+USER = rf"{URL_RESTRICTED}+"
+USER_AUTH_HTTP = rf"((?P<username>{USER})(:(?P<password>{URL_RESTRICTED}*))?)"
 RESOURCE = r"[a-zA-Z0-9_.-]+"
 PORT = r"\d+"
 PATH = r"[%\w~.\-\+/\\\$]+"
@@ -32,8 +35,18 @@ PATTERN_SUFFIX = (
 PATTERNS = [
     re.compile(
         r"^(git\+)?"
-        r"(?P<protocol>https?|git|ssh|rsync|file)://"
+        r"(?P<protocol>git|ssh|rsync|file)://"
         rf"(?:(?P<user>{USER})@)?"
+        rf"(?P<resource>{RESOURCE})?"
+        rf"(:(?P<port>{PORT}))?"
+        rf"(?P<pathname>[:/\\]({PATH}[/\\])?"
+        rf"((?P<name>{NAME}?)(\.git|[/\\])?)?)"
+        rf"{PATTERN_SUFFIX}"
+    ),
+    re.compile(
+        r"^(git\+)?"
+        r"(?P<protocol>https?)://"
+        rf"(?:(?P<user>{USER_AUTH_HTTP})@)?"
         rf"(?P<resource>{RESOURCE})?"
         rf"(:(?P<port>{PORT}))?"
         rf"(?P<pathname>[:/\\]({PATH}[/\\])?"
