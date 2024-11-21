@@ -273,6 +273,42 @@ def test_normalize_url(url: str, normalized: GitUrl) -> None:
             ),
         ),
         (
+            "git+https://username:@github.com/sdispater/pendulum",
+            ParsedUrl(
+                "https",
+                "github.com",
+                "/sdispater/pendulum",
+                "username:",
+                None,
+                "pendulum",
+                None,
+            ),
+        ),
+        (
+            "git+https://username:password@github.com/sdispater/pendulum",
+            ParsedUrl(
+                "https",
+                "github.com",
+                "/sdispater/pendulum",
+                "username:password",
+                None,
+                "pendulum",
+                None,
+            ),
+        ),
+        (
+            "git+https://username+suffix:password@github.com/sdispater/pendulum",
+            ParsedUrl(
+                "https",
+                "github.com",
+                "/sdispater/pendulum",
+                "username+suffix:password",
+                None,
+                "pendulum",
+                None,
+            ),
+        ),
+        (
             "git+https://github.com/sdispater/pendulum#7a018f2d075b03a73409e8356f9b29c9ad4ea2c5",
             ParsedUrl(
                 "https",
