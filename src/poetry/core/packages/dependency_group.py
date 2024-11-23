@@ -3,11 +3,12 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from poetry.core.version.markers import parse_marker
+
 
 if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
     from poetry.core.version.markers import BaseMarker
-
 
 MAIN_GROUP = "main"
 
@@ -42,9 +43,20 @@ class DependencyGroup:
         for dep in self._dependencies:
             if dep.name in poetry_dependencies_by_name:
                 enriched = False
+                dep_marker = dep.marker
+                if dep.in_extras:
+                    dep_marker = dep.marker.intersect(
+                        parse_marker(
+                            " or ".join(
+                                f"extra == '{extra}'" for extra in dep.in_extras
+                            )
+                        )
+                    )
                 for poetry_dep in poetry_dependencies_by_name[dep.name]:
-                    marker = dep.marker.intersect(poetry_dep.marker)
+                    marker = dep_marker.intersect(poetry_dep.marker)
                     if not marker.is_empty():
+                        if marker == dep_marker:
+                            marker = dep.marker
                         enriched = True
                         dependencies.append(_enrich_dependency(dep, poetry_dep, marker))
                 if not enriched:
