@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.directory_dependency import DirectoryDependency
@@ -15,6 +17,7 @@ def create_dependency(
     constraint: str = "*",
     *,
     extras: tuple[str, ...] = (),
+    in_extras: tuple[str, ...] = (),
     allows_prereleases: bool | None = None,
     develop: bool = False,
     source_name: str | None = None,
@@ -26,6 +29,8 @@ def create_dependency(
         extras=extras,
         allows_prereleases=allows_prereleases,
     )
+    if in_extras:
+        dep._in_extras = [canonicalize_name(extra) for extra in in_extras]
     if develop:
         dep._develop = develop
     if source_name:
@@ -260,6 +265,88 @@ def test_remove_dependency_removes_from_both_lists() -> None:
             [create_dependency("foo", source_name="src")],
             [create_dependency("foo", source_name="src", marker="extra == 'extra1'")],
         ),
+        # extras - special
+        # root extras do not have an extra marker, they just have set _in_extras!
+        (
+            [
+                Dependency.create_from_pep_508("foo;extra!='extra1'"),
+                create_dependency("foo", in_extras=("extra1",)),
+            ],
+            [
+                create_dependency("foo", marker="extra!='extra1'", source_name="src1"),
+                create_dependency("foo", marker="extra=='extra1'", source_name="src2"),
+            ],
+            [
+                create_dependency("foo", source_name="src1", marker="extra!='extra1'"),
+                create_dependency("foo", source_name="src2", in_extras=("extra1",)),
+            ],
+        ),
+        (
+            [
+                Dependency.create_from_pep_508(
+                    "foo;extra!='extra1' and extra!='extra2'"
+                ),
+                create_dependency("foo", in_extras=("extra1", "extra2")),
+            ],
+            [
+                create_dependency(
+                    "foo",
+                    marker="extra!='extra1' and extra!='extra2'",
+                    source_name="src1",
+                ),
+                create_dependency(
+                    "foo",
+                    marker="extra=='extra1' or extra=='extra2'",
+                    source_name="src2",
+                ),
+            ],
+            [
+                create_dependency(
+                    "foo",
+                    source_name="src1",
+                    marker="extra!='extra1' and extra!='extra2'",
+                ),
+                create_dependency(
+                    "foo", source_name="src2", in_extras=("extra1", "extra2")
+                ),
+            ],
+        ),
+        (
+            [
+                create_dependency(
+                    "foo", marker="extra!='extra2'", in_extras=("extra1",)
+                ),
+                create_dependency(
+                    "foo", marker="extra!='extra1'", in_extras=("extra2",)
+                ),
+            ],
+            [
+                create_dependency(
+                    "foo",
+                    marker="extra!='extra2' and extra=='extra1'",
+                    source_name="src1",
+                ),
+                create_dependency(
+                    "foo",
+                    marker="extra!='extra1' and extra=='extra2'",
+                    source_name="src2",
+                ),
+            ],
+            [
+                create_dependency(
+                    "foo",
+                    source_name="src1",
+                    marker="extra!='extra2'",
+                    in_extras=("extra1",),
+                ),
+                create_dependency(
+                    "foo",
+                    source_name="src2",
+                    marker="extra!='extra1'",
+                    in_extras=("extra2",),
+                ),
+            ],
+        ),
     ],
 )
 def test_dependencies_for_locking(
@@ -284,6 +371,9 @@ def test_dependencies_for_locking(
     ]
     assert [d._develop for d in group.dependencies_for_locking] == [
         d._develop for d in expected_dependencies
+    ]
+    assert [d.in_extras for d in group.dependencies_for_locking] == [
+        d.in_extras for d in expected_dependencies
     ]
 
 
