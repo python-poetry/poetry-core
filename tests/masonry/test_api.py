@@ -198,13 +198,13 @@ My Package
         assert (dist_info / "METADATA").exists()
 
         with (dist_info / "entry_points.txt").open(encoding="utf-8") as f:
-            assert entry_points == f.read()
+            assert f.read() == entry_points
 
         with (dist_info / "WHEEL").open(encoding="utf-8") as f:
-            assert wheel_data == f.read()
+            assert f.read() == wheel_data
 
         with (dist_info / "METADATA").open(encoding="utf-8") as f:
-            assert metadata == f.read()
+            assert f.read() == metadata
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
@@ -240,7 +240,7 @@ def test_build_editable_wheel(project: str) -> None:
             namelist = z.namelist()
 
             assert "my_package.pth" in namelist
-            assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
+            assert z.read("my_package.pth").decode().strip() == pkg_dir.as_posix()
 
 
 @pytest.mark.parametrize("project", ["complete", "complete_new"])
@@ -299,5 +299,5 @@ def test_build_editable_wheel_with_metadata_directory(project: str) -> None:
                 namelist = z.namelist()
 
                 assert "my_package.pth" in namelist
-                assert pkg_dir.as_posix() == z.read("my_package.pth").decode().strip()
+                assert z.read("my_package.pth").decode().strip() == pkg_dir.as_posix()
                 assert f"{metadata_directory}/CUSTOM" in namelist
