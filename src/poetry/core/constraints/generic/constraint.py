@@ -182,8 +182,10 @@ class Constraint(BaseConstraint):
             if (
                 (ops in ({"!="}, {"not in"}))
                 or (
-                    ops in ({"in", "!="}, {"in", "not in"})
-                    and (self.operator == "in" and self.value in other.value)
+                    (
+                        ops in ({"in", "!="}, {"in", "not in"})
+                        and (self.operator == "in" and self.value in other.value)
+                    )
                     or (other.operator == "in" and other.value in self.value)
                 )
                 or self.invert() == other
