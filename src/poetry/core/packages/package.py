@@ -461,7 +461,7 @@ class Package(PackageSpecification):
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name in groups or not only and not group.is_optional()
+            if group_name in groups or (not only and not group.is_optional())
         }
         package = self.clone()
         package._dependency_groups = updated_groups
