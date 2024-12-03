@@ -4,8 +4,6 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import ClassVar
-from typing import Mapping
-from typing import Sequence
 from typing import TypeVar
 
 from poetry.core.constraints.version import parse_constraint
@@ -19,6 +17,8 @@ from poetry.core.version.exceptions import InvalidVersionError
 if TYPE_CHECKING:
     from collections.abc import Collection
     from collections.abc import Iterable
+    from collections.abc import Mapping
+    from collections.abc import Sequence
     from pathlib import Path
 
     from packaging.utils import NormalizedName

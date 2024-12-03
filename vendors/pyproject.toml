@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 
 fastjsonschema = "^2.18.0"
 lark = "^1.1.3"

@@ -27,7 +27,7 @@ STR_CMP_CONSTRAINT = re.compile(
 )
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def parse_constraint(constraints: str) -> BaseConstraint:
     if constraints == "*":
         return AnyConstraint()

@@ -23,7 +23,7 @@ include = [
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=2.15.0"
@@ -51,7 +51,7 @@ extend-exclude = [
 fix = true
 line-length = 88
 src = ["src"]
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 extend-select = [

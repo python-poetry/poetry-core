@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Mapping
-from typing import Sequence
 
 from poetry.core.constraints.version import parse_constraint
 
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from collections.abc import Sequence
+
     from poetry.core.constraints.version import Version
     from poetry.core.packages.dependency import Dependency
 

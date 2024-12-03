@@ -34,13 +34,12 @@ from poetry.core.utils.helpers import temporary_directory
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from typing import Tuple
 
     from packaging.utils import NormalizedName
 
     from poetry.core.poetry import Poetry
 
-    ZipInfoTimestamp = Tuple[int, int, int, int, int, int]
+    ZipInfoTimestamp = tuple[int, int, int, int, int, int]
 
 wheel_file_template = """\
 Wheel-Version: 1.0
@@ -115,9 +114,12 @@ class WheelBuilder(Builder):
         new_mode = normalize_file_permissions(st_mode)
         temp_path.chmod(new_mode)
 
-        with os.fdopen(fd, "w+b") as fd_file, zipfile.ZipFile(
-            fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
-        ) as zip_file:
+        with (
+            os.fdopen(fd, "w+b") as fd_file,
+            zipfile.ZipFile(
+                fd_file, mode="w", compression=zipfile.ZIP_DEFLATED
+            ) as zip_file,
+        ):
             if self._editable:
                 self._build(zip_file)
                 self._add_pth(zip_file)

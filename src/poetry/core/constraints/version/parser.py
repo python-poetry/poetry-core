@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def parse_constraint(constraints: str) -> VersionConstraint:
     return _parse_constraint(constraints=constraints)
 

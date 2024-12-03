@@ -10,7 +10,6 @@ import zipfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Iterator
 from typing import TextIO
 
 import pytest
@@ -21,6 +20,8 @@ from tests.masonry.builders.test_sdist import project
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pytest import LogCaptureFixture
     from pytest import MonkeyPatch
     from pytest_mock import MockerFixture
