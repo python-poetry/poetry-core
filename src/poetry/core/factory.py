@@ -7,7 +7,6 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import List
 from typing import Union
 
 from packaging.utils import canonicalize_name
@@ -28,7 +27,7 @@ if TYPE_CHECKING:
 
     DependencyConstraint = Union[str, Mapping[str, Any]]
     DependencyConfig = Mapping[
-        str, Union[List[DependencyConstraint], DependencyConstraint]
+        str, Union[list[DependencyConstraint], DependencyConstraint]
     ]
 
 

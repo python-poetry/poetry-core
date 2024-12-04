@@ -9,12 +9,16 @@ import zipfile
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
-from typing import Generator
 
 import tomli_w
 
 from poetry.core.utils._compat import tomllib
+
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 __toml_build_backend_patch__ = {

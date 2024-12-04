@@ -6,7 +6,6 @@ import re
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Sequence
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
@@ -23,6 +22,7 @@ from poetry.core.version.markers import parse_marker
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from packaging.utils import NormalizedName
 

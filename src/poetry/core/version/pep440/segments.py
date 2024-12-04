@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import dataclasses
 
+from typing import TYPE_CHECKING
 from typing import Optional
-from typing import Sequence
-from typing import Tuple
 from typing import Union
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 # Release phase IDs according to PEP440
@@ -159,4 +162,4 @@ class ReleaseTag:
         return self.__class__(phase=_phase, number=0)
 
 
-LocalSegmentType = Optional[Union[str, int, Tuple[Union[str, int], ...]]]
+LocalSegmentType = Optional[Union[str, int, tuple[Union[str, int], ...]]]

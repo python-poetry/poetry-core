@@ -6,7 +6,6 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Sequence
 from typing import TypeVar
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_ALPHA
@@ -17,6 +16,8 @@ from poetry.core.version.pep440.segments import ReleaseTag
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from poetry.core.version.pep440.segments import LocalSegmentType
 
 

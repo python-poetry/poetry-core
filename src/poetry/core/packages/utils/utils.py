@@ -7,9 +7,6 @@ import sys
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Dict
-from typing import List
-from typing import Tuple
 from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.request import url2pathname
@@ -29,7 +26,7 @@ if TYPE_CHECKING:
 
     # Even though we've `from __future__ import annotations`, mypy doesn't seem to like
     # this as `dict[str, ...]`
-    ConvertedMarkers = Dict[str, List[List[Tuple[str, str]]]]
+    ConvertedMarkers = dict[str, list[list[tuple[str, str]]]]
 
 
 BZ2_EXTENSIONS = (".tar.bz2", ".tbz")
@@ -117,13 +114,13 @@ def strip_extras(path: str) -> tuple[Path, str | None]:
     return Path(path_no_extras), extras
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def cached_is_dir(path: Path) -> bool:
     """A cached version of `Path.is_dir`."""
     return path.is_dir()
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def is_python_project(path: Path) -> bool:
     """Return true if the directory is a Python project"""
     if not cached_is_dir(path):

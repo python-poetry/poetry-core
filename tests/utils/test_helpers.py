@@ -153,9 +153,10 @@ def test_temporary_directory_python_3_10_or_newer_ensure_cleanup_on_error(
 
     mocked_temp_dir.return_value.__enter__.return_value = "hello from test"
 
-    with pytest.raises(
-        Exception, match="Something went wrong"
-    ), temporary_directory() as tmp:
+    with (
+        pytest.raises(Exception, match="Something went wrong"),
+        temporary_directory() as tmp,
+    ):
         assert tmp == Path("hello from test")
 
         raise Exception("Something went wrong")
@@ -195,9 +196,10 @@ def test_temporary_directory_python_3_9_or_older_ensure_cleanup_on_error(
 
     mocked_mkdtemp.return_value = "hello from test"
 
-    with pytest.raises(
-        Exception, match="Something went wrong"
-    ), temporary_directory() as tmp:
+    with (
+        pytest.raises(Exception, match="Something went wrong"),
+        temporary_directory() as tmp,
+    ):
         assert tmp == Path("hello from test")
 
         raise Exception("Something went wrong")

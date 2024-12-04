@@ -11,7 +11,6 @@ import zipfile
 
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterator
 
 import pytest
 
@@ -23,6 +22,8 @@ from tests.masonry.builders.test_wheel import WHEEL_TAG_REGEX
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pytest_mock import MockerFixture
 
 fixtures_dir = Path(__file__).parent / "fixtures"

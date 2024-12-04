@@ -6,7 +6,6 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Callable
-from typing import Iterator
 
 import pytest
 import virtualenv
@@ -16,6 +15,8 @@ from poetry.core.utils._compat import WINDOWS
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pytest import Config
     from pytest import Parser
 

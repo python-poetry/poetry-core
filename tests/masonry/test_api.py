@@ -6,7 +6,6 @@ import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Iterator
 
 import pytest
 
@@ -18,6 +17,8 @@ from tests.testutils import validate_wheel_contents
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pytest import LogCaptureFixture
 
 

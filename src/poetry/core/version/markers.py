@@ -949,7 +949,7 @@ class MarkerUnion(BaseMarker):
         return " or ".join(str(m) for m in self._markers)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def parse_marker(marker: str) -> BaseMarker:
     if marker == "<empty>":
         return EmptyMarker()
@@ -1019,7 +1019,7 @@ def _compact_markers(
     return union(*sub_markers)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def cnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into CNF (conjunctive normal form)."""
     if isinstance(marker, MarkerUnion):
@@ -1037,7 +1037,7 @@ def cnf(marker: BaseMarker) -> BaseMarker:
     return marker
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def dnf(marker: BaseMarker) -> BaseMarker:
     """Transforms the marker into DNF (disjunctive normal form)."""
     if isinstance(marker, MultiMarker):
@@ -1080,7 +1080,7 @@ def union(*markers: BaseMarker) -> BaseMarker:
     return min(disjunction, conjunction, unnormalized, key=lambda x: x.complexity)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _merge_single_markers(
     marker1: SingleMarkerLike[SingleMarkerConstraint],
     marker2: SingleMarkerLike[SingleMarkerConstraint],

@@ -63,7 +63,7 @@ class PEP440Parser:
         )
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def parse(cls, value: str, version_class: type[T]) -> T:
         match = cls._regex.search(value) if value else None
         if not match:
