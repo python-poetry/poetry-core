@@ -60,7 +60,7 @@ class VersionRangeConstraint(VersionConstraint):
         # The exclusive ordered comparison <V MUST NOT allow a pre-release
         # of the specified version unless the specified version is itself a pre-release.
         # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
-        return self.max.first_devrelease()
+        return self.max.before_first_devrelease()
 
     def allows_lower(self, other: VersionRangeConstraint) -> bool:
         _this, _other = self.allowed_min, other.allowed_min
