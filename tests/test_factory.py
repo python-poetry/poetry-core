@@ -533,6 +533,25 @@ def test_create_poetry_empty_readme(tmp_path: Path) -> None:
     assert not poetry.package.readmes
 
 
+def test_create_poetry_src_folder(tmp_path: Path) -> None:
+    cwd = fixtures_dir / "project_with_src_folder"
+
+    (cwd / "project_with_src_folder").mkdir(exist_ok=True)
+
+    pyproject = cwd / "pyproject.toml"
+    with pyproject.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate_project_in_src(content, cwd) == {
+        "errors": [],
+        "warnings": [
+            "Found empty directory 'project_with_src_folder' in project root while the actual package is in "
+            "src/project_with_src_folder. This may cause issues with package installation. "
+            "Consider removing the empty directory."
+        ],
+    }
+
+
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:

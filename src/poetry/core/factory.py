@@ -12,6 +12,7 @@ from typing import Union
 from packaging.utils import canonicalize_name
 
 from poetry.core.utils.helpers import combine_unicode
+from poetry.core.utils.helpers import module_name
 from poetry.core.utils.helpers import readme_content_type
 
 
@@ -50,6 +51,10 @@ class Factory:
 
         # Checking validity
         check_result = self.validate(pyproject.data)
+        src_check_results = self.validate_project_in_src(pyproject.data, cwd)
+        check_result["errors"].extend(src_check_results["errors"])
+        check_result["warnings"].extend(src_check_results["warnings"])
+
         if check_result["errors"]:
             message = ""
             for error in check_result["errors"]:
@@ -579,6 +584,45 @@ class Factory:
             cls._validate_legacy_vs_project(toml_data, result)
 
             cls._validate_strict(config, result)
+
+        return result
+
+    @classmethod
+    def validate_project_in_src(
+        cls, toml_data: dict[str, Any], base_path: Path | None
+    ) -> dict[str, list[str]]:
+        result: dict[str, list[str]] = {"errors": [], "warnings": []}
+
+        project_name = toml_data.get("project", {}).get("name") or toml_data.get(
+            "tool", {}
+        ).get("poetry", {}).get("name")
+
+        if project_name is None or base_path is None:
+            return result
+
+        project_name = module_name(project_name)
+
+        # Check for empty directory with same name as project
+        project_dir = base_path / project_name
+        src_project_dir = base_path / "src" / project_name
+
+        project_dir_empty = (
+            project_dir.exists()
+            and project_dir.is_dir()
+            and not any(project_dir.iterdir())
+        )
+        src_dir_not_empty = (
+            src_project_dir.exists()
+            and src_project_dir.is_dir()
+            and any(src_project_dir.iterdir())
+        )
+
+        if project_dir_empty and src_dir_not_empty:
+            result["warnings"].append(
+                f"Found empty directory '{project_name}' in project root while the actual package is in "
+                f"src/{project_name}. This may cause issues with package installation. "
+                "Consider removing the empty directory."
+            )
 
         return result
 
