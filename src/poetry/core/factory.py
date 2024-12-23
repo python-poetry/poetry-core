@@ -591,6 +591,9 @@ class Factory:
     def validate_project_in_src(
         cls, toml_data: dict[str, Any], base_path: Path | None
     ) -> dict[str, list[str]]:
+        """
+        Checks the validity of projects located under src/ subdirectory.
+        """
         result: dict[str, list[str]] = {"errors": [], "warnings": []}
 
         project_name = toml_data.get("project", {}).get("name") or toml_data.get(
@@ -602,7 +605,6 @@ class Factory:
 
         project_name = module_name(project_name)
 
-        # Check for empty directory with same name as project
         project_dir = base_path / project_name
         src_project_dir = base_path / "src" / project_name
 
