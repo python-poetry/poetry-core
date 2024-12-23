@@ -546,7 +546,7 @@ def test_create_poetry_src_folder(tmp_path: Path) -> None:
         "errors": [],
         "warnings": [
             "Found empty directory 'project_with_src_folder' in project root while the actual package is in "
-            "src/project_with_src_folder. This may cause issues with package installation. "
+            "'src/project_with_src_folder'. This may cause issues with package installation. "
             "Consider removing the empty directory."
         ],
     }

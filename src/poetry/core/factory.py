@@ -620,7 +620,7 @@ class Factory:
         if project_dir_empty and src_dir_not_empty:
             result["warnings"].append(
                 f"Found empty directory '{project_name}' in project root while the actual package is in "
-                f"src/{project_name}. This may cause issues with package installation. "
+                f"'src/{project_name}'. This may cause issues with package installation. "
                 "Consider removing the empty directory."
             )
 
