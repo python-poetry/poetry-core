@@ -769,6 +769,16 @@
     false,
     false
   ],
+  "CC-PDM-1.0": [
+    "Creative    Commons Public Domain Mark 1.0 Universal",
+    false,
+    false
+  ],
+  "CC-SA-1.0": [
+    "Creative Commons Share Alike 1.0 Generic",
+    false,
+    false
+  ],
   "CC0-1.0": [
     "Creative Commons Zero v1.0 Universal",
     false,
@@ -985,12 +995,12 @@
     false
   ],
   "DL-DE-BY-2.0": [
-    "Data licence Germany – attribution – version 2.0",
+    "Data licence Germany \u2013 attribution \u2013 version 2.0",
     false,
     false
   ],
   "DL-DE-ZERO-2.0": [
-    "Data licence Germany – zero – version 2.0",
+    "Data licence Germany \u2013 zero \u2013 version 2.0",
     false,
     false
   ],
@@ -1639,6 +1649,11 @@
     false,
     false
   ],
+  "InnoSetup": [
+    "Inno Setup License",
+    false,
+    false
+  ],
   "Intel": [
     "Intel Open Source License",
     true,
@@ -1840,17 +1855,17 @@
     false
   ],
   "LiLiQ-P-1.1": [
-    "Licence Libre du Québec – Permissive version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 Permissive version 1.1",
     true,
     false
   ],
   "LiLiQ-R-1.1": [
-    "Licence Libre du Québec – Réciprocité version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 version 1.1",
     true,
     false
   ],
   "LiLiQ-Rplus-1.1": [
-    "Licence Libre du Québec – Réciprocité forte version 1.1",
+    "Licence Libre du Qu\u00e9bec \u2013 R\u00e9ciprocit\u00e9 forte version 1.1",
     true,
     false
   ],
@@ -1886,6 +1901,11 @@
   ],
   "Lucida-Bitmap-Fonts": [
     "Lucida Bitmap Fonts License",
+    false,
+    false
+  ],
+  "MIPS": [
+    "MIPS License",
     false,
     false
   ],
@@ -2669,6 +2689,11 @@
     false,
     false
   ],
+  "SMAIL-GPL": [
+    "SMAIL General Public License",
+    false,
+    false
+  ],
   "SMLNJ": [
     "Standard ML of New Jersey License",
     false,
@@ -2866,6 +2891,11 @@
   ],
   "TermReadKey": [
     "TermReadKey License",
+    false,
+    false
+  ],
+  "ThirdEye": [
+    "ThirdEye License",
     false,
     false
   ],
@@ -3089,6 +3119,11 @@
     false,
     false
   ],
+  "any-OSI-perl-modules": [
+    "Any OSI License - Perl Modules",
+    false,
+    false
+  ],
   "bcrypt-Solar-Designer": [
     "bcrypt Solar Designer License",
     false,
@@ -3176,6 +3211,11 @@
   ],
   "gSOAP-1.3b": [
     "gSOAP Public License v1.3b",
+    false,
+    false
+  ],
+  "generic-xts": [
+    "Generic XTS License",
     false,
     false
   ],
@@ -3316,6 +3356,11 @@
   ],
   "w3m": [
     "w3m License",
+    false,
+    false
+  ],
+  "wwl": [
+    "WWL License",
     false,
     false
   ],
