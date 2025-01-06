@@ -1,29 +1,42 @@
-[tool.poetry]
+[project]
 name = "poetry-core"
-version = "2.0.0"
+version = "2.0.1.dev0"
 description = "Poetry PEP 517 Build Backend"
-authors = ["Sébastien Eustace <sebastien@eustace.io>"]
-license = "MIT"
+authors = [
+  { name = "Sébastien Eustace", email =  "sebastien@eustace.io" }
+]
+maintainers = [
+    { name = "Arun Babu Neelicattu", email = "arun.neelicattu@gmail.com" },
+    { name = "Bjorn Neergaard", email = "bjorn@neersighted.com" },
+    { name = "Branch Vincent", email = "branchevincent@gmail.com" },
+    { name = "Randy Döring", email = "radoering.poetry@gmail.com" },
+    { name = "Steph Samson", email = "hello@stephsamson.com" },
+    { name = "finswimmer", email = "finswimmer77@gmail.com" },
+    { name = "Bartosz Sokorski", email = "b.sokorski@gmail.com" },
+]
+license = { text = "MIT" }
+requires-python = ">=3.9, <4.0"
 readme = "README.md"
+keywords = ["packaging", "dependency", "poetry"]
+dynamic = ["classifiers"]
+
+[project.urls]
 homepage = "https://github.com/python-poetry/poetry-core"
 repository = "https://github.com/python-poetry/poetry-core"
-keywords = ["packaging", "dependency", "poetry"]
+"Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
+
+
+[tool.poetry]
+requires-poetry = ">=2.0"
+packages = [
+  { include = "poetry", from = "src" },
+]
+include = [{ path = "tests", format = "sdist" }]
 classifiers = [
   "Topic :: Software Development :: Build Tools",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-packages = [
-  { include = "poetry", from = "src" },
-]
-include = [
-  { path = "tests", format = "sdist" },
-]
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
-
-[tool.poetry.dependencies]
-python = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=2.15.0"
