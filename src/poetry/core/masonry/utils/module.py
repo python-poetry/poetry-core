@@ -70,17 +70,20 @@ class Module:
                     )
             default_package["format"] = ["sdist", "wheel"]
             packages = [default_package]
-
-        for package in packages:
-            self._package_includes.append(
-                PackageInclude(
-                    self._path,
-                    package["include"],
-                    formats=package["format"],
-                    source=package.get("from"),
-                    target=package.get("to"),
+        try:
+            for package in packages:
+                self._package_includes.append(
+                    PackageInclude(
+                        self._path,
+                        package["include"],
+                        formats=package["format"],
+                        source=package.get("from"),
+                        target=package.get("to"),
+                    )
                 )
-            )
+        except KeyError as e:
+            e.add_note("It might be that you are trying to run poetry v2 with a v1 pyproject.toml")
+            raise e
 
         for include in includes:
             self._explicit_includes.append(
