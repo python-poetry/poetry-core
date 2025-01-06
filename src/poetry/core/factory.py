@@ -376,7 +376,15 @@ class Factory:
             package.exclude = exclude
 
         if packages := tool_poetry.get("packages"):
-            package.packages = packages
+            packages_ = []
+            for p in packages:
+                formats = p.get("format", ["sdist", "wheel"])
+                if not isinstance(formats, list):
+                    formats = [formats]
+
+                packages_.append({**p, "format": formats})
+
+            package.packages = packages_
 
     @classmethod
     def create_dependency(
