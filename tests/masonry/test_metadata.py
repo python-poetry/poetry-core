@@ -60,3 +60,53 @@ def test_from_package_readme_issues(
         Metadata.from_package(package)
 
     assert str(e.value) == message
+
+def test_from_package_urls_case_sensitive() -> None:
+    package = ProjectPackage("foo", "1.0")
+    package.homepage = "https://example.com"
+    package._urls = {
+        "Homepage": "https://example.com",
+        "Repository": "https://github.com/example/repo",
+        "Documentation": "https://docs.example.com",
+        "Other": "https://other.example.com",
+    }
+
+    metadata = Metadata.from_package(package)
+
+    # Only "Other" should be in project_urls since others are special cases
+    assert len(metadata.project_urls) == 1
+    assert metadata.project_urls[0] == "Other, https://other.example.com"
+
+
+def test_from_package_urls_case_mixed() -> None:
+    package = ProjectPackage("foo", "1.0")
+    package.homepage = "https://example.com"
+    package._urls = {
+        "homepage": "https://example.com",
+        "Repository": "https://github.com/example/repo",
+        "DOCUMENTATION": "https://docs.example.com",
+        "other": "https://other.example.com",
+    }
+
+    metadata = Metadata.from_package(package)
+
+    # Only "other" should be in project_urls since others are special cases
+    assert len(metadata.project_urls) == 1
+    assert metadata.project_urls[0] == "other, https://other.example.com"
+
+
+def test_from_package_urls_lowercase() -> None:
+    package = ProjectPackage("foo", "1.0")
+    package._urls = {
+        "homepage": "https://example.com",
+        "repository": "https://github.com/example/repo",
+        "documentation": "https://docs.example.com",
+        "other": "https://other.example.com",
+    }
+
+    metadata = Metadata.from_package(package)
+
+    # Only "other" should be in project_urls since others are special cases
+    assert len(metadata.project_urls) == 2
+    assert metadata.project_urls[0] == "homepage, https://example.com"
+    assert metadata.project_urls[1] == "other, https://other.example.com"

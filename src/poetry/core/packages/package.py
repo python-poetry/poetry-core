@@ -117,6 +117,9 @@ class Package(PackageSpecification):
 
         self._yanked = yanked
 
+        # Currently only used for testing purposes
+        self._urls: dict[str, str] = {}
+
     @property
     def name(self) -> NormalizedName:
         return self._name
@@ -354,6 +357,9 @@ class Package(PackageSpecification):
     @property
     def urls(self) -> dict[str, str]:
         urls = {}
+
+        if self._urls:
+            return self._urls
 
         if self.homepage:
             urls["Homepage"] = self.homepage
