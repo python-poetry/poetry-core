@@ -354,15 +354,24 @@ def test_create_poetry_with_packages_and_includes() -> None:
     package = poetry.package
 
     assert package.packages == [
-        {"include": "extra_dir/**/*.py"},
-        {"include": "extra_dir/**/*.py"},
-        {"include": "my_module.py"},
-        {"include": "package_with_include"},
-        {"include": "tests", "format": "sdist"},
+        {"include": "extra_dir/**/*.py", "format": ["sdist", "wheel"]},
+        {"include": "extra_dir/**/*.py", "format": ["sdist", "wheel"]},
+        {"include": "my_module.py", "format": ["sdist", "wheel"]},
+        {"include": "package_with_include", "format": ["sdist", "wheel"]},
+        {"include": "tests", "format": ["sdist"]},
         {"include": "for_wheel_only", "format": ["wheel"]},
-        {"include": "src_package", "from": "src"},
-        {"include": "from_to", "from": "etc", "to": "target_from_to"},
-        {"include": "my_module_to.py", "to": "target_module"},
+        {"include": "src_package", "from": "src", "format": ["sdist", "wheel"]},
+        {
+            "include": "from_to",
+            "from": "etc",
+            "to": "target_from_to",
+            "format": ["sdist", "wheel"],
+        },
+        {
+            "include": "my_module_to.py",
+            "to": "target_module",
+            "format": ["sdist", "wheel"],
+        },
     ]
 
     assert package.include == [
