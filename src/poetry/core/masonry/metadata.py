@@ -110,7 +110,9 @@ class Metadata:
                 name_lower = name.lower()
                 if name_lower == "homepage" and meta.home_page == url:
                     continue
-                if name_lower == "repository" or name_lower == "documentation":
+                if name_lower == "repository" and url == package.repository_url:
+                    continue
+                if name_lower == "documentation" and url == package.documentation_url:
                     continue
 
                 meta.project_urls += (f"{name}, {url}",)

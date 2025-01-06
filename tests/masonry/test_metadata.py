@@ -62,16 +62,22 @@ def test_from_package_readme_issues(
     assert str(e.value) == message
 
 
-def test_from_package_urls_case_sensitive() -> None:
+def test_from_package_urls_case_sensitive(mocker: MockerFixture) -> None:
     package = ProjectPackage("foo", "1.0")
     package.homepage = "https://example.com"
-    package._urls = {
-        "Homepage": "https://example.com",
-        "Repository": "https://github.com/example/repo",
-        "Documentation": "https://docs.example.com",
-        "Other": "https://other.example.com",
-    }
+    package.repository_url = "https://github.com/example/repo"
+    package.documentation_url = "https://docs.example.com"
 
+    mocker.patch(
+        "poetry.core.packages.package.Package.urls",
+        new_callable=mocker.PropertyMock,
+        return_value={
+            "Homepage": "https://example.com",
+            "Repository": "https://github.com/example/repo",
+            "Documentation": "https://docs.example.com",
+            "Other": "https://other.example.com",
+        },
+    )
     metadata = Metadata.from_package(package)
 
     # Only "Other" should be in project_urls since others are special cases
@@ -79,15 +85,22 @@ def test_from_package_urls_case_sensitive() -> None:
     assert metadata.project_urls[0] == "Other, https://other.example.com"
 
 
-def test_from_package_urls_case_mixed() -> None:
+def test_from_package_urls_case_mixed(mocker: MockerFixture) -> None:
     package = ProjectPackage("foo", "1.0")
     package.homepage = "https://example.com"
-    package._urls = {
-        "homepage": "https://example.com",
-        "Repository": "https://github.com/example/repo",
-        "DOCUMENTATION": "https://docs.example.com",
-        "other": "https://other.example.com",
-    }
+    package.repository_url = "https://github.com/example/repo"
+    package.documentation_url = "https://docs.example.com"
+
+    mocker.patch(
+        "poetry.core.packages.package.Package.urls",
+        new_callable=mocker.PropertyMock,
+        return_value={
+            "homepage": "https://example.com",
+            "Repository": "https://github.com/example/repo",
+            "DOCUMENTATION": "https://docs.example.com",
+            "other": "https://other.example.com",
+        },
+    )
 
     metadata = Metadata.from_package(package)
 
@@ -96,14 +109,44 @@ def test_from_package_urls_case_mixed() -> None:
     assert metadata.project_urls[0] == "other, https://other.example.com"
 
 
-def test_from_package_urls_lowercase() -> None:
+def test_from_package_urls_lowercase(mocker: MockerFixture) -> None:
     package = ProjectPackage("foo", "1.0")
-    package._urls = {
-        "homepage": "https://example.com",
-        "repository": "https://github.com/example/repo",
-        "documentation": "https://docs.example.com",
-        "other": "https://other.example.com",
-    }
+    package.homepage = "https://example.com"
+    package.repository_url = "https://github.com/example/repo"
+    package.documentation_url = "https://docs.example.com"
+
+    mocker.patch(
+        "poetry.core.packages.package.Package.urls",
+        new_callable=mocker.PropertyMock,
+        return_value={
+            "homepage": "https://example.com",
+            "repository": "https://github.com/example/repo",
+            "documentation": "https://docs.example.com",
+            "other": "https://other.example.com",
+        },
+    )
+
+    metadata = Metadata.from_package(package)
+
+    # Only "other" should be in project_urls since others are special cases
+    assert len(metadata.project_urls) == 1
+    assert metadata.project_urls[0] == "other, https://other.example.com"
+
+def test_unset_homepage_url(mocker: MockerFixture) -> None:
+    package = ProjectPackage("foo", "1.0")
+    package.repository_url = "https://github.com/example/repo"
+    package.documentation_url = "https://docs.example.com"
+
+    mocker.patch(
+        "poetry.core.packages.package.Package.urls",
+        new_callable=mocker.PropertyMock,
+        return_value={
+            "homepage": "https://example.com",
+            "repository": "https://github.com/example/repo",
+            "documentation": "https://docs.example.com",
+            "other": "https://other.example.com",
+        },
+    )
 
     metadata = Metadata.from_package(package)
 
@@ -111,3 +154,26 @@ def test_from_package_urls_lowercase() -> None:
     assert len(metadata.project_urls) == 2
     assert metadata.project_urls[0] == "homepage, https://example.com"
     assert metadata.project_urls[1] == "other, https://other.example.com"
+
+def test_unset_all_defined_urls(mocker: MockerFixture) -> None:
+    package = ProjectPackage("foo", "1.0")
+
+    mocker.patch(
+        "poetry.core.packages.package.Package.urls",
+        new_callable=mocker.PropertyMock,
+        return_value={
+            "homepage": "https://example.com",
+            "repository": "https://github.com/example/repo",
+            "documentation": "https://docs.example.com",
+            "other": "https://other.example.com",
+        },
+    )
+
+    metadata = Metadata.from_package(package)
+
+    # Only "other" should be in project_urls since others are special cases
+    assert len(metadata.project_urls) == 4
+    assert metadata.project_urls[0] == "homepage, https://example.com"
+    assert metadata.project_urls[1] == "repository, https://github.com/example/repo"
+    assert metadata.project_urls[2] == "documentation, https://docs.example.com"
+    assert metadata.project_urls[3] == "other, https://other.example.com"
