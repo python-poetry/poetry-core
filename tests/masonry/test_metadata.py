@@ -61,6 +61,7 @@ def test_from_package_readme_issues(
 
     assert str(e.value) == message
 
+
 def test_from_package_urls_case_sensitive() -> None:
     package = ProjectPackage("foo", "1.0")
     package.homepage = "https://example.com"
