@@ -82,7 +82,9 @@ class Module:
                     )
                 )
         except KeyError as e:
-            e.add_note("It might be that you are trying to run poetry v2 with a v1 pyproject.toml")
+            e.add_note(
+                "It might be that you are trying to run poetry v2 with a v1 pyproject.toml"
+            )
             raise e
 
         for include in includes:
