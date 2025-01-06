@@ -132,6 +132,7 @@ def test_from_package_urls_lowercase(mocker: MockerFixture) -> None:
     assert len(metadata.project_urls) == 1
     assert metadata.project_urls[0] == "other, https://other.example.com"
 
+
 def test_unset_homepage_url(mocker: MockerFixture) -> None:
     package = ProjectPackage("foo", "1.0")
     package.repository_url = "https://github.com/example/repo"
@@ -154,6 +155,7 @@ def test_unset_homepage_url(mocker: MockerFixture) -> None:
     assert len(metadata.project_urls) == 2
     assert metadata.project_urls[0] == "homepage, https://example.com"
     assert metadata.project_urls[1] == "other, https://other.example.com"
+
 
 def test_unset_all_defined_urls(mocker: MockerFixture) -> None:
     package = ProjectPackage("foo", "1.0")
