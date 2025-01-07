@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
     from pytest import Config
     from pytest import Parser
+    from pytest_mock import MockerFixture
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -109,3 +110,13 @@ def python(venv: Path) -> str:
 @pytest.fixture()
 def f() -> Factory:
     return Factory()
+
+
+@pytest.fixture(autouse=True)
+def with_mocked_get_vcs(mocker: MockerFixture) -> None:
+    from poetry.core.vcs.git import Git
+
+    mocker.patch(
+        "poetry.core.vcs.git.Git.run", return_value="This is a mocked Git.run() output."
+    )
+    mocker.patch("poetry.core.vcs.get_vcs", return_value=Git())
