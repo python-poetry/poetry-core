@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Literal
 from typing import Union
 
 from packaging.utils import canonicalize_name
@@ -358,6 +359,22 @@ class Factory:
             package.extras = package_extras
 
     @classmethod
+    def _prepare_formats(
+        cls,
+        items: list[dict[str, Any]],
+        default_formats: list[Literal["sdist", "wheel"]],
+    ) -> list[dict[str, Any]]:
+        result = []
+        for item in items:
+            formats = item.get("format", default_formats)
+            if not isinstance(formats, list):
+                formats = [formats]
+
+            result.append({**item, "format": formats})
+
+        return result
+
+    @classmethod
     def _configure_package_poetry_specifics(
         cls, package: ProjectPackage, tool_poetry: dict[str, Any]
     ) -> None:
@@ -367,24 +384,20 @@ class Factory:
             package.build_config = build or {}
 
         if includes := tool_poetry.get("include"):
-            package.include = [
+            includes = [
                 include if isinstance(include, dict) else {"path": include}
                 for include in includes
             ]
+
+            package.include = cls._prepare_formats(includes, default_formats=["sdist"])
 
         if exclude := tool_poetry.get("exclude"):
             package.exclude = exclude
 
         if packages := tool_poetry.get("packages"):
-            packages_ = []
-            for p in packages:
-                formats = p.get("format", ["sdist", "wheel"])
-                if not isinstance(formats, list):
-                    formats = [formats]
-
-                packages_.append({**p, "format": formats})
-
-            package.packages = packages_
+            package.packages = cls._prepare_formats(
+                packages, default_formats=["sdist", "wheel"]
+            )
 
     @classmethod
     def create_dependency(

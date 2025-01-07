@@ -46,23 +46,16 @@ class Builder:
     def _module(self) -> Module:
         from poetry.core.masonry.utils.module import Module
 
-        packages: list[dict[str, str | dict[str, str]]] = []
-        includes: list[dict[str, str | dict[str, str]]] = []
-        for source_list, target_list, default in [
-            (self._package.packages, packages, ["sdist", "wheel"]),
-            (self._package.include, includes, ["sdist"]),
-        ]:
-            for item in source_list:
-                # Default to including in both sdist & wheel
-                # if the `format` key is not provided.
-                formats = item.get("format", default)
-                if not isinstance(formats, list):
-                    formats = [formats]
-
-                if self.format and self.format not in formats:
-                    continue
-
-                target_list.append({**item, "format": formats})
+        packages = [
+            item
+            for item in self._package.packages
+            if not self.format or self.format in item["format"]
+        ]
+        includes = [
+            item
+            for item in self._package.include
+            if not self.format or self.format in item["format"]
+        ]
 
         return Module(
             self._package.name,
