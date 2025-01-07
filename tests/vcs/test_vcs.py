@@ -33,6 +33,12 @@ def reset_git() -> Iterator[None]:
         _reset_executable()
 
 
+@pytest.fixture(autouse=True)
+def with_mocked_get_vcs() -> None:
+    # disabled global mocking of get_vcs
+    pass
+
+
 @pytest.mark.parametrize(
     "url, normalized",
     [
