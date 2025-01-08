@@ -39,6 +39,7 @@ class DependencyGroup:
         for dep in self._poetry_dependencies:
             poetry_dependencies_by_name[dep.name].append(dep)
 
+        enriched_poetry_dependencies = []
         dependencies = []
         for dep in self._dependencies:
             if dep.name in poetry_dependencies_by_name:
@@ -59,9 +60,14 @@ class DependencyGroup:
                             marker = dep.marker
                         enriched = True
                         dependencies.append(_enrich_dependency(dep, poetry_dep, marker))
+                        enriched_poetry_dependencies.append(poetry_dep)
                 if not enriched:
                     dependencies.append(dep)
             else:
+                dependencies.append(dep)
+
+        for dep in self._poetry_dependencies:
+            if dep not in enriched_poetry_dependencies:
                 dependencies.append(dep)
 
         return dependencies

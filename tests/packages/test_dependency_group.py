@@ -347,6 +347,17 @@ def test_remove_dependency_removes_from_both_lists() -> None:
                 ),
             ],
         ),
+        (
+            [create_dependency("requests", constraint="2.32.3,<3")],
+            [
+                create_dependency("numpy", constraint="==2.2.1"),
+                create_dependency("requests", constraint="2.32.3,<3"),
+            ],
+            [
+                create_dependency("requests", constraint="2.32.3,<3"),
+                create_dependency("numpy", constraint="==2.2.1"),
+            ],
+        ),
     ],
 )
 def test_dependencies_for_locking(
