@@ -160,9 +160,12 @@ def complete_legacy_duplicate_warnings() -> list[str]:
     ]
 
 
-@pytest.mark.parametrize("new_format", [False, True])
-def test_create_poetry(new_format: str) -> None:
-    project = "sample_project_new" if new_format else "sample_project"
+@pytest.mark.parametrize(
+    "project", ["sample_project", "sample_project_new", "sample_project_dynamic"]
+)
+def test_create_poetry(project: str) -> None:
+    new_format = project == "sample_project_new"
+    dynamic = project == "sample_project_dynamic"
     poetry = Factory().create_poetry(fixtures_dir / project)
 
     assert poetry.is_package_mode
@@ -219,7 +222,9 @@ def test_create_poetry(new_format: str) -> None:
     assert tomlkit_for_locking.develop
 
     requests = dependencies["requests"]
-    assert requests.pretty_constraint == (">=2.18,<3.0" if new_format else "^2.18")
+    assert requests.pretty_constraint == (
+        ">=2.18,<3.0" if new_format or dynamic else "^2.18"
+    )
     assert not requests.is_vcs()
     assert requests.allows_prereleases() is None
     assert requests.is_optional()

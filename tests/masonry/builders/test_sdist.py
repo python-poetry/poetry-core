@@ -120,7 +120,9 @@ def test_convert_dependencies() -> None:
     assert result == (main, extras)
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_make_setup(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
 
@@ -156,7 +158,9 @@ def test_make_setup(project_name: str) -> None:
     }
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_make_pkg_info(project_name: str, mocker: MockerFixture) -> None:
     get_metadata_content = mocker.patch(
         "poetry.core.masonry.builders.builder.Builder.get_metadata_content"
@@ -180,7 +184,9 @@ def test_make_pkg_info_any_python() -> None:
     assert "Requires-Python" not in parsed
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_find_files_to_add(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
 
@@ -239,7 +245,9 @@ def test_make_pkg_info_multi_constraints_dependency() -> None:
     ]
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_find_packages(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
 
@@ -277,7 +285,9 @@ def test_find_packages(project_name: str) -> None:
     assert pkg_data == {"": ["*"]}
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_package(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
 
@@ -309,7 +319,9 @@ def test_package_target_dir(tmp_path: Path, target_dir: str | None) -> None:
         assert "my_package-1.2.3/LICENSE" in tar.getnames()
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_sdist_reproducibility(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
 
@@ -328,7 +340,9 @@ def test_sdist_reproducibility(project_name: str) -> None:
     assert len(hashes) == 1
 
 
-@pytest.mark.parametrize("project_name", ["complete", "complete_new"])
+@pytest.mark.parametrize(
+    "project_name", ["complete", "complete_new", "complete_dynamic"]
+)
 def test_setup_py_context(project_name: str) -> None:
     poetry = Factory().create_poetry(project(project_name))
 

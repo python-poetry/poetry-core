@@ -16,6 +16,7 @@ def create_dependency(
     name: str,
     constraint: str = "*",
     *,
+    optional: bool = False,
     extras: tuple[str, ...] = (),
     in_extras: tuple[str, ...] = (),
     allows_prereleases: bool | None = None,
@@ -26,10 +27,12 @@ def create_dependency(
     dep = Dependency(
         name=name,
         constraint=constraint,
+        optional=optional,
         extras=extras,
         allows_prereleases=allows_prereleases,
     )
     if in_extras:
+        dep._optional = True
         dep._in_extras = [canonicalize_name(extra) for extra in in_extras]
     if develop:
         dep._develop = develop
@@ -47,23 +50,51 @@ def create_dependency(
         "expected_dependencies",
     ),
     [
-        ({"foo"}, set(), {"foo"}),
-        (set(), {"bar"}, {"bar"}),
-        ({"foo"}, {"bar"}, {"foo"}),
+        ({Dependency("foo", "*", optional=True)}, set(), {"foo"}),
+        (set(), {Dependency("bar", "*")}, {"bar"}),
+        (set(), {Dependency("bar", "*", optional=True)}, {"bar"}),
+        ({Dependency("foo", "*")}, {Dependency("bar", "*")}, {"foo"}),
+        (
+            {Dependency("foo", "*", optional=True)},
+            {Dependency("bar", "*")},
+            {"foo", "bar"},
+        ),
+        (
+            {Dependency("foo", "*")},
+            {Dependency("bar", "*", optional=True)},
+            {"foo", "bar"},
+        ),
+        (
+            {
+                Dependency("foo", "*", optional=True),
+                Dependency("baz", "*", optional=True),
+            },
+            {Dependency("bar", "*")},
+            {"foo", "bar", "baz"},
+        ),
+        (
+            {
+                Dependency("foo", "*", optional=True),
+                Dependency("baz", "*", optional=False),
+            },
+            {Dependency("bar", "*")},
+            {"foo", "baz"},
+        ),
+        (
+            {Dependency("foo", "*", optional=True)},
+            {Dependency("bar", "*"), Dependency("baz", "*", optional=True)},
+            {"foo", "bar"},
+        ),
     ],
 )
 def test_dependencies(
-    dependencies: set[str],
-    poetry_dependencies: set[str],
+    dependencies: set[Dependency],
+    poetry_dependencies: set[Dependency],
     expected_dependencies: set[str],
 ) -> None:
     group = DependencyGroup(name="group")
-    group._dependencies = [
-        Dependency(name=name, constraint="*") for name in dependencies
-    ]
-    group._poetry_dependencies = [
-        Dependency(name=name, constraint="*") for name in poetry_dependencies
-    ]
+    group._dependencies = list(dependencies)
+    group._poetry_dependencies = list(poetry_dependencies)
 
     assert {d.name for d in group.dependencies} == set(expected_dependencies)
 
@@ -125,6 +156,21 @@ def test_remove_dependency_removes_from_both_lists() -> None:
     [
         ([Dependency.create_from_pep_508("foo")], [], [create_dependency("foo")]),
         ([], [Dependency.create_from_pep_508("bar")], [create_dependency("bar")]),
+        (
+            [create_dependency("foo")],
+            [create_dependency("bar")],
+            [create_dependency("foo")],
+        ),
+        (
+            [create_dependency("foo", in_extras=("extra1",))],
+            [create_dependency("bar")],
+            [create_dependency("foo", in_extras=("extra1",)), create_dependency("bar")],
+        ),
+        (
+            [create_dependency("foo")],
+            [create_dependency("bar", in_extras=("extra1",))],
+            [create_dependency("foo"), create_dependency("bar", in_extras=("extra1",))],
+        ),
         # refine constraint
         (
             [Dependency.create_from_pep_508("foo>=1")],
@@ -258,11 +304,11 @@ def test_remove_dependency_removes_from_both_lists() -> None:
         (
             [Dependency.create_from_pep_508("foo[extra1,extra2]")],
             [create_dependency("foo", source_name="src")],
-            [create_dependency("foo", source_name="src", extras=["extra1", "extra2"])],
+            [create_dependency("foo", source_name="src", extras=("extra1", "extra2"))],
         ),
         (
             [Dependency.create_from_pep_508("foo;extra=='extra1'")],
-            [create_dependency("foo", source_name="src")],
+            [create_dependency("foo", source_name="src", optional=True)],
             [create_dependency("foo", source_name="src", marker="extra == 'extra1'")],
         ),
         # extras - special

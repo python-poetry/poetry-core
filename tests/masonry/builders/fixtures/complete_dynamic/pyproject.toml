@@ -1,0 +1,62 @@
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6,<4.0"
+license = { "text" = "MIT" }
+authors = [
+    { "name" = "Sébastien Eustace", "email" = "sebastien@eustace.io" }
+]
+maintainers = [
+    { name = "People Everywhere", email = "people@everywhere.com" }
+]
+keywords = ["packaging", "dependency", "poetry"]
+dynamic = [ "version", "classifiers", "readme", "dependencies" ]
+
+[project.optional-dependencies]
+time = [ "pendulum>=1.4,<2.0 ; python_version ~= '2.7' and sys_platform == 'win32' or python_version in '3.4 3.5'" ]
+
+[project.urls]
+homepage = "https://python-poetry.org/"
+repository = "https://github.com/python-poetry/poetry"
+documentation = "https://python-poetry.org/docs"
+"Issue Tracker" = "https://github.com/python-poetry/poetry/issues"
+
+[project.scripts]
+my-script = "my_package:main"
+my-2nd-script = "my_package:main2"
+extra-script = "my_package.extra:main"
+
+[project.entry-points."poetry.application.plugin"]
+my-command = "my_package.plugins:MyApplicationPlugin"
+
+
+[tool.poetry]
+version = "1.2.3"
+readme = "README.rst"
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+exclude = [
+    "does-not-exist",
+    "**/*.xml"
+]
+
+# Requirements
+[tool.poetry.dependencies]
+cleo = "^0.6"
+cachy = { version = "^0.2.0", extras = ["msgpack"] }
+
+[tool.poetry.dependencies.pendulum]
+version = "^1.4"
+markers = 'python_version ~= "2.7" and sys_platform == "win32" or python_version in "3.4 3.5"'
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "~3.4"
+
+[tool.poetry.scripts]
+file-script = { reference = "bin/script.sh", type = "file" }

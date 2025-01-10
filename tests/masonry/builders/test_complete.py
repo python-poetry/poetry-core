@@ -102,7 +102,7 @@ $""",
         assert len(set(record_files)) == len(record_files)
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 @pytest.mark.parametrize("no_vcs", [False, True])
 def test_complete(project: str, no_vcs: bool) -> None:
     module_path = fixtures_dir / project
