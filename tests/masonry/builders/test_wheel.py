@@ -73,7 +73,7 @@ def test_wheel_module() -> None:
         assert "module1.py" in z.namelist()
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_wheel_package(project: str) -> None:
     module_path = fixtures_dir / project
     WheelBuilder.make(Factory().create_poetry(module_path))
@@ -231,7 +231,7 @@ def test_wheel_build_script_creates_package() -> None:
     shutil.rmtree(module_path / "my_package")
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_dist_info_file_permissions(project: str) -> None:
     module_path = fixtures_dir / project
     WheelBuilder.make(Factory().create_poetry(module_path))

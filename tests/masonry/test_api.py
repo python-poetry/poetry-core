@@ -35,21 +35,21 @@ def cwd(directory: str | Path) -> Iterator[None]:
 fixtures = Path(__file__).parent / "builders" / "fixtures"
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_get_requires_for_build_wheel(project: str) -> None:
     expected: list[str] = []
     with cwd(fixtures / project):
         assert api.get_requires_for_build_wheel() == expected
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_get_requires_for_build_sdist(project: str) -> None:
     expected: list[str] = []
     with cwd(fixtures / project):
         assert api.get_requires_for_build_sdist() == expected
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_wheel(project: str) -> None:
     with temporary_directory() as tmp_dir, cwd(fixtures / project):
         filename = api.build_wheel(str(tmp_dir))
@@ -94,7 +94,7 @@ def test_build_wheel_extended() -> None:
         validate_wheel_contents(name="extended", version="0.1", path=whl)
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_sdist(project: str) -> None:
     with temporary_directory() as tmp_dir, cwd(fixtures / project):
         filename = api.build_sdist(str(tmp_dir))
@@ -131,7 +131,7 @@ def test_build_sdist_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
     assert "does not exist" in record.message
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_prepare_metadata_for_build_wheel(project: str) -> None:
     entry_points = """\
 [console_scripts]
@@ -224,7 +224,7 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     assert "does not exist" in record.message
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_editable_wheel(project: str) -> None:
     pkg_dir = fixtures / project
     with temporary_directory() as tmp_dir, cwd(pkg_dir):
@@ -244,7 +244,7 @@ def test_build_editable_wheel(project: str) -> None:
             assert z.read("my_package.pth").decode().strip() == pkg_dir.as_posix()
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_wheel_with_metadata_directory(project: str) -> None:
     pkg_dir = fixtures / project
 
@@ -272,7 +272,7 @@ def test_build_wheel_with_metadata_directory(project: str) -> None:
                 assert f"{metadata_directory}/CUSTOM" in namelist
 
 
-@pytest.mark.parametrize("project", ["complete", "complete_new"])
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_editable_wheel_with_metadata_directory(project: str) -> None:
     pkg_dir = fixtures / project
 

@@ -26,7 +26,20 @@ class DependencyGroup:
 
     @property
     def dependencies(self) -> list[Dependency]:
-        return self._dependencies or self._poetry_dependencies
+        if not self._dependencies:
+            return self._poetry_dependencies
+        if self._poetry_dependencies:
+            if all(dep.is_optional() for dep in self._dependencies):
+                return [
+                    *self._dependencies,
+                    *(d for d in self._poetry_dependencies if not d.is_optional()),
+                ]
+            if all(not dep.is_optional() for dep in self._dependencies):
+                return [
+                    *self._dependencies,
+                    *(d for d in self._poetry_dependencies if d.is_optional()),
+                ]
+        return self._dependencies
 
     @property
     def dependencies_for_locking(self) -> list[Dependency]:
@@ -40,7 +53,7 @@ class DependencyGroup:
             poetry_dependencies_by_name[dep.name].append(dep)
 
         dependencies = []
-        for dep in self._dependencies:
+        for dep in self.dependencies:
             if dep.name in poetry_dependencies_by_name:
                 enriched = False
                 dep_marker = dep.marker
