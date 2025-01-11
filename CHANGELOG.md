@@ -1,6 +1,19 @@
 # Change Log
 
 
+## [2.0.1] - 2025-01-11
+
+### Changed
+
+- Replace the deprecated core metadata field `Home-page` with `Project-URL: Homepage` ([#807](https://github.com/python-poetry/poetry-core/pull/807)).
+
+### Fixed
+
+- Fix an issue where includes from `tool.poetry.packages` without a specified `format` were not initialized with the default value resulting in a `KeyError` ([#805](https://github.com/python-poetry/poetry-core/pull/805)).
+- Fix an issue where some `project.urls` entries were not processed correctly resulting in a `KeyError` ([#807](https://github.com/python-poetry/poetry-core/pull/807)).
+- Fix an issue where dynamic `project.dependencies` via `tool.poetry.dependencies` were ignored if `project.optional-dependencies` were defined ([#811](https://github.com/python-poetry/poetry-core/pull/811)).
+
+
 ## [2.0.0] - 2025-01-04
 
 ### Added
@@ -699,7 +712,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.0.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.0.1...main
+[2.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.0.1
 [2.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.0.0
 [1.9.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.9.1
 [1.9.0]: https://github.com/python-poetry/poetry-core/releases/tag/1.9.0
