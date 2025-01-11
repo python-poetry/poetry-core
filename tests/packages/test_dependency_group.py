@@ -43,6 +43,7 @@ def create_dependency(
     return dep
 
 
+@pytest.mark.parametrize("mixed_dynamic", [False, True])
 @pytest.mark.parametrize(
     (
         "dependencies",
@@ -57,12 +58,12 @@ def create_dependency(
         (
             {Dependency("foo", "*", optional=True)},
             {Dependency("bar", "*")},
-            {"foo", "bar"},
+            ({"foo"}, {"foo", "bar"}),
         ),
         (
             {Dependency("foo", "*")},
             {Dependency("bar", "*", optional=True)},
-            {"foo", "bar"},
+            ({"foo"}, {"foo", "bar"}),
         ),
         (
             {
@@ -70,7 +71,7 @@ def create_dependency(
                 Dependency("baz", "*", optional=True),
             },
             {Dependency("bar", "*")},
-            {"foo", "bar", "baz"},
+            ({"foo", "baz"}, {"foo", "bar", "baz"}),
         ),
         (
             {
@@ -83,20 +84,25 @@ def create_dependency(
         (
             {Dependency("foo", "*", optional=True)},
             {Dependency("bar", "*"), Dependency("baz", "*", optional=True)},
-            {"foo", "bar"},
+            ({"foo"}, {"foo", "bar"}),
         ),
     ],
 )
 def test_dependencies(
     dependencies: set[Dependency],
     poetry_dependencies: set[Dependency],
-    expected_dependencies: set[str],
+    mixed_dynamic: bool,
+    expected_dependencies: set[str] | tuple[set[str], set[str]],
 ) -> None:
-    group = DependencyGroup(name="group")
+    group = DependencyGroup(name="group", mixed_dynamic=mixed_dynamic)
     group._dependencies = list(dependencies)
     group._poetry_dependencies = list(poetry_dependencies)
 
-    assert {d.name for d in group.dependencies} == set(expected_dependencies)
+    if isinstance(expected_dependencies, tuple):
+        expected_dependencies = (
+            expected_dependencies[1] if mixed_dynamic else expected_dependencies[0]
+        )
+    assert {d.name for d in group.dependencies} == expected_dependencies
 
 
 @pytest.mark.parametrize(
@@ -147,6 +153,7 @@ def test_remove_dependency_removes_from_both_lists() -> None:
     assert {d.name for d in group._poetry_dependencies} == {"baz"}
 
 
+@pytest.mark.parametrize("mixed_dynamic", [False, True])
 @pytest.mark.parametrize(
     (
         "dependencies",
@@ -164,12 +171,24 @@ def test_remove_dependency_removes_from_both_lists() -> None:
         (
             [create_dependency("foo", in_extras=("extra1",))],
             [create_dependency("bar")],
-            [create_dependency("foo", in_extras=("extra1",)), create_dependency("bar")],
+            (
+                [create_dependency("foo", in_extras=("extra1",))],
+                [
+                    create_dependency("foo", in_extras=("extra1",)),
+                    create_dependency("bar"),
+                ],
+            ),
         ),
         (
             [create_dependency("foo")],
             [create_dependency("bar", in_extras=("extra1",))],
-            [create_dependency("foo"), create_dependency("bar", in_extras=("extra1",))],
+            (
+                [create_dependency("foo")],
+                [
+                    create_dependency("foo"),
+                    create_dependency("bar", in_extras=("extra1",)),
+                ],
+            ),
         ),
         # refine constraint
         (
@@ -311,6 +330,23 @@ def test_remove_dependency_removes_from_both_lists() -> None:
             [create_dependency("foo", source_name="src", optional=True)],
             [create_dependency("foo", source_name="src", marker="extra == 'extra1'")],
         ),
+        (
+            [Dependency.create_from_pep_508("foo;extra=='extra1'")],
+            [create_dependency("foo", source_name="src")],
+            (
+                [
+                    create_dependency(
+                        "foo", source_name="src", marker="extra == 'extra1'"
+                    )
+                ],
+                [
+                    create_dependency(
+                        "foo", source_name="src", marker="extra == 'extra1'"
+                    ),
+                    create_dependency("foo", source_name="src"),
+                ],
+            ),
+        ),
         # extras - special
         # root extras do not have an extra marker, they just have set _in_extras!
         (
@@ -398,11 +434,17 @@ def test_remove_dependency_removes_from_both_lists() -> None:
 def test_dependencies_for_locking(
     dependencies: list[Dependency],
     poetry_dependencies: list[Dependency],
-    expected_dependencies: list[Dependency],
+    mixed_dynamic: bool,
+    expected_dependencies: list[Dependency] | tuple[list[Dependency], list[Dependency]],
 ) -> None:
-    group = DependencyGroup(name="group")
+    group = DependencyGroup(name="group", mixed_dynamic=mixed_dynamic)
     group._dependencies = dependencies
     group._poetry_dependencies = poetry_dependencies
+
+    if isinstance(expected_dependencies, tuple):
+        expected_dependencies = (
+            expected_dependencies[1] if mixed_dynamic else expected_dependencies[0]
+        )
 
     assert group.dependencies_for_locking == expected_dependencies
     # explicitly check attributes that are not considered in __eq__
