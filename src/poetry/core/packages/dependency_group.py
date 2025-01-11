@@ -14,9 +14,12 @@ MAIN_GROUP = "main"
 
 
 class DependencyGroup:
-    def __init__(self, name: str, optional: bool = False) -> None:
+    def __init__(
+        self, name: str, *, optional: bool = False, mixed_dynamic: bool = False
+    ) -> None:
         self._name: str = name
         self._optional: bool = optional
+        self._mixed_dynamic = mixed_dynamic
         self._dependencies: list[Dependency] = []
         self._poetry_dependencies: list[Dependency] = []
 
@@ -27,8 +30,9 @@ class DependencyGroup:
     @property
     def dependencies(self) -> list[Dependency]:
         if not self._dependencies:
+            # legacy mode
             return self._poetry_dependencies
-        if self._poetry_dependencies:
+        if self._mixed_dynamic and self._poetry_dependencies:
             if all(dep.is_optional() for dep in self._dependencies):
                 return [
                     *self._dependencies,

@@ -290,10 +290,16 @@ class Factory:
 
         dependencies = project.get("dependencies", {})
         optional_dependencies = project.get("optional-dependencies", {})
+        dynamic = project.get("dynamic", [])
 
         package_extras: dict[NormalizedName, list[Dependency]]
         if dependencies or optional_dependencies:
-            group = DependencyGroup(MAIN_GROUP)
+            group = DependencyGroup(
+                MAIN_GROUP,
+                mixed_dynamic=(
+                    "dependencies" in dynamic or "optional-dependencies" in dynamic
+                ),
+            )
             package.add_dependency_group(group)
 
             for constraint in dependencies:
