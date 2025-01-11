@@ -201,12 +201,18 @@ class Factory:
         package.dynamic_classifiers = not static_classifiers
 
         if urls := project.get("urls"):
-            package.homepage = urls.get("homepage") or urls.get("Homepage")
-            package.repository_url = urls.get("repository") or urls.get("Repository")
-            package.documentation_url = urls.get("documentation") or urls.get(
-                "Documentation"
-            )
-            package.custom_urls = urls
+            custom_urls = {}
+            for name, url in urls.items():
+                lower_name = name.lower()
+                if lower_name == "homepage":
+                    package.homepage = url
+                elif lower_name == "repository":
+                    package.repository_url = url
+                elif lower_name == "documentation":
+                    package.documentation_url = url
+                else:
+                    custom_urls[name] = url
+            package.custom_urls = custom_urls
         else:
             package.homepage = tool_poetry.get("homepage")
             package.repository_url = tool_poetry.get("repository")

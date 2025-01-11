@@ -98,7 +98,7 @@ def test_get_metadata_content() -> None:
     assert parsed["Keywords"] == "packaging,dependency,poetry"
     assert parsed["Requires-Python"] == ">=3.6,<4.0"
     assert parsed["License"] == "MIT"
-    assert parsed["Home-page"] == "https://python-poetry.org/"
+    assert parsed["Home-page"] is None
 
     classifiers = parsed.get_all("Classifier")
     assert classifiers == [
@@ -132,6 +132,7 @@ def test_get_metadata_content() -> None:
     urls = parsed.get_all("Project-URL")
     assert urls == [
         "Documentation, https://python-poetry.org/docs",
+        "Homepage, https://python-poetry.org/",
         "Issue Tracker, https://github.com/python-poetry/poetry/issues",
         "Repository, https://github.com/python-poetry/poetry",
     ]

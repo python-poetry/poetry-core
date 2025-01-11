@@ -210,10 +210,6 @@ class Builder:
             summary=str(self._meta.summary),
         )
 
-        # Optional fields
-        if self._meta.home_page:
-            content += f"Home-page: {self._meta.home_page}\n"
-
         if self._meta.license:
             license_field = "License: "
             # Indentation is not only for readability, but required
