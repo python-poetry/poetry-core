@@ -310,6 +310,31 @@ def test_create_poetry(project: str) -> None:
         ]
 
 
+def test_create_poetry_with_groups() -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project_with_groups_new")
+
+    assert "docs" in poetry.package._dependency_groups
+    assert "test" in poetry.package._dependency_groups
+    assert poetry.package._dependency_groups["docs"].is_optional()  # type: ignore[index]
+    assert not poetry.package._dependency_groups["test"].is_optional()  # type: ignore[index]
+
+    package = poetry.package
+    dependencies = {str(dep.name): dep for dep in package.all_requires}
+
+    assert dependencies["mkdocs"].name == "mkdocs"
+    assert isinstance(dependencies["mkdocs"], VCSDependency)
+    assert dependencies["mkdocs"].develop is True
+    assert dependencies["mkdocs"].source_type == "git"
+    assert dependencies["mkdocs"].source == "https://github.com/mkdocs/mkdocs.git"
+    assert dependencies["mkdocs"].groups == frozenset({"docs"})
+
+    assert dependencies["pytest"].name == "pytest"
+    assert dependencies["pytest"].groups == frozenset({"test"})
+
+    assert dependencies["coverage"].name == "coverage"
+    assert dependencies["coverage"].groups == frozenset({"test"})
+
+
 def test_create_poetry_with_dependencies_with_subdirectory() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_dependencies_with_subdirectory"
