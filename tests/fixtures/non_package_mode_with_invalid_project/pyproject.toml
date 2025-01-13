@@ -1,0 +1,8 @@
+[project]
+requires-python = ">=3.10,<3.13"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+cleo = "^0.6"

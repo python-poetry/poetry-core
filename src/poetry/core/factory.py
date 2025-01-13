@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from collections import defaultdict
 from collections.abc import Mapping
@@ -569,12 +570,19 @@ class Factory:
 
         result: dict[str, list[str]] = {"errors": [], "warnings": []}
 
+        # we can ignore project.<name|version> as they need to be validated only
+        # when package-mode is True, this is done so later on in the code
+        ignore_required_properties = re.compile(
+            r"data must contain \[((, )?'(name|version)')+] properties"
+        )
+
         # Validate against schemas
         project = toml_data.get("project")
         if project is not None:
             project_validation_errors = [
                 e.replace("data", "project")
                 for e in validate_object(project, "project-schema")
+                if strict or not re.match(ignore_required_properties, e)
             ]
             result["errors"] += project_validation_errors
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and

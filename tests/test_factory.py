@@ -798,6 +798,19 @@ The Poetry configuration is invalid:
     assert str(e.value) == expected
 
 
+def test_create_poetry_succeeds_for_non_package_without_required_project_metadata(
+    common_fixtures_directory: Path,
+) -> None:
+    assert (
+        Factory().create_poetry(
+            common_fixtures_directory
+            / "non_package_mode_with_invalid_project"
+            / "pyproject.toml"
+        )
+        is not None
+    )
+
+
 def test_create_poetry_fails_on_invalid_mode() -> None:
     with pytest.raises(RuntimeError) as e:
         Factory().create_poetry(
