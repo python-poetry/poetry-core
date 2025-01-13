@@ -243,9 +243,9 @@ def create_nested_marker(
 
         marker = f'{name} == "{constraint.text}"'
     else:
-        assert isinstance(
-            constraint, VersionRange
-        ), f"Unexpected constraint of type {type(constraint)}"
+        assert isinstance(constraint, VersionRange), (
+            f"Unexpected constraint of type {type(constraint)}"
+        )
         min_name = max_name = name
 
         parts = []
