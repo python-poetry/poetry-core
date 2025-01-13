@@ -333,3 +333,21 @@ def test_metadata_with_wildcard_dependency_constraint() -> None:
 
     requires = metadata.get_all("Requires-Dist")
     assert requires == ["google-api-python-client (>=1.8,!=2.0.*)"]
+
+
+@pytest.mark.parametrize(
+    ["local_version", "expected_version"],
+    [
+        ("", "1.2.3"),
+        ("some-label", "1.2.3+some-label"),
+    ],
+)
+def test_builder_apply_local_version_label(
+    local_version: str, expected_version: str
+) -> None:
+    builder = Builder(
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete"),
+        config_settings={"local-version": local_version},
+    )
+
+    assert builder._poetry.package.version.text == expected_version
