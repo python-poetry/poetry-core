@@ -777,5 +777,5 @@ def test_sdist_mtime_set_from_envvar_not_int(
     assert sdist.exists()
 
     assert (
-        "SOURCE_DATE_EPOCH environment variable is not an " "int, using mtime=0"
+        "SOURCE_DATE_EPOCH environment variable is not an int, using mtime=0"
     ) in caplog.messages
