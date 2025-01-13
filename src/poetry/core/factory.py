@@ -134,13 +134,18 @@ class Factory:
     ) -> None:
         project = pyproject.data.get("project", {})
         tool_poetry = pyproject.poetry_config
+        dependency_groups = pyproject.data.get("dependency-groups", {})
 
         package.root_dir = root
 
         cls._configure_package_metadata(package, project, tool_poetry, root)
         cls._configure_entry_points(package, project, tool_poetry)
         cls._configure_package_dependencies(
-            package, project, tool_poetry, with_groups=with_groups
+            package=package,
+            project=project,
+            tool_poetry=tool_poetry,
+            dependency_groups=dependency_groups,
+            with_groups=with_groups,
         )
         cls._configure_package_poetry_specifics(package, tool_poetry)
 
@@ -344,6 +349,7 @@ class Factory:
         package: ProjectPackage,
         project: dict[str, Any],
         tool_poetry: dict[str, Any],
+        dependency_groups: dict[str, list[str]],
         with_groups: bool = True,
     ) -> None:
         from poetry.core.packages.dependency import Dependency
@@ -394,18 +400,39 @@ class Factory:
                 dependencies=tool_poetry["dependencies"],
             )
 
-        if with_groups and "group" in tool_poetry:
-            for group_name, group_config in tool_poetry["group"].items():
+        if with_groups:
+            for group_name, dependencies in dependency_groups.items():
+                poetry_group_config = tool_poetry.get("group", {}).get(group_name, {})
                 group = DependencyGroup(
-                    group_name, optional=group_config.get("optional", False)
+                    name=group_name,
+                    optional=poetry_group_config.get("optional", False),
                 )
-                cls._add_package_group_dependencies(
-                    package=package,
-                    group=group,
-                    dependencies=group_config.get("dependencies", {}),
-                )
+                package.add_dependency_group(group)
 
-            for group_name, group_config in tool_poetry["group"].items():
+                for constraint in dependencies:
+                    dep = Dependency.create_from_pep_508(
+                        constraint,
+                        relative_to=package.root_dir,
+                        groups=[group_name],
+                    )
+                    group.add_dependency(dep)
+
+            for group_name, group_config in tool_poetry.get("group", {}).items():
+                if not package.has_dependency_group(group_name):
+                    group = DependencyGroup(
+                        name=group_name,
+                        optional=group_config.get("optional", False),
+                    )
+                    package.add_dependency_group(group)
+
+                if "dependencies" in group_config:
+                    cls._add_package_group_dependencies(
+                        package=package,
+                        group=group_name,
+                        dependencies=group_config.get("dependencies", {}),
+                    )
+
+            for group_name, group_config in tool_poetry.get("group", {}).items():
                 if include_groups := group_config.get("include-groups", []):
                     current_group = package.dependency_group(group_name)
                     for name in include_groups:
