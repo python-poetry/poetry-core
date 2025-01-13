@@ -18,6 +18,7 @@ from functools import cached_property
 from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import TextIO
 
 import packaging.tags
@@ -61,8 +62,9 @@ class WheelBuilder(Builder):
         executable: Path | None = None,
         editable: bool = False,
         metadata_directory: Path | None = None,
+        config_settings: dict[str, Any] | None = None,
     ) -> None:
-        super().__init__(poetry, executable=executable)
+        super().__init__(poetry, executable=executable, config_settings=config_settings)
 
         self._records: list[tuple[str, str, int]] = []
         self._original_path = self._path
@@ -80,6 +82,7 @@ class WheelBuilder(Builder):
         executable: Path | None = None,
         editable: bool = False,
         metadata_directory: Path | None = None,
+        config_settings: dict[str, Any] | None = None,
     ) -> str:
         wb = WheelBuilder(
             poetry,
@@ -87,6 +90,7 @@ class WheelBuilder(Builder):
             executable=executable,
             editable=editable,
             metadata_directory=metadata_directory,
+            config_settings=config_settings,
         )
         wb.build(target_dir=directory)
 

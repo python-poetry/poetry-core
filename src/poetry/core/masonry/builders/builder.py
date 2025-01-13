@@ -7,6 +7,7 @@ import textwrap
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
 
 
 if TYPE_CHECKING:
@@ -27,7 +28,12 @@ logger = logging.getLogger(__name__)
 class Builder:
     format: str | None = None
 
-    def __init__(self, poetry: Poetry, executable: Path | None = None) -> None:
+    def __init__(
+        self,
+        poetry: Poetry,
+        executable: Path | None = None,
+        config_settings: dict[str, Any] | None = None,
+    ) -> None:
         from poetry.core.masonry.metadata import Metadata
 
         if not poetry.is_package_mode:
@@ -35,7 +41,11 @@ class Builder:
                 "Building a package is not possible in non-package mode."
             )
 
+        self._config_settings = config_settings or {}
+
         self._poetry = poetry
+        self._apply_local_version_label()
+
         self._package = poetry.package
         self._path: Path = poetry.pyproject_path.parent
         self._excluded_files: set[str] | None = None
@@ -71,6 +81,13 @@ class Builder:
     @property
     def default_target_dir(self) -> Path:
         return self._path / "dist"
+
+    def _apply_local_version_label(self) -> None:
+        """Apply local version label from config settings to the poetry package version if present."""
+        if local_version_label := self._config_settings.get("local-version"):
+            self._poetry.package.version = self._poetry.package.version.replace(
+                local=local_version_label
+            )
 
     def build(self, target_dir: Path | None) -> Path:
         raise NotImplementedError
