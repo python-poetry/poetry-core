@@ -129,6 +129,10 @@ class PEP440Version:
         return self.epoch, self.release, _pre, _post, _dev, _local
 
     @property
+    def local_segment_compare_key(self) -> tuple[int | str, ...]:
+        return self._compare_key[-1]
+
+    @property
     def major(self) -> int:
         return self.release.major
 

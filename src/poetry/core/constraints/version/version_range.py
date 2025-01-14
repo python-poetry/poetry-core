@@ -60,6 +60,12 @@ class VersionRange(VersionRangeConstraint):
 
     def allows(self, other: Version) -> bool:
         if self._min is not None:
+            if self._min.is_local() and (
+                not other.is_local()
+                or self._min.local_segment_compare_key < other.local_segment_compare_key
+            ):
+                return False
+
             _this, _other = self.allowed_min, other
 
             assert _this is not None
@@ -92,6 +98,11 @@ class VersionRange(VersionRangeConstraint):
             if not _this.is_local() and _other.is_local():
                 # allow weak equality to allow `3.0.0+local.1` for `<=3.0.0`
                 _other = _other.without_local()
+            elif _this.is_local() and (
+                not _other.is_local()
+                or _this.local_segment_compare_key != _other.local_segment_compare_key
+            ):
+                return False
 
             if _other > _this:
                 return False

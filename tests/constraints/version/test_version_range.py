@@ -111,22 +111,32 @@ def test_allows_post_releases_with_post_and_local_min() -> None:
     two = Version.parse("3.0.0-1")
     three = Version.parse("3.0.0-1+local.1")
     four = Version.parse("3.0.0+local.2")
+    five = Version.parse("4.0.0+local.2")
 
     assert not VersionRange(min=one, include_min=True).allows(two)
     assert VersionRange(min=one, include_min=True).allows(three)
-    assert VersionRange(min=one, include_min=True).allows(four)
+    assert not VersionRange(min=one, include_min=True).allows(four)
+    assert not VersionRange(min=one, include_min=True).allows(five)
 
     assert not VersionRange(min=two, include_min=True).allows(one)
     assert VersionRange(min=two, include_min=True).allows(three)
     assert not VersionRange(min=two, include_min=True).allows(four)
+    assert VersionRange(min=two, include_min=True).allows(five)
 
     assert not VersionRange(min=three, include_min=True).allows(one)
     assert not VersionRange(min=three, include_min=True).allows(two)
     assert not VersionRange(min=three, include_min=True).allows(four)
+    assert not VersionRange(min=three, include_min=True).allows(five)
 
     assert not VersionRange(min=four, include_min=True).allows(one)
     assert not VersionRange(min=four, include_min=True).allows(two)
     assert not VersionRange(min=four, include_min=True).allows(three)
+    assert VersionRange(min=four, include_min=True).allows(five)
+
+    assert not VersionRange(min=five, include_max=True).allows(one)
+    assert not VersionRange(min=five, include_max=True).allows(two)
+    assert not VersionRange(max=five, include_max=True).allows(three)
+    assert not VersionRange(min=five, include_max=True).allows(four)
 
 
 def test_allows_post_releases_with_post_and_local_max() -> None:
@@ -134,6 +144,7 @@ def test_allows_post_releases_with_post_and_local_max() -> None:
     two = Version.parse("3.0.0-1")
     three = Version.parse("3.0.0-1+local.1")
     four = Version.parse("3.0.0+local.2")
+    five = Version.parse("4.0.0+local.2")
 
     assert not VersionRange(max=one, include_max=True).allows(two)
     assert not VersionRange(max=one, include_max=True).allows(three)
@@ -144,12 +155,17 @@ def test_allows_post_releases_with_post_and_local_max() -> None:
     assert VersionRange(max=two, include_max=True).allows(four)
 
     assert VersionRange(max=three, include_max=True).allows(one)
-    assert VersionRange(max=three, include_max=True).allows(two)
-    assert VersionRange(max=three, include_max=True).allows(four)
+    assert not VersionRange(max=three, include_max=True).allows(two)
+    assert not VersionRange(max=three, include_max=True).allows(four)
 
-    assert VersionRange(max=four, include_max=True).allows(one)
+    assert not VersionRange(max=four, include_max=True).allows(one)
     assert not VersionRange(max=four, include_max=True).allows(two)
     assert not VersionRange(max=four, include_max=True).allows(three)
+
+    assert not VersionRange(max=five, include_max=True).allows(one)
+    assert not VersionRange(max=five, include_max=True).allows(two)
+    assert not VersionRange(max=five, include_max=True).allows(three)
+    assert VersionRange(max=five, include_max=True).allows(four)
 
 
 @pytest.mark.parametrize(
@@ -162,9 +178,9 @@ def test_allows_post_releases_with_post_and_local_max() -> None:
             id="post",
         ),
         pytest.param(
-            Version.parse("3.0.0"),
             Version.parse("3.0.0+local.1"),
-            Version.parse("3.0.0+local.2"),
+            Version.parse("3.0.0-1+local.1"),
+            Version.parse("3.0.0-2+local.1"),
             id="local",
         ),
     ],
@@ -193,7 +209,7 @@ def test_allows_post_releases_explicit_with_max(
         pytest.param(
             Version.parse("3.0.0"),
             Version.parse("3.0.0+local.1"),
-            Version.parse("3.0.0+local.2"),
+            Version.parse("3.0.0-1+local.1"),
             id="local",
         ),
     ],
