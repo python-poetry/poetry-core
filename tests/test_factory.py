@@ -13,6 +13,7 @@ from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
+from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
 
@@ -976,3 +977,18 @@ def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:
         "Programming Language :: Python :: 3.13",
         "Topic :: Software Development :: Build Tools",
     ]
+
+
+@pytest.mark.parametrize(
+    "project, requries",
+    [
+        ("sample_project", set(BuildSystem().requires)),
+        ("project_with_build_system_requires", {"poetry-core", "cython"}),
+    ],
+)
+def test_poetry_build_system_dependencies(project: str, requries: set[str]) -> None:
+    poetry = Factory().create_poetry(fixtures_dir / "sample_project")
+
+    assert set(BuildSystem().requires) == {
+        dependency.name for dependency in poetry.build_system_dependencies
+    }
