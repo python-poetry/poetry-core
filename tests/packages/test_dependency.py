@@ -6,6 +6,8 @@ from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.directory_dependency import DirectoryDependency
+from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.version.markers import InvalidMarkerError
 from poetry.core.version.markers import parse_marker
 from poetry.core.version.requirements import InvalidRequirementError
@@ -216,6 +218,27 @@ def test_to_pep_508_with_invalid_marker(requirement: str) -> None:
 def test_to_pep_508_with_invalid_requirement(requirement: str) -> None:
     with pytest.raises(InvalidRequirementError):
         _ = Dependency.create_from_pep_508(requirement)
+
+
+@pytest.mark.parametrize(
+    ("requirement", "dependency_type"),
+    [
+        (
+            "eflips-depot @ git@github.com/mpm-tu-berlin/eflips-depot.git@feature/allow-only-oppo-charging",
+            DirectoryDependency,
+        ),
+        (
+            "eflips-depot @ git@github.com/mpm-tu-berlin/eflips-depot.git@feature/allow-only-oppo-charging.whl",
+            FileDependency,
+        ),
+    ],
+)
+def test_to_pep_508_with_invalid_path_requirement(
+    requirement: str, dependency_type: type[FileDependency | DirectoryDependency]
+) -> None:
+    dependency = Dependency.create_from_pep_508(requirement)
+    assert isinstance(dependency, dependency_type)
+    assert dependency.source_url
 
 
 def test_complete_name() -> None:

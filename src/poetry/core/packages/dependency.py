@@ -499,23 +499,31 @@ def _make_file_or_dir_dep(
 ) -> FileDependency | DirectoryDependency | None:
     """
     Helper function to create a file or directoru dependency with the given arguments.
-    If path is not a file or directory that exists, `None` is returned.
+
+    If path is not a file or directory that exists, a guess is made based on the suffix
+    of the given path. This is done to prevent dependendencies from being parsed as normal
+    dependencies. This allows for downstream error handling.
+
+    See also: poetry#10068
     """
     from poetry.core.packages.directory_dependency import DirectoryDependency
     from poetry.core.packages.file_dependency import FileDependency
 
     _path = path
+
     if not path.is_absolute() and base:
         # a base path was specified, so we should respect that
         _path = Path(base) / path
 
-    if _path.is_file():
+    # we check if it is a file (if it exists) or rely on suffix to guess
+    is_file = _path.is_file() if _path.exists() else path.suffix != ""
+
+    if is_file:
         return FileDependency(
             name, path, base=base, directory=subdirectory, extras=extras
         )
-    elif _path.is_dir():
-        if subdirectory:
-            path = path / subdirectory
-        return DirectoryDependency(name, path, base=base, extras=extras)
 
-    return None
+    if subdirectory:
+        path = path / subdirectory
+
+    return DirectoryDependency(name, path, base=base, extras=extras)
