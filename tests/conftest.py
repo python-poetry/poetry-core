@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 
@@ -120,3 +121,10 @@ def with_mocked_get_vcs(mocker: MockerFixture) -> None:
         "poetry.core.vcs.git.Git.run", return_value="This is a mocked Git.run() output."
     )
     mocker.patch("poetry.core.vcs.get_vcs", return_value=Git())
+
+
+@pytest.fixture(autouse=True)
+def clear_env_source_date_epoch() -> None:
+    """Clear SOURCE_DATE_EPOCH from environment to avoid non-deterministic failures"""
+    if "SOURCE_DATE_EPOCH" in os.environ:
+        del os.environ["SOURCE_DATE_EPOCH"]
