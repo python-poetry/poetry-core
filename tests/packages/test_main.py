@@ -56,6 +56,16 @@ def test_dependency_from_pep_508_with_extras() -> None:
     assert str(dep.marker) == 'extra == "foo" or extra == "bar"'
 
 
+def test_dependency_from_pep_508_with_extra_and_inverse_extra() -> None:
+    name = 'requests==2.18.0; extra != "foo" and extra == "bar"'
+    dep = Dependency.create_from_pep_508(name)
+
+    assert dep.name == "requests"
+    assert str(dep.constraint) == "2.18.0"
+    assert dep.in_extras == ["bar"]
+    assert str(dep.marker) == 'extra != "foo" and extra == "bar"'
+
+
 def test_dependency_from_pep_508_with_python_version() -> None:
     name = 'requests (==2.18.0); python_version == "2.7" or python_version == "2.6"'
     dep = Dependency.create_from_pep_508(name)

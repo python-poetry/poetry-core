@@ -59,10 +59,12 @@ EMPTY = "<empty>"
         'extra == "a" and extra != "b"',
         'extra != "a" and extra == "b"',
         'extra != "a" and extra != "b"',
+        'extra == "a" and extra == "b" and extra != "c" and extra != "d"',
         'extra == "a" or extra == "b"',
         'extra == "a" or extra != "b"',
         'extra != "a" or extra == "b"',
         'extra != "a" or extra != "b"',
+        'extra == "a" or extra == "b" or extra != "c" or extra != "d"',
         # String comparison markers
         '"tegra" in platform_release',
         '"tegra" not in platform_release',
@@ -250,6 +252,98 @@ def test_single_marker_not_in_python_intersection() -> None:
         ('extra == "a"', 'extra != "b"', 'extra == "a" and extra != "b"'),
         ('extra != "a"', 'extra == "b"', 'extra != "a" and extra == "b"'),
         ('extra != "a"', 'extra != "b"', 'extra != "a" and extra != "b"'),
+        # AtomicMultiMarker
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "c"',
+            'extra == "a" and extra == "b" and extra == "c"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra != "c"',
+            'extra != "a" and extra != "b" and extra != "c"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "c"',
+            'extra != "a" and extra != "b" and extra == "c"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra != "c"',
+            'extra == "a" and extra == "b" and extra != "c"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "b" and extra == "a"',
+            'extra == "a" and extra == "b"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "c" and extra != "d"',
+            'extra == "a" and extra == "b" and extra == "c" and extra != "d"',
+        ),
+        ('extra != "a" and extra != "b"', 'extra == "a"', "<empty>"),
+        ('extra != "a" and extra == "b"', 'extra == "a" and extra == "c"', "<empty>"),
+        (
+            'extra != "a" and extra != "b"',
+            'extra != "a"',
+            'extra != "a" and extra != "b"',
+        ),
+        (
+            'extra == "a" and extra != "b"',
+            'extra == "a"',
+            'extra == "a" and extra != "b"',
+        ),
+        # AtomicMarkerUnion
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "c"',
+            '(extra == "a" or extra == "b") and extra == "c"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra != "c"',
+            '(extra == "a" or extra == "b") and extra != "c"',
+        ),
+        ('extra == "a" or extra == "b"', 'extra == "a"', 'extra == "a"'),
+        ('extra != "a" or extra == "b"', 'extra != "a"', 'extra != "a"'),
+        (
+            'extra == "a" or extra == "b"',
+            'extra != "a"',
+            'extra == "b" and extra != "a"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "b" or extra == "a"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra != "c"',
+            '(extra == "a" or extra == "b") and (extra == "a" or extra != "c")',
+        ),
+        # AtomicMultiMarker and AtomicMarkerUnion
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "a" or extra == "b"',
+            "<empty>",
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "a" or extra == "c"',
+            'extra == "c" and extra != "a" and extra != "b"',
+        ),
     ],
 )
 def test_single_marker_intersect_extras(
@@ -443,6 +537,104 @@ def test_single_marker_union_with_inverse() -> None:
         ('extra == "a"', 'extra != "b"', 'extra == "a" or extra != "b"'),
         ('extra != "a"', 'extra == "b"', 'extra != "a" or extra == "b"'),
         ('extra != "a"', 'extra != "b"', 'extra != "a" or extra != "b"'),
+        # AtomicMultiMarker
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "c"',
+            'extra == "a" and extra == "b" or extra == "c"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra != "c"',
+            'extra != "a" and extra != "b" or extra != "c"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "c"',
+            'extra != "a" and extra != "b" or extra == "c"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra != "c"',
+            'extra == "a" and extra == "b" or extra != "c"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "c" and extra != "d"',
+            'extra == "a" and extra == "b" or extra == "c" and extra != "d"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "a"',
+            'extra != "b" or extra == "a"',
+        ),
+        (
+            'extra != "a" and extra == "b"',
+            'extra == "a" and extra == "c"',
+            'extra != "a" and extra == "b" or extra == "a" and extra == "c"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra != "a"',
+            'extra != "a"',
+        ),
+        (
+            'extra == "a" and extra != "b"',
+            'extra == "a"',
+            'extra == "a"',
+        ),
+        # AtomicMarkerUnion
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "c"',
+            'extra == "a" or extra == "b" or extra == "c"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra != "c"',
+            'extra == "a" or extra == "b" or extra != "c"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra != "a" or extra == "b"',
+            'extra != "a"',
+            'extra != "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra != "a"',
+            "",
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra != "c"',
+            'extra == "a" or extra == "b" or extra != "c"',
+        ),
+        # AtomicMultiMarker and AtomicMarkerUnion
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "a" or extra == "b"',
+            'extra != "a" and extra != "b" or extra == "a" or extra == "b"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "a" or extra == "c"',
+            'extra != "a" and extra != "b" or extra == "a" or extra == "c"',
+        ),
     ],
 )
 def test_single_marker_union_extras(marker1: str, marker2: str, expected: str) -> None:
