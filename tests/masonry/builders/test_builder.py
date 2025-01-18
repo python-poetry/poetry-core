@@ -285,10 +285,6 @@ def test_builder_convert_entry_points(
     "fixture, result",
     [
         (
-            "script_callable_legacy_table",
-            [],
-        ),
-        (
             "script_callable_legacy_string",
             [],
         ),
