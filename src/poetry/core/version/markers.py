@@ -233,6 +233,7 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
         from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
+        from poetry.core.constraints.generic import parse_extra_constraint
         from poetry.core.constraints.version import parse_marker_version_constraint
 
         self._name = ALIASES.get(name, name)
@@ -242,6 +243,8 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
             self._parser = functools.partial(
                 parse_marker_version_constraint, pep440=name != "platform_release"
             )
+        elif name == "extra":
+            self._parser = parse_extra_constraint
         else:
             self._parser = parse_generic_constraint
 
@@ -358,6 +361,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         from poetry.core.constraints.generic import (
             parse_constraint as parse_generic_constraint,
         )
+        from poetry.core.constraints.generic import parse_extra_constraint
         from poetry.core.constraints.version import parse_marker_version_constraint
 
         parsed_constraint: BaseConstraint | VersionConstraint
@@ -381,7 +385,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
             self._operator = "=="
 
         self._value = m.group("value")
-        parser = parse_generic_constraint
+        parser = parse_extra_constraint if name == "extra" else parse_generic_constraint
 
         if swapped_name_value and name not in PYTHON_VERSION_MARKERS:
             # Something like `"tegra" in platform_release`
@@ -516,13 +520,20 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
 
 class AtomicMultiMarker(SingleMarkerLike[MultiConstraint]):
     def __init__(self, name: str, constraint: MultiConstraint) -> None:
-        assert all(c.operator == "!=" for c in constraint.constraints)
+        assert all(
+            c.operator in ({"==", "!="} if name == "extra" else {"!="})
+            for c in constraint.constraints
+        )
         super().__init__(name, constraint)
-        self._values: list[str] = []
 
     @property
     def complexity(self) -> tuple[int, int]:
         return len(self._constraint.constraints), 1
+
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
+        if self._name == "extra":
+            return self.expand().validate(environment)
+        return super().validate(environment)
 
     def invert(self) -> BaseMarker:
         return AtomicMarkerUnion(self._name, self._constraint.invert())
@@ -534,14 +545,16 @@ class AtomicMultiMarker(SingleMarkerLike[MultiConstraint]):
 
     def __str__(self) -> str:
         return " and ".join(
-            f'{self._name} != "{c.value}"' for c in self._constraint.constraints
+            f'{self._name} {c.operator} "{c.value}"'
+            for c in self._constraint.constraints
         )
 
 
 class AtomicMarkerUnion(SingleMarkerLike[UnionConstraint]):
     def __init__(self, name: str, constraint: UnionConstraint) -> None:
         assert all(
-            isinstance(c, Constraint) and c.operator == "=="
+            isinstance(c, Constraint)
+            and c.operator in ({"==", "!="} if name == "extra" else {"=="})
             for c in constraint.constraints
         )
         super().__init__(name, constraint)
@@ -549,6 +562,11 @@ class AtomicMarkerUnion(SingleMarkerLike[UnionConstraint]):
     @property
     def complexity(self) -> tuple[int, int]:
         return len(self._constraint.constraints), 1
+
+    def validate(self, environment: Mapping[str, Any] | None) -> bool:
+        if self._name == "extra":
+            return self.expand().validate(environment)
+        return super().validate(environment)
 
     def invert(self) -> BaseMarker:
         return AtomicMultiMarker(self._name, self._constraint.invert())
@@ -563,7 +581,7 @@ class AtomicMarkerUnion(SingleMarkerLike[UnionConstraint]):
         # contains only elements of type Constraint (instead of BaseConstraint)
         # but mypy can't see that.
         return " or ".join(
-            f'{self._name} == "{c.value}"'  # type: ignore[attr-defined]
+            f'{self._name} {c.operator} "{c.value}"'  # type: ignore[attr-defined]
             for c in self._constraint.constraints
         )
 
@@ -755,7 +773,7 @@ class MultiMarker(BaseMarker):
     def __str__(self) -> str:
         elements = []
         for m in self._markers:
-            if isinstance(m, (SingleMarker, MultiMarker)):
+            if isinstance(m, (SingleMarker, MultiMarker, AtomicMultiMarker)):
                 elements.append(str(m))
             else:
                 elements.append(f"({m})")
@@ -1009,7 +1027,9 @@ def _compact_markers(
             groups.append([])
 
     # Combine the groups.
-    sub_markers = [MultiMarker(*group) for group in groups]
+    sub_markers = [
+        group[0] if len(group) == 1 else MultiMarker(*group) for group in groups
+    ]
 
     # This function calls itself recursively. In the inner calls we don't perform any
     # simplification, instead doing it all only when we have the complete marker.
@@ -1094,14 +1114,6 @@ def _merge_single_markers(
     if marker1.name != marker2.name:
         return None
 
-    # "extra" is special because it can have multiple values at the same time.
-    # That's why we can only merge two "extra" markers if they have the same value.
-    if marker1.name == "extra":
-        assert isinstance(marker1, SingleMarker)
-        assert isinstance(marker2, SingleMarker)
-        if marker1.value != marker2.value:  # type: ignore[attr-defined]
-            return None
-
     if merge_class == MultiMarker:
         merge_method = marker1.constraint.intersect
     else:
@@ -1125,12 +1137,14 @@ def _merge_single_markers(
     ):
         result_marker = SingleMarker(marker1.name, result_constraint)
     elif isinstance(result_constraint, UnionConstraint) and all(
-        isinstance(c, Constraint) and c.operator == "=="
+        isinstance(c, Constraint)
+        and c.operator in ({"==", "!="} if marker1.name == "extra" else {"=="})
         for c in result_constraint.constraints
     ):
         result_marker = AtomicMarkerUnion(marker1.name, result_constraint)
     elif isinstance(result_constraint, MultiConstraint) and all(
-        c.operator == "!=" for c in result_constraint.constraints
+        c.operator in ({"==", "!="} if marker1.name == "extra" else {"!="})
+        for c in result_constraint.constraints
     ):
         result_marker = AtomicMultiMarker(marker1.name, result_constraint)
     return result_marker

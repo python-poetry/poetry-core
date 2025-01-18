@@ -161,9 +161,12 @@ class Dependency(PackageSpecification):
                 for op, extra in or_:
                     if op == "==":
                         new_in_extras.append(canonicalize_name(extra))
-                    elif op == "" and "||" in extra:
-                        for _extra in extra.split(" || "):
-                            new_in_extras.append(canonicalize_name(_extra))
+                    elif op == "" and ("||" in extra or "," in extra):
+                        sep = "||" if "||" in extra else ","
+                        extra_values = [e.strip() for e in extra.split(sep)]
+                        for _extra in extra_values:
+                            if not _extra.startswith("!="):
+                                new_in_extras.append(canonicalize_name(_extra))
             self._in_extras = [*self._in_extras, *new_in_extras]
 
         # Recalculate python versions.
