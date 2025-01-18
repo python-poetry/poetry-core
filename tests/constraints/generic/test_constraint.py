@@ -9,6 +9,8 @@ from poetry.core.constraints.generic import Constraint
 from poetry.core.constraints.generic import EmptyConstraint
 from poetry.core.constraints.generic import MultiConstraint
 from poetry.core.constraints.generic import UnionConstraint
+from poetry.core.constraints.generic.constraint import ExtraConstraint
+from poetry.core.constraints.generic.multi_constraint import ExtraMultiConstraint
 
 
 if TYPE_CHECKING:
@@ -293,6 +295,21 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
 
 
 @pytest.mark.parametrize(
+    ("constraint", "inverted"),
+    [
+        (ExtraConstraint("foo"), ExtraConstraint("foo", "!=")),
+        (
+            ExtraMultiConstraint(ExtraConstraint("foo"), ExtraConstraint("bar", "!=")),
+            UnionConstraint(ExtraConstraint("foo", "!="), ExtraConstraint("bar")),
+        ),
+    ],
+)
+def test_invert_extra(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
+    assert constraint.invert() == inverted
+    assert inverted.invert() == constraint
+
+
+@pytest.mark.parametrize(
     ("constraint1", "constraint2", "expected"),
     [
         (
@@ -421,6 +438,19 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
         ),
         (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+        ),
+        (
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("linux"), Constraint("win32")),
+            (
+                UnionConstraint(Constraint("win32"), Constraint("linux")),
+                UnionConstraint(Constraint("linux"), Constraint("win32")),
+            ),
+        ),
+        (
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
             UnionConstraint(Constraint("win32"), Constraint("darwin")),
             Constraint("win32"),
         ),
@@ -445,6 +475,19 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
             UnionConstraint(Constraint("win32"), Constraint("linux")),
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             EmptyConstraint(),
+        ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+        ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("linux", "!="), Constraint("win32", "!=")),
+            (
+                MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+                MultiConstraint(Constraint("linux", "!="), Constraint("win32", "!=")),
+            ),
         ),
         (
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
@@ -548,6 +591,338 @@ def test_invert(constraint: BaseConstraint, inverted: BaseConstraint) -> None:
     ],
 )
 def test_intersect(
+    constraint1: BaseConstraint,
+    constraint2: BaseConstraint,
+    expected: BaseConstraint | tuple[BaseConstraint, BaseConstraint],
+) -> None:
+    if not isinstance(expected, tuple):
+        expected = (expected, expected)
+    assert constraint1.intersect(constraint2) == expected[0]
+    assert constraint2.intersect(constraint1) == expected[1]
+
+
+@pytest.mark.parametrize(
+    ("constraint1", "constraint2", "expected"),
+    [
+        (
+            EmptyConstraint(),
+            ExtraConstraint("extra1"),
+            EmptyConstraint(),
+        ),
+        (
+            EmptyConstraint(),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            EmptyConstraint(),
+        ),
+        (
+            EmptyConstraint(),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            EmptyConstraint(),
+        ),
+        (
+            AnyConstraint(),
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1"),
+        ),
+        (
+            AnyConstraint(),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+        ),
+        (
+            AnyConstraint(),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1"),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1", "!="),
+            EmptyConstraint(),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra2"),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1"), ExtraConstraint("extra2")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra2", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra2", "!="),
+                ExtraConstraint("extra3", "!="),
+                ExtraConstraint("extra1"),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            EmptyConstraint(),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraConstraint("extra1"),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra3")),
+            UnionConstraint(
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra3"), ExtraConstraint("extra1")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra2", "!="),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1"), ExtraConstraint("extra2", "!=")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2", "!="), ExtraConstraint("extra1")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraConstraint("extra2"),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra2")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraConstraint("extra2", "!="),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2", "!="), ExtraConstraint("extra1", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+        ),
+        (
+            ExtraConstraint("extra3", "!="),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="),
+                ExtraConstraint("extra2", "!="),
+                ExtraConstraint("extra3", "!="),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra2"), ExtraConstraint("extra1", "!=")
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraConstraint("extra3"),
+            ),
+            UnionConstraint(
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1", "!=")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra3"), ExtraConstraint("extra1", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra3")),
+            UnionConstraint(
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1", "!=")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra3"), ExtraConstraint("extra1", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1"), ExtraConstraint("extra2")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1")
+                ),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            (
+                UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+                UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra3")),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1"), ExtraConstraint("extra3")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra2"), ExtraConstraint("extra1")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra2"), ExtraConstraint("extra3")
+                    ),
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1"), ExtraConstraint("extra2")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra3"), ExtraConstraint("extra1")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra3"), ExtraConstraint("extra2")
+                    ),
+                ),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra2"),
+                ExtraConstraint("extra1", "!="),
+                ExtraConstraint("extra3", "!="),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            EmptyConstraint(),
+        ),
+        (
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="),
+                    ExtraConstraint("extra2", "!="),
+                    ExtraConstraint("extra3", "!="),
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="),
+                    ExtraConstraint("extra3", "!="),
+                    ExtraConstraint("extra2", "!="),
+                ),
+            ),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            EmptyConstraint(),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra3", "!="), ExtraConstraint("extra4", "!=")
+            ),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3", "!="),
+                    ExtraConstraint("extra4", "!="),
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra3", "!="),
+                    ExtraConstraint("extra4", "!="),
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra2"),
+                ),
+            ),
+        ),
+        (
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            EmptyConstraint(),
+        ),
+    ],
+)
+def test_intersect_extra(
     constraint1: BaseConstraint,
     constraint2: BaseConstraint,
     expected: BaseConstraint | tuple[BaseConstraint, BaseConstraint],
@@ -692,6 +1067,19 @@ def test_intersect(
         ),
         (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+        ),
+        (
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
+            UnionConstraint(Constraint("linux"), Constraint("win32")),
+            (
+                UnionConstraint(Constraint("win32"), Constraint("linux")),
+                UnionConstraint(Constraint("linux"), Constraint("win32")),
+            ),
+        ),
+        (
+            UnionConstraint(Constraint("win32"), Constraint("linux")),
             UnionConstraint(Constraint("win32"), Constraint("darwin")),
             (
                 UnionConstraint(
@@ -740,6 +1128,19 @@ def test_intersect(
                 Constraint("win32"),
                 Constraint("linux"),
                 MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            ),
+        ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+        ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("linux", "!="), Constraint("win32", "!=")),
+            (
+                MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+                MultiConstraint(Constraint("linux", "!="), Constraint("win32", "!=")),
             ),
         ),
         (
@@ -823,6 +1224,360 @@ def test_intersect(
     ],
 )
 def test_union(
+    constraint1: BaseConstraint,
+    constraint2: BaseConstraint,
+    expected: BaseConstraint | tuple[BaseConstraint, BaseConstraint],
+) -> None:
+    if not isinstance(expected, tuple):
+        expected = (expected, expected)
+
+    assert constraint1.union(constraint2) == expected[0]
+    assert constraint2.union(constraint1) == expected[1]
+
+
+@pytest.mark.parametrize(
+    ("constraint1", "constraint2", "expected"),
+    [
+        (
+            EmptyConstraint(),
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1"),
+        ),
+        (
+            EmptyConstraint(),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+        ),
+        (
+            EmptyConstraint(),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            AnyConstraint(),
+            ExtraConstraint("extra1"),
+            AnyConstraint(),
+        ),
+        (
+            AnyConstraint(),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            AnyConstraint(),
+        ),
+        (
+            AnyConstraint(),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            AnyConstraint(),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1"),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra1", "!="),
+            AnyConstraint(),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra2"),
+            (
+                UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+                UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra2", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            UnionConstraint(
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2", "!="), ExtraConstraint("extra3", "!=")
+                ),
+                ExtraConstraint("extra1"),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            UnionConstraint(ExtraConstraint("extra2", "!="), ExtraConstraint("extra1")),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="),
+                ExtraConstraint("extra2", "!="),
+                ExtraConstraint("extra3", "!="),
+            ),
+            UnionConstraint(
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="),
+                    ExtraConstraint("extra2", "!="),
+                    ExtraConstraint("extra3", "!="),
+                ),
+                ExtraConstraint("extra1"),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra3")),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3"),
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3"),
+                    ExtraConstraint("extra1"),
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1"),
+            ExtraConstraint("extra2", "!="),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1"), ExtraConstraint("extra2", "!=")
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra2", "!="), ExtraConstraint("extra1")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraConstraint("extra2"),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra2")
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraConstraint("extra2", "!="),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra2", "!="), ExtraConstraint("extra1", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraConstraint("extra1", "!="),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra2", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            UnionConstraint(
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2", "!="), ExtraConstraint("extra3", "!=")
+                ),
+                ExtraConstraint("extra1", "!="),
+            ),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            AnyConstraint(),
+        ),
+        (
+            ExtraConstraint("extra1", "!="),
+            UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra3")),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1", "!="),
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3"),
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3"),
+                    ExtraConstraint("extra1", "!="),
+                ),
+            ),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            (
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1"), ExtraConstraint("extra2")
+                ),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra2"), ExtraConstraint("extra1")
+                ),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            (
+                UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+                UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra3")),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3"),
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra3"),
+                    ExtraConstraint("extra2"),
+                ),
+            ),
+        ),
+        (
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraConstraint("extra3"),
+            ),
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra4"),
+                ExtraConstraint("extra3"),
+            ),
+            (
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra2"),
+                    ExtraConstraint("extra3"),
+                    ExtraConstraint("extra4"),
+                ),
+                UnionConstraint(
+                    ExtraConstraint("extra1"),
+                    ExtraConstraint("extra4"),
+                    ExtraConstraint("extra3"),
+                    ExtraConstraint("extra2"),
+                ),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+                ),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraMultiConstraint(
+                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+                ),
+            ),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra3")),
+            (
+                UnionConstraint(
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1"), ExtraConstraint("extra2")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1"), ExtraConstraint("extra3")
+                    ),
+                ),
+                UnionConstraint(
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1"), ExtraConstraint("extra3")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1"), ExtraConstraint("extra2")
+                    ),
+                ),
+            ),
+        ),
+        (
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+            ),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            (
+                UnionConstraint(
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+                    ),
+                ),
+                UnionConstraint(
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+                    ),
+                    ExtraMultiConstraint(
+                        ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
+                    ),
+                ),
+            ),
+        ),
+    ],
+)
+def test_union_extra(
     constraint1: BaseConstraint,
     constraint2: BaseConstraint,
     expected: BaseConstraint | tuple[BaseConstraint, BaseConstraint],
