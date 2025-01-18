@@ -5,7 +5,9 @@ import itertools
 from poetry.core.constraints.generic import AnyConstraint
 from poetry.core.constraints.generic.base_constraint import BaseConstraint
 from poetry.core.constraints.generic.constraint import Constraint
+from poetry.core.constraints.generic.constraint import ExtraConstraint
 from poetry.core.constraints.generic.empty_constraint import EmptyConstraint
+from poetry.core.constraints.generic.multi_constraint import ExtraMultiConstraint
 from poetry.core.constraints.generic.multi_constraint import MultiConstraint
 
 
@@ -48,13 +50,25 @@ class UnionConstraint(BaseConstraint):
             raise NotImplementedError(
                 "Inversion of complex union constraints not implemented"
             )
-        return MultiConstraint(*inverted_constraints)  # type: ignore[arg-type]
+        if any(isinstance(c, ExtraConstraint) for c in inverted_constraints):
+            multi_type: type[MultiConstraint] = ExtraMultiConstraint
+        else:
+            multi_type = MultiConstraint
+        return multi_type(*inverted_constraints)  # type: ignore[arg-type]
 
     def intersect(self, other: BaseConstraint) -> BaseConstraint:
         if other.is_any():
             return self
 
         if other.is_empty():
+            return other
+
+        if isinstance(other, UnionConstraint) and set(other.constraints) == set(
+            self._constraints
+        ):
+            return self
+
+        if isinstance(other, ExtraConstraint) and other in self._constraints:
             return other
 
         if isinstance(other, Constraint):
@@ -97,6 +111,9 @@ class UnionConstraint(BaseConstraint):
             return other
 
         if other.is_empty():
+            return self
+
+        if other == self:
             return self
 
         if isinstance(other, Constraint):
