@@ -940,9 +940,8 @@ def test_marker_union_intersect_single_marker() -> None:
 
     intersection = m.intersect(parse_marker('implementation_name == "cpython"'))
     assert (
-        str(intersection)
-        == 'sys_platform == "darwin" and implementation_name == "cpython" '
-        'or python_version < "3.4" and implementation_name == "cpython"'
+        str(intersection) == '(sys_platform == "darwin" or python_version < "3.4")'
+        ' and implementation_name == "cpython"'
     )
 
 
@@ -968,11 +967,8 @@ def test_marker_union_intersect_marker_union() -> None:
         parse_marker('implementation_name == "cpython" or os_name == "Windows"')
     )
     assert (
-        str(intersection)
-        == 'sys_platform == "darwin" and implementation_name == "cpython" '
-        'or sys_platform == "darwin" and os_name == "Windows" or '
-        'python_version < "3.4" and implementation_name == "cpython" or '
-        'python_version < "3.4" and os_name == "Windows"'
+        str(intersection) == '(sys_platform == "darwin" or python_version < "3.4") and '
+        '(implementation_name == "cpython" or os_name == "Windows")'
     )
 
 
@@ -1000,18 +996,16 @@ def test_marker_union_intersect_multi_marker() -> None:
 
     # Intersection isn't _quite_ symmetrical.
     expected1 = (
-        'sys_platform == "darwin" and implementation_name == "cpython" and os_name =='
-        ' "Windows" or python_version < "3.4" and implementation_name == "cpython" and'
-        ' os_name == "Windows"'
+        '(sys_platform == "darwin" or python_version < "3.4")'
+        ' and implementation_name == "cpython" and os_name == "Windows"'
     )
 
     intersection = m1.intersect(m2)
     assert str(intersection) == expected1
 
     expected2 = (
-        'implementation_name == "cpython" and os_name == "Windows" and sys_platform'
-        ' == "darwin" or implementation_name == "cpython" and os_name == "Windows"'
-        ' and python_version < "3.4"'
+        'implementation_name == "cpython" and os_name == "Windows"'
+        ' and (sys_platform == "darwin" or python_version < "3.4")'
     )
 
     intersection = m2.intersect(m1)
