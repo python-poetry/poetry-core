@@ -1351,6 +1351,18 @@ def test_without_extras(marker: str, expected: str) -> None:
             "extra",
             'python_version >= "3.6"',
         ),
+        (
+            (
+                'python_version >= "2.7" and (python_version < "2.8"'
+                ' or python_version >= "3.7") and python_version < "3.8"'
+                ' and extra == "foo"'
+            ),
+            "extra",
+            (
+                'python_version >= "2.7" and python_version < "2.8"'
+                ' or python_version >= "3.7" and python_version < "3.8"'
+            ),
+        ),
     ],
 )
 def test_exclude(marker: str, excluded: str, expected: str) -> None:
