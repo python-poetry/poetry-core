@@ -1076,11 +1076,28 @@ def dnf(marker: BaseMarker) -> BaseMarker:
 
 
 def intersection(*markers: BaseMarker) -> BaseMarker:
-    return dnf(MultiMarker(*markers))
+    # Sometimes normalization makes it more complicated instead of simple
+    # -> choose candidate with the least complexity
+    unnormalized: BaseMarker = MultiMarker(*markers)
+    while (
+        isinstance(unnormalized, (MultiMarker, MarkerUnion))
+        and len(unnormalized.markers) == 1
+    ):
+        unnormalized = unnormalized.markers[0]
+
+    disjunction = dnf(unnormalized)
+    if not isinstance(disjunction, MarkerUnion):
+        return disjunction
+
+    conjunction = cnf(disjunction)
+    if not isinstance(conjunction, MultiMarker):
+        return conjunction
+
+    return min(disjunction, conjunction, unnormalized, key=lambda x: x.complexity)
 
 
 def union(*markers: BaseMarker) -> BaseMarker:
-    # Sometimes normalization makes it more complicate instead of simple
+    # Sometimes normalization makes it more complicated instead of simple
     # -> choose candidate with the least complexity
     unnormalized: BaseMarker = MarkerUnion(*markers)
     while (
