@@ -58,14 +58,6 @@ class VersionRange(VersionRangeConstraint):
     def is_simple(self) -> bool:
         return self._min is None or self._max is None
 
-    @property
-    def is_inclusive(self) -> bool:
-        return self._include_min or self.include_max
-
-    @property
-    def is_exclusive(self) -> bool:
-        return not self.is_inclusive
-
     def allows(self, other: Version) -> bool:
         if self._min is not None:
             _this, _other = self.allowed_min, other
@@ -73,7 +65,7 @@ class VersionRange(VersionRangeConstraint):
             assert _this is not None
 
             if (
-                self.is_exclusive
+                not self._include_min
                 and not _this.is_postrelease()
                 and _other.is_postrelease()
             ):
