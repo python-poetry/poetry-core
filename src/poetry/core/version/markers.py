@@ -744,7 +744,7 @@ class MultiMarker(BaseMarker):
             if not marker.is_empty():
                 new_markers.append(marker)
 
-        return self.of(*new_markers)
+        return intersection(*new_markers)
 
     def only(self, *marker_names: str) -> BaseMarker:
         return self.of(*(m.only(*marker_names) for m in self._markers))
@@ -920,7 +920,7 @@ class MarkerUnion(BaseMarker):
             # All markers were the excluded marker.
             return AnyMarker()
 
-        return self.of(*new_markers)
+        return union(*new_markers)
 
     def only(self, *marker_names: str) -> BaseMarker:
         return self.of(*(m.only(*marker_names) for m in self._markers))
