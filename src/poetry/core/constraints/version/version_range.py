@@ -58,13 +58,25 @@ class VersionRange(VersionRangeConstraint):
     def is_simple(self) -> bool:
         return self._min is None or self._max is None
 
+    @property
+    def is_inclusive(self) -> bool:
+        return self._include_min or self.include_max
+
+    @property
+    def is_exclusive(self) -> bool:
+        return not self.is_inclusive
+
     def allows(self, other: Version) -> bool:
         if self._min is not None:
             _this, _other = self.allowed_min, other
 
             assert _this is not None
 
-            if not _this.is_postrelease() and _other.is_postrelease():
+            if (
+                self.is_exclusive
+                and not _this.is_postrelease()
+                and _other.is_postrelease()
+            ):
                 # The exclusive ordered comparison >V MUST NOT allow a post-release
                 # of the given version unless V itself is a post release.
                 # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
