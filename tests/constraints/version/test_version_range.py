@@ -79,135 +79,45 @@ def v300b1() -> Version:
 
 
 @pytest.mark.parametrize(
-    "base,other",
+    ("constraint", "check_version", "allowed"),
     [
-        pytest.param(Version.parse("3.0.0-1"), Version.parse("3.0.0-1"), id="post"),
-        pytest.param(
-            Version.parse("3.0.0"), Version.parse("3.0.0+local.1"), id="local"
-        ),
+        ("<=3.0.0", "3.0.0+local.1", True),
+        (">=3.0.0", "3.0.0+local.1", True),
+        (">=3.0.0", "3.0.0-1", True),
+        ("<=3.0.0+local.1", "3.0.0", True),
+        ("<=3.0.0+local.1", "3.0.0+local.2", False),
+        ("<=3.0.0+local.1", "3.0.0-1", False),
+        ("<=3.0.0+local.1", "3.0.0-1+local.1", False),
+        (">=3.0.0+local.1", "3.0.0", False),
+        (">=3.0.0+local.1", "3.0.0+local.2", True),
+        (">=3.0.0+local.1", "3.0.0-1", False),
+        (">=3.0.0+local.1", "3.0.0-1+local.1", True),
+        ("<=3.0.0+local.2", "3.0.0+local.1", True),
+        (">=3.0.0+local.2", "3.0.0+local.1", False),
+        (">=3.0.0+local.2", "3.0.0-1+local.1", False),
+        ("<=3.0.0-1", "3.0.0", True),
+        ("<=3.0.0-1", "3.0.0+local.1", True),
+        ("<=3.0.0-1", "3.0.0+local.2", True),
+        ("<=3.0.0-1", "3.0.0-1", True),
+        ("<=3.0.0-1", "3.0.0-1+local.1", True),
+        ("<=3.0.0-1", "3.0.0-2", False),
+        (">=3.0.0-1", "3.0.0", False),
+        (">=3.0.0-1", "3.0.0+local.1", False),
+        (">=3.0.0-1", "3.0.0+local.2", False),
+        (">=3.0.0-1", "3.0.0-1+local.1", True),
+        (">=3.0.0-1", "3.0.0-2", True),
+        ("<=3.0.0-1+local.1", "3.0.0+local.1", True),
+        ("<=3.0.0-1+local.1", "3.0.0+local.2", True),
+        ("<=3.0.0-1+local.1", "3.0.0-1", True),
+        (">=3.0.0-1+local.1", "3.0.0+local.1", False),
+        (">=3.0.0-1+local.1", "3.0.0+local.2", False),
+        (">=3.0.0-1+local.1", "3.0.0-1", False),
+        ("<=3.0.0-2", "3.0.0-1", True),
+        (">=3.0.0-2", "3.0.0-1", False),
     ],
 )
-def test_allows_post_releases_with_max(base: Version, other: Version) -> None:
-    range = VersionRange(max=base, include_max=True)
-    assert range.allows(other)
-
-
-@pytest.mark.parametrize(
-    "base,other",
-    [
-        pytest.param(Version.parse("3.0.0"), Version.parse("3.0.0-1"), id="post"),
-        pytest.param(
-            Version.parse("3.0.0"), Version.parse("3.0.0+local.1"), id="local"
-        ),
-    ],
-)
-def test_allows_post_releases_with_min(base: Version, other: Version) -> None:
-    range = VersionRange(min=base, include_min=True)
-    assert range.allows(other)
-
-
-def test_allows_post_releases_with_post_and_local_min() -> None:
-    one = Version.parse("3.0.0+local.1")
-    two = Version.parse("3.0.0-1")
-    three = Version.parse("3.0.0-1+local.1")
-    four = Version.parse("3.0.0+local.2")
-
-    assert not VersionRange(min=one, include_min=True).allows(two)
-    assert VersionRange(min=one, include_min=True).allows(three)
-    assert VersionRange(min=one, include_min=True).allows(four)
-
-    assert not VersionRange(min=two, include_min=True).allows(one)
-    assert VersionRange(min=two, include_min=True).allows(three)
-    assert not VersionRange(min=two, include_min=True).allows(four)
-
-    assert not VersionRange(min=three, include_min=True).allows(one)
-    assert not VersionRange(min=three, include_min=True).allows(two)
-    assert not VersionRange(min=three, include_min=True).allows(four)
-
-    assert not VersionRange(min=four, include_min=True).allows(one)
-    assert not VersionRange(min=four, include_min=True).allows(two)
-    assert not VersionRange(min=four, include_min=True).allows(three)
-
-
-def test_allows_post_releases_with_post_and_local_max() -> None:
-    one = Version.parse("3.0.0+local.1")
-    two = Version.parse("3.0.0-1")
-    three = Version.parse("3.0.0-1+local.1")
-    four = Version.parse("3.0.0+local.2")
-
-    assert not VersionRange(max=one, include_max=True).allows(two)
-    assert not VersionRange(max=one, include_max=True).allows(three)
-    assert not VersionRange(max=one, include_max=True).allows(four)
-
-    assert VersionRange(max=two, include_max=True).allows(one)
-    assert VersionRange(max=two, include_max=True).allows(three)
-    assert VersionRange(max=two, include_max=True).allows(four)
-
-    assert VersionRange(max=three, include_max=True).allows(one)
-    assert VersionRange(max=three, include_max=True).allows(two)
-    assert VersionRange(max=three, include_max=True).allows(four)
-
-    assert VersionRange(max=four, include_max=True).allows(one)
-    assert not VersionRange(max=four, include_max=True).allows(two)
-    assert not VersionRange(max=four, include_max=True).allows(three)
-
-
-@pytest.mark.parametrize(
-    "base,one,two",
-    [
-        pytest.param(
-            Version.parse("3.0.0"),
-            Version.parse("3.0.0-1"),
-            Version.parse("3.0.0-2"),
-            id="post",
-        ),
-        pytest.param(
-            Version.parse("3.0.0"),
-            Version.parse("3.0.0+local.1"),
-            Version.parse("3.0.0+local.2"),
-            id="local",
-        ),
-    ],
-)
-def test_allows_post_releases_explicit_with_max(
-    base: Version, one: Version, two: Version
-) -> None:
-    range = VersionRange(max=one, include_max=True)
-    assert range.allows(base)
-    assert not range.allows(two)
-
-    range = VersionRange(max=two, include_max=True)
-    assert range.allows(base)
-    assert range.allows(one)
-
-
-@pytest.mark.parametrize(
-    "base,one,two",
-    [
-        pytest.param(
-            Version.parse("3.0.0"),
-            Version.parse("3.0.0-1"),
-            Version.parse("3.0.0-2"),
-            id="post",
-        ),
-        pytest.param(
-            Version.parse("3.0.0"),
-            Version.parse("3.0.0+local.1"),
-            Version.parse("3.0.0+local.2"),
-            id="local",
-        ),
-    ],
-)
-def test_allows_post_releases_explicit_with_min(
-    base: Version, one: Version, two: Version
-) -> None:
-    range = VersionRange(min=one, include_min=True)
-    assert not range.allows(base)
-    assert range.allows(two)
-
-    range = VersionRange(min=two, include_min=True)
-    assert not range.allows(base)
-    assert not range.allows(one)
+def test_version_ranges(constraint: str, check_version: str, allowed: bool) -> None:
+    assert parse_constraint(constraint).allows(Version.parse(check_version)) == allowed
 
 
 def test_allows_all(
