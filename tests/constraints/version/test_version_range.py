@@ -81,19 +81,27 @@ def v300b1() -> Version:
 @pytest.mark.parametrize(
     ("constraint", "check_version", "allowed"),
     [
+        # Inclusive ordering
+        ("<=3.0.0", "3.0.0", True),
         ("<=3.0.0", "3.0.0+local.1", True),
+        (">=3.0.0", "3.0.0", True),
         (">=3.0.0", "3.0.0+local.1", True),
+        (">=3.0.0", "3.0.0", True),
         (">=3.0.0", "3.0.0-1", True),
         ("<=3.0.0+local.1", "3.0.0", True),
+        ("<=3.0.0+local.1", "3.0.0+local.1", True),
         ("<=3.0.0+local.1", "3.0.0+local.2", False),
         ("<=3.0.0+local.1", "3.0.0-1", False),
         ("<=3.0.0+local.1", "3.0.0-1+local.1", False),
         (">=3.0.0+local.1", "3.0.0", False),
+        (">=3.0.0+local.1", "3.0.0+local.1", True),
         (">=3.0.0+local.1", "3.0.0+local.2", True),
         (">=3.0.0+local.1", "3.0.0-1", True),
         (">=3.0.0+local.1", "3.0.0-1+local.1", True),
         ("<=3.0.0+local.2", "3.0.0+local.1", True),
+        ("<=3.0.0+local.2", "3.0.0+local.2", True),
         (">=3.0.0+local.2", "3.0.0+local.1", False),
+        (">=3.0.0+local.2", "3.0.0+local.2", True),
         (">=3.0.0+local.2", "3.0.0-1+local.1", True),
         ("<=3.0.0-1", "3.0.0", True),
         ("<=3.0.0-1", "3.0.0+local.1", True),
@@ -113,7 +121,33 @@ def v300b1() -> Version:
         (">=3.0.0-1+local.1", "3.0.0+local.2", False),
         (">=3.0.0-1+local.1", "3.0.0-1", False),
         ("<=3.0.0-2", "3.0.0-1", True),
+        ("<=3.0.0-2", "3.0.0-2", True),
         (">=3.0.0-2", "3.0.0-1", False),
+        (">=3.0.0-2", "3.0.0-2", True),
+        # Exclusive ordering
+        (">1.7", "1.7.0", False),
+        (">1.7", "1.7.1", True),
+        (">1.7", "1.6.1", False),
+        ("<1.7", "1.7.0", False),
+        ("<1.7", "1.7.1", False),
+        ("<1.7", "1.6.1", True),
+        ## >V MUST NOT allow a post-release of the given version unless V itself is a post release
+        (">1.7", "1.7.0.post1", False),
+        (">1.7.post2", "1.7.0", False),
+        (">1.7.post2", "1.7.1", True),
+        (">1.7.post2", "1.7.0.post2", False),
+        (">1.7.post2", "1.7.0.post3", True),
+        ## >V MUST NOT match a local version of the specified version
+        (">1.7.0", "1.7.0+local.1", False),
+        ("<1.7.0", "1.7.0+local.1", False),  # spec does not clarify this
+        ("<1.7.0+local.2", "1.7.0+local.1", False),  # spec does not clarify this
+        ## <V MUST NOT allow a pre-release of the specified version unless the specified version is itself a pre-release
+        ("<1.7.0", "1.7.0.rc1", False),
+        ("<1.7.0.rc1", "1.7.0.rc1", False),
+        ("<1.7.0.rc2", "1.7.0.rc1", True),
+        # Misc. Cases
+        (">=3.0.0+cuda", "3.0.0+cuda", True),
+        (">=3.0.0+cpu", "3.0.0+cuda", True),  # cuda > cpu (lexicographically)
     ],
 )
 def test_version_ranges(constraint: str, check_version: str, allowed: bool) -> None:
