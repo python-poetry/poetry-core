@@ -21,6 +21,7 @@ from poetry.core.constraints.generic import MultiConstraint
 from poetry.core.constraints.generic import UnionConstraint
 from poetry.core.constraints.generic.parser import STR_CMP_CONSTRAINT
 from poetry.core.constraints.version import VersionConstraint
+from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import VersionUnion
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.version.grammars import GRAMMAR_PEP_508_MARKERS
@@ -446,10 +447,15 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         self, python_constraint: VersionConstraint
     ) -> BaseMarker:
         if self.name in PYTHON_VERSION_MARKERS:
+            from poetry.core.packages.utils.utils import (
+                get_python_constraint_from_marker,
+            )
+
             assert isinstance(self._constraint, VersionConstraint)
-            if self._constraint.allows_all(python_constraint):
+            constraint = get_python_constraint_from_marker(self)
+            if constraint.allows_all(python_constraint):
                 return AnyMarker()
-            elif not self._constraint.allows_any(python_constraint):
+            elif not constraint.allows_any(python_constraint):
                 return EmptyMarker()
 
         return self
@@ -931,7 +937,7 @@ class MarkerUnion(BaseMarker):
         from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 
         markers: Iterable[BaseMarker] = self._markers
-        if isinstance(python_constraint, VersionUnion):
+        if isinstance(python_constraint, (VersionRange, VersionUnion)):
             python_only_markers = []
             other_markers = []
             for m in self._markers:
