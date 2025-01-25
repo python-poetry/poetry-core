@@ -577,6 +577,15 @@ class Factory:
                 for e in validate_object(project, "project-schema")
             ]
             result["errors"] += project_validation_errors
+
+        # Ensure license file exists, if project.license.file is set
+        if project is not None and project.get("license") is not None:
+            license_data = project.get("license")
+            if isinstance(license_data, dict) and "file" in license_data:
+                license_path: str = license_data["file"]
+                if not Path(license_path).exists():
+                    result["errors"].append("project.license.file must be a valid file")
+
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and
         # validate it so that default values (e.g. for package-mode) are set.
         tool_poetry = toml_data.setdefault("tool", {}).setdefault("poetry", {})
