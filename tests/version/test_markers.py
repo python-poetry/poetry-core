@@ -171,11 +171,24 @@ def test_single_marker_intersect() -> None:
     assert str(intersection) == 'python_version >= "3.4" and python_version < "3.6"'
 
 
-def test_single_marker_intersect_compacts_constraints() -> None:
-    m = parse_marker('python_version < "3.6"')
+@pytest.mark.parametrize(
+    ("marker1", "marker2", "expected"),
+    [
+        ('python_version < "3.6"', 'python_version < "3.4"', 'python_version < "3.4"'),
+        (
+            'python_version >= "3.6"',
+            'python_version < "3.7"',
+            'python_version == "3.6"',
+        ),
+    ],
+)
+def test_single_marker_intersect_is_single_marker(
+    marker1: str, marker2: str, expected: str
+) -> None:
+    m = parse_marker(marker1)
 
-    intersection = m.intersect(parse_marker('python_version < "3.4"'))
-    assert str(intersection) == 'python_version < "3.4"'
+    intersection = m.intersect(parse_marker(marker2))
+    assert str(intersection) == expected
 
 
 def test_single_marker_intersect_with_multi() -> None:
@@ -393,6 +406,11 @@ def test_single_marker_union_is_any() -> None:
             'python_version < "3.6"',
             'python_version > "3.6"',
             'python_version != "3.6"',
+        ),
+        (
+            'python_version == "3.6"',
+            'python_version >= "3.7"',
+            'python_version >= "3.6"',
         ),
     ],
 )
@@ -802,35 +820,65 @@ def test_multi_marker_union_multi_is_multi(
         (
             'python_version >= "3.6" and python_full_version < "3.6.2"',
             'python_version >= "3.6" and python_version < "3.7"',
-            'python_version >= "3.6" and python_version < "3.7"',
+            'python_version == "3.6"',
+        ),
+        (
+            'python_version >= "3.6" and python_full_version < "3.7.2"',
+            'python_version >= "3.6" and python_version < "3.8"',
+            'python_version >= "3.6" and python_version < "3.8"',
         ),
         (
             'python_version > "3.6" and python_full_version < "3.6.2"',
             'python_version > "3.6" and python_version < "3.7"',
             'python_version > "3.6" and python_version < "3.7"',
         ),
+        (
+            'python_version > "3.6" and python_full_version < "3.7.2"',
+            'python_version > "3.6" and python_version < "3.8"',
+            'python_version > "3.6" and python_version < "3.8"',
+        ),
         # Ranges meet exactly
         (
             'python_version >= "3.6" and python_full_version < "3.6.2"',
             'python_full_version >= "3.6.2" and python_version < "3.7"',
-            'python_version >= "3.6" and python_version < "3.7"',
+            'python_version == "3.6"',
+        ),
+        (
+            'python_version >= "3.6" and python_full_version < "3.7.2"',
+            'python_full_version >= "3.6.2" and python_version < "3.8"',
+            'python_version >= "3.6" and python_version < "3.8"',
         ),
         (
             'python_version >= "3.6" and python_full_version <= "3.6.2"',
             'python_full_version > "3.6.2" and python_version < "3.7"',
-            'python_version >= "3.6" and python_version < "3.7"',
+            'python_version == "3.6"',
+        ),
+        (
+            'python_version >= "3.6" and python_full_version <= "3.7.2"',
+            'python_full_version > "3.6.2" and python_version < "3.8"',
+            'python_version >= "3.6" and python_version < "3.8"',
         ),
         # Ranges overlap
         (
             'python_version >= "3.6" and python_full_version <= "3.6.8"',
             'python_full_version >= "3.6.2" and python_version < "3.7"',
-            'python_version >= "3.6" and python_version < "3.7"',
+            'python_version == "3.6"',
+        ),
+        (
+            'python_version >= "3.6" and python_full_version <= "3.7.8"',
+            'python_full_version >= "3.6.2" and python_version < "3.8"',
+            'python_version >= "3.6" and python_version < "3.8"',
         ),
         # Ranges with same end.
         (
             'python_version >= "3.6" and python_version < "3.7"',
             'python_full_version >= "3.6.2" and python_version < "3.7"',
-            'python_version >= "3.6" and python_version < "3.7"',
+            'python_version == "3.6"',
+        ),
+        (
+            'python_version >= "3.6" and python_version < "3.8"',
+            'python_full_version >= "3.6.2" and python_version < "3.8"',
+            'python_version >= "3.6" and python_version < "3.8"',
         ),
         (
             'python_version >= "3.6" and python_version <= "3.7"',
@@ -984,8 +1032,7 @@ def test_marker_union_intersect_marker_union_drops_unnecessary_markers() -> None
 
     intersection = m.intersect(m2)
     expected = (
-        'python_version >= "2.7" and python_version < "2.8" '
-        'or python_version >= "3.4" and python_version < "4.0"'
+        'python_version == "2.7" or python_version >= "3.4" and python_version < "4.0"'
     )
     assert str(intersection) == expected
 
@@ -1358,10 +1405,7 @@ def test_without_extras(marker: str, expected: str) -> None:
                 ' and extra == "foo"'
             ),
             "extra",
-            (
-                'python_version >= "2.7" and python_version < "2.8"'
-                ' or python_version >= "3.7" and python_version < "3.8"'
-            ),
+            ('python_version == "2.7" or python_version == "3.7"'),
         ),
     ],
 )
@@ -2052,8 +2096,8 @@ def test_complex_union() -> None:
     ]
     assert (
         str(union(*markers))
-        == 'platform_system == "Darwin" and platform_machine == "arm64"'
-        ' and python_version >= "3.6" or python_version >= "3.10"'
+        == 'python_version >= "3.6" and platform_system == "Darwin"'
+        ' and platform_machine == "arm64" or python_version >= "3.10"'
     )
 
 
@@ -2085,8 +2129,8 @@ def test_complex_intersection() -> None:
     ]
     assert (
         str(dnf(intersection(*markers).invert()))
-        == 'platform_system == "Darwin" and platform_machine == "arm64"'
-        ' and python_version >= "3.6" or python_version >= "3.10"'
+        == 'python_version >= "3.6" and platform_system == "Darwin"'
+        ' and platform_machine == "arm64" or python_version >= "3.10"'
     )
 
 
@@ -2132,14 +2176,14 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
     )
     assert (
         str(m1.intersect(m2))
-        == 'python_full_version >= "3.11.0" and python_full_version < "4.0.0"'
+        == 'python_version >= "3.11" and python_full_version < "4.0.0"'
         ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
         ' or platform_machine == "x86_64" or platform_machine == "amd64"'
         ' or platform_machine == "AMD64" or platform_machine == "win32"'
         ' or platform_machine == "WIN32")'
     )
     assert (
-        str(m2.intersect(m1)) == 'python_full_version >= "3.11.0"'
+        str(m2.intersect(m1)) == 'python_version >= "3.11"'
         ' and (platform_machine == "aarch64" or platform_machine == "ppc64le"'
         ' or platform_machine == "x86_64" or platform_machine == "amd64"'
         ' or platform_machine == "AMD64" or platform_machine == "win32"'
@@ -2222,20 +2266,20 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
         ('== "3.6"', '> "3.5.2"', '== "3.6"', '> "3.5.2"'),
         ('== "3.6"', '>= "3.5.2"', '== "3.6"', '>= "3.5.2"'),
         ('== "3.6"', '!= "3.5.2"', '== "3.6"', '!= "3.5.2"'),
-        ('== "3.6"', '< "3.6.0"', EMPTY, '< "3.7.0"'),
-        ('== "3.6"', '<= "3.6.0"', '== "3.6.0"', '< "3.7.0"'),
-        ('== "3.6"', '> "3.6.0"', None, '>= "3.6.0"'),
-        ('== "3.6"', '>= "3.6.0"', '== "3.6"', '>= "3.6.0"'),
+        ('== "3.6"', '< "3.6.0"', EMPTY, '< "3.7"'),
+        ('== "3.6"', '<= "3.6.0"', '== "3.6.0"', '< "3.7"'),
+        ('== "3.6"', '> "3.6.0"', None, '>= "3.6"'),
+        ('== "3.6"', '>= "3.6.0"', '== "3.6"', '>= "3.6"'),
         ('== "3.6"', '!= "3.6.0"', None, ""),
-        ('== "3.6"', '< "3.6.1"', None, '< "3.7.0"'),
-        ('== "3.6"', '<= "3.6.1"', None, '< "3.7.0"'),
-        ('== "3.6"', '> "3.6.1"', None, '>= "3.6.0"'),
-        ('== "3.6"', '>= "3.6.1"', None, '>= "3.6.0"'),
+        ('== "3.6"', '< "3.6.1"', None, '< "3.7"'),
+        ('== "3.6"', '<= "3.6.1"', None, '< "3.7"'),
+        ('== "3.6"', '> "3.6.1"', None, '>= "3.6"'),
+        ('== "3.6"', '>= "3.6.1"', None, '>= "3.6"'),
         ('== "3.6"', '!= "3.6.1"', None, ""),
-        ('== "3.6"', '< "3.7.0"', '== "3.6"', '< "3.7.0"'),
+        ('== "3.6"', '< "3.7.0"', '== "3.6"', '< "3.7"'),
         ('== "3.6"', '<= "3.7.0"', '== "3.6"', '<= "3.7.0"'),
         ('== "3.6"', '> "3.7.0"', EMPTY, None),
-        ('== "3.6"', '>= "3.7.0"', EMPTY, '>= "3.6.0"'),
+        ('== "3.6"', '>= "3.7.0"', EMPTY, '>= "3.6"'),
         ('== "3.6"', '!= "3.7.0"', '== "3.6"', '!= "3.7.0"'),
         ('== "3.6"', '<= "3.7.1"', '== "3.6"', '<= "3.7.1"'),
         ('== "3.6"', '< "3.7.1"', '== "3.6"', '< "3.7.1"'),
@@ -2249,20 +2293,20 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
         ('!= "3.6"', '> "3.5.2"', None, ""),
         ('!= "3.6"', '>= "3.5.2"', None, ""),
         ('!= "3.6"', '!= "3.5.2"', None, ""),
-        ('!= "3.6"', '< "3.6.0"', '< "3.6.0"', '!= "3.6"'),
-        ('!= "3.6"', '<= "3.6.0"', '< "3.6.0"', None),
-        ('!= "3.6"', '> "3.6.0"', '>= "3.7.0"', '!= "3.6.0"'),
-        ('!= "3.6"', '>= "3.6.0"', '>= "3.7.0"', ""),
+        ('!= "3.6"', '< "3.6.0"', '< "3.6"', '!= "3.6"'),
+        ('!= "3.6"', '<= "3.6.0"', '< "3.6"', None),
+        ('!= "3.6"', '> "3.6.0"', '>= "3.7"', '!= "3.6.0"'),
+        ('!= "3.6"', '>= "3.6.0"', '>= "3.7"', ""),
         ('!= "3.6"', '!= "3.6.0"', '!= "3.6"', '!= "3.6.0"'),
-        ('!= "3.6"', '< "3.6.1"', '< "3.6.0"', None),
-        ('!= "3.6"', '<= "3.6.1"', '< "3.6.0"', None),
-        ('!= "3.6"', '> "3.6.1"', '>= "3.7.0"', None),
-        ('!= "3.6"', '>= "3.6.1"', '>= "3.7.0"', None),
+        ('!= "3.6"', '< "3.6.1"', '< "3.6"', None),
+        ('!= "3.6"', '<= "3.6.1"', '< "3.6"', None),
+        ('!= "3.6"', '> "3.6.1"', '>= "3.7"', None),
+        ('!= "3.6"', '>= "3.6.1"', '>= "3.7"', None),
         ('!= "3.6"', '!= "3.6.1"', '!= "3.6"', '!= "3.6.1"'),
-        ('!= "3.6"', '< "3.7.0"', '< "3.6.0"', ""),
+        ('!= "3.6"', '< "3.7.0"', '< "3.6"', ""),
         ('!= "3.6"', '<= "3.7.0"', None, ""),
         ('!= "3.6"', '> "3.7.0"', '> "3.7.0"', '!= "3.6"'),
-        ('!= "3.6"', '>= "3.7.0"', '>= "3.7.0"', '!= "3.6"'),
+        ('!= "3.6"', '>= "3.7.0"', '>= "3.7"', '!= "3.6"'),
         ('!= "3.6"', '!= "3.7.0"', None, ""),
         ('!= "3.6"', '<= "3.7.1"', None, ""),
         ('!= "3.6"', '< "3.7.1"', None, ""),

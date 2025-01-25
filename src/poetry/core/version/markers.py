@@ -414,6 +414,13 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
                     glue = " || "
 
                 constraint_string = glue.join(versions)
+            elif name == "python_full_version" and not swapped_name_value:
+                # fix precision of python_full_version marker
+                precision = self._value.count(".") + 1
+                if precision < 3:
+                    suffix = ".0" * (3 - precision)
+                    self._value += suffix
+                    constraint_string += suffix
         else:
             # if we have a in/not in operator we split the constraint
             # into a union/multi-constraint of single constraint
@@ -1170,6 +1177,25 @@ def _merge_single_markers(
         for c in result_constraint.constraints
     ):
         result_marker = AtomicMultiMarker(marker1.name, result_constraint)
+    elif marker1.name == "python_version":
+        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+
+        if isinstance(result_constraint, VersionRange) and result_constraint.min:
+            # Convert 'python_version >= "3.8" and python_version < "3.9"'
+            # to 'python_version == "3.8"'
+            candidate = parse_marker(f'{marker1.name} == "{result_constraint.min}"')
+            if get_python_constraint_from_marker(candidate) == result_constraint:
+                result_marker = candidate
+
+        elif isinstance(result_constraint, VersionUnion) and merge_class == MarkerUnion:
+            # Convert 'python_version == "3.8" or python_version >= "3.9"'
+            # to 'python_version >= "3.8"'
+            result_constraint = get_python_constraint_from_marker(marker1).union(
+                get_python_constraint_from_marker(marker2)
+            )
+            if result_constraint.is_simple():
+                result_marker = SingleMarker(marker1.name, result_constraint)
+
     return result_marker
 
 
@@ -1205,7 +1231,24 @@ def _merge_python_version_single_markers(
         # it may be sufficient to handle it here.
         marker_string = str(merged_marker)
         precision = marker_string.count(".") + 1
-        if precision < 3:
-            marker_string = marker_string[:-1] + ".0" * (3 - precision) + '"'
-            merged_marker = parse_marker(marker_string)
+        target_precision = 3
+        if precision < target_precision:
+            if merged_marker.operator in {"<", ">="}:
+                target_precision = 2
+                marker_string = marker_string.replace(
+                    "python_full_version", "python_version"
+                )
+            marker_string = (
+                marker_string[:-1] + ".0" * (target_precision - precision) + '"'
+            )
+        elif (
+            precision == target_precision
+            and merged_marker.operator in {"<", ">="}
+            and marker_string[:-1].endswith(".0")
+        ):
+            marker_string = marker_string.replace(
+                "python_full_version", "python_version"
+            )
+            marker_string = marker_string[:-3] + '"'  # drop trailing ".0"
+        merged_marker = parse_marker(marker_string)
     return merged_marker
