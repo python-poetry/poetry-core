@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,23 @@ __toml_build_backend_patch__ = {
         "build-backend": "poetry.core.masonry.api",
     }
 }
+
+
+@contextmanager
+def temporary_cd(path: Path) -> Generator[None, None, None]:
+    """
+    Context manager that temporarily CDs into the given directory.
+
+    Once the context exits, the cwd is returned to its previous state.
+
+    :param path: Path to cd into.
+    """
+    old_path = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_path)
 
 
 @contextmanager

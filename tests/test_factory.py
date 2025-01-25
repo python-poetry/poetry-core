@@ -19,6 +19,7 @@ from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.pyproject.tables import BuildSystem
 from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
+from tests.testutils import temporary_cd
 
 
 if TYPE_CHECKING:
@@ -634,6 +635,30 @@ def test_validate_fails() -> None:
     expected = "tool.poetry.authors must be array"
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
+
+
+def test_validate_missing_license_file() -> None:
+    complete = fixtures_dir / "missing_license_file/pyproject.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+
+    expected = "project.license.file must be a valid file"
+
+    with temporary_cd(complete.parent):
+        assert Factory.validate(content) == {"errors": [expected], "warnings": []}
+
+
+def test_validate_existing_license_file() -> None:
+    # Ensure that no error is reported when a project.license.file is given,
+    # and the file does exist.
+    complete = fixtures_dir / "with_license_type_file/pyproject.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+
+    # Still need to cd to avoid spurious pass due to the project's root LICENSE
+    # file.
+    with temporary_cd(complete.parent):
+        assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
 def test_validate_without_strict_fails_only_non_strict() -> None:
