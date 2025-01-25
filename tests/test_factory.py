@@ -642,9 +642,10 @@ def test_validate_missing_license_file() -> None:
     with complete.open("rb") as f:
         content = tomllib.load(f)
 
-    expected = "project.license.file must be a valid file"
-
     with temporary_cd(complete.parent):
+        license_path = Path(content["project"]["license"]["file"]).absolute()
+        expected = f"project.license.file '{license_path}' does not exist"
+
         assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
 

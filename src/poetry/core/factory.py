@@ -582,10 +582,10 @@ class Factory:
         if project is not None and project.get("license") is not None:
             license_data = project.get("license")
             if isinstance(license_data, dict) and "file" in license_data:
-                license_path: str = license_data["file"]
-                if not Path(license_path).exists():
+                license_path = Path(license_data["file"]).absolute()
+                if not license_path.exists():
                     result["errors"].append(
-                        f"project.license.file must be a valid file: {license_path}"
+                        f"project.license.file '{license_path}' does not exist"
                     )
 
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and
