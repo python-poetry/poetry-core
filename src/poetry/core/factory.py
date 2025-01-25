@@ -584,7 +584,9 @@ class Factory:
             if isinstance(license_data, dict) and "file" in license_data:
                 license_path: str = license_data["file"]
                 if not Path(license_path).exists():
-                    result["errors"].append(f"project.license.file must be a valid file: {license_path}")
+                    result["errors"].append(
+                        f"project.license.file must be a valid file: {license_path}"
+                    )
 
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and
         # validate it so that default values (e.g. for package-mode) are set.
