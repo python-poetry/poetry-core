@@ -350,7 +350,7 @@ class Dependency(PackageSpecification):
         from poetry.core.packages.vcs_dependency import VCSDependency
         from poetry.core.utils.patterns import wheel_file_re
         from poetry.core.vcs.git import ParsedUrl
-        from poetry.core.version.requirements import Requirement
+        from poetry.core.version.requirements import parse_requirement
 
         # Removing comments
         parts = name.split(" #", 1)
@@ -360,7 +360,7 @@ class Dependency(PackageSpecification):
             if " ;" in rest:
                 name += " ;" + rest.split(" ;", 1)[1]
 
-        req = Requirement(name)
+        req = parse_requirement(name)
 
         name = req.name
         link = None
@@ -495,7 +495,7 @@ def _make_file_or_dir_dep(
     path: Path,
     base: Path | None = None,
     subdirectory: str | None = None,
-    extras: list[str] | None = None,
+    extras: Iterable[str] | None = None,
 ) -> FileDependency | DirectoryDependency | None:
     """
     Helper function to create a file or directoru dependency with the given arguments.
