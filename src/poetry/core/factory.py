@@ -185,12 +185,15 @@ class Factory:
                 if not raw_license and (
                     license_file := cast(str, project_license.get("file", ""))
                 ):
-                    license_path = (root / license_file).absolute()
-                    if not license_path.is_file():
-                        raise FileNotFoundError(
-                            f"Poetry: license file '{license_path}' does not exist"
+                    try:
+                        raw_license = Path(root / license_file).read_text(
+                            encoding="utf-8"
                         )
-                    raw_license = license_path.read_text(encoding="utf-8")
+                    except FileNotFoundError as e:
+                        license_path = (root / license_file).absolute()
+                        raise FileNotFoundError(
+                            f"Poetry: license file '{license_path}' not found"
+                        ) from e
         else:
             raw_license = tool_poetry.get("license", "")
         try:
