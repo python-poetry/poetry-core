@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
 from typing import Union
+from typing import cast
 
 from packaging.utils import canonicalize_name
 
@@ -182,9 +183,15 @@ class Factory:
             else:
                 raw_license = project_license.get("text", "")
                 if not raw_license and (
-                    license_file := project_license.get("file", "")
+                    license_file := cast(str, project_license.get("file", ""))
                 ):
-                    raw_license = (root / license_file).read_text(encoding="utf-8")
+                    license_path = (root / license_file).absolute()
+                    try:
+                        raw_license = Path(license_path).read_text(encoding="utf-8")
+                    except FileNotFoundError as e:
+                        raise FileNotFoundError(
+                            f"Poetry: license file '{license_path}' not found"
+                        ) from e
         else:
             raw_license = tool_poetry.get("license", "")
         try:

@@ -421,6 +421,14 @@ def test_create_poetry_with_license_type_file(license_type: str) -> None:
     assert poetry.package.license.id == license_content
 
 
+def test_create_poetry_fails_with_missing_license_file() -> None:
+    project_dir = fixtures_dir / "missing_license_file"
+    with pytest.raises(FileNotFoundError) as e:
+        Factory().create_poetry(project_dir)
+
+    assert str((project_dir / "LICENSE").absolute()) in str(e.value)
+
+
 @pytest.mark.parametrize(
     ("requires_python", "python", "expected_versions", "expected_constraint"),
     [
