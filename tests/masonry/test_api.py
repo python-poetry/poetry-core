@@ -313,6 +313,34 @@ My Package
             assert f.read() == metadata
 
 
+def test_prepare_metadata_excludes_optional_without_extras() -> None:
+    with (
+        temporary_directory() as tmp_dir,
+        cwd(fixtures / "with_optional_without_extras"),
+    ):
+        dirname = api.prepare_metadata_for_build_wheel(str(tmp_dir))
+        dist_info = Path(tmp_dir, dirname)
+        assert (dist_info / "METADATA").exists()
+
+        with (dist_info / "METADATA").open(encoding="utf-8") as f:
+            assert (
+                f.read()
+                == """\
+Metadata-Version: 2.3
+Name: my-packager
+Version: 0.1
+Summary: Something
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Provides-Extra: grpc
+Provides-Extra: http
+Requires-Dist: grpcio (>=0.2.0,<0.3.0) ; extra == "grpc"
+Requires-Dist: httpx (>=0.28.1,<0.29.0) ; extra == "http"
+Requires-Dist: pycowsay (>=0.1.0,<0.2.0)
+"""
+            )
+
+
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
     with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
         api.prepare_metadata_for_build_wheel(str(tmp_dir))
