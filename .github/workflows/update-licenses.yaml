@@ -35,6 +35,7 @@ jobs:
       - name: Update licenses list
         run: |
           poetry run python src/poetry/core/spdx/helpers.py
+          poetry run pre-commit run --all-files || :
 
       - name: Generate token
         id: generate_token
