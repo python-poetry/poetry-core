@@ -1,0 +1,19 @@
+[project]
+name = "my-packager"
+description = "Something"
+version = "0.1"
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dynamic = ["dependencies"]
+
+[tool.poetry.dependencies]
+requests = { version = "^0.28.1", optional = true }
+httpx = { version = "^0.28.1", optional = true }
+grpcio = { version = "^0.2.0" }
+pycowsay = { version = "^0.1.0" }
+
+[tool.poetry.extras]
+http = ["httpx"]
+grpc = ["grpcio"]

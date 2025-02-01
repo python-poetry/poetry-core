@@ -95,7 +95,11 @@ class Metadata:
         elif package.python_versions != "*":
             meta.requires_python = format_python_constraint(package.python_constraint)
 
-        meta.requires_dist = [d.to_pep_508() for d in package.requires]
+        meta.requires_dist = [
+            d.to_pep_508()
+            for d in package.requires
+            if not d.is_optional() or d.in_extras
+        ]
 
         # Version 2.1
         if package.readme_content_type:
