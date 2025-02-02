@@ -2191,6 +2191,30 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
     )
 
 
+def test_intersection_no_endless_recursion() -> None:
+    m1 = parse_marker(
+        '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
+        ' and extra != "motherduck" and extra != "athena" and extra != "synapse"'
+        ' and extra != "clickhouse" and extra != "dremio" and extra != "lancedb"'
+        ' and extra != "deltalake" and extra != "pyiceberg"'
+        ' and python_version < "3.13") and extra != "postgres" and extra != "redshift"'
+        ' and extra != "postgis"'
+    )
+    m2 = parse_marker(
+        'python_version > "3.12" and python_version < "3.13" or extra != "databricks"'
+    )
+    expected = (
+        '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
+        ' and extra != "motherduck" and extra != "athena" and extra != "synapse"'
+        ' and extra != "clickhouse" and extra != "dremio" and extra != "lancedb"'
+        ' and extra != "deltalake" and extra != "pyiceberg")'
+        ' and python_version < "3.13" and extra != "postgres" and extra != "redshift"'
+        ' and extra != "postgis" and (python_version > "3.12"'
+        ' and python_version < "3.13" or extra != "databricks")'
+    )
+    assert str(m1.intersect(m2)) == expected
+
+
 @pytest.mark.parametrize(
     "python_version, python_full_version, "
     "expected_intersection_version, expected_union_version",

@@ -3,9 +3,11 @@ from __future__ import annotations
 import functools
 import itertools
 import re
+import threading
 
 from abc import ABC
 from abc import abstractmethod
+from collections import defaultdict
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import ClassVar
@@ -1088,6 +1090,26 @@ def dnf(marker: BaseMarker) -> BaseMarker:
     return marker
 
 
+def detect_recursion(func: Callable[..., BaseMarker]) -> Callable[..., BaseMarker]:
+    """Decorator to detect recursions in `intersection` and `union` early."""
+    func.call_args = defaultdict(list)  # type: ignore[attr-defined]
+
+    def decorated(*markers: BaseMarker) -> BaseMarker:
+        thread_id = threading.get_ident()
+        call_args = func.call_args[thread_id]  # type: ignore[attr-defined]
+        if markers in call_args:
+            raise RecursionError
+        call_args.append(markers)
+        try:
+            result = func(*markers)
+        finally:
+            call_args.pop()
+        return result
+
+    return decorated
+
+
+@detect_recursion
 def intersection(*markers: BaseMarker) -> BaseMarker:
     # Sometimes normalization makes it more complicated instead of simple
     # -> choose candidate with the least complexity
@@ -1102,13 +1124,19 @@ def intersection(*markers: BaseMarker) -> BaseMarker:
     if not isinstance(disjunction, MarkerUnion):
         return disjunction
 
-    conjunction = cnf(disjunction)
-    if not isinstance(conjunction, MultiMarker):
-        return conjunction
+    try:
+        conjunction = cnf(disjunction)
+        if not isinstance(conjunction, MultiMarker):
+            return conjunction
+    except RecursionError:
+        candidates = [disjunction, unnormalized]
+    else:
+        candidates = [disjunction, conjunction, unnormalized]
 
-    return min(disjunction, conjunction, unnormalized, key=lambda x: x.complexity)
+    return min(*candidates, key=lambda x: x.complexity)
 
 
+@detect_recursion
 def union(*markers: BaseMarker) -> BaseMarker:
     # Sometimes normalization makes it more complicated instead of simple
     # -> choose candidate with the least complexity
@@ -1123,11 +1151,16 @@ def union(*markers: BaseMarker) -> BaseMarker:
     if not isinstance(conjunction, MultiMarker):
         return conjunction
 
-    disjunction = dnf(conjunction)
-    if not isinstance(disjunction, MarkerUnion):
-        return disjunction
+    try:
+        disjunction = dnf(conjunction)
+        if not isinstance(disjunction, MarkerUnion):
+            return disjunction
+    except RecursionError:
+        candidates = [conjunction, unnormalized]
+    else:
+        candidates = [disjunction, conjunction, unnormalized]
 
-    return min(disjunction, conjunction, unnormalized, key=lambda x: x.complexity)
+    return min(*candidates, key=lambda x: x.complexity)
 
 
 @functools.cache
