@@ -25,6 +25,10 @@ class VersionConstraint:
         raise NotImplementedError
 
     @abstractmethod
+    def has_upper_bound(self) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
     def allows(self, version: Version) -> bool:
         raise NotImplementedError
 

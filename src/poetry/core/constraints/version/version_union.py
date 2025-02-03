@@ -95,6 +95,9 @@ class VersionUnion(VersionConstraint):
     def is_simple(self) -> bool:
         return self.excludes_single_version
 
+    def has_upper_bound(self) -> bool:
+        return all(constraint.has_upper_bound() for constraint in self._ranges)
+
     def allows(self, version: Version) -> bool:
         if self.excludes_single_version:
             # when excluded version is local, special handling is required

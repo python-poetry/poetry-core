@@ -30,3 +30,32 @@ def test_constraints_are_hashable(constraint: VersionConstraint) -> None:
     # We're just testing that constraints are hashable, there's nothing much to say
     # about the result.
     hash(constraint)
+
+
+@pytest.mark.parametrize(
+    ("constraint", "expected"),
+    [
+        (EmptyConstraint(), True),
+        (Version.parse("1"), True),
+        (VersionRange(), False),
+        (VersionRange(Version.parse("1")), False),
+        (VersionRange(max=Version.parse("2")), True),
+        (VersionRange(Version.parse("1"), Version.parse("2")), True),
+        (
+            VersionUnion(
+                VersionRange(Version.parse("1"), Version.parse("2")),
+                VersionRange(Version.parse("3"), Version.parse("4")),
+            ),
+            True,
+        ),
+        (
+            VersionUnion(
+                VersionRange(Version.parse("1"), Version.parse("2")),
+                VersionRange(Version.parse("3")),
+            ),
+            False,
+        ),
+    ],
+)
+def test_has_upper_bound(constraint: VersionConstraint, expected: bool) -> None:
+    assert constraint.has_upper_bound() is expected
