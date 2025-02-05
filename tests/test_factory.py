@@ -1060,6 +1060,21 @@ def test_create_poetry_with_invalid_dev_dependencies(caplog: LogCaptureFixture) 
     assert any("dev" in r.groups for r in poetry.package.all_requires)
 
 
+@pytest.mark.parametrize("with_groups", [True, False])
+def test_create_poetry_with_invalid_dependency_groups(with_groups: bool) -> None:
+    with pytest.raises(RuntimeError) as e:
+        _ = Factory().create_poetry(
+            fixtures_dir / "project_with_invalid_dependency_groups",
+            with_groups=with_groups,
+        )
+
+    expected = """\
+The Poetry configuration is invalid:
+  - dependency-groups.testing[1] must be string
+"""
+    assert str(e.value) == expected
+
+
 def test_create_poetry_with_groups_and_legacy_dev(caplog: LogCaptureFixture) -> None:
     assert not caplog.records
 
