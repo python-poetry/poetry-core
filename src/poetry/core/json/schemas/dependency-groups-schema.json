@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "dependency-groups",
+  "type": "object",
+  "additionalProperties": {
+    "title": "Dependency group requirements",
+    "type": "array",
+    "items": {
+      "type": "string"
+    },
+    "examples": [
+      [
+        "attrs",
+        "requests ~= 2.28"
+      ]
+    ]
+  }
+}
