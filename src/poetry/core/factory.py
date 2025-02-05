@@ -691,6 +691,14 @@ class Factory:
         ]
         result["errors"] += tool_poetry_validation_errors
 
+        dependency_groups = toml_data.get("dependency-groups")
+        if dependency_groups is not None:
+            dependency_groups_validation_errors = [
+                e.replace("data", "dependency-groups")
+                for e in validate_object(dependency_groups, "dependency-groups-schema")
+            ]
+            result["errors"] += dependency_groups_validation_errors
+
         # Check for required fields if package mode.
         # In non-package mode, there are no required fields.
         package_mode = tool_poetry.get("package-mode", True)
