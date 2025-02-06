@@ -1,6 +1,32 @@
 # Change Log
 
 
+## [2.1.0] - 2025-02-15
+
+### Added
+
+- Pass a local version label to the build backend interface ([#814](https://github.com/python-poetry/poetry-core/pull/814)).
+- Expose build-system dependencies via the `poetry` instance ([#319](https://github.com/python-poetry/poetry-core/pull/319)).
+- Add `has_upper_bound method` to `VersionConstraint` ([#833](https://github.com/python-poetry/poetry-core/pull/833)).
+
+### Changed
+
+- Improve performance of calculating intersections and unions of `extra` markers ([#818](https://github.com/python-poetry/poetry-core/pull/818)).
+- Improve performance of calculating intersections and unions of complex markers ([#821](https://github.com/python-poetry/poetry-core/pull/821),
+  [#832](https://github.com/python-poetry/poetry-core/pull/832)).
+- Improve performance of marker operations by simplifying `python_version` markers ([#826](https://github.com/python-poetry/poetry-core/pull/826)).
+- Improve performance by caching parsed requirements ([#828](https://github.com/python-poetry/poetry-core/pull/828)).
+- Improve error message when a referenced license file is missing ([#827](https://github.com/python-poetry/poetry-core/pull/827)).
+
+### Fixed
+
+- Fix an issue where inclusive ordering with post releases was inconsistent with PEP 440 ([#379](https://github.com/python-poetry/poetry-core/pull/379)).
+- Fix an issue where invalid URI tokens in PEP 508 requirement strings were silently discarded ([#817](https://github.com/python-poetry/poetry-core/pull/817)).
+- Fix an issue where wrong markers were calculated when removing parts covered by the project's python constraint ([#824](https://github.com/python-poetry/poetry-core/pull/824)).
+- Fix an issue where optional dependencies that are not part of an extra were included in the wheel metadata ([#830](https://github.com/python-poetry/poetry-core/pull/830)).
+- Fix an issue where the `__pycache__` directory and `*.pyc` files were included in sdists and wheels ([#835](https://github.com/python-poetry/poetry-core/pull/835)).
+
+
 ## [2.0.1] - 2025-01-11
 
 ### Changed
@@ -712,7 +738,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.0.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.1.0...main
+[2.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.0
 [2.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.0.1
 [2.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.0.0
 [1.9.1]: https://github.com/python-poetry/poetry-core/releases/tag/1.9.1
