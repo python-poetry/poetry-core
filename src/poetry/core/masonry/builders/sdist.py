@@ -270,6 +270,7 @@ class SdistBuilder(Builder):
 
         for path, _dirnames, filenames in os.walk(base, topdown=True):
             if Path(path).name == "__pycache__":
+                # This is just a shortcut. It will be ignored later anyway.
                 continue
 
             from_top_level = os.path.relpath(path, base)
