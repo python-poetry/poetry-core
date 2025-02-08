@@ -126,6 +126,9 @@ class Builder:
     def is_excluded(self, filepath: str | Path) -> bool:
         exclude_path = Path(filepath)
 
+        if "__pycache__" in exclude_path.parts or exclude_path.suffix == ".pyc":
+            return True
+
         while True:
             if exclude_path.as_posix() in self.find_excluded_files(fmt=self.format):
                 return True
@@ -150,7 +153,8 @@ class Builder:
             formats = include.formats
 
             for file in include.elements:
-                if "__pycache__" in str(file):
+                if "__pycache__" in file.parts:
+                    # This is just a shortcut. It will be ignored later anyway.
                     continue
 
                 if (
@@ -200,9 +204,6 @@ class Builder:
                 if self.is_excluded(
                     include_file.relative_to_project_root()
                 ) and isinstance(include, PackageInclude):
-                    continue
-
-                if file.suffix == ".pyc":
                     continue
 
                 logger.debug(f"Adding: {file}")

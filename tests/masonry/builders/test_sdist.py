@@ -578,6 +578,25 @@ def test_proper_python_requires_if_three_digits_precision_version_specified() ->
     assert parsed["Requires-Python"] == "==2.7.15"
 
 
+def test_sdist_does_not_include_pycache_and_pyc_files(
+    complete_with_pycache_and_pyc_files: Path,
+) -> None:
+    poetry = Factory().create_poetry(complete_with_pycache_and_pyc_files)
+
+    builder = SdistBuilder(poetry)
+
+    builder.build()
+
+    sdist = complete_with_pycache_and_pyc_files / "dist" / "my_package-1.2.3.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        for name in tar.getnames():
+            assert "__pycache__" not in name
+            assert not name.endswith(".pyc")
+
+
 def test_includes() -> None:
     poetry = Factory().create_poetry(project("with-include"))
 

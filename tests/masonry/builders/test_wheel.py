@@ -126,6 +126,23 @@ def test_wheel_epoch() -> None:
         assert "epoch-1!2.0.dist-info/METADATA" in z.namelist()
 
 
+def test_wheel_does_not_include_pycache_and_pyc_files(
+    complete_with_pycache_and_pyc_files: Path,
+) -> None:
+    WheelBuilder.make_in(Factory().create_poetry(complete_with_pycache_and_pyc_files))
+
+    whl = (
+        complete_with_pycache_and_pyc_files / "dist"
+    ) / "my_package-1.2.3-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        for name in z.namelist():
+            assert "__pycache__" not in name
+            assert not name.endswith(".pyc")
+
+
 def test_wheel_excluded_data() -> None:
     module_path = fixtures_dir / "default_with_excluded_data_toml"
     WheelBuilder.make(Factory().create_poetry(module_path))
