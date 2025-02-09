@@ -349,7 +349,7 @@ class Factory:
         package: ProjectPackage,
         project: dict[str, Any],
         tool_poetry: dict[str, Any],
-        dependency_groups: dict[str, list[str]],
+        dependency_groups: dict[str, list[str | dict[str, str]]],
         with_groups: bool = True,
     ) -> None:
         from poetry.core.packages.dependency import Dependency
@@ -401,7 +401,9 @@ class Factory:
             )
 
         if with_groups:
-            for group_name, dependencies in dependency_groups.items():
+            normalized_groups = cls._normalize_dependency_group_names(dependency_groups)
+            included = cls._resolve_dependency_group_includes(normalized_groups)
+            for group_name, dependencies in normalized_groups.items():
                 poetry_group_config = tool_poetry.get("group", {}).get(group_name, {})
                 group = DependencyGroup(
                     name=group_name,
@@ -425,10 +427,10 @@ class Factory:
                     )
                     package.add_dependency_group(group)
 
-                if "dependencies" in group_config:
+                for group_name_ in (group_name, *included.get(group_name, [])):
                     cls._add_package_group_dependencies(
                         package=package,
-                        group=group_name,
+                        group=group_name_,
                         dependencies=group_config.get("dependencies", {}),
                     )
 
@@ -474,6 +476,65 @@ class Factory:
                             package_extras[extra_name].append(dep)
 
             package.extras = package_extras
+
+    @classmethod
+    def _normalize_dependency_group_names(
+        cls,
+        dependency_groups: dict[str, list[str | dict[str, str]]],
+    ) -> dict[NormalizedName, list[str | dict[str, str]]]:
+        original_names = defaultdict(list)
+        normalized_groups: dict[NormalizedName, list[str | dict[str, str]]] = {}
+
+        for group_name, value in dependency_groups.items():
+            normed_group_name = canonicalize_name(group_name)
+            original_names[normed_group_name].append(group_name)
+            normalized_groups[normed_group_name] = value
+
+        errors = []
+        for normed_name, names in original_names.items():
+            if len(names) > 1:
+                errors.append(f"{normed_name} ({', '.join(names)})")
+        if errors:
+            raise ValueError(f"Duplicate dependency group names: {', '.join(errors)}")
+
+        return normalized_groups
+
+    @classmethod
+    def _resolve_dependency_group_includes(
+        cls, dependency_groups: dict[NormalizedName, list[str | dict[str, str]]]
+    ) -> dict[NormalizedName, list[NormalizedName]]:
+        resolved_groups: set[NormalizedName] = set()
+        included: dict[NormalizedName, list[NormalizedName]] = defaultdict(list)
+        while resolved_groups != set(dependency_groups):
+            for group, dependencies in dependency_groups.items():
+                if group in resolved_groups:
+                    continue
+                if all(isinstance(dep, str) for dep in dependencies):
+                    resolved_groups.add(group)
+                    continue
+                resolved_dependencies: list[str | dict[str, str]] = []
+                for dep in dependencies:
+                    if isinstance(dep, str):
+                        resolved_dependencies.append(dep)
+                    else:
+                        included_group = canonicalize_name(dep["include-group"])
+                        if included_group in included[group]:
+                            raise ValueError(
+                                f"Cyclic dependency group include:"
+                                f" {group} -> {included_group}"
+                            )
+                        included[included_group].append(group)
+                        try:
+                            resolved_dependencies.extend(
+                                dependency_groups[included_group]
+                            )
+                        except KeyError:
+                            raise ValueError(
+                                f"Dependency group '{included_group}'"
+                                f" (included in '{group}') not found"
+                            )
+                dependency_groups[group] = resolved_dependencies
+        return included
 
     @classmethod
     def _prepare_formats(

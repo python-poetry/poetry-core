@@ -59,8 +59,15 @@ my-script = "my_package:main"
 tomlkit = { develop = true }
 
 [dependency-groups]
-test = ["pytest>7", "coverage"]
-docs = ["mkdocs @ git+https://github.com/mkdocs/mkdocs.git"]
+# non-normalized names!
+Test = ["pytest>7", "coverage"]
+Dev = ["pre-commit", { "include-group" = "tEsT" }]
+Docs = ["mkdocs @ git+https://github.com/mkdocs/mkdocs.git"]
+all = [
+    { "include-group" = "test" },
+    { "include-group" = "dev" },
+    { "include-group" = "docs" },
+]
 
 [tool.poetry.group.docs]
 optional = true
