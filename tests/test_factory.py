@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 
+from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -14,6 +15,7 @@ from packaging.utils import canonicalize_name
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.directory_dependency import DirectoryDependency
 from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.url_dependency import URLDependency
@@ -319,20 +321,31 @@ def test_create_poetry_with_groups() -> None:
     assert not poetry.package._dependency_groups["test"].is_optional()  # type: ignore[index]
 
     package = poetry.package
-    dependencies = {str(dep.name): dep for dep in package.all_requires}
 
-    assert dependencies["mkdocs"].name == "mkdocs"
-    assert isinstance(dependencies["mkdocs"], VCSDependency)
-    assert dependencies["mkdocs"].develop is True
-    assert dependencies["mkdocs"].source_type == "git"
-    assert dependencies["mkdocs"].source == "https://github.com/mkdocs/mkdocs.git"
-    assert dependencies["mkdocs"].groups == frozenset({"docs"})
+    expected_dependencies = {
+        "test": ["pytest", "coverage"],
+        "dev": ["pre-commit", "pytest", "coverage"],
+        "docs": ["mkdocs"],
+        "all": ["pytest", "coverage", "pre-commit", "pytest", "coverage", "mkdocs"],
+    }
 
-    assert dependencies["pytest"].name == "pytest"
-    assert dependencies["pytest"].groups == frozenset({"test"})
+    dependencies = defaultdict(list)
+    for dep in package.all_requires:
+        assert len(dep.groups) == 1
+        for group in dep.groups:
+            if group != MAIN_GROUP:
+                dependencies[group].append(dep.name)
 
-    assert dependencies["coverage"].name == "coverage"
-    assert dependencies["coverage"].groups == frozenset({"test"})
+    assert dependencies == expected_dependencies
+
+    for dep in package.all_requires:
+        if dep.name == "mkdocs":
+            assert isinstance(dep, VCSDependency)
+            # The "develop" flag of mkdocs from tool.poetry
+            # must also be set for the all extra!
+            assert dep.develop is True
+            assert dep.source_type == "git"
+            assert dep.source == "https://github.com/mkdocs/mkdocs.git"
 
 
 def test_create_poetry_with_dependencies_with_subdirectory() -> None:
@@ -1070,9 +1083,44 @@ def test_create_poetry_with_invalid_dependency_groups(with_groups: bool) -> None
 
     expected = """\
 The Poetry configuration is invalid:
-  - dependency-groups.testing[1] must be string
+  - dependency-groups.testing[1] must be valid exactly by one definition\
+ (0 matches found)
 """
     assert str(e.value) == expected
+
+
+def test_create_poetry_with_duplicated_dependency_groups() -> None:
+    with pytest.raises(ValueError) as e:
+        _ = Factory().create_poetry(
+            fixtures_dir / "project_with_duplicated_dependency_groups",
+        )
+
+    assert str(e.value) == "Duplicate dependency group names: test (test, Test)"
+
+
+def test_create_poetry_with_dependency_groups_missing_include() -> None:
+    with pytest.raises(ValueError) as e:
+        _ = Factory().create_poetry(
+            fixtures_dir / "project_with_dependency_groups_missing_include",
+        )
+
+    assert str(e.value) == "Dependency group 'coverage' (included in 'test') not found"
+
+
+@pytest.mark.parametrize(
+    ("fixture", "expected"),
+    [
+        ("project_with_dependency_groups_simple_cycle", "coverage -> test"),
+        ("project_with_dependency_groups_complex_cycle", "test -> dev"),
+    ],
+)
+def test_create_poetry_with_dependency_groups_simple_cycle(
+    fixture: str, expected: str
+) -> None:
+    with pytest.raises(ValueError) as e:
+        _ = Factory().create_poetry(fixtures_dir / fixture)
+
+    assert str(e.value) == f"Cyclic dependency group include: {expected}"
 
 
 def test_create_poetry_with_groups_and_legacy_dev(caplog: LogCaptureFixture) -> None:

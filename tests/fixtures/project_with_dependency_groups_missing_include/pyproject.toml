@@ -1,0 +1,13 @@
+[dependency-groups]
+test = ["pytest>7", { "include-group" = "coverage" }]
+
+[tool.poetry]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+authors = ["Awesome Hacker <awesome@hacker.io>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+
+[tool.poetry.extras]
