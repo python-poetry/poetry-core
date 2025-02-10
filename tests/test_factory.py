@@ -1307,3 +1307,36 @@ black = "*"
         error_type=ValueError,
         temporary_directory=temporary_directory,
     )
+
+
+def test_create_poetry_with_included_groups_only(temporary_directory: Path) -> None:
+    pyproject_toml = temporary_directory / "pyproject.toml"
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.lint.dependencies]
+black = "*"
+
+[tool.poetry.group.testing.dependencies]
+pytest = "*"
+
+[tool.poetry.group.all]
+include-groups = [
+    "lint",
+    "testing",
+]
+"""
+    pyproject_toml.write_text(content)
+
+    poetry = Factory().create_poetry(temporary_directory)
+    assert len(poetry.package.all_requires) == 4
+    assert [
+        (dep.name, ",".join(dep.groups)) for dep in poetry.package.all_requires
+    ] == [
+        ("black", "lint"),
+        ("pytest", "testing"),
+        ("black", "all"),
+        ("pytest", "all"),
+    ]
