@@ -350,6 +350,20 @@ class Factory:
                     dependencies=group_config["dependencies"],
                 )
 
+            for group_name, group_config in tool_poetry["group"].items():
+                if include_groups := group_config.get("include-groups", []):
+                    current_group = package.dependency_group(group_name)
+                    for name in include_groups:
+                        try:
+                            group_to_include = package.dependency_group(name)
+                        except ValueError as e:
+                            raise ValueError(
+                                f"Group '{group_name}' includes group '{name}'"
+                                " which is not defined."
+                            ) from e
+
+                        current_group.include_dependency_group(group_to_include)
+
         if with_groups and "dev-dependencies" in tool_poetry:
             cls._add_package_group_dependencies(
                 package=package,
@@ -614,6 +628,8 @@ class Factory:
                 ' Use "poetry.group.dev.dependencies" instead.'
             )
 
+        cls._validate_dependency_groups_includes(toml_data, result)
+
         if strict:
             # Validate relation between [project] and [tool.poetry]
             cls._validate_legacy_vs_project(toml_data, result)
@@ -621,6 +637,35 @@ class Factory:
             cls._validate_strict(config, result)
 
         return result
+
+    @classmethod
+    def _validate_dependency_groups_includes(
+        cls, toml_data: dict[str, Any], result: dict[str, list[str]]
+    ) -> None:
+        """Ensure that dependency groups do not include themselves."""
+        config = toml_data.setdefault("tool", {}).setdefault("poetry", {})
+
+        group_includes = {}
+        for group_name, group_config in config.get("group", {}).items():
+            if include_groups := group_config.get("include-groups", []):
+                group_includes[canonicalize_name(group_name)] = [
+                    canonicalize_name(name) for name in include_groups
+                ]
+
+        for group_name in group_includes:
+            visited = set()
+            stack = [group_name]
+            while stack:
+                group = stack.pop()
+                visited.add(group)
+                for include in group_includes.get(group, []):
+                    if include in visited:
+                        result["errors"].append(
+                            f"Cyclic dependency group include in {group_name}:"
+                            f" {group} -> {include}"
+                        )
+                        continue
+                    stack.append(include)
 
     @classmethod
     def _validate_legacy_vs_project(
