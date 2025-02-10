@@ -347,7 +347,7 @@ class Factory:
                 cls._add_package_group_dependencies(
                     package=package,
                     group=group,
-                    dependencies=group_config["dependencies"],
+                    dependencies=group_config.get("dependencies", {}),
                 )
 
             for group_name, group_config in tool_poetry["group"].items():
