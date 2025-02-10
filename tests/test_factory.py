@@ -1072,3 +1072,238 @@ build-backend = "some.api.we.do.not.care.about"
     poetry = Factory().create_poetry(temporary_directory)
 
     assert set(poetry.build_system_dependencies) == expected
+
+
+def test_create_poetry_with_nested_dependency_groups(temporary_directory: Path) -> None:
+    pyproject_toml = temporary_directory / "pyproject.toml"
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.testing.dependencies]
+pytest = "*"
+pytest-cov ="*"
+
+[tool.poetry.group.dev]
+include-groups = [
+    "testing",
+]
+[tool.poetry.group.dev.dependencies]
+black = "*"
+"""
+    pyproject_toml.write_text(content)
+    poetry = Factory().create_poetry(temporary_directory)
+
+    assert len(poetry.package.all_requires) == 5
+    assert [
+        (dep.name, ",".join(dep.groups)) for dep in poetry.package.all_requires
+    ] == [
+        ("pytest", "testing"),
+        ("pytest-cov", "testing"),
+        ("black", "dev"),
+        ("pytest", "dev"),
+        ("pytest-cov", "dev"),
+    ]
+
+
+def assert_invalid_group_including(
+    toml_data: str,
+    expected_error: str,
+    error_type: type[Exception],
+    temporary_directory: Path,
+) -> None:
+    pyproject_toml = temporary_directory / "pyproject.toml"
+    pyproject_toml.write_text(toml_data)
+
+    with pytest.raises(error_type) as error:
+        _ = Factory().create_poetry(temporary_directory)
+
+    assert str(error.value) == expected_error
+
+
+@pytest.mark.parametrize(
+    "include_group_name", ["testing_group", "Testing-Group", "testing-group"]
+)
+def test_create_poetry_with_self_referenced_dependency_groups(
+    include_group_name: str,
+    temporary_directory: Path,
+) -> None:
+    content = f"""\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.testing-group]
+include-groups = [
+    "{include_group_name}",
+]
+
+[tool.poetry.group.testing-group.dependencies]
+pytest = "*"
+pytest-cov ="*"
+"""
+
+    expected = """\
+The Poetry configuration is invalid:
+  - Cyclic dependency group include in testing-group: testing-group -> testing-group
+"""
+    assert_invalid_group_including(
+        toml_data=content,
+        expected_error=expected,
+        error_type=RuntimeError,
+        temporary_directory=temporary_directory,
+    )
+
+
+def test_create_poetry_with_direct_cyclic_dependency_groups(
+    temporary_directory: Path,
+) -> None:
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.testing]
+include-groups = [
+    "dev",
+]
+
+[tool.poetry.group.testing.dependencies]
+pytest = "*"
+pytest-cov ="*"
+
+[tool.poetry.group.dev]
+include-groups = [
+    "testing",
+]
+[tool.poetry.group.dev.dependencies]
+black = "*"
+"""
+
+    expected = """\
+The Poetry configuration is invalid:
+  - Cyclic dependency group include in testing: dev -> testing
+  - Cyclic dependency group include in dev: testing -> dev
+"""
+    assert_invalid_group_including(
+        toml_data=content,
+        expected_error=expected,
+        error_type=RuntimeError,
+        temporary_directory=temporary_directory,
+    )
+
+
+def test_create_poetry_with_indirect_full_cyclic_dependency_groups(
+    temporary_directory: Path,
+) -> None:
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.group_1]
+include-groups = [
+    "group_3",
+]
+
+[tool.poetry.group.group_1.dependencies]
+foo = "*"
+
+[tool.poetry.group.group_2]
+include-groups = [
+    "group_1",
+]
+[tool.poetry.group.group_2.dependencies]
+bar = "*"
+
+[tool.poetry.group.group_3]
+include-groups = [
+    "group_2",
+]
+[tool.poetry.group.group_3.dependencies]
+baz = "*"
+"""
+
+    expected = """\
+The Poetry configuration is invalid:
+  - Cyclic dependency group include in group-1: group-2 -> group-1
+  - Cyclic dependency group include in group-2: group-3 -> group-2
+  - Cyclic dependency group include in group-3: group-1 -> group-3
+"""
+    assert_invalid_group_including(
+        toml_data=content,
+        expected_error=expected,
+        error_type=RuntimeError,
+        temporary_directory=temporary_directory,
+    )
+
+
+def test_create_poetry_with_indirect_partial_cyclic_dependency_groups(
+    temporary_directory: Path,
+) -> None:
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.group_1]
+include-groups = [
+    "group_2",
+]
+
+[tool.poetry.group.group_1.dependencies]
+foo = "*"
+
+[tool.poetry.group.group_2]
+include-groups = [
+    "group_1",
+]
+[tool.poetry.group.group_2.dependencies]
+bar = "*"
+
+[tool.poetry.group.group_3]
+include-groups = [
+    "group_2",
+]
+[tool.poetry.group.group_3.dependencies]
+baz = "*"
+"""
+
+    expected = """\
+The Poetry configuration is invalid:
+  - Cyclic dependency group include in group-1: group-2 -> group-1
+  - Cyclic dependency group include in group-2: group-1 -> group-2
+  - Cyclic dependency group include in group-3: group-1 -> group-2
+"""
+    assert_invalid_group_including(
+        toml_data=content,
+        expected_error=expected,
+        error_type=RuntimeError,
+        temporary_directory=temporary_directory,
+    )
+
+
+def test_create_poetry_with_unknown_nested_dependency_groups(
+    temporary_directory: Path,
+) -> None:
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry.group.dev]
+include-groups = [
+    "testing",
+]
+[tool.poetry.group.dev.dependencies]
+black = "*"
+"""
+    expected = "Group 'dev' includes group 'testing' which is not defined."
+
+    assert_invalid_group_including(
+        toml_data=content,
+        expected_error=expected,
+        error_type=ValueError,
+        temporary_directory=temporary_directory,
+    )

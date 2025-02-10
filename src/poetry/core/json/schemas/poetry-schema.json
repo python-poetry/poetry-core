@@ -179,6 +179,13 @@
               "type": "boolean",
               "description": "Whether the dependency group is optional or not"
             },
+            "include-groups": {
+              "type": "array",
+              "description": "List of dependency group names included in this group.",
+              "items": {
+                "type": "string"
+              }
+            },
             "dependencies": {
               "type": "object",
               "description": "The dependencies of this dependency group",
