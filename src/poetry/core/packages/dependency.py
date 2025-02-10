@@ -73,7 +73,7 @@ class Dependency(PackageSpecification):
         if not groups:
             groups = [MAIN_GROUP]
 
-        self._groups = frozenset(canonicalize_name(g) for g in groups)
+        self.groups = frozenset(canonicalize_name(g) for g in groups)
         self._allows_prereleases = allows_prereleases
         # "_develop" is only required for enriching [project] dependencies
         self._develop = False
@@ -114,10 +114,6 @@ class Dependency(PackageSpecification):
     @property
     def pretty_name(self) -> str:
         return self._pretty_name
-
-    @property
-    def groups(self) -> frozenset[NormalizedName]:
-        return self._groups
 
     @property
     def python_versions(self) -> str:
@@ -330,6 +326,11 @@ class Dependency(PackageSpecification):
     def with_constraint(self: T, constraint: str | VersionConstraint) -> T:
         dependency = self.clone()
         dependency.constraint = constraint  # type: ignore[assignment]
+        return dependency
+
+    def with_groups(self, groups: Iterable[str]) -> Dependency:
+        dependency = self.clone()
+        dependency.groups = frozenset(canonicalize_name(g) for g in groups)
         return dependency
 
     @classmethod
