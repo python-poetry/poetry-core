@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "0 0 1 * *" # run once a month
 
+# we create the token we need later on
+permissions: {}
+
 jobs:
   update-licenses:
     runs-on: ubuntu-latest
