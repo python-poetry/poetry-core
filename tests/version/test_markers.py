@@ -412,6 +412,11 @@ def test_single_marker_union_is_any() -> None:
             'python_version >= "3.7"',
             'python_version >= "3.6"',
         ),
+        (
+            'python_version <= "3.6"',
+            'python_version >= "3.7"',
+            "",
+        ),
     ],
 )
 def test_single_marker_union_is_single_marker(
