@@ -1222,11 +1222,14 @@ def _merge_single_markers(
 
         elif isinstance(result_constraint, VersionUnion) and merge_class == MarkerUnion:
             # Convert 'python_version == "3.8" or python_version >= "3.9"'
-            # to 'python_version >= "3.8"'
+            # to 'python_version >= "3.8"'.
+            # Convert 'python_version <= "3.8" or python_version >= "3.9"' to "any".
             result_constraint = get_python_constraint_from_marker(marker1).union(
                 get_python_constraint_from_marker(marker2)
             )
-            if result_constraint.is_simple():
+            if result_constraint.is_any():
+                result_marker = AnyMarker()
+            elif result_constraint.is_simple():
                 result_marker = SingleMarker(marker1.name, result_constraint)
 
     return result_marker
