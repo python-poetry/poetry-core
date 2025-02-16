@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [2.1.1] - 2025-02-16
+
+### Fixed
+
+- Fix an issue where simplifying a `python_version` marker resulted in an invalid marker ([#838](https://github.com/python-poetry/poetry-core/pull/838)).
+
+
 ## [2.1.0] - 2025-02-15
 
 ### Added
@@ -738,7 +745,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.1.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.1.1...main
+[2.1.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.1
 [2.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.0
 [2.0.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.0.1
 [2.0.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.0.0
