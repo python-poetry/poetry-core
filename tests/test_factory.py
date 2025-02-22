@@ -742,7 +742,7 @@ def test_validate_dependencies_non_package_mode(with_project_section: bool) -> N
             (
                 "[tool.poetry.dependencies] is set but [project.dependencies] is "
                 "not and 'dependencies' is not in [project.dynamic]. You should "
-                "either migrate [tool.poetry.depencencies] to "
+                "either migrate [tool.poetry.dependencies] to "
                 "[project.dependencies] (if you do not need Poetry-specific "
                 "features) or add [project.dependencies] in addition to "
                 "[tool.poetry.dependencies] or add 'dependencies' to "
