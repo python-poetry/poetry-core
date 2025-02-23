@@ -667,3 +667,20 @@ def test_package_empty_python_versions() -> None:
 
     expected = "Python versions '~2.7, >=3.4, <3.8' on foo (1.2.3) is empty"
     assert str(exc_info.value) == expected
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_has_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    assert package_with_groups.has_dependency_group(group_name)
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_get_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    group = package_with_groups.dependency_group(group_name)
+
+    assert group.name == "optional"
+    assert group._original_name == "optional"
