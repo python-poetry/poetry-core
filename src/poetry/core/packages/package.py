@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import TypeVar
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -395,13 +397,13 @@ class Package(PackageSpecification):
         self._dependency_groups = groups
 
     def has_dependency_group(self, name: str) -> bool:
-        return name in self._dependency_groups
+        return canonicalize_name(name) in self._dependency_groups
 
     def dependency_group(self, name: str) -> DependencyGroup:
         if not self.has_dependency_group(name):
             raise ValueError(f'The dependency group "{name}" does not exist.')
 
-        return self._dependency_groups[name]
+        return self._dependency_groups[canonicalize_name(name)]
 
     def add_dependency(
         self,
