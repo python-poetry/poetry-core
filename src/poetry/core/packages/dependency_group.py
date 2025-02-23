@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.version.markers import parse_marker
 
 
@@ -17,7 +19,8 @@ class DependencyGroup:
     def __init__(
         self, name: str, *, optional: bool = False, mixed_dynamic: bool = False
     ) -> None:
-        self._name: str = name
+        self._name: str = canonicalize_name(name)
+        self._original_name: str = name
         self._optional: bool = optional
         self._mixed_dynamic = mixed_dynamic
         self._dependencies: list[Dependency] = []
