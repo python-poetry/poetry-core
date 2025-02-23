@@ -920,6 +920,11 @@ def test_intersect(
             UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
             EmptyConstraint(),
         ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
     ],
 )
 def test_intersect_extra(
