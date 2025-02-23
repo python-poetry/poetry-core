@@ -734,13 +734,13 @@ class MultiMarker(BaseMarker):
             if not shared_markers:
                 return None
 
-            unique_markers = our_markers - their_markers
-            other_unique_markers = their_markers - our_markers
+            # Do not use sets to create MultiMarkers for deterministic order!
+            unique_markers = [m for m in self.markers if m not in their_markers]
+            other_unique_markers = [m for m in other.markers if m not in our_markers]
             unique_union = MultiMarker(*unique_markers).union(
                 MultiMarker(*other_unique_markers)
             )
             if isinstance(unique_union, (SingleMarkerLike, AnyMarker)):
-                # Use list instead of set for deterministic order.
                 common_markers = [
                     marker for marker in self.markers if marker in shared_markers
                 ]
@@ -908,13 +908,13 @@ class MarkerUnion(BaseMarker):
             if not shared_markers:
                 return None
 
-            unique_markers = our_markers - their_markers
-            other_unique_markers = their_markers - our_markers
+            # Do not use sets to create MarkerUnions for deterministic order!
+            unique_markers = [m for m in self.markers if m not in their_markers]
+            other_unique_markers = [m for m in other.markers if m not in our_markers]
             unique_intersection = MarkerUnion(*unique_markers).intersect(
                 MarkerUnion(*other_unique_markers)
             )
             if isinstance(unique_intersection, (SingleMarkerLike, EmptyMarker)):
-                # Use list instead of set for deterministic order.
                 common_markers = [
                     marker for marker in self.markers if marker in shared_markers
                 ]
