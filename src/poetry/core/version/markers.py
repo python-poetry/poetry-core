@@ -456,6 +456,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
         self, python_constraint: VersionConstraint
     ) -> BaseMarker:
         if self.name in PYTHON_VERSION_MARKERS:
+            from poetry.core.packages.utils.utils import create_nested_marker
             from poetry.core.packages.utils.utils import (
                 get_python_constraint_from_marker,
             )
@@ -466,6 +467,13 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
                 return AnyMarker()
             elif not constraint.allows_any(python_constraint):
                 return EmptyMarker()
+
+            python_marker = parse_marker(
+                create_nested_marker("python_version", python_constraint)
+            )
+            intersection = self.intersect(python_marker)
+            if isinstance(intersection, SingleMarker):
+                return intersection
 
         return self
 

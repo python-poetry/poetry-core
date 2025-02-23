@@ -1495,6 +1495,11 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
         ('python_version > "3.8"', "~3.8", "<empty>"),
         ('python_version >= "3.8"', "~3.8", ""),
         ('python_version >= "3.9"', "~3.8", "<empty>"),
+        ('python_version == "3.9"', ">=3.9", 'python_version == "3.9"'),
+        ('python_version <= "3.9"', ">=3.9", 'python_version == "3.9"'),
+        ('python_version < "3.10"', ">=3.9", 'python_version == "3.9"'),
+        ('python_version <= "3.10"', ">=3.9", 'python_version <= "3.10"'),
+        ('python_version < "3.11"', ">=3.9", 'python_version < "3.11"'),
         ('python_full_version >= "3.8.0"', "~3.8", ""),
         ('python_full_version >= "3.8.1"', "~3.8", 'python_full_version >= "3.8.1"'),
         ('python_full_version < "3.8.0"', "~3.8", "<empty>"),
@@ -1519,7 +1524,7 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
         (
             'python_version < "3.8" or python_version >= "3.9"',
             ">=3.7",
-            'python_version < "3.8" or python_version >= "3.9"',
+            'python_version == "3.7" or python_version >= "3.9"',
         ),
         ('python_version < "3.8" or python_version >= "3.9"', "~3.7", ""),
         (
@@ -1539,7 +1544,7 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
         (
             'python_version < "3.8" or python_version >= "3.9"',
             "~3.6 || ~3.8",
-            'python_version < "3.8"',
+            'python_version == "3.6"',
         ),
         (
             (
