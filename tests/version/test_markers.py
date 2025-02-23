@@ -357,6 +357,16 @@ def test_single_marker_not_in_python_intersection() -> None:
             'extra == "a" or extra == "c"',
             'extra == "c" and extra != "a" and extra != "b"',
         ),
+        (
+            'extra == "a" and extra == "b"',
+            'extra == "a" or extra == "b"',
+            'extra == "a" and extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b"',
+        ),
     ],
 )
 def test_single_marker_intersect_extras(

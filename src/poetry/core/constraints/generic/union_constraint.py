@@ -77,14 +77,26 @@ class UnionConstraint(BaseConstraint):
             other = UnionConstraint(other)
 
         new_constraints = []
+        seen_multi_constraints = set()
+
+        def add_unseen_constraint(constraint: BaseConstraint) -> None:
+            if not (
+                constraint.is_empty()
+                or constraint in new_constraints
+                or (
+                    isinstance(constraint, MultiConstraint)
+                    and frozenset(constraint.constraints) in seen_multi_constraints
+                )
+            ):
+                new_constraints.append(constraint)
+                if isinstance(constraint, MultiConstraint):
+                    seen_multi_constraints.add(frozenset(constraint.constraints))
+
         if isinstance(other, UnionConstraint):
             # (A or B) and (C or D) => (A and C) or (A and D) or (B and C) or (B and D)
             for our_constraint in self._constraints:
                 for their_constraint in other.constraints:
-                    intersection = our_constraint.intersect(their_constraint)
-
-                    if not (intersection.is_empty() or intersection in new_constraints):
-                        new_constraints.append(intersection)
+                    add_unseen_constraint(our_constraint.intersect(their_constraint))
 
         else:
             assert isinstance(other, MultiConstraint)
@@ -94,9 +106,7 @@ class UnionConstraint(BaseConstraint):
                 intersection = our_constraint
                 for their_constraint in other.constraints:
                     intersection = intersection.intersect(their_constraint)
-
-                if not (intersection.is_empty() or intersection in new_constraints):
-                    new_constraints.append(intersection)
+                add_unseen_constraint(intersection)
 
         if not new_constraints:
             return EmptyConstraint()
