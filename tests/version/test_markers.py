@@ -2154,6 +2154,35 @@ def test_complex_intersection() -> None:
     )
 
 
+def test_complex_union_is_deterministic() -> None:
+    """
+    This test might fail sporadically if marker operations are not deterministic!
+    """
+    m1 = parse_marker(
+        'sys_platform != "darwin" and python_version >= "3.12"'
+        ' and platform_system != "Emscripten" and (python_version < "4.0"'
+        ' and sys_platform == "linux" and extra == "stretch"'
+        ' or platform_system == "Windows" or extra == "test"'
+        ' and sys_platform == "win32")'
+    )
+    m2 = parse_marker(
+        'sys_platform == "linux" and python_version >= "3.12"'
+        ' and platform_system == "Emscripten" and python_version < "4.0"'
+        ' and extra == "stretch" or sys_platform == "win32"'
+        ' and python_version >= "3.12" and platform_system == "Emscripten"'
+        ' and extra == "test"'
+    )
+    assert str(m1.union(m2)) == (
+        'python_version >= "3.12" and platform_system == "Windows"'
+        ' and sys_platform != "darwin" or sys_platform == "linux"'
+        ' and python_version >= "3.12" and python_version < "4.0"'
+        ' and extra == "stretch" or python_version >= "3.12" and python_version < "4.0"'
+        ' and extra == "stretch" and extra == "test" and (sys_platform == "linux"'
+        ' or sys_platform == "win32") or sys_platform == "win32"'
+        ' and python_version >= "3.12" and extra == "test"'
+    )
+
+
 def test_union_avoids_combinatorial_explosion() -> None:
     """
     combinatorial explosion without AtomicMultiMarker and AtomicMarkerUnion
