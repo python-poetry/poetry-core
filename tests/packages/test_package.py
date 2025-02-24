@@ -684,3 +684,21 @@ def test_package_get_dependency_group(
 
     assert group.name == "optional"
     assert group._original_name == "optional"
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_add_to_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    dependency = Dependency("foo-bar", "^1.0.0", groups=[group_name])
+
+    assert dependency not in package_with_groups.all_requires
+    assert (
+        dependency
+        not in package_with_groups._dependency_groups["optional"].dependencies
+    )
+
+    package_with_groups.add_dependency(dependency)
+
+    assert dependency in package_with_groups.all_requires
+    assert dependency in package_with_groups._dependency_groups["optional"].dependencies

@@ -412,11 +412,11 @@ class Package(PackageSpecification):
         from poetry.core.packages.dependency_group import DependencyGroup
 
         for group_name in dependency.groups:
-            if group_name not in self._dependency_groups:
+            if not self.has_dependency_group(group_name):
                 # Dynamically add the dependency group
                 self.add_dependency_group(DependencyGroup(group_name))
 
-            self._dependency_groups[group_name].add_dependency(dependency)
+            self.dependency_group(group_name).add_dependency(dependency)
 
         return dependency
 
