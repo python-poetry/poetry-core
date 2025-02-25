@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import TypeVar
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -425,10 +427,11 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
+        canonicalized_groups = {canonicalize_name(group) for group in groups}
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name not in groups
+            if group_name not in canonicalized_groups
         }
 
         package = self.clone()
