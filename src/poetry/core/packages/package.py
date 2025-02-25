@@ -424,10 +424,11 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
+        canonicalized_groups = {canonicalize_name(group) for group in groups}
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name not in groups
+            if group_name not in canonicalized_groups
         }
 
         package = self.clone()
