@@ -505,6 +505,15 @@ def test_with_dependency_groups(package_with_groups: Package) -> None:
     assert len(package.all_requires) == 4
 
 
+def test_with_dependency_groups_ensure_canonicalize_names_are_used(
+    package_with_groups: Package,
+) -> None:
+    package = package_with_groups.with_dependency_groups(["OpTioNal"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 4
+
+
 def test_without_optional_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.without_optional_dependency_groups()
 
