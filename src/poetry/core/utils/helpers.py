@@ -7,11 +7,14 @@ import tempfile
 import time
 import unicodedata
 
+from collections import UserDict
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import TypeVar
 
+from packaging.utils import NormalizedName
 from packaging.utils import canonicalize_name
 
 
@@ -124,3 +127,29 @@ def readme_content_type(path: str | Path) -> str:
         return "text/markdown"
     else:
         return "text/plain"
+
+
+_VT = TypeVar("_VT")
+
+
+class CanonicalizedDict(UserDict[NormalizedName, _VT]):
+    """Represent a dictionary that canonicalizes string keys.
+
+    This specialized dictionary ensures that string keys are stored
+    and looked up in their canonicalized form.
+    """
+
+    def __setitem__(self, key: str, value: _VT) -> None:
+        self.data[canonicalize_name(key)] = value
+
+    def __getitem__(self, key: str) -> _VT:
+        return self.data[canonicalize_name(key)]
+
+    def __delitem__(self, key: str) -> None:
+        del self.data[canonicalize_name(key)]
+
+    def __contains__(self, key: object) -> bool:
+        if isinstance(key, str):
+            return canonicalize_name(key) in self.data
+
+        return False

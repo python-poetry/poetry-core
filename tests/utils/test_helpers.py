@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from stat import S_IREAD
 from typing import TYPE_CHECKING
+from typing import Any
 
 import pytest
 
@@ -13,6 +14,7 @@ import pytest
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
+from poetry.core.utils.helpers import CanonicalizedDict
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import parse_requires
 from poetry.core.utils.helpers import readme_content_type
@@ -234,3 +236,31 @@ def test_robust_rmtree(mocker: MockerFixture) -> None:
     # use the real method to remove the temp folder we created for this test
     robust_rmtree(name)
     assert not Path(name).exists()
+
+
+def test_canonicalized_dict() -> None:
+    groups: CanonicalizedDict[Any] = CanonicalizedDict()
+
+    # add item
+    groups["FoO"] = "bar"
+
+    # get item
+    assert groups["foo"] == "bar"
+    assert groups["FoO"] == "bar"
+
+    # contains item
+    assert "foo" in groups
+    assert "Foo" in groups
+
+    # ensure canonicalized name is used during update
+    groups["foo"] = "baz"
+    assert groups["foo"] == "baz"
+    assert groups["FoO"] == "baz"
+    assert "foo" in groups
+    assert "Foo" in groups
+
+    # delete item
+    del groups["Foo"]
+
+    assert "foo" not in groups
+    assert "Foo" not in groups
