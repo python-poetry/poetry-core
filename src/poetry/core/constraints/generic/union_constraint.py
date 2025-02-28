@@ -165,8 +165,11 @@ class UnionConstraint(BaseConstraint):
 
         else:
             assert isinstance(other, MultiConstraint)
-            # (A or B) or (C and D) => nothing to do
+            # (A or B) or (A and D) => A or B
+            if any(c in other.constraints for c in self._constraints):
+                return self
 
+            # (A or B) or (C and D) => nothing to do
             new_constraints = [*self._constraints, other]
 
         if len(new_constraints) == 1:

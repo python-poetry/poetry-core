@@ -668,6 +668,16 @@ def test_single_marker_union_with_inverse() -> None:
             'extra == "a" or extra == "c"',
             'extra != "a" and extra != "b" or extra == "a" or extra == "c"',
         ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" and extra == "c"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" and extra == "c"',
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b"',
+        ),
     ],
 )
 def test_single_marker_union_extras(marker1: str, marker2: str, expected: str) -> None:

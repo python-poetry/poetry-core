@@ -1580,6 +1580,11 @@ def test_union(
                 ),
             ),
         ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra3")),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
     ],
 )
 def test_union_extra(
