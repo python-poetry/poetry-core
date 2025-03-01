@@ -93,6 +93,16 @@ class UnionConstraint(BaseConstraint):
                     seen_multi_constraints.add(frozenset(constraint.constraints))
 
         if isinstance(other, UnionConstraint):
+            # (A or B) and (A or B or C) => A or B
+            our_constraints = set(self._constraints)
+            their_constraints = set(other.constraints)
+            if our_constraints.issubset(their_constraints):
+                return self
+            if their_constraints.issubset(our_constraints):
+                if len(other.constraints) == 1:
+                    return other.constraints[0]
+                return other
+
             # (A or B) and (C or D) => (A and C) or (A and D) or (B and C) or (B and D)
             for our_constraint in self._constraints:
                 for their_constraint in other.constraints:
@@ -101,7 +111,7 @@ class UnionConstraint(BaseConstraint):
         else:
             assert isinstance(other, MultiConstraint)
             # (A or B) and (C and D) => (A and C and D) or (B and C and D)
-
+            # (A or B) and (A and D) => A and D
             for our_constraint in self._constraints:
                 intersection = our_constraint
                 for their_constraint in other.constraints:
