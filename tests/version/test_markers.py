@@ -1507,7 +1507,7 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
         ("", "~3.8", ""),
         ("<empty>", "~3.8", "<empty>"),
         ('sys_platform == "linux"', "~3.8", 'sys_platform == "linux"'),
-        ('python_version >= "3.8"', "~3.8", ""),
+        ('python_version == "3.8"', "~3.8", ""),
         ('python_version == "3.8"', ">=3.8.7,<3.9.0", ""),
         ('python_version == "3.8" or python_version >= "3.9"', ">=3.8.0,<4.0.0", ""),
         ('python_version == "3.8" or python_version >= "3.9"', ">=3.8.7,<4.0.0", ""),
@@ -1553,6 +1553,11 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
             'python_version < "3.8" or python_version >= "3.9"',
         ),
         (
+            'python_version == "3.8" or sys_platform == "linux"',
+            "~3.8",
+            "",
+        ),
+        (
             (
                 'python_version < "3.8"'
                 ' or python_version >= "3.9" and sys_platform == "linux"'
@@ -1572,7 +1577,7 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
                 ' or python_version >= "3.9"'
             ),
             "~3.7 || ~3.9",
-            'sys_platform == "linux"',
+            "",
         ),
         (
             (
@@ -1580,17 +1585,12 @@ def test_only(marker: str, only: list[str], expected: str) -> None:
                 ' or python_version >= "3.9" or sys_platform == "win32"'
             ),
             "~3.7 || ~3.9",
-            'sys_platform == "linux" or sys_platform == "win32"',
+            "",
         ),
         (
-            'python_version == "3.8" or sys_platform == "linux" or python_version >= "3.9"',
-            ">=3.8.0,<4.0.0",
-            'sys_platform == "linux"',
-        ),
-        (
-            'python_version == "3.8" or sys_platform == "linux" or python_version >= "3.9"',
-            ">=3.8.7,<4.0.0",
-            'sys_platform == "linux"',
+            '(python_version == "3.8" or platform_system == "Linux") and sys_platform == "darwin"',
+            "~3.8",
+            'sys_platform == "darwin"',
         ),
     ],
 )
