@@ -965,9 +965,7 @@ class MarkerUnion(BaseMarker):
             if get_python_constraint_from_marker(
                 self.of(*python_only_markers)
             ).allows_all(python_constraint):
-                if not other_markers:
-                    return AnyMarker()
-                markers = other_markers
+                return AnyMarker()
 
         return self.of(
             *(m.reduce_by_python_constraint(python_constraint) for m in markers)
