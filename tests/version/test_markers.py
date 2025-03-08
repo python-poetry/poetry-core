@@ -172,6 +172,22 @@ def test_single_marker_intersect() -> None:
 
 
 @pytest.mark.parametrize(
+    ("marker1", "marker2"),
+    [
+        ('sys_platform == "win32"', 'sys_platform == "linux"'),
+        ('sys_platform != "win32"', 'sys_platform == "win32"'),
+        ('python_version >= "3.6"', 'python_version < "3.6"'),
+        ('python_version == "3.6"', 'python_version == "3.7"'),
+        ('python_version > "3.6"', 'python_version <= "3.6"'),
+        ('python_version >= "3.6"', 'python_version < "3.6"'),
+        ('python_version > "3.6"', 'python_version < "3.7"'),
+    ],
+)
+def test_single_marker_intersect_is_empty(marker1: str, marker2: str) -> None:
+    assert parse_marker(marker1).intersect(parse_marker(marker2)).is_empty()
+
+
+@pytest.mark.parametrize(
     ("marker1", "marker2", "expected"),
     [
         ('python_version < "3.6"', 'python_version < "3.4"', 'python_version < "3.4"'),
@@ -851,11 +867,6 @@ def test_multi_marker_union_multi_is_multi(
             'python_version >= "3.6" and python_full_version < "3.7.2"',
             'python_version >= "3.6" and python_version < "3.8"',
             'python_version >= "3.6" and python_version < "3.8"',
-        ),
-        (
-            'python_version > "3.6" and python_full_version < "3.6.2"',
-            'python_version > "3.6" and python_version < "3.7"',
-            'python_version > "3.6" and python_version < "3.7"',
         ),
         (
             'python_version > "3.6" and python_full_version < "3.7.2"',
@@ -2260,7 +2271,7 @@ def test_intersection_no_endless_recursion() -> None:
         ' and extra != "postgis"'
     )
     m2 = parse_marker(
-        'python_version > "3.12" and python_version < "3.13" or extra != "databricks"'
+        'python_version >= "3.12" and python_version < "3.13" or extra != "databricks"'
     )
     expected = (
         '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
@@ -2268,8 +2279,8 @@ def test_intersection_no_endless_recursion() -> None:
         ' and extra != "clickhouse" and extra != "dremio" and extra != "lancedb"'
         ' and extra != "deltalake" and extra != "pyiceberg")'
         ' and python_version < "3.13" and extra != "postgres" and extra != "redshift"'
-        ' and extra != "postgis" and (python_version > "3.12"'
-        ' and python_version < "3.13" or extra != "databricks")'
+        ' and extra != "postgis"'
+        ' and (python_version == "3.12" or extra != "databricks")'
     )
     assert str(m1.intersect(m2)) == expected
 
