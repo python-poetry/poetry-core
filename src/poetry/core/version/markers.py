@@ -1231,12 +1231,20 @@ def _merge_single_markers(
     elif marker1.name == "python_version":
         from poetry.core.packages.utils.utils import get_python_constraint_from_marker
 
-        if isinstance(result_constraint, VersionRange) and result_constraint.min:
-            # Convert 'python_version >= "3.8" and python_version < "3.9"'
-            # to 'python_version == "3.8"'
-            candidate = parse_marker(f'{marker1.name} == "{result_constraint.min}"')
-            if get_python_constraint_from_marker(candidate) == result_constraint:
-                result_marker = candidate
+        if isinstance(result_constraint, VersionRange) and merge_class == MultiMarker:
+            if result_constraint.min:
+                # Convert 'python_version >= "3.8" and python_version < "3.9"'
+                # to 'python_version == "3.8"'.
+                candidate = parse_marker(f'{marker1.name} == "{result_constraint.min}"')
+                if get_python_constraint_from_marker(candidate) == result_constraint:
+                    result_marker = candidate
+            if result_marker is None:
+                # Detect 'python_version > "3.8" and python_version < "3.9"' as empty.
+                result_constraint = get_python_constraint_from_marker(
+                    marker1
+                ).intersect(get_python_constraint_from_marker(marker2))
+                if result_constraint.is_empty():
+                    result_marker = EmptyMarker()
 
         elif isinstance(result_constraint, VersionUnion) and merge_class == MarkerUnion:
             # Convert 'python_version == "3.8" or python_version >= "3.9"'
