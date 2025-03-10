@@ -92,16 +92,22 @@ class Builder:
     def build(self, target_dir: Path | None) -> Path:
         raise NotImplementedError
 
-    def _get_ignored_files(self, vcs_ignored_files: set[str], explicitly_excluded: set[str], explicitly_included: set[str]) -> set[str]:
+    def _get_ignored_files(
+        self,
+        vcs_ignored_files: set[str],
+        explicitly_excluded: set[str],
+        explicitly_included: set[str],
+    ) -> set[str]:
         """
         Returns the set of ignored files based on:
         - vcs_ignored_files: files or directories ignored by the version control system,
         - explicitly_excluded: files explicitly marked for exclusion,
         - explicitly_included: files or directories explicitly marked for inclusion.
-        
+
         If a directory is explicitly included, all files and subdirectories within it
         will not be ignored even if they appear in vcs_ignored_files.
         """
+
         def is_explicitly_included(path_str: str, explicitly_included: set[str]):
             path = Path(path_str).resolve(strict=False)
             for inc in explicitly_included:
@@ -116,8 +122,12 @@ class Builder:
             return False
 
         candidates = vcs_ignored_files | explicitly_excluded
-        
-        ignored = {path for path in candidates if not is_explicitly_included(path, explicitly_included)}
+
+        ignored = {
+            path
+            for path in candidates
+            if not is_explicitly_included(path, explicitly_included)
+        }
         return ignored
 
     def find_excluded_files(self, fmt: str | None = None) -> set[str]:
@@ -143,7 +153,9 @@ class Builder:
                 for included in inc.elements:
                     explicitly_included.add(included.relative_to(self._path).as_posix())
 
-            ignored = self._get_ignored_files(vcs_ignored_files, explicitly_excluded, explicitly_included)
+            ignored = self._get_ignored_files(
+                vcs_ignored_files, explicitly_excluded, explicitly_included
+            )
             for ignored_file in ignored:
                 logger.debug(f"Ignoring: {ignored_file}")
 
