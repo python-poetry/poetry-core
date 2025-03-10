@@ -108,7 +108,7 @@ class Builder:
         will not be ignored even if they appear in vcs_ignored_files.
         """
 
-        def is_explicitly_included(path_str: str, explicitly_included: set[str]):
+        def is_explicitly_included(path_str: str, explicitly_included: set[str]) -> bool:
             path = Path(path_str).resolve(strict=False)
             for inc in explicitly_included:
                 inc_path = Path(inc).resolve(strict=False)
