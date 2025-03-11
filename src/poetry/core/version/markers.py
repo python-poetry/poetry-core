@@ -659,24 +659,30 @@ class MultiMarker(BaseMarker):
 
                 intersected = False
                 for i, mark in enumerate(new_markers):
+                    # If we have a MarkerUnion then we can look for the simplifications
+                    # implemented in intersect_simplify().
+                    intersection: BaseMarker | None = None
+                    is_one_union = False
+                    if isinstance(mark, MarkerUnion):
+                        is_one_union = True
+                        intersection = mark.intersect_simplify(marker)
+                    elif isinstance(marker, MarkerUnion):
+                        is_one_union = True
+                        intersection = marker.intersect_simplify(mark)
+                    if intersection is not None:
+                        new_markers[i] = intersection
+                        intersected = True
+                        break
+
                     # If we have a SingleMarker then with any luck after intersection
                     # it'll become another SingleMarker.
-                    if isinstance(mark, SingleMarkerLike):
+                    if not is_one_union and isinstance(mark, SingleMarkerLike):
                         new_marker = mark.intersect(marker)
                         if new_marker.is_empty():
                             return EmptyMarker()
 
                         if isinstance(new_marker, SingleMarkerLike):
                             new_markers[i] = new_marker
-                            intersected = True
-                            break
-
-                    # If we have a MarkerUnion then we can look for the simplifications
-                    # implemented in intersect_simplify().
-                    elif isinstance(mark, MarkerUnion):
-                        intersection = mark.intersect_simplify(marker)
-                        if intersection is not None:
-                            new_markers[i] = intersection
                             intersected = True
                             break
 
@@ -833,24 +839,30 @@ class MarkerUnion(BaseMarker):
 
                 included = False
                 for i, mark in enumerate(new_markers):
+                    # If we have a MultiMarker then we can look for the simplifications
+                    # implemented in union_simplify().
+                    union_: BaseMarker | None = None
+                    is_one_multi = False
+                    if isinstance(mark, MultiMarker):
+                        is_one_multi = True
+                        union_ = mark.union_simplify(marker)
+                    elif isinstance(marker, MultiMarker):
+                        is_one_multi = True
+                        union_ = marker.union_simplify(mark)
+                    if union_ is not None:
+                        new_markers[i] = union_
+                        included = True
+                        break
+
                     # If we have a SingleMarker then with any luck after union it'll
                     # become another SingleMarker.
-                    if isinstance(mark, SingleMarkerLike):
+                    if not is_one_multi and isinstance(mark, SingleMarkerLike):
                         new_marker = mark.union(marker)
                         if new_marker.is_any():
                             return AnyMarker()
 
                         if isinstance(new_marker, SingleMarkerLike):
                             new_markers[i] = new_marker
-                            included = True
-                            break
-
-                    # If we have a MultiMarker then we can look for the simplifications
-                    # implemented in union_simplify().
-                    elif isinstance(mark, MultiMarker):
-                        union = mark.union_simplify(marker)
-                        if union is not None:
-                            new_markers[i] = union
                             included = True
                             break
 
