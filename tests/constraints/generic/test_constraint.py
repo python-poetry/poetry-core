@@ -812,6 +812,15 @@ def test_intersect(
         ),
         (
             UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraConstraint("extra3"),
+            ),
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
             UnionConstraint(ExtraConstraint("extra2"), ExtraConstraint("extra1")),
             (
                 UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
@@ -1530,6 +1539,15 @@ def test_union(
         (
             ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
             ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+        ),
+        (
+            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraConstraint("extra3"),
+            ),
             ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
         ),
         (

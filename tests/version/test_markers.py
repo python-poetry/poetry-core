@@ -314,6 +314,16 @@ def test_single_marker_not_in_python_intersection() -> None:
         ),
         (
             'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b" and extra == "c"',
+            'extra == "a" and extra == "b" and extra == "c"',
+        ),
+        (
+            'extra == "a" and extra == "b" and extra == "c" and extra == "d"',
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b" and extra == "c" and extra == "d"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
             'extra == "c" and extra != "d"',
             'extra == "a" and extra == "b" and extra == "c" and extra != "d"',
         ),
@@ -355,6 +365,16 @@ def test_single_marker_not_in_python_intersection() -> None:
         (
             'extra == "a" or extra == "b"',
             'extra == "b" or extra == "a"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b" or extra == "c"',
+            'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b" or extra == "c" or extra == "d"',
+            'extra == "a" or extra == "b"',
             'extra == "a" or extra == "b"',
         ),
         (
@@ -614,6 +634,16 @@ def test_single_marker_union_with_inverse() -> None:
         ),
         (
             'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b" and extra == "c"',
+            'extra == "a" and extra == "b"',
+        ),
+        (
+            'extra == "a" and extra == "b" and extra == "c" and extra == "d"',
+            'extra == "a" and extra == "b"',
+            'extra == "a" and extra == "b"',
+        ),
+        (
+            'extra == "a" and extra == "b"',
             'extra == "c" and extra != "d"',
             'extra == "a" and extra == "b" or extra == "c" and extra != "d"',
         ),
@@ -667,6 +697,16 @@ def test_single_marker_union_with_inverse() -> None:
             'extra == "a" or extra == "b"',
             'extra == "a" or extra == "b"',
             'extra == "a" or extra == "b"',
+        ),
+        (
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b" or extra == "c"',
+            'extra == "a" or extra == "b" or extra == "c"',
+        ),
+        (
+            'extra == "a" or extra == "b" or extra == "c" or extra == "d"',
+            'extra == "a" or extra == "b"',
+            'extra == "a" or extra == "b" or extra == "c" or extra == "d"',
         ),
         (
             'extra == "a" or extra == "b"',

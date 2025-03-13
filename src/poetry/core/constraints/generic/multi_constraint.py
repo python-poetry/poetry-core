@@ -145,8 +145,12 @@ class ExtraMultiConstraint(MultiConstraint):
         from poetry.core.constraints.generic import UnionConstraint
 
         if isinstance(other, MultiConstraint):
-            if set(other.constraints) == set(self._constraints):
+            our_constraints = set(self._constraints)
+            their_constraints = set(other.constraints)
+            if our_constraints.issubset(their_constraints):
                 return self
+            if their_constraints.issubset(our_constraints):
+                return other
             return UnionConstraint(self, other)
 
         if isinstance(other, Constraint):
