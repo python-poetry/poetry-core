@@ -46,7 +46,7 @@ from poetry.core.version.markers import parse_marker
         ),
         (
             'python_version == "2.7" or python_version == "2.6"',
-            {"python_version": [[("==", "2.7")], [("==", "2.6")]]},
+            {"python_version": [[(">=", "2.6"), ("<", "2.8")]]},
         ),
         (
             (
