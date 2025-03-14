@@ -73,8 +73,8 @@ def test_dependency_from_pep_508_with_python_version() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == "~2.7 || ~2.6"
-    assert str(dep.marker) == 'python_version == "2.7" or python_version == "2.6"'
+    assert dep.python_versions == ">=2.6 <2.8"
+    assert str(dep.marker) == 'python_version >= "2.6" and python_version < "2.8"'
 
 
 def test_dependency_from_pep_508_with_single_python_version() -> None:
