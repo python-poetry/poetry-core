@@ -1129,31 +1129,21 @@ def test_multi_marker_union_multi_is_multi(
                 ' and platform_machine == "aarch64"'
             ),
             (
-                (
-                    'python_version >= "3.6" and python_version < "3.10"'
-                    ' and platform_system == "Linux" and platform_machine == "aarch64"'
-                    ' or python_version == "3.9" and platform_system != "Darwin"'
-                    ' or python_version == "3.9" and platform_machine != "arm64"'
-                ),
-                (
-                    'python_version >= "3.6" and python_version < "3.10"'
-                    ' and platform_system == "Linux" and platform_machine == "aarch64"'
-                    ' or python_version == "3.9" and platform_machine != "arm64"'
-                    ' or python_version == "3.9" and platform_system != "Darwin"'
-                ),
+                'python_version >= "3.6" and python_version < "3.10"'
+                ' and platform_system == "Linux" and platform_machine == "aarch64"'
+                ' or python_version == "3.9" and platform_machine != "arm64"'
+                ' or python_version == "3.9" and platform_system != "Darwin"'
             ),
         ),
     ],
 )
 def test_version_ranges_collapse_on_union(
-    marker1: str, marker2: str, expected: str | tuple[str, str]
+    marker1: str, marker2: str, expected: str
 ) -> None:
     m1 = parse_marker(marker1)
     m2 = parse_marker(marker2)
-    if isinstance(expected, str):
-        expected = (expected, expected)
-    assert str(m1.union(m2)) == expected[0]
-    assert str(m2.union(m1)) == expected[1]
+    assert str(m1.union(m2)) == expected
+    assert str(m2.union(m1)) == expected
 
 
 def test_multi_marker_union_with_union() -> None:
@@ -2365,6 +2355,44 @@ def test_complex_intersection() -> None:
         str(dnf(intersection(*markers).invert()))
         == 'platform_system == "Darwin" and platform_machine == "arm64"'
         ' and python_version >= "3.6" or python_version >= "3.10"'
+    )
+
+
+def test_complex_intersection_with_itertools_product_duplicates() -> None:
+    """
+    Real-world example from https://github.com/python-poetry/poetry/issues/10250.
+    (Only occurs if the solver takes an unfortunate path.)
+    Takes a long time without filtering duplicates from the itertools.product()
+    in cnf/dnf early.
+    """
+    m1 = parse_marker(
+        '(python_version > "3.9" or platform_system != "Windows"'
+        ' or platform_machine != "x86") and (python_version != "3.10"'
+        ' or platform_system != "Windows" or platform_python_implementation == "PyPy")'
+    )
+    m2 = parse_marker(
+        '(platform_system != "Windows" or platform_machine != "x86"'
+        ' or python_version >= "3.10" and python_version < "3.12")'
+        ' and (sys_platform != "darwin" or platform_machine != "arm64")'
+        ' and python_version <= "3.11" and (platform_system != "Windows"'
+        ' or platform_python_implementation == "PyPy" or python_version == "3.9"'
+        ' or python_version == "3.11") and python_version >= "3.9"'
+        ' and (platform_system != "Windows" or platform_python_implementation == "PyPy"'
+        ' or platform_machine != "x86" or python_version == "3.11")'
+    )
+
+    assert str(m1.intersect(m2)) == (
+        '(python_version > "3.9" or platform_system != "Windows"'
+        ' or platform_machine != "x86") and (python_version != "3.10"'
+        ' or platform_system != "Windows" or platform_python_implementation == "PyPy")'
+        ' and (platform_system != "Windows" or platform_machine != "x86"'
+        ' or python_version >= "3.10") and python_version <= "3.11"'
+        ' and (sys_platform != "darwin" or platform_machine != "arm64") and'
+        ' (platform_system != "Windows" or platform_python_implementation == "PyPy"'
+        ' or python_version == "3.9" or python_version == "3.11")'
+        ' and python_version >= "3.9" and (platform_system != "Windows"'
+        ' or platform_python_implementation == "PyPy" or platform_machine != "x86"'
+        ' or python_version == "3.11")'
     )
 
 

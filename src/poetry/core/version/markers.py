@@ -33,7 +33,9 @@ from poetry.core.version.parser import Parser
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Iterable
+    from collections.abc import Iterator
     from collections.abc import Mapping
+    from collections.abc import Sequence
 
     from lark import Tree
 
@@ -1125,7 +1127,7 @@ def cnf(marker: BaseMarker) -> BaseMarker:
             m.markers if isinstance(m, MultiMarker) else [m] for m in cnf_markers
         ]
         return MultiMarker.of(
-            *[MarkerUnion.of(*c) for c in itertools.product(*sub_marker_lists)]
+            *[MarkerUnion.of(*c) for c in _unique_product(*sub_marker_lists)]
         )
 
     if isinstance(marker, MultiMarker):
@@ -1143,7 +1145,7 @@ def dnf(marker: BaseMarker) -> BaseMarker:
             m.markers if isinstance(m, MarkerUnion) else [m] for m in dnf_markers
         ]
         return MarkerUnion.of(
-            *[MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)]
+            *[MultiMarker.of(*c) for c in _unique_product(*sub_marker_lists)]
         )
 
     if isinstance(marker, MarkerUnion):
@@ -1223,6 +1225,21 @@ def union(*markers: BaseMarker) -> BaseMarker:
         candidates = [disjunction, conjunction, unnormalized]
 
     return min(*candidates, key=lambda x: x.complexity)
+
+
+def _unique_product(
+    *sub_marker_lists: Sequence[BaseMarker],
+) -> Iterator[Sequence[BaseMarker]]:
+    """
+    Returns an itertools.product of the sub_marker_lists
+    without duplicates (and equivalents) removed while maintaining order.
+    """
+    unique_sets = set()
+    for sub_marker_list in itertools.product(*sub_marker_lists):
+        sub_marker_set = frozenset(sub_marker_list)
+        if sub_marker_set not in unique_sets:
+            unique_sets.add(sub_marker_set)
+            yield sub_marker_list
 
 
 @functools.cache
