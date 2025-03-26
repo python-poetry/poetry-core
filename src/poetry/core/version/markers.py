@@ -33,7 +33,9 @@ from poetry.core.version.parser import Parser
 if TYPE_CHECKING:
     from collections.abc import Callable
     from collections.abc import Iterable
+    from collections.abc import Iterator
     from collections.abc import Mapping
+    from collections.abc import Sequence
 
     from lark import Tree
 
@@ -723,8 +725,20 @@ class MultiMarker(BaseMarker):
             - union between two multimarkers where there are some common markers
               and the union of unique markers is a single marker
         """
+        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+
         if other in self._markers:
             return other
+
+        if isinstance(other, SingleMarker) and other.name in PYTHON_VERSION_MARKERS:
+            # Convert 'python_version >= "3.8" and sys_platform == "linux" or python_version > "3.6"'
+            # to 'python_version > "3.6"'
+            for m in self._markers:
+                if isinstance(m, SingleMarker) and m.name in PYTHON_VERSION_MARKERS:
+                    constraint = get_python_constraint_from_marker(m)
+                    other_constraint = get_python_constraint_from_marker(other)
+                    if other_constraint.allows_all(constraint):
+                        return other
 
         if isinstance(other, MultiMarker):
             our_markers = set(self.markers)
@@ -746,7 +760,13 @@ class MultiMarker(BaseMarker):
             unique_union = MultiMarker(*unique_markers).union(
                 MultiMarker(*other_unique_markers)
             )
-            if isinstance(unique_union, (SingleMarkerLike, AnyMarker)):
+            if isinstance(unique_union, (SingleMarkerLike, AnyMarker)) or (
+                # Convert 'python_version >= "3.8" and python_version < "3.10"
+                # or python_version >= "3.10" and python_version < "3.12"'
+                # to 'python_version >= "3.6" and python_version < "3.12"'
+                isinstance(unique_union, MultiMarker)
+                and unique_union.complexity <= (2, 2)
+            ):
                 common_markers = [
                     marker for marker in self.markers if marker in shared_markers
                 ]
@@ -856,12 +876,19 @@ class MarkerUnion(BaseMarker):
 
                     # If we have a SingleMarker then with any luck after union it'll
                     # become another SingleMarker.
+                    # Especially, for `python_version` markers a multi marker is also
+                    # an improvement. E.g. the union of 'python_version == "3.6"' and
+                    # 'python_version == "3.7" or python_version == "3.8"' is
+                    # 'python_version >= "3.6" and python_version < "3.9"'.
                     if not is_one_multi and isinstance(mark, SingleMarkerLike):
                         new_marker = mark.union(marker)
                         if new_marker.is_any():
                             return AnyMarker()
 
-                        if isinstance(new_marker, SingleMarkerLike):
+                        if isinstance(new_marker, SingleMarkerLike) or (
+                            isinstance(new_marker, MultiMarker)
+                            and new_marker.complexity <= (2, 2)
+                        ):
                             new_markers[i] = new_marker
                             included = True
                             break
@@ -903,8 +930,20 @@ class MarkerUnion(BaseMarker):
             - intersection between two markerunions where there are some common markers
               and the intersection of unique markers is not a single marker
         """
+        from poetry.core.packages.utils.utils import get_python_constraint_from_marker
+
         if other in self._markers:
             return other
+
+        if isinstance(other, SingleMarker) and other.name in PYTHON_VERSION_MARKERS:
+            # Convert '(python_version >= "3.6" or sys_platform == "linux") and python_version > "3.8"'
+            # to 'python_version > "3.8"'
+            for m in self._markers:
+                if isinstance(m, SingleMarker) and m.name in PYTHON_VERSION_MARKERS:
+                    constraint = get_python_constraint_from_marker(m)
+                    other_constraint = get_python_constraint_from_marker(other)
+                    if constraint.allows_all(other_constraint):
+                        return other
 
         if isinstance(other, MarkerUnion):
             our_markers = set(self.markers)
@@ -926,7 +965,14 @@ class MarkerUnion(BaseMarker):
             unique_intersection = MarkerUnion(*unique_markers).intersect(
                 MarkerUnion(*other_unique_markers)
             )
-            if isinstance(unique_intersection, (SingleMarkerLike, EmptyMarker)):
+            if isinstance(unique_intersection, (SingleMarkerLike, EmptyMarker)) or (
+                # Convert '(python_version == "3.6" or python_version >= "3.8)"
+                # and (python_version >= "3.6" and python_version < "3.8"
+                # or python_version == "3.9")'
+                # to 'python_version == "3.6" or python_version == "3.9"'
+                isinstance(unique_intersection, MarkerUnion)
+                and unique_intersection.complexity <= (2, 2)
+            ):
                 common_markers = [
                     marker for marker in self.markers if marker in shared_markers
                 ]
@@ -1081,7 +1127,7 @@ def cnf(marker: BaseMarker) -> BaseMarker:
             m.markers if isinstance(m, MultiMarker) else [m] for m in cnf_markers
         ]
         return MultiMarker.of(
-            *[MarkerUnion.of(*c) for c in itertools.product(*sub_marker_lists)]
+            *[MarkerUnion.of(*c) for c in _unique_product(*sub_marker_lists)]
         )
 
     if isinstance(marker, MultiMarker):
@@ -1099,7 +1145,7 @@ def dnf(marker: BaseMarker) -> BaseMarker:
             m.markers if isinstance(m, MarkerUnion) else [m] for m in dnf_markers
         ]
         return MarkerUnion.of(
-            *[MultiMarker.of(*c) for c in itertools.product(*sub_marker_lists)]
+            *[MultiMarker.of(*c) for c in _unique_product(*sub_marker_lists)]
         )
 
     if isinstance(marker, MarkerUnion):
@@ -1181,6 +1227,21 @@ def union(*markers: BaseMarker) -> BaseMarker:
     return min(*candidates, key=lambda x: x.complexity)
 
 
+def _unique_product(
+    *sub_marker_lists: Sequence[BaseMarker],
+) -> Iterator[Sequence[BaseMarker]]:
+    """
+    Returns an itertools.product of the sub_marker_lists
+    without duplicates (and equivalents) removed while maintaining order.
+    """
+    unique_sets = set()
+    for sub_marker_list in itertools.product(*sub_marker_lists):
+        sub_marker_set = frozenset(sub_marker_list)
+        if sub_marker_set not in unique_sets:
+            unique_sets.add(sub_marker_set)
+            yield sub_marker_list
+
+
 @functools.cache
 def _merge_single_markers(
     marker1: SingleMarkerLike[SingleMarkerConstraint],
@@ -1247,16 +1308,38 @@ def _merge_single_markers(
                     result_marker = EmptyMarker()
 
         elif isinstance(result_constraint, VersionUnion) and merge_class == MarkerUnion:
-            # Convert 'python_version == "3.8" or python_version >= "3.9"'
-            # to 'python_version >= "3.8"'.
-            # Convert 'python_version <= "3.8" or python_version >= "3.9"' to "any".
             result_constraint = get_python_constraint_from_marker(marker1).union(
                 get_python_constraint_from_marker(marker2)
             )
             if result_constraint.is_any():
+                # Convert 'python_version <= "3.8" or python_version >= "3.9"' to "any".
                 result_marker = AnyMarker()
             elif result_constraint.is_simple():
+                # Convert 'python_version == "3.8" or python_version >= "3.9"'
+                # to 'python_version >= "3.8"'.
                 result_marker = SingleMarker(marker1.name, result_constraint)
+            elif isinstance(result_constraint, VersionRange):
+                # Convert 'python_version' == "3.8" or python_version == "3.9"'
+                # to 'python_version >= "3.8" and python_version < "3.10"'.
+                # Although both markers have the same complexity, the latter behaves
+                # better if it is merged with 'python_version == "3.10' in a next step
+                # for example.
+                result_marker = MultiMarker(
+                    SingleMarker(
+                        marker1.name,
+                        VersionRange(
+                            min=result_constraint.min,
+                            include_min=result_constraint.include_min,
+                        ),
+                    ),
+                    SingleMarker(
+                        marker1.name,
+                        VersionRange(
+                            max=result_constraint.max,
+                            include_max=result_constraint.include_max,
+                        ),
+                    ),
+                )
 
     return result_marker
 

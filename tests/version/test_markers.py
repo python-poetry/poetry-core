@@ -897,6 +897,96 @@ def test_multi_marker_union_multi_is_multi(
 @pytest.mark.parametrize(
     "marker1, marker2, expected",
     [
+        # Equivalent ranges
+        (
+            'python_version == "3.8" or python_version == "3.9"',
+            'python_version >= "3.8" and python_version <= "3.9"',
+            'python_version >= "3.8" and python_version < "3.10"',
+        ),
+        (
+            'python_version == "3.8" or python_version == "3.9"',
+            (
+                'python_version >= "3.8" and python_version <= "3.9"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version >= "3.8" and python_version < "3.10"',
+        ),
+        (
+            'python_version == "3.8" or python_version == "3.9"',
+            (
+                'python_version >= "3.8" and python_version <= "3.9"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version >= "3.8" and python_version < "3.10"',
+        ),
+        (
+            'python_version == "3.8" or python_version == "3.9"',
+            (
+                'python_version >= "3.8" and python_version < "3.10"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version >= "3.8" and python_version < "3.10"',
+        ),
+        (
+            'python_version == "3.8" or python_version == "3.9"',
+            (
+                'python_version > "3.7" and python_version < "3.10"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version > "3.7" and python_version < "3.10"',
+        ),
+        (
+            'python_version == "3.8" or python_version == "3.9"',
+            (
+                'python_version > "3.7" and python_version <= "3.9"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version > "3.7" and python_version < "3.10"',
+        ),
+        (
+            (
+                'python_version == "3.8" or python_version == "3.9"'
+                ' or python_version == "3.10"'
+            ),
+            (
+                'python_version >= "3.8" and python_version <= "3.10"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version >= "3.8" and python_version <= "3.10"',
+        ),
+        (
+            (
+                'python_version == "3.8" or python_version == "3.9"'
+                ' or python_version == "3.10"'
+            ),
+            (
+                'python_version >= "3.8" and python_version < "3.11"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version >= "3.8" and python_version < "3.11"',
+        ),
+        (
+            (
+                'python_version == "3.8" or python_version == "3.9"'
+                ' or python_version == "3.10"'
+            ),
+            (
+                'python_version > "3.7" and python_version <= "3.10"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version > "3.7" and python_version <= "3.10"',
+        ),
+        (
+            (
+                'python_version == "3.8" or python_version == "3.9"'
+                ' or python_version == "3.10"'
+            ),
+            (
+                'python_version > "3.7" and python_version < "3.11"'
+                ' and sys_platform == "linux"'
+            ),
+            'python_version > "3.7" and python_version < "3.11"',
+        ),
         # Ranges with same start
         (
             'python_version >= "3.6" and python_full_version < "3.6.2"',
@@ -913,7 +1003,12 @@ def test_multi_marker_union_multi_is_multi(
             'python_version > "3.6" and python_version < "3.8"',
             'python_version > "3.6" and python_version < "3.8"',
         ),
-        # Ranges meet exactly
+        (
+            'python_version > "3.7"',
+            'python_version >= "3.8" and sys_platform == "linux"',
+            'python_version > "3.7"',
+        ),
+        # Ranges meet exactly (adjacent ranges)
         (
             'python_version >= "3.6" and python_full_version < "3.6.2"',
             'python_full_version >= "3.6.2" and python_version < "3.7"',
@@ -933,6 +1028,21 @@ def test_multi_marker_union_multi_is_multi(
             'python_version >= "3.6" and python_full_version <= "3.7.2"',
             'python_full_version > "3.6.2" and python_version < "3.8"',
             'python_version >= "3.6" and python_version < "3.8"',
+        ),
+        (
+            'python_version >= "3.8" and python_version < "3.9"',
+            'python_version >= "3.9" and python_version < "3.11"',
+            'python_version >= "3.8" and python_version < "3.11"',
+        ),
+        (
+            'python_version >= "3.8" and python_version < "3.9"',
+            'python_version >= "3.9" and python_version < "3.10"',
+            'python_version >= "3.8" and python_version < "3.10"',
+        ),
+        (
+            'python_version == "3.8"',
+            'python_version == "3.9"',
+            'python_version >= "3.8" and python_version < "3.10"',
         ),
         # Ranges overlap
         (
@@ -991,6 +1101,39 @@ def test_multi_marker_union_multi_is_multi(
             'python_version >= "3.6" and python_version <= "3.7"',
             'python_version == "3.7" and implementation_name == "cpython"',
             'python_version >= "3.6" and python_version <= "3.7"',
+        ),
+        # complex
+        (
+            'python_version == "3.10" and platform_system == "Linux"',
+            (
+                'python_version == "3.11" and platform_system != "Darwin"'
+                ' or platform_system != "Linux" and platform_system != "Darwin"'
+                ' and python_version <= "3.11" and python_full_version >= "3.10.0"'
+            ),
+            (
+                'python_version >= "3.10" and python_version <= "3.11"'
+                ' and platform_system != "Darwin"'
+            ),
+        ),
+        (
+            (
+                'python_version == "3.6" and platform_system == "Linux"'
+                ' and platform_machine == "aarch64" or python_version == "3.9"'
+                ' and platform_system != "Darwin" or python_version == "3.9"'
+                ' and platform_machine != "arm64" or python_version >= "3.8"'
+                ' and platform_system == "Linux" and platform_machine == "aarch64"'
+                ' and python_version < "3.10"'
+            ),
+            (
+                'python_version == "3.7" and platform_system == "Linux"'
+                ' and platform_machine == "aarch64"'
+            ),
+            (
+                'python_version >= "3.6" and python_version < "3.10"'
+                ' and platform_system == "Linux" and platform_machine == "aarch64"'
+                ' or python_version == "3.9" and platform_machine != "arm64"'
+                ' or python_version == "3.9" and platform_system != "Darwin"'
+            ),
         ),
     ],
 )
@@ -2177,8 +2320,8 @@ def test_complex_union() -> None:
     ]
     assert (
         str(union(*markers))
-        == 'python_version >= "3.6" and platform_system == "Darwin"'
-        ' and platform_machine == "arm64" or python_version >= "3.10"'
+        == 'platform_system == "Darwin" and platform_machine == "arm64"'
+        ' and python_version >= "3.6" or python_version >= "3.10"'
     )
 
 
@@ -2210,8 +2353,46 @@ def test_complex_intersection() -> None:
     ]
     assert (
         str(dnf(intersection(*markers).invert()))
-        == 'python_version >= "3.6" and platform_system == "Darwin"'
-        ' and platform_machine == "arm64" or python_version >= "3.10"'
+        == 'platform_system == "Darwin" and platform_machine == "arm64"'
+        ' and python_version >= "3.6" or python_version >= "3.10"'
+    )
+
+
+def test_complex_intersection_with_itertools_product_duplicates() -> None:
+    """
+    Real-world example from https://github.com/python-poetry/poetry/issues/10250.
+    (Only occurs if the solver takes an unfortunate path.)
+    Takes a long time without filtering duplicates from the itertools.product()
+    in cnf/dnf early.
+    """
+    m1 = parse_marker(
+        '(python_version > "3.9" or platform_system != "Windows"'
+        ' or platform_machine != "x86") and (python_version != "3.10"'
+        ' or platform_system != "Windows" or platform_python_implementation == "PyPy")'
+    )
+    m2 = parse_marker(
+        '(platform_system != "Windows" or platform_machine != "x86"'
+        ' or python_version >= "3.10" and python_version < "3.12")'
+        ' and (sys_platform != "darwin" or platform_machine != "arm64")'
+        ' and python_version <= "3.11" and (platform_system != "Windows"'
+        ' or platform_python_implementation == "PyPy" or python_version == "3.9"'
+        ' or python_version == "3.11") and python_version >= "3.9"'
+        ' and (platform_system != "Windows" or platform_python_implementation == "PyPy"'
+        ' or platform_machine != "x86" or python_version == "3.11")'
+    )
+
+    assert str(m1.intersect(m2)) == (
+        '(python_version > "3.9" or platform_system != "Windows"'
+        ' or platform_machine != "x86") and (python_version != "3.10"'
+        ' or platform_system != "Windows" or platform_python_implementation == "PyPy")'
+        ' and (platform_system != "Windows" or platform_machine != "x86"'
+        ' or python_version >= "3.10") and python_version <= "3.11"'
+        ' and (sys_platform != "darwin" or platform_machine != "arm64") and'
+        ' (platform_system != "Windows" or platform_python_implementation == "PyPy"'
+        ' or python_version == "3.9" or python_version == "3.11")'
+        ' and python_version >= "3.9" and (platform_system != "Windows"'
+        ' or platform_python_implementation == "PyPy" or platform_machine != "x86"'
+        ' or python_version == "3.11")'
     )
 
 
@@ -2237,10 +2418,10 @@ def test_complex_union_is_deterministic() -> None:
         'python_version >= "3.12" and platform_system == "Windows"'
         ' and sys_platform != "darwin" or sys_platform == "linux"'
         ' and python_version >= "3.12" and python_version < "4.0"'
-        ' and extra == "stretch" or python_version >= "3.12" and python_version < "4.0"'
-        ' and extra == "stretch" and extra == "test" and (sys_platform == "linux"'
-        ' or sys_platform == "win32") or sys_platform == "win32"'
-        ' and python_version >= "3.12" and extra == "test"'
+        ' and extra == "stretch" or sys_platform == "win32"'
+        ' and python_version >= "3.12" and extra == "test" or (sys_platform == "linux"'
+        ' or sys_platform == "win32") and python_version >= "3.12"'
+        ' and extra == "stretch" and extra == "test" and python_version < "4.0"'
     )
 
 
@@ -2301,28 +2482,56 @@ def test_intersection_avoids_combinatorial_explosion() -> None:
     )
 
 
-def test_intersection_no_endless_recursion() -> None:
-    m1 = parse_marker(
-        '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
-        ' and extra != "motherduck" and extra != "athena" and extra != "synapse"'
-        ' and extra != "clickhouse" and extra != "dremio" and extra != "lancedb"'
-        ' and extra != "deltalake" and extra != "pyiceberg"'
-        ' and python_version < "3.13") and extra != "postgres" and extra != "redshift"'
-        ' and extra != "postgis"'
-    )
-    m2 = parse_marker(
-        'python_version >= "3.12" and python_version < "3.13" or extra != "databricks"'
-    )
-    expected = (
-        '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
-        ' and extra != "motherduck" and extra != "athena" and extra != "synapse"'
-        ' and extra != "clickhouse" and extra != "dremio" and extra != "lancedb"'
-        ' and extra != "deltalake" and extra != "pyiceberg")'
-        ' and python_version < "3.13" and extra != "postgres" and extra != "redshift"'
-        ' and extra != "postgis"'
-        ' and (python_version == "3.12" or extra != "databricks")'
-    )
-    assert str(m1.intersect(m2)) == expected
+@pytest.mark.parametrize(
+    ("marker1", "marker2", "expected"),
+    [
+        (
+            (
+                '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
+                ' and extra != "motherduck" and extra != "athena"'
+                ' and extra != "synapse" and extra != "clickhouse"'
+                ' and extra != "dremio" and extra != "lancedb"'
+                ' and extra != "deltalake" and extra != "pyiceberg"'
+                ' and python_version < "3.13") and extra != "postgres"'
+                ' and extra != "redshift" and extra != "postgis"'
+            ),
+            (
+                'python_version >= "3.12" and python_version < "3.13"'
+                ' or extra != "databricks"'
+            ),
+            (
+                '(python_version < "3.9" or extra != "bigquery" and extra != "parquet"'
+                ' and extra != "motherduck" and extra != "athena"'
+                ' and extra != "synapse" and extra != "clickhouse"'
+                ' and extra != "dremio" and extra != "lancedb"'
+                ' and extra != "deltalake" and extra != "pyiceberg")'
+                ' and python_version < "3.13" and extra != "postgres"'
+                ' and extra != "redshift" and extra != "postgis"'
+                ' and (python_version == "3.12" or extra != "databricks")'
+            ),
+        ),
+        (
+            (
+                'python_version < "3.7" and (python_version < "3.6"'
+                ' or platform_system != "Darwin" or platform_machine != "arm64")'
+            ),
+            (
+                '(python_version < "3.6" or platform_system != "Linux"'
+                ' or platform_machine != "aarch64") and python_version < "3.9"'
+            ),
+            (
+                'python_version < "3.7" and (python_version < "3.6"'
+                ' or platform_system != "Darwin" or platform_machine != "arm64")'
+                ' and (python_version < "3.6" or platform_system != "Linux"'
+                ' or platform_machine != "aarch64")'
+            ),
+        ),
+    ],
+)
+def test_intersection_no_endless_recursion(
+    marker1: str, marker2: str, expected: str
+) -> None:
+    assert str(parse_marker(marker1).intersect(parse_marker(marker2))) == expected
 
 
 @pytest.mark.parametrize(
