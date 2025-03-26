@@ -183,7 +183,7 @@ class Factory:
             else:
                 raw_license = project_license.get("text", "")
                 if not raw_license and (
-                    license_file := cast(str, project_license.get("file", ""))
+                    license_file := cast("str", project_license.get("file", ""))
                 ):
                     license_path = (root / license_file).absolute()
                     try:
