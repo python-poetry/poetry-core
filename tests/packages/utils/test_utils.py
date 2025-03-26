@@ -150,6 +150,12 @@ def test_create_nested_marker_base_constraint(constraint: str, expected: str) ->
                 ' or (python_version >= "3.9" and python_full_version <= "3.10.0")'
             ),
         ),
+        # wildcard
+        ("3.*", 'python_version >= "3" and python_version < "4"'),
+        ("3.9.*", 'python_version >= "3.9" and python_version < "3.10"'),
+        ("3.*,>=3.9", 'python_version >= "3.9" and python_version < "4"'),
+        ("3.*,>=3.9.0", 'python_full_version >= "3.9.0" and python_version < "4"'),
+        ("3.*,>=3.9.1", 'python_full_version >= "3.9.1" and python_version < "4"'),
     ],
 )
 def test_create_nested_marker_version_constraint(

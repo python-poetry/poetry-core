@@ -274,7 +274,7 @@ def create_nested_marker(
                 padding = ".0" * (3 - version.precision)
                 part = f'python_full_version > "{version}{padding}"'
             else:
-                part = f'{min_name} {op} "{version}"'
+                part = f'{min_name} {op} "{version.stable}"'
 
             parts.append(part)
 
@@ -292,7 +292,7 @@ def create_nested_marker(
                 padding = ".0" * (3 - version.precision)
                 part = f'python_full_version <= "{version}{padding}"'
             else:
-                part = f'{max_name} {op} "{version}"'
+                part = f'{max_name} {op} "{version.stable}"'
 
             parts.append(part)
 
