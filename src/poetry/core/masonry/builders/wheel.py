@@ -84,7 +84,7 @@ class WheelBuilder(Builder):
         metadata_directory: Path | None = None,
         config_settings: dict[str, Any] | None = None,
     ) -> str:
-        wb = WheelBuilder(
+        wb = cls(
             poetry,
             original=original,
             executable=executable,
