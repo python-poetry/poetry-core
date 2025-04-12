@@ -158,6 +158,8 @@ def _enrich_dependency(
             dependency._develop = poetry_dependency._develop  # type: ignore[has-type]
     else:
         dependency = poetry_dependency.with_features(project_dependency.features)
+        dependency._optional = project_dependency.is_optional()  # type: ignore[has-type]
+        dependency._in_extras = project_dependency.in_extras
 
     dependency.constraint = constraint
     dependency.marker = marker
