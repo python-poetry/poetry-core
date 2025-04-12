@@ -351,6 +351,40 @@ def test_remove_dependency_removes_from_both_lists() -> None:
         # root extras do not have an extra marker, they just have set _in_extras!
         (
             [
+                create_dependency(
+                    "foo", source_name="src", optional=True, in_extras=("extra1",)
+                )
+            ],
+            [create_dependency("foo", source_name="src", optional=True)],
+            [
+                create_dependency(
+                    "foo", source_name="src", optional=True, in_extras=("extra1",)
+                )
+            ],
+        ),
+        (
+            [
+                create_dependency(
+                    "foo", source_name="src", optional=True, in_extras=("extra1",)
+                )
+            ],
+            [create_dependency("foo", source_name="src")],
+            (
+                [
+                    create_dependency(
+                        "foo", source_name="src", optional=True, in_extras=("extra1",)
+                    )
+                ],
+                [
+                    create_dependency(
+                        "foo", source_name="src", optional=True, in_extras=("extra1",)
+                    ),
+                    create_dependency("foo", source_name="src"),
+                ],
+            ),
+        ),
+        (
+            [
                 Dependency.create_from_pep_508("foo;extra!='extra1'"),
                 create_dependency("foo", in_extras=("extra1",)),
             ],
@@ -462,6 +496,9 @@ def test_dependencies_for_locking(
     ]
     assert [d.in_extras for d in group.dependencies_for_locking] == [
         d.in_extras for d in expected_dependencies
+    ]
+    assert [d.is_optional() for d in group.dependencies_for_locking] == [
+        d.is_optional() for d in expected_dependencies
     ]
 
 
