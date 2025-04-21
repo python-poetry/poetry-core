@@ -141,7 +141,6 @@ class UnionConstraint(BaseConstraint):
             # just a special case of UnionConstraint
             other = UnionConstraint(other)
 
-        new_constraints: list[BaseConstraint] = []
         if isinstance(other, UnionConstraint):
             # (A or B) or (C or D) => A or B or C or D
             our_new_constraints: list[BaseConstraint] = []
@@ -178,6 +177,24 @@ class UnionConstraint(BaseConstraint):
             # (A or B) or (A and D) => A or B
             if any(c in other.constraints for c in self._constraints):
                 return self
+
+            # (A or B) or (not A and D) => A or B or D
+            simplified = False
+            our_simple_constraints = [
+                c for c in self._constraints if isinstance(c, Constraint)
+            ]
+            their_new_constraints = []
+            for their_constraint in other.constraints:
+                if any(
+                    c.union(their_constraint).is_any() for c in our_simple_constraints
+                ):
+                    simplified = True
+                else:
+                    their_new_constraints.append(their_constraint)
+            if simplified:
+                if not their_new_constraints:
+                    return AnyConstraint()
+                return self.union(UnionConstraint(*their_new_constraints))
 
             # (A or B) or (C and D) => nothing to do
             new_constraints = [*self._constraints, other]

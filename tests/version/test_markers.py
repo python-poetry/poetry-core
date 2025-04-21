@@ -717,12 +717,17 @@ def test_single_marker_union_with_inverse() -> None:
         (
             'extra != "a" and extra != "b"',
             'extra == "a" or extra == "b"',
-            'extra != "a" and extra != "b" or extra == "a" or extra == "b"',
+            "",
         ),
         (
             'extra != "a" and extra != "b"',
             'extra == "a" or extra == "c"',
-            'extra != "a" and extra != "b" or extra == "a" or extra == "c"',
+            'extra == "a" or extra == "c" or extra != "b"',
+        ),
+        (
+            'extra != "a" and extra != "b"',
+            'extra == "c" or extra == "d"',
+            'extra != "a" and extra != "b" or extra == "c" or extra == "d"',
         ),
         (
             'extra == "a" or extra == "b"',
@@ -1867,6 +1872,26 @@ def test_union_should_drop_markers_if_their_complement_is_present(
     m = parse_marker(marker)
 
     assert parse_marker(expected) == m
+
+
+def test_inverse_atomic_markers() -> None:
+    m1 = parse_marker('sys_platform == "win32" or sys_platform == "linux"')
+    m2 = parse_marker('sys_platform != "win32" and sys_platform != "linux"')
+
+    assert m1.intersect(m2).is_empty()
+    assert m2.intersect(m1).is_empty()
+    assert m1.union(m2).is_any()
+    assert m2.union(m1).is_any()
+
+
+def test_partially_inverse_atomic_markers() -> None:
+    m1 = parse_marker('sys_platform == "win32" or sys_platform == "linux"')
+    m2 = parse_marker('sys_platform != "win32" and sys_platform != "darwin"')
+
+    assert str(m1.intersect(m2)) == 'sys_platform == "linux"'
+    assert str(m2.intersect(m1)) == 'sys_platform == "linux"'
+    assert str(m1.union(m2)) == 'sys_platform != "darwin"'
+    assert str(m2.union(m1)) == 'sys_platform != "darwin"'
 
 
 @pytest.mark.parametrize(

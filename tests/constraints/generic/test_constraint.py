@@ -1129,20 +1129,12 @@ def test_intersect_extra(
         (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
             MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
-            UnionConstraint(
-                Constraint("win32"),
-                Constraint("linux"),
-                MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
-            ),
+            Constraint("darwin", "!="),
         ),
         (
             UnionConstraint(Constraint("win32"), Constraint("linux")),
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
-            UnionConstraint(
-                Constraint("win32"),
-                Constraint("linux"),
-                MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
-            ),
+            AnyConstraint(),
         ),
         (
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
@@ -1513,14 +1505,25 @@ def test_union(
         (
             UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
             ExtraMultiConstraint(
-                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+                ExtraConstraint("extra3", "!="), ExtraConstraint("extra4", "!=")
             ),
             UnionConstraint(
                 ExtraConstraint("extra1"),
                 ExtraConstraint("extra2"),
                 ExtraMultiConstraint(
-                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+                    ExtraConstraint("extra3", "!="), ExtraConstraint("extra4", "!=")
                 ),
+            ),
+        ),
+        (
+            UnionConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
+            ExtraMultiConstraint(
+                ExtraConstraint("extra1", "!="), ExtraConstraint("extra3", "!=")
+            ),
+            UnionConstraint(
+                ExtraConstraint("extra1"),
+                ExtraConstraint("extra2"),
+                ExtraConstraint("extra3", "!="),
             ),
         ),
         (
@@ -1528,13 +1531,7 @@ def test_union(
             ExtraMultiConstraint(
                 ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
             ),
-            UnionConstraint(
-                ExtraConstraint("extra1"),
-                ExtraConstraint("extra2"),
-                ExtraMultiConstraint(
-                    ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
-                ),
-            ),
+            AnyConstraint(),
         ),
         (
             ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
