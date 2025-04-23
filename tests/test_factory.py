@@ -570,6 +570,7 @@ def test_validate_local_version() -> None:
 
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
+
 def test_validate_strict_legacy_warnings(complete_legacy_warnings: list[str]) -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
