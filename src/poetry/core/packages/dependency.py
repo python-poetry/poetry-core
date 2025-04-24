@@ -167,7 +167,10 @@ class Dependency(PackageSpecification):
                         for _extra in extra_values:
                             if not _extra.startswith("!="):
                                 new_in_extras.append(canonicalize_name(_extra))
-            self._in_extras = [*self._in_extras, *new_in_extras]
+            self._in_extras = [
+                *self._in_extras,
+                *(e for e in new_in_extras if e not in self._in_extras),
+            ]
 
         # Recalculate python versions.
         self._python_versions = "*"
