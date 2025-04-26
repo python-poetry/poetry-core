@@ -19,6 +19,7 @@ from poetry.core.constraints.generic.parser import parse_extra_constraint
         ("win32", Constraint("win32", "=")),
         ("=win32", Constraint("win32", "=")),
         ("==win32", Constraint("win32", "=")),
+        ("===win32", Constraint("win32", "=")),
         ("!=win32", Constraint("win32", "!=")),
         ("!= win32", Constraint("win32", "!=")),
         ("'tegra' not in", Constraint("tegra", "not in")),
