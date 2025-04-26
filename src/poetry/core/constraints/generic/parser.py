@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from poetry.core.constraints.generic.base_constraint import BaseConstraint
 
 
-BASIC_CONSTRAINT = re.compile(r"^(!?==?)?\s*([^\s]+?)\s*$")
+BASIC_CONSTRAINT = re.compile(r"^(?P<op>!=|==?=?)?\s*(?P<value>\S+?)\s*$")
 STR_CMP_CONSTRAINT = re.compile(
     r"""(?ix)^ # case insensitive and verbose mode
     (?P<quote>['"]) # Single or double quotes
@@ -87,11 +87,11 @@ def _parse_single_constraint(
     # Basic comparator
 
     if m := BASIC_CONSTRAINT.match(constraint):
-        op = m.group(1)
-        if op is None:
+        op = m.group("op")
+        if op in {None, "==="}:
             op = "=="
 
-        version = m.group(2).strip()
+        version = m.group("value").strip()
 
         return constraint_type(version, op)
 

@@ -95,6 +95,8 @@ def test_parse_marker_non_python_versions(marker: str, valid: bool) -> None:
     ("marker", "expected_name", "expected_constraint"),
     [
         ('sys_platform == "darwin"', "sys_platform", "darwin"),
+        ('sys_platform === "darwin"', "sys_platform", "darwin"),
+        ('python_version == "3.9"', "python_version", "3.9"),
         (
             'python_version in "2.7, 3.0, 3.1"',
             "python_version",
