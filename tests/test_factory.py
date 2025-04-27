@@ -1068,7 +1068,7 @@ requires = [{build_system_requires}]
 build-backend = "some.api.we.do.not.care.about"
 
 """
-    pyproject_toml.write_text(content)
+    pyproject_toml.write_text(content, encoding="utf-8")
     poetry = Factory().create_poetry(temporary_directory)
 
     assert set(poetry.build_system_dependencies) == expected
