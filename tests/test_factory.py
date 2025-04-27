@@ -563,14 +563,6 @@ def test_validate() -> None:
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
-def test_validate_local_version() -> None:
-    complete = fixtures_dir / "local_version.toml"
-    with complete.open("rb") as f:
-        content = tomllib.load(f)
-
-    assert Factory.validate(content) == {"errors": [], "warnings": []}
-
-
 def test_validate_strict_legacy_warnings(complete_legacy_warnings: list[str]) -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
@@ -639,6 +631,18 @@ def test_validate_strict_dynamic_warnings() -> None:
             ),
         ],
     }
+
+
+def test_validate_local_version(tmp_path: Path) -> None:
+    project = tmp_path / "local_version.toml"
+    project.write_text(
+        """[project]\nname = "local-version"\nversion = "0.5.0+LOCAL.123A"\n""",
+        encoding="utf-8",
+    )
+    with project.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
 def test_validate_fails() -> None:

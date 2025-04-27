@@ -1,4 +1,0 @@
-[project]
-name = "poetry"
-version = "0.5.0+LOCAL.123"
-description = "A valid local version according to PEP440."
