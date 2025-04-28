@@ -346,7 +346,7 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
 
 class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
     _CONSTRAINT_RE_PATTERN_1 = re.compile(
-        r"(?i)^(?P<op>~=|!=|>=?|<=?|==?=?|not in|in)?\s*(?P<value>.+)$"
+        r"(?i)^(?P<op>~=|!=|>=?|<=?|==?=?|not in |in )?\s*(?P<value>.+)$"
     )
     _CONSTRAINT_RE_PATTERN_2 = STR_CMP_CONSTRAINT
 
@@ -385,10 +385,7 @@ class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
                 f"Invalid marker for '{name}': {constraint_string}"
             )
 
-        self._operator = m.group("op")
-        if self._operator is None:
-            self._operator = "=="
-
+        self._operator = (m.group("op") or "==").strip()
         self._value = m.group("value")
         parser = parse_extra_constraint if name == "extra" else parse_generic_constraint
 
@@ -1097,7 +1094,7 @@ def _compact_markers(
 
             sub_marker = SingleMarker(
                 str(name),
-                f'"{value}" {op}' if stringed_value else f"{op}{value}",
+                f'"{value}" {op}' if stringed_value else f"{op} {value}",
                 swapped_name_value=swapped_name_value,
             )
             groups[-1].append(sub_marker)

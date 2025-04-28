@@ -70,6 +70,9 @@ EMPTY = "<empty>"
         '"tegra" not in platform_release',
         '"tegra" in platform_release or "rpi-v8" in platform_release',
         '"tegra" not in platform_release and "rpi-v8" not in platform_release',
+        # extra starting with "in"
+        'extra == "in1" or extra == "in2"',
+        'extra == "in1" and extra == "in2"',
     ],
 )
 def test_parse_marker(marker: str) -> None:
@@ -1514,6 +1517,17 @@ def test_multi_marker_removes_duplicates() -> None:
         ("extra != 'a' or extra == 'b'", {"extra": ("a", "b")}, True),
         ("extra != 'a' or extra == 'b'", {"extra": ("c", "d")}, True),
         ("extra != 'a' or extra == 'b'", {"extra": ("a", "c")}, False),
+        # extras starting with "in"
+        ("extra == 'in1'", {"extra": ("in1",)}, True),
+        ("extra == 'in1'", {"extra": ("other",)}, False),
+        ("extra == 'in1' or extra == 'in2'", {"extra": ("in1",)}, True),
+        ("extra == 'in1' or extra == 'in2'", {"extra": ("in2",)}, True),
+        ("extra == 'in1' or extra == 'in2'", {"extra": ("in1", "in2")}, True),
+        ("extra == 'in1' or extra == 'in2'", {"extra": ("other",)}, False),
+        ("extra == 'in1' and extra == 'in2'", {"extra": ("in1",)}, False),
+        ("extra == 'in1' and extra == 'in2'", {"extra": ("in2",)}, False),
+        ("extra == 'in1' and extra == 'in2'", {"extra": ("in1", "in2")}, True),
+        ("extra == 'in1' and extra == 'in2'", {"extra": ("other",)}, False),
     ],
 )
 def test_validate(
