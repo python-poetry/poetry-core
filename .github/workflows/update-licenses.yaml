@@ -18,7 +18,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.10"
 
@@ -41,16 +41,16 @@ jobs:
           poetry run pre-commit run --all-files || :
 
       - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v2
+        uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1.11.5
+        id: app-token
         with:
-          app_id: ${{ secrets.POETRY_TOKEN_APP_ID }}
-          private_key: ${{ secrets.POETRY_TOKEN_APP_KEY }}
+          app-id: ${{ secrets.POETRY_TOKEN_APP_ID }}
+          private-key: ${{ secrets.POETRY_TOKEN_APP_KEY }}
 
       - name: Create PR if necessary
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
-          token: ${{ steps.generate_token.outputs.token }}
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated licenses list update"
           author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
           branch: "license-autoupdate"
