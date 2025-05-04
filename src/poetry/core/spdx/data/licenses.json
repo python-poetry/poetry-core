@@ -274,6 +274,11 @@
     false,
     false
   ],
+  "BSD-2-Clause-pkgconf-disclaimer": [
+    "BSD 2-Clause pkgconf disclaimer variant",
+    false,
+    false
+  ],
   "BSD-3-Clause": [
     "BSD 3-Clause \"New\" or \"Revised\" License",
     true,
@@ -974,6 +979,11 @@
     false,
     false
   ],
+  "CryptoSwift": [
+    "CryptoSwift License",
+    false,
+    false
+  ],
   "CrystalStacker": [
     "CrystalStacker License",
     false,
@@ -1021,6 +1031,11 @@
   ],
   "DSDP": [
     "DSDP License",
+    false,
+    false
+  ],
+  "DocBook-DTD": [
+    "DocBook DTD License",
     false,
     false
   ],
@@ -1151,6 +1166,16 @@
   ],
   "FSFULLRWD": [
     "FSF Unlimited License (With License Retention and Warranty Disclaimer)",
+    false,
+    false
+  ],
+  "FSL-1.1-ALv2": [
+    "Functional Source License, Version 1.1, ALv2 Future License",
+    false,
+    false
+  ],
+  "FSL-1.1-MIT": [
+    "Functional Source License, Version 1.1, MIT Future License",
     false,
     false
   ],
@@ -1408,6 +1433,11 @@
     "GNU General Public License v3.0 w/Autoconf exception",
     false,
     true
+  ],
+  "Game-Programming-Gems": [
+    "Game Programming Gems License",
+    false,
+    false
   ],
   "Giftware": [
     "Giftware License",
@@ -2186,6 +2216,11 @@
   ],
   "NRL": [
     "NRL License",
+    false,
+    false
+  ],
+  "NTIA-PD": [
+    "NTIA Public Domain Notice",
     false,
     false
   ],
@@ -3239,6 +3274,11 @@
     false,
     false
   ],
+  "jove": [
+    "Jove License",
+    false,
+    false
+  ],
   "libpng-2.0": [
     "PNG Reference Library version 2",
     false,
@@ -3271,6 +3311,11 @@
   ],
   "mailprio": [
     "mailprio License",
+    false,
+    false
+  ],
+  "man2html": [
+    "man2html License",
     false,
     false
   ],
