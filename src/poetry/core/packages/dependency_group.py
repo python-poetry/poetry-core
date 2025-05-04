@@ -39,7 +39,9 @@ class DependencyGroup:
     @property
     def dependencies(self) -> list[Dependency]:
         group_dependencies = self._dependencies
-        included_group_dependencies = self._resolve_included_dependency_groups()
+        included_group_dependencies = self._resolve_included_dependency_groups(
+            dependencies_for_locking=False
+        )
 
         if not group_dependencies:
             # legacy mode
@@ -60,7 +62,9 @@ class DependencyGroup:
 
     @property
     def dependencies_for_locking(self) -> list[Dependency]:
-        included_group_dependencies = self._resolve_included_dependency_groups()
+        included_group_dependencies = self._resolve_included_dependency_groups(
+            dependencies_for_locking=True
+        )
 
         if not self._poetry_dependencies:
             dependencies = self._dependencies
@@ -100,7 +104,9 @@ class DependencyGroup:
 
         return dependencies + included_group_dependencies
 
-    def _resolve_included_dependency_groups(self) -> list[Dependency]:
+    def _resolve_included_dependency_groups(
+        self, dependencies_for_locking: bool = False
+    ) -> list[Dependency]:
         """Resolves and returns the dependencies from included dependency groups.
 
         This method iterates over all included dependency groups and collects
@@ -109,7 +115,11 @@ class DependencyGroup:
         return [
             dependency.with_groups([self.name])
             for dependency_group in self._included_dependency_groups.values()
-            for dependency in dependency_group.dependencies
+            for dependency in (
+                dependency_group.dependencies_for_locking
+                if dependencies_for_locking
+                else dependency_group.dependencies
+            )
         ]
 
     def is_optional(self) -> bool:
