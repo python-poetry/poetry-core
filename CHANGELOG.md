@@ -1,6 +1,22 @@
 # Change Log
 
 
+## [2.1.3] - 2025-05-04
+
+### Changed
+
+- Update list of supported licenses ([#864](https://github.com/python-poetry/poetry-core/pull/864)).
+
+### Fixed
+
+- Fix an issue where the union of specific inverse or partially inverse markers was not simplified ([#858](https://github.com/python-poetry/poetry-core/pull/858)).
+- Fix an issue where optional dependencies defined in the `project` section were treated as non-optional when a source was defined for them in the `tool.poetry` section ([#857](https://github.com/python-poetry/poetry-core/pull/857)).
+- Fix an issue where markers with `===` were not parsed correctly ([#860](https://github.com/python-poetry/poetry-core/pull/860)).
+- Fix an issue where local versions with upper case letters caused an error ([#859](https://github.com/python-poetry/poetry-core/pull/859)).
+- Fix an issue where `extra` markers with a value starting with "in" were not validated correctly ([#862](https://github.com/python-poetry/poetry-core/pull/862)).
+- Fix an issue where inheriting from `WheelBuilder` was unnecessarily difficult ([#855](https://github.com/python-poetry/poetry-core/pull/855)).
+
+
 ## [2.1.2] - 2025-03-29
 
 ### Changed
@@ -765,7 +781,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.1.2...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.1.3...main
+[2.1.3]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.3
 [2.1.2]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.2
 [2.1.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.1
 [2.1.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.0
