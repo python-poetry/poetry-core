@@ -557,10 +557,24 @@ def test_include_dependency_groups() -> None:
         Dependency(name="bar", constraint="*", groups=["group2"])
     )
 
-    group.include_dependency_group(group_2)
+    # This will resolve to a more precise constraint in dependencies_for_locking.
+    group_3 = DependencyGroup(name="group3")
+    group_3._dependencies = [Dependency(name="baz", constraint="<2", groups=["group3"])]
+    group_3._poetry_dependencies = [
+        Dependency(name="baz", constraint=">=1", groups=["group3"])
+    ]
 
-    assert [dep.name for dep in group.dependencies] == ["foo", "bar"]
-    assert [dep.name for dep in group.dependencies_for_locking] == ["foo", "bar"]
+    group.include_dependency_group(group_2)
+    group.include_dependency_group(group_3)
+
+    assert [dep.name for dep in group.dependencies] == ["foo", "bar", "baz"]
+    assert [dep.name for dep in group.dependencies_for_locking] == ["foo", "bar", "baz"]
+    assert [dep.pretty_constraint for dep in group.dependencies] == ["*", "*", "<2"]
+    assert [dep.pretty_constraint for dep in group.dependencies_for_locking] == [
+        "*",
+        "*",
+        ">=1,<2",
+    ]
     for dep in group.dependencies:
         assert dep.groups == {"group"}
 
@@ -568,6 +582,15 @@ def test_include_dependency_groups() -> None:
     assert [dep.name for dep in group_2.dependencies_for_locking] == ["bar"]
     for dep in group_2.dependencies:
         assert dep.groups == {"group2"}
+
+    assert [dep.name for dep in group_3.dependencies] == ["baz"]
+    assert [dep.name for dep in group_3.dependencies_for_locking] == ["baz"]
+    assert [dep.pretty_constraint for dep in group_3.dependencies] == ["<2"]
+    assert [dep.pretty_constraint for dep in group_3.dependencies_for_locking] == [
+        ">=1,<2"
+    ]
+    for dep in group_3.dependencies:
+        assert dep.groups == {"group3"}
 
 
 @pytest.mark.parametrize("group_name", ["group_2", "Group-2", "group-2"])

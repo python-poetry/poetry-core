@@ -355,6 +355,8 @@ class Factory:
                     current_group = package.dependency_group(group_name)
                     for name in include_groups:
                         try:
+                            # `name` isn't normalized, but `.dependency_group()`
+                            # handles that.
                             group_to_include = package.dependency_group(name)
                         except ValueError as e:
                             raise ValueError(
@@ -645,7 +647,7 @@ class Factory:
         """Ensure that dependency groups do not include themselves."""
         config = toml_data.setdefault("tool", {}).setdefault("poetry", {})
 
-        group_includes = {}
+        group_includes: dict[NormalizedName, list[NormalizedName]] = {}
         for group_name, group_config in config.get("group", {}).items():
             if include_groups := group_config.get("include-groups", []):
                 group_includes[canonicalize_name(group_name)] = [
@@ -653,18 +655,32 @@ class Factory:
                 ]
 
         for group_name in group_includes:
-            visited = set()
+            ancestors: defaultdict[NormalizedName, set[NormalizedName]] = defaultdict(
+                set
+            )
             stack = [group_name]
             while stack:
                 group = stack.pop()
-                visited.add(group)
+                current_ancestors = ancestors.get(group, set())
+                child_ancestors = current_ancestors.union({group})
+
                 for include in group_includes.get(group, []):
-                    if include in visited:
+                    if include in child_ancestors:
                         result["errors"].append(
                             f"Cyclic dependency group include in {group_name}:"
                             f" {group} -> {include}"
                         )
+                        # Avoid infinite loop; we've already found an error.
                         continue
+
+                    # This must be a union with any existing known ancestors.
+                    # Otherwise, we might accidentally miss a cycle (since we'd
+                    # be tossing out known dependencies). That cycle will be
+                    # caught when we use the share dependency as `group_name`,
+                    # but best to be safe.
+                    ancestors[include] = ancestors.get(include, set()).union(
+                        child_ancestors
+                    )
                     stack.append(include)
 
     @classmethod
