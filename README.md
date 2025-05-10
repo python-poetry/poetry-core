@@ -43,3 +43,15 @@ project.
 In order to improve the above situation, `poetry-core` was created. Shared functionality pertaining to PEP 517 build
 backends, including reading `pyproject.toml` and building wheel/sdist, were implemented in this package. This
 makes PEP 517 builds extremely fast for Poetry-managed packages.
+
+## Contributing
+
+Contributing is similar to [the main `poetry` repo](https://github.com/python-poetry/poetry?tab=readme-ov-file#contribute):
+
+```bash
+# For example:
+poetry install
+poetry run pytest
+```
+
+For full documentation, see [the full contributing documentation](https://python-poetry.org/docs/contributing).
