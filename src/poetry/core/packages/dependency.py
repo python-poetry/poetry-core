@@ -73,7 +73,7 @@ class Dependency(PackageSpecification):
         if not groups:
             groups = [MAIN_GROUP]
 
-        self._groups = frozenset(groups)
+        self._groups = frozenset(canonicalize_name(g) for g in groups)
         self._allows_prereleases = allows_prereleases
         # "_develop" is only required for enriching [project] dependencies
         self._develop = False
@@ -116,7 +116,7 @@ class Dependency(PackageSpecification):
         return self._pretty_name
 
     @property
-    def groups(self) -> frozenset[str]:
+    def groups(self) -> frozenset[NormalizedName]:
         return self._groups
 
     @property

@@ -323,7 +323,7 @@ def test_with_constraint() -> None:
         "foo",
         "^1.2.3",
         optional=True,
-        groups=["dev"],
+        groups=["DEV"],
         allows_prereleases=True,
         extras=["bar", "baz"],
     )
