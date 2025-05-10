@@ -479,6 +479,20 @@ def test_without_dependency_groups(package_with_groups: Package) -> None:
     assert len(package.all_requires) == 2
 
 
+def test_without_dependency_groups_ensure_canonicalize_names_are_used(
+    package_with_groups: Package,
+) -> None:
+    package = package_with_groups.without_dependency_groups(["DeV"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 3
+
+    package = package_with_groups.without_dependency_groups(["DeV", "OpTioNal"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 2
+
+
 def test_with_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.with_dependency_groups([])
 
@@ -486,6 +500,15 @@ def test_with_dependency_groups(package_with_groups: Package) -> None:
     assert len(package.all_requires) == 3
 
     package = package_with_groups.with_dependency_groups(["optional"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 4
+
+
+def test_with_dependency_groups_ensure_canonicalize_names_are_used(
+    package_with_groups: Package,
+) -> None:
+    package = package_with_groups.with_dependency_groups(["OpTioNal"])
 
     assert len(package.requires) == 2
     assert len(package.all_requires) == 4
@@ -667,3 +690,38 @@ def test_package_empty_python_versions() -> None:
 
     expected = "Python versions '~2.7, >=3.4, <3.8' on foo (1.2.3) is empty"
     assert str(exc_info.value) == expected
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_has_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    assert package_with_groups.has_dependency_group(group_name)
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_get_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    group = package_with_groups.dependency_group(group_name)
+
+    assert group.name == "optional"
+    assert group._original_name == "optional"
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_add_to_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    dependency = Dependency("foo-bar", "^1.0.0", groups=[group_name])
+
+    assert dependency not in package_with_groups.all_requires
+    assert (
+        dependency
+        not in package_with_groups._dependency_groups["optional"].dependencies
+    )
+
+    package_with_groups.add_dependency(dependency)
+
+    assert dependency in package_with_groups.all_requires
+    assert dependency in package_with_groups._dependency_groups["optional"].dependencies
