@@ -528,3 +528,19 @@ def test_dependencies_for_locking_failure(
 
     with pytest.raises(ValueError):
         _ = group.dependencies_for_locking
+
+
+@pytest.mark.parametrize(
+    ["pretty_name", "canonicalized_name"],
+    [
+        ("Group", "group"),
+        ("foo_bar", "foo-bar"),
+        ("Foo-Bar", "foo-bar"),
+    ],
+)
+def test_dependency_group_use_canonicalize_name(
+    pretty_name: str, canonicalized_name: str
+) -> None:
+    group = DependencyGroup(pretty_name)
+    assert group.name == canonicalized_name
+    assert group.pretty_name == pretty_name
