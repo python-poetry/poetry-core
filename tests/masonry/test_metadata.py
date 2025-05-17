@@ -13,6 +13,28 @@ if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
 
+@pytest.mark.parametrize(
+    ("requires_python", "python", "expected"),
+    [
+        (">=3.8", None, ">=3.8"),
+        (None, "^3.8", ">=3.8,<4.0"),
+        (">=3.8", "^3.8", ">=3.8"),
+    ],
+)
+def test_from_package_requires_python(
+    requires_python: str | None, python: str | None, expected: str
+) -> None:
+    package = ProjectPackage("foo", "1")
+    if requires_python:
+        package.requires_python = requires_python
+    if python:
+        package.python_versions = python
+
+    meta = Metadata.from_package(package)
+
+    assert meta.requires_python == expected
+
+
 def test_from_package_readme(tmp_path: Path) -> None:
     readme_path = tmp_path / "README.md"
     readme_path.write_text("This is a description\néöß", encoding="utf-8")
