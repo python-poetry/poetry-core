@@ -4,7 +4,8 @@ version = "0.5.0"
 description = "Python dependency management and packaging made easy."
 readme = "README.rst"
 requires-python = ">=3.8"
-license = { "text" = "MIT" }
+license = "MIT"
+license-files = [ "LICENSE" ]
 authors = [
     { "name" = "Sébastien Eustace", "email" = "sebastien@eustace.io" }
 ]
