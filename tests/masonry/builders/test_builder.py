@@ -10,6 +10,7 @@ import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
+from poetry.core.utils._compat import tomllib
 
 
 if TYPE_CHECKING:
@@ -104,9 +105,10 @@ def test_builder_find_invalid_case_sensitive_excluded_files(
     assert {"my_package/Bar/foo/bar/Foo.py"} == builder.find_excluded_files()
 
 
-def test_get_metadata_content() -> None:
+@pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
+def test_get_metadata_content(project: str) -> None:
     builder = Builder(
-        Factory().create_poetry(Path(__file__).parent / "fixtures" / "complete")
+        Factory().create_poetry(Path(__file__).parent / "fixtures" / project)
     )
 
     metadata = builder.get_metadata_content()
@@ -114,7 +116,7 @@ def test_get_metadata_content() -> None:
     p = Parser()
     parsed = p.parsestr(metadata)
 
-    assert parsed["Metadata-Version"] == "2.3"
+    assert parsed["Metadata-Version"] == "2.4"
     assert parsed["Name"] == "my-package"
     assert parsed["Version"] == "1.2.3"
     assert parsed["Summary"] == "Some description."
@@ -122,12 +124,20 @@ def test_get_metadata_content() -> None:
     assert parsed["Author-email"] == "sebastien@eustace.io"
     assert parsed["Keywords"] == "packaging,dependency,poetry"
     assert parsed["Requires-Python"] == ">=3.6,<4.0"
-    assert parsed["License"] == "MIT"
+    if project == "complete_new":
+        assert parsed["License-Expression"] == "MIT"
+    else:
+        assert parsed["License"] == "MIT"
+    assert parsed.get_all("License-File") == [
+        "AUTHORS",
+        "COPYING",
+        "LICENCE",
+        "LICENSE",
+    ]
     assert parsed["Home-page"] is None
 
     classifiers = parsed.get_all("Classifier")
-    assert classifiers == [
-        "License :: OSI Approved :: MIT License",
+    expected_classifiers = [
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -140,6 +150,9 @@ def test_get_metadata_content() -> None:
         "Topic :: Software Development :: Build Tools",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
+    if project != "complete_new":
+        expected_classifiers.insert(0, "License :: OSI Approved :: MIT License")
+    assert classifiers == expected_classifiers
 
     extras = parsed.get_all("Provides-Extra")
     assert extras == ["time"]
@@ -183,38 +196,61 @@ def test_metadata_homepage_default() -> None:
     assert metadata["Home-page"] is None
 
 
-@pytest.mark.parametrize("license_type", ["file", "text", "str"])
-def test_metadata_license_type_file(license_type: str) -> None:
+@pytest.mark.parametrize(
+    "project", ["none", "file", "text", "text_spdx", "str", "str_empty", "str_no_spdx"]
+)
+def test_metadata_license_type_file(project: str) -> None:
     project_path = (
         Path(__file__).parent.parent.parent
         / "fixtures"
-        / f"with_license_type_{license_type}"
+        / f"with_license_type_{project}"
     )
-    builder = Builder(Factory().create_poetry(project_path))
 
-    if license_type == "file":
-        license_text = (project_path / "LICENSE").read_text(encoding="utf-8")
-    elif license_type == "text":
-        license_text = (
-            (project_path / "pyproject.toml")
-            .read_text(encoding="utf-8")
-            .split('"""')[1]
-        )
-    elif license_type == "str":
-        license_text = "MIT"
+    license_type = project.split("_", 1)[0]
+    expected_license: str | None = None
+    expected_license_expression: str | None = None
+    if license_type == "none":
+        pass
+    elif license_type == "file":
+        expected_license = (project_path / "LICENSE").read_text(encoding="utf-8")
+    elif license_type in {"str", "text"}:
+        with (project_path / "pyproject.toml").open("rb") as f:
+            data = tomllib.load(f)
+        project_license = data["project"]["license"]
+        if license_type == "text":
+            expected_license = project_license["text"]
+        elif project == "str_no_spdx":
+            expected_license = project_license
+        elif project == "str":
+            expected_license_expression = project_license
     else:
         raise RuntimeError("unexpected license type")
 
+    builder = Builder(Factory().create_poetry(project_path))
     raw_content = builder.get_metadata_content()
     metadata = Parser().parsestr(raw_content)
 
-    license_lines = metadata["License"].splitlines()
-    unindented_license = "\n".join([line.strip() for line in license_lines])
-    assert unindented_license == license_text.rstrip()
+    assert not ("License" in metadata and "License-Expression" in metadata)
 
-    # Check that field after "license" is read correctly
-    assert raw_content.index("License:") < raw_content.index("Keywords:")
-    assert metadata["Keywords"] == "special"
+    # Check "License-Expression"
+    if expected_license_expression is None:
+        assert "License-Expression" not in metadata
+    else:
+        assert "License-Expression" in metadata
+        assert metadata["License-Expression"] == expected_license_expression
+
+    # Check "License"
+    if expected_license is None:
+        assert "License" not in metadata
+    else:
+        assert "License" in metadata
+        license_lines = metadata["License"].splitlines()
+        unindented_license = "\n".join([line.strip() for line in license_lines])
+        assert unindented_license == expected_license.rstrip()
+
+        # Check that field after (potential multi-line) "License" is read correctly
+        assert raw_content.index("License:") < raw_content.index("Keywords:")
+        assert metadata["Keywords"] == "special"
 
 
 def test_metadata_with_vcs_dependencies() -> None:
