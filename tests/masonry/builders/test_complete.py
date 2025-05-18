@@ -134,12 +134,12 @@ def test_complete(project: str, no_vcs: bool) -> None:
         *sorted(
             [
                 "my_package-1.2.3.dist-info/entry_points.txt",
-                "my_package-1.2.3.dist-info/LICENSE",
+                "my_package-1.2.3.dist-info/licenses/LICENSE",
                 "my_package-1.2.3.dist-info/METADATA",
                 "my_package-1.2.3.dist-info/WHEEL",
-                "my_package-1.2.3.dist-info/COPYING",
-                "my_package-1.2.3.dist-info/LICENCE",
-                "my_package-1.2.3.dist-info/AUTHORS",
+                "my_package-1.2.3.dist-info/licenses/COPYING",
+                "my_package-1.2.3.dist-info/licenses/LICENCE",
+                "my_package-1.2.3.dist-info/licenses/AUTHORS",
             ],
             key=lambda x: Path(x),
         ),
@@ -154,7 +154,6 @@ def test_complete(project: str, no_vcs: bool) -> None:
         )
 
         entry_points = zipf.read("my_package-1.2.3.dist-info/entry_points.txt")
-
         assert (
             entry_points.decode()
             == """\
@@ -168,8 +167,8 @@ my-command=my_package.plugins:MyApplicationPlugin
 
 """
         )
-        wheel_data = zipf.read("my_package-1.2.3.dist-info/WHEEL").decode()
 
+        wheel_data = zipf.read("my_package-1.2.3.dist-info/WHEEL").decode()
         assert (
             wheel_data
             == f"""\
@@ -179,16 +178,18 @@ Root-Is-Purelib: true
 Tag: py3-none-any
 """
         )
-        wheel_data = zipf.read("my_package-1.2.3.dist-info/METADATA").decode()
 
-        assert (
-            wheel_data
-            == """\
-Metadata-Version: 2.3
+        metadata = zipf.read("my_package-1.2.3.dist-info/METADATA").decode()
+        expected_metadata = """\
+Metadata-Version: 2.4
 Name: my-package
 Version: 1.2.3
 Summary: Some description.
 License: MIT
+License-File: AUTHORS
+License-File: COPYING
+License-File: LICENCE
+License-File: LICENSE
 Keywords: packaging,dependency,poetry
 Author: Sébastien Eustace
 Author-email: sebastien@eustace.io
@@ -222,7 +223,12 @@ My Package
 ==========
 
 """
-        )
+        if project == "complete_new":
+            expected_metadata = expected_metadata.replace(
+                "License:", "License-Expression:"
+            ).replace("Classifier: License :: OSI Approved :: MIT License\n", "")
+        assert metadata == expected_metadata
+
         actual_records = zipf.read("my_package-1.2.3.dist-info/RECORD").decode()
 
         # The SHA hashes vary per operating systems.
@@ -341,7 +347,7 @@ def test_package_with_include(mocker: MockerFixture) -> None:
     with zipfile.ZipFile(str(whl)) as z:
         names = z.namelist()
         assert len(names) == len(set(names))
-        assert "with_include-1.2.3.dist-info/LICENSE" in names
+        assert "with_include-1.2.3.dist-info/licenses/LICENSE" in names
         assert "extra_dir/__init__.py" in names
         assert "extra_dir/vcs_excluded.py" in names
         assert "extra_dir/sub_pkg/__init__.py" in names

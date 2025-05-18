@@ -8,6 +8,7 @@ from typing import cast
 
 import pytest
 
+from packaging.licenses import canonicalize_license_expression
 from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version import Version
@@ -17,6 +18,7 @@ from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.packages.package import Package
 from poetry.core.packages.project_package import ProjectPackage
+from poetry.core.spdx.helpers import license_by_id
 from poetry.core.version.exceptions import InvalidVersionError
 
 
@@ -113,6 +115,27 @@ def test_package_author_names_invalid(name: str) -> None:
     package.authors = [name]
     with pytest.raises(ValueError):
         package.author_name  # noqa: B018
+
+
+@pytest.mark.parametrize(
+    "license",
+    [None, "MIT", "Apache-2.0 OR BSD-2-clause", "LicenseRef-MyProprietaryLicense"],
+)
+def test_all_classifiers_no_license_classifiers_if_spdx(license: str) -> None:
+    package = Package("foo", "0.1.0")
+    if license:
+        package.license_expression = canonicalize_license_expression(license)
+
+    assert not any(c.lower().startswith("license") for c in package.all_classifiers)
+
+
+def test_all_classifiers_with_license_classifiers_if_no_spdx() -> None:
+    package = Package("foo", "0.1.0")
+    package.license = license_by_id("MIT")
+
+    assert [c for c in package.all_classifiers if c.lower().startswith("license")] == [
+        "License :: OSI Approved :: MIT License"
+    ]
 
 
 @pytest.mark.parametrize("groups", [["main"], ["dev"]])

@@ -1,0 +1,4 @@
+[project]
+name = "my-package"
+version = "0.1"
+keywords = ["special"]  # field that comes after license in core metadata
