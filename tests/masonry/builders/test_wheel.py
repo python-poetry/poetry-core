@@ -362,15 +362,16 @@ def test_wheel_includes_licenses_in_correct_paths() -> None:
 
     whl = root / "dist" / "my_package-1.2.3-py3-none-any.whl"
 
+    licenses_path = "my_package-1.2.3.dist-info/licenses"
     assert whl.exists()
     with zipfile.ZipFile(str(whl)) as z:
-        assert "my_package-1.2.3.dist-info/COPYING" in z.namelist()
-        assert "my_package-1.2.3.dist-info/COPYING.txt" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSE" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSE.md" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSES/CUSTOM-LICENSE" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSES/BSD-3.md" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSES/MIT.txt" in z.namelist()
+        assert f"{licenses_path}/COPYING" in z.namelist()
+        assert f"{licenses_path}/COPYING.txt" in z.namelist()
+        assert f"{licenses_path}/LICENSE" in z.namelist()
+        assert f"{licenses_path}/LICENSE.md" in z.namelist()
+        assert f"{licenses_path}/LICENSES/CUSTOM-LICENSE" in z.namelist()
+        assert f"{licenses_path}/LICENSES/BSD-3.md" in z.namelist()
+        assert f"{licenses_path}/LICENSES/MIT.txt" in z.namelist()
 
 
 def test_wheel_with_file_with_comma() -> None:
