@@ -334,7 +334,10 @@ class Dependency(PackageSpecification):
 
     @classmethod
     def create_from_pep_508(
-        cls, name: str, relative_to: Path | None = None
+        cls,
+        name: str,
+        relative_to: Path | None = None,
+        groups: Iterable[str] | None = None,
     ) -> Dependency:
         """
         Resolve a PEP-508 requirement string to a `Dependency` instance. If a
@@ -416,10 +419,15 @@ class Dependency(PackageSpecification):
                     rev=url.rev,
                     directory=url.subdirectory,
                     extras=req.extras,
+                    groups=groups,
                 )
             elif link.scheme == "git":
                 dep = VCSDependency(
-                    name, "git", link.url_without_fragment, extras=req.extras
+                    name,
+                    "git",
+                    link.url_without_fragment,
+                    extras=req.extras,
+                    groups=groups,
                 )
             elif link.scheme in ("http", "https"):
                 dep = URLDependency(
@@ -427,6 +435,7 @@ class Dependency(PackageSpecification):
                     link.url_without_fragment,
                     directory=link.subdirectory_fragment,
                     extras=req.extras,
+                    groups=groups,
                 )
             elif is_file_uri:
                 # handle RFC 8089 references
@@ -437,6 +446,7 @@ class Dependency(PackageSpecification):
                     base=relative_to,
                     subdirectory=link.subdirectory_fragment,
                     extras=req.extras,
+                    groups=groups,
                 )
             else:
                 with suppress(ValueError):
@@ -446,17 +456,18 @@ class Dependency(PackageSpecification):
                         path=Path(req.url),
                         base=relative_to,
                         extras=req.extras,
+                        groups=groups,
                     )
 
             if dep is None:
-                dep = Dependency(name, version or "*", extras=req.extras)
+                dep = Dependency(name, version or "*", extras=req.extras, groups=groups)
 
             if version:
                 dep._constraint = parse_constraint(version)
         else:
             constraint: VersionConstraint | str
             constraint = req.constraint if req.pretty_constraint else "*"
-            dep = Dependency(name, constraint, extras=req.extras)
+            dep = Dependency(name, constraint, extras=req.extras, groups=groups)
 
         if req.marker:
             dep.marker = req.marker
@@ -499,6 +510,7 @@ def _make_file_or_dir_dep(
     base: Path | None = None,
     subdirectory: str | None = None,
     extras: Iterable[str] | None = None,
+    groups: Iterable[str] | None = None,
 ) -> FileDependency | DirectoryDependency | None:
     """
     Helper function to create a file or directoru dependency with the given arguments.
@@ -523,10 +535,10 @@ def _make_file_or_dir_dep(
 
     if is_file:
         return FileDependency(
-            name, path, base=base, directory=subdirectory, extras=extras
+            name, path, base=base, directory=subdirectory, extras=extras, groups=groups
         )
 
     if subdirectory:
         path = path / subdirectory
 
-    return DirectoryDependency(name, path, base=base, extras=extras)
+    return DirectoryDependency(name, path, base=base, extras=extras, groups=groups)
