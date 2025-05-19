@@ -6,10 +6,13 @@ from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import TypeVar
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
+from poetry.core.utils.helpers import CanonicalizedDict
 from poetry.core.utils.patterns import AUTHOR_REGEX
 from poetry.core.version.exceptions import InvalidVersionError
 
@@ -99,7 +102,9 @@ class Package(PackageSpecification):
 
         self.extras: Mapping[NormalizedName, Sequence[Dependency]] = {}
 
-        self._dependency_groups: Mapping[str, DependencyGroup] = {}
+        self._dependency_groups: CanonicalizedDict[DependencyGroup] = (
+            CanonicalizedDict()
+        )
 
         self.files: Sequence[Mapping[str, str]] = []
         self.optional = False
@@ -390,7 +395,7 @@ class Package(PackageSpecification):
         }
 
     def add_dependency_group(self, group: DependencyGroup) -> None:
-        groups = dict(self._dependency_groups)
+        groups = CanonicalizedDict(self._dependency_groups)
         groups[group.name] = group
         self._dependency_groups = groups
 
@@ -422,14 +427,15 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
+        canonicalized_groups = {canonicalize_name(group) for group in groups}
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name not in groups
+            if group_name not in canonicalized_groups
         }
 
         package = self.clone()
-        package._dependency_groups = updated_groups
+        package._dependency_groups = CanonicalizedDict(updated_groups)
 
         return package
 
@@ -443,7 +449,7 @@ class Package(PackageSpecification):
             if not group.is_optional()
         }
         package = self.clone()
-        package._dependency_groups = updated_groups
+        package._dependency_groups = CanonicalizedDict(updated_groups)
 
         return package
 
@@ -458,13 +464,15 @@ class Package(PackageSpecification):
 
         If `only` is set to True, then only the given groups will be selected.
         """
+        canonicalized_groups = {canonicalize_name(group) for group in groups}
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name in groups or (not only and not group.is_optional())
+            if group_name in canonicalized_groups
+            or (not only and not group.is_optional())
         }
         package = self.clone()
-        package._dependency_groups = updated_groups
+        package._dependency_groups = CanonicalizedDict(updated_groups)
 
         return package
 
