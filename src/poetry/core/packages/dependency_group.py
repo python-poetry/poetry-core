@@ -3,6 +3,9 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from packaging.utils import NormalizedName
+from packaging.utils import canonicalize_name
+
 from poetry.core.version.markers import parse_marker
 
 
@@ -10,22 +13,27 @@ if TYPE_CHECKING:
     from poetry.core.packages.dependency import Dependency
     from poetry.core.version.markers import BaseMarker
 
-MAIN_GROUP = "main"
+MAIN_GROUP: NormalizedName = canonicalize_name("main")
 
 
 class DependencyGroup:
     def __init__(
         self, name: str, *, optional: bool = False, mixed_dynamic: bool = False
     ) -> None:
-        self._name: str = name
+        self._name: NormalizedName = canonicalize_name(name)
+        self._pretty_name: str = name
         self._optional: bool = optional
         self._mixed_dynamic = mixed_dynamic
         self._dependencies: list[Dependency] = []
         self._poetry_dependencies: list[Dependency] = []
 
     @property
-    def name(self) -> str:
+    def name(self) -> NormalizedName:
         return self._name
+
+    @property
+    def pretty_name(self) -> str:
+        return self._pretty_name
 
     @property
     def dependencies(self) -> list[Dependency]:
@@ -126,7 +134,11 @@ class DependencyGroup:
 
     def __repr__(self) -> str:
         cls = self.__class__.__name__
-        return f"{cls}({self._name}, optional={self._optional})"
+        return (
+            f"{cls}({self._pretty_name!r},"
+            f" optional={self._optional},"
+            f" mixed_dynamic={self._mixed_dynamic})"
+        )
 
 
 def _enrich_dependency(

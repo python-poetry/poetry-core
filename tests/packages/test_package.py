@@ -8,6 +8,8 @@ from typing import cast
 
 import pytest
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.factory import Factory
@@ -29,7 +31,7 @@ if TYPE_CHECKING:
 def package_with_groups() -> Package:
     package = Package("foo", "1.2.3")
 
-    optional_group = DependencyGroup("optional", optional=True)
+    optional_group = DependencyGroup("Optional", optional=True)
     optional_group.add_dependency(Factory.create_dependency("bam", "^3.0.0"))
 
     package.add_dependency(Factory.create_dependency("bar", "^1.0.0"))
@@ -479,6 +481,20 @@ def test_without_dependency_groups(package_with_groups: Package) -> None:
     assert len(package.all_requires) == 2
 
 
+def test_without_dependency_groups_uses_normalized_names(
+    package_with_groups: Package,
+) -> None:
+    package = package_with_groups.without_dependency_groups(["DeV"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 3
+
+    package = package_with_groups.without_dependency_groups(["DeV", "OpTioNal"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 2
+
+
 def test_with_dependency_groups(package_with_groups: Package) -> None:
     package = package_with_groups.with_dependency_groups([])
 
@@ -486,6 +502,15 @@ def test_with_dependency_groups(package_with_groups: Package) -> None:
     assert len(package.all_requires) == 3
 
     package = package_with_groups.with_dependency_groups(["optional"])
+
+    assert len(package.requires) == 2
+    assert len(package.all_requires) == 4
+
+
+def test_with_dependency_groups_uses_normalized_names(
+    package_with_groups: Package,
+) -> None:
+    package = package_with_groups.with_dependency_groups(["OpTioNal"])
 
     assert len(package.requires) == 2
     assert len(package.all_requires) == 4
@@ -667,3 +692,54 @@ def test_package_empty_python_versions() -> None:
 
     expected = "Python versions '~2.7, >=3.4, <3.8' on foo (1.2.3) is empty"
     assert str(exc_info.value) == expected
+
+
+def test_package_dependency_group_names(package_with_groups: Package) -> None:
+    assert package_with_groups.dependency_group_names() == {"main", "dev"}
+    assert package_with_groups.dependency_group_names(include_optional=True) == {
+        "main",
+        "dev",
+        "optional",
+    }
+
+
+@pytest.mark.parametrize(
+    ("group_name", "expected"),
+    [("optional", True), ("Optional", True), ("OpTiOnAl", True), ("other", False)],
+)
+def test_package_has_dependency_group(
+    package_with_groups: Package, group_name: str, expected: bool
+) -> None:
+    assert package_with_groups.has_dependency_group(group_name) is expected
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_get_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    group = package_with_groups.dependency_group(group_name)
+
+    assert group.name == "optional"
+    assert group.pretty_name == "Optional"
+
+
+@pytest.mark.parametrize("group_name", ["optional", "Optional", "OpTiOnAl"])
+def test_package_add_to_dependency_group(
+    package_with_groups: Package, group_name: str
+) -> None:
+    dependency = Dependency("foo-bar", "^1.0.0", groups=[group_name])
+    normalized_name = canonicalize_name(group_name)
+
+    assert dependency not in package_with_groups.all_requires
+    assert (
+        dependency
+        not in package_with_groups._dependency_groups[normalized_name].dependencies
+    )
+
+    package_with_groups.add_dependency(dependency)
+
+    assert dependency in package_with_groups.all_requires
+    assert (
+        dependency
+        in package_with_groups._dependency_groups[normalized_name].dependencies
+    )

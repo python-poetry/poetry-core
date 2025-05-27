@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from typing import ClassVar
 from typing import TypeVar
 
+from packaging.utils import canonicalize_name
+
 from poetry.core.constraints.version import parse_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -99,7 +101,7 @@ class Package(PackageSpecification):
 
         self.extras: Mapping[NormalizedName, Sequence[Dependency]] = {}
 
-        self._dependency_groups: Mapping[str, DependencyGroup] = {}
+        self._dependency_groups: Mapping[NormalizedName, DependencyGroup] = {}
 
         self.files: Sequence[Mapping[str, str]] = []
         self.optional = False
@@ -382,7 +384,9 @@ class Package(PackageSpecification):
     def is_root(self) -> bool:
         return False
 
-    def dependency_group_names(self, include_optional: bool = False) -> set[str]:
+    def dependency_group_names(
+        self, include_optional: bool = False
+    ) -> set[NormalizedName]:
         return {
             name
             for name, group in self._dependency_groups.items()
@@ -395,13 +399,13 @@ class Package(PackageSpecification):
         self._dependency_groups = groups
 
     def has_dependency_group(self, name: str) -> bool:
-        return name in self._dependency_groups
+        return canonicalize_name(name) in self._dependency_groups
 
     def dependency_group(self, name: str) -> DependencyGroup:
         if not self.has_dependency_group(name):
             raise ValueError(f'The dependency group "{name}" does not exist.')
 
-        return self._dependency_groups[name]
+        return self._dependency_groups[canonicalize_name(name)]
 
     def add_dependency(
         self,
@@ -422,10 +426,11 @@ class Package(PackageSpecification):
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
+        canonicalized_groups = {canonicalize_name(group) for group in groups}
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name not in groups
+            if group_name not in canonicalized_groups
         }
 
         package = self.clone()
@@ -458,10 +463,12 @@ class Package(PackageSpecification):
 
         If `only` is set to True, then only the given groups will be selected.
         """
+        canonicalized_groups = {canonicalize_name(group) for group in groups}
         updated_groups = {
             group_name: group
             for group_name, group in self._dependency_groups.items()
-            if group_name in groups or (not only and not group.is_optional())
+            if group_name in canonicalized_groups
+            or (not only and not group.is_optional())
         }
         package = self.clone()
         package._dependency_groups = updated_groups
@@ -599,7 +606,7 @@ class Package(PackageSpecification):
         return f"{self.complete_name} ({self.full_pretty_version})"
 
     def __repr__(self) -> str:
-        args = [repr(self._name), repr(self._version.text)]
+        args = [repr(self._pretty_name), repr(self._version.text)]
 
         if self._features:
             args.append(f"features={self._features!r}")
@@ -617,6 +624,12 @@ class Package(PackageSpecification):
                 )
             if self._source_subdirectory:
                 args.append(f"source_subdirectory={self._source_subdirectory!r}")
+
+        if self.develop:
+            args.append(f"develop={self.develop}")
+
+        if self._yanked:
+            args.append(f"yanked={self.yanked}")
 
         args_str = ", ".join(args)
         return f"Package({args_str})"
