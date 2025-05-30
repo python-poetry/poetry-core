@@ -544,3 +544,65 @@ def test_dependency_group_use_canonicalize_name(
     group = DependencyGroup(pretty_name)
     assert group.name == canonicalized_name
     assert group.pretty_name == pretty_name
+
+
+def test_include_dependency_groups() -> None:
+    group = DependencyGroup(name="group")
+    group.add_poetry_dependency(
+        Dependency(name="foo", constraint="*", groups=["group"])
+    )
+
+    group_2 = DependencyGroup(name="group2")
+    group_2.add_poetry_dependency(
+        Dependency(name="bar", constraint="*", groups=["group2"])
+    )
+
+    group.include_dependency_group(group_2)
+
+    assert [dep.name for dep in group.dependencies] == ["foo", "bar"]
+    assert [dep.name for dep in group.dependencies_for_locking] == ["foo", "bar"]
+    for dep in group.dependencies:
+        assert dep.groups == {"group"}
+
+    assert [dep.name for dep in group_2.dependencies] == ["bar"]
+    assert [dep.name for dep in group_2.dependencies_for_locking] == ["bar"]
+    for dep in group_2.dependencies:
+        assert dep.groups == {"group2"}
+
+
+@pytest.mark.parametrize("group_name", ["group_2", "Group-2", "group-2"])
+def test_include_dependency_group_raise_if_including_itself(group_name: str) -> None:
+    group = DependencyGroup(name="group-2")
+    group.add_poetry_dependency(
+        Dependency(name="foo", constraint="*", groups=["group"])
+    )
+
+    with pytest.raises(
+        ValueError, match="Cannot include the dependency group to itself"
+    ):
+        group.include_dependency_group(DependencyGroup(name=group_name))
+
+
+@pytest.mark.parametrize("group_name", ["group_2", "Group-2", "group-2"])
+def test_include_dependency_group_raise_if_already_included(group_name: str) -> None:
+    group = DependencyGroup(name="group")
+    group.add_poetry_dependency(
+        Dependency(name="foo", constraint="*", groups=["group"])
+    )
+
+    group_2 = DependencyGroup(name="group_2")
+    group_2.add_poetry_dependency(
+        Dependency(name="bar", constraint="*", groups=["group2"])
+    )
+
+    group.include_dependency_group(group_2)
+
+    group_3 = DependencyGroup(name=group_name)
+    group_3.add_poetry_dependency(
+        Dependency(name="bar", constraint="*", groups=["group2"])
+    )
+
+    with pytest.raises(
+        ValueError, match=f"Dependency group {group_name} is already included"
+    ):
+        group.include_dependency_group(group_3)

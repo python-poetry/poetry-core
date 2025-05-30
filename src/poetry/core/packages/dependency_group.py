@@ -26,6 +26,7 @@ class DependencyGroup:
         self._mixed_dynamic = mixed_dynamic
         self._dependencies: list[Dependency] = []
         self._poetry_dependencies: list[Dependency] = []
+        self._included_dependency_groups: dict[NormalizedName, DependencyGroup] = {}
 
     @property
     def name(self) -> NormalizedName:
@@ -37,59 +38,79 @@ class DependencyGroup:
 
     @property
     def dependencies(self) -> list[Dependency]:
-        if not self._dependencies:
+        group_dependencies = self._dependencies
+        included_group_dependencies = self._resolve_included_dependency_groups()
+
+        if not group_dependencies:
             # legacy mode
-            return self._poetry_dependencies
-        if self._mixed_dynamic and self._poetry_dependencies:
+            group_dependencies = self._poetry_dependencies
+        elif self._mixed_dynamic and self._poetry_dependencies:
             if all(dep.is_optional() for dep in self._dependencies):
-                return [
+                group_dependencies = [
                     *self._dependencies,
                     *(d for d in self._poetry_dependencies if not d.is_optional()),
                 ]
-            if all(not dep.is_optional() for dep in self._dependencies):
-                return [
+            elif all(not dep.is_optional() for dep in self._dependencies):
+                group_dependencies = [
                     *self._dependencies,
                     *(d for d in self._poetry_dependencies if d.is_optional()),
                 ]
-        return self._dependencies
+
+        return group_dependencies + included_group_dependencies
 
     @property
     def dependencies_for_locking(self) -> list[Dependency]:
+        included_group_dependencies = self._resolve_included_dependency_groups()
+
         if not self._poetry_dependencies:
-            return self._dependencies
-        if not self._dependencies:
-            return self._poetry_dependencies
+            dependencies = self._dependencies
+        elif not self._dependencies:
+            dependencies = self._poetry_dependencies
+        else:
+            poetry_dependencies_by_name = defaultdict(list)
+            for dep in self._poetry_dependencies:
+                poetry_dependencies_by_name[dep.name].append(dep)
 
-        poetry_dependencies_by_name = defaultdict(list)
-        for dep in self._poetry_dependencies:
-            poetry_dependencies_by_name[dep.name].append(dep)
-
-        dependencies = []
-        for dep in self.dependencies:
-            if dep.name in poetry_dependencies_by_name:
-                enriched = False
-                dep_marker = dep.marker
-                if dep.in_extras:
-                    dep_marker = dep.marker.intersect(
-                        parse_marker(
-                            " or ".join(
-                                f"extra == '{extra}'" for extra in dep.in_extras
+            dependencies = []
+            for dep in self.dependencies:
+                if dep.name in poetry_dependencies_by_name:
+                    enriched = False
+                    dep_marker = dep.marker
+                    if dep.in_extras:
+                        dep_marker = dep.marker.intersect(
+                            parse_marker(
+                                " or ".join(
+                                    f"extra == '{extra}'" for extra in dep.in_extras
+                                )
                             )
                         )
-                    )
-                for poetry_dep in poetry_dependencies_by_name[dep.name]:
-                    marker = dep_marker.intersect(poetry_dep.marker)
-                    if not marker.is_empty():
-                        if marker == dep_marker:
-                            marker = dep.marker
-                        enriched = True
-                        dependencies.append(_enrich_dependency(dep, poetry_dep, marker))
-                if not enriched:
+                    for poetry_dep in poetry_dependencies_by_name[dep.name]:
+                        marker = dep_marker.intersect(poetry_dep.marker)
+                        if not marker.is_empty():
+                            if marker == dep_marker:
+                                marker = dep.marker
+                            enriched = True
+                            dependencies.append(
+                                _enrich_dependency(dep, poetry_dep, marker)
+                            )
+                    if not enriched:
+                        dependencies.append(dep)
+                else:
                     dependencies.append(dep)
-            else:
-                dependencies.append(dep)
 
-        return dependencies
+        return dependencies + included_group_dependencies
+
+    def _resolve_included_dependency_groups(self) -> list[Dependency]:
+        """Resolves and returns the dependencies from included dependency groups.
+
+        This method iterates over all included dependency groups and collects
+        their dependencies, associating them with the current group.
+        """
+        return [
+            dependency.with_groups([self.name])
+            for dependency_group in self._included_dependency_groups.values()
+            for dependency in dependency_group.dependencies
+        ]
 
     def is_optional(self) -> bool:
         return self._optional
@@ -121,6 +142,16 @@ class DependencyGroup:
                 continue
             dependencies.append(dependency)
         self._poetry_dependencies = dependencies
+
+    def include_dependency_group(self, dependency_group: DependencyGroup) -> None:
+        if dependency_group.name == self.name:
+            raise ValueError("Cannot include the dependency group to itself.")
+        if dependency_group.name in self._included_dependency_groups:
+            raise ValueError(
+                f"Dependency group {dependency_group.pretty_name} is already included"
+            )
+
+        self._included_dependency_groups[dependency_group.name] = dependency_group
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, DependencyGroup):
