@@ -356,21 +356,44 @@ def test_wheel_package_pep_561_stub_only_includes_typed_marker() -> None:
         assert "pkg-stubs/py.typed" in z.namelist()
 
 
-def test_wheel_includes_licenses_in_correct_paths() -> None:
-    root = fixtures_dir / "licenses_and_copying"
+@pytest.mark.parametrize(
+    ("license_files", "expected"),
+    [
+        (
+            None,
+            [
+                "COPYING",
+                "COPYING.txt",
+                "LICENSE",
+                "LICENSE.md",
+                "LICENSES/CUSTOM-LICENSE",
+                "LICENSES/BSD-3.md",
+                "LICENSES/MIT.txt",
+            ],
+        ),
+        (["COPYING*", "LICENSE"], ["COPYING", "COPYING.txt", "LICENSE"]),
+        ([], []),
+    ],
+)
+def test_wheel_includes_licenses_in_correct_paths(
+    tmp_path: Path, license_files: list[str] | None, expected: list[str]
+) -> None:
+    root = tmp_path / "licenses_and_copying"
+    shutil.copytree(fixtures_dir / "licenses_and_copying", root)
+    if license_files is not None:
+        pyproject_path = root / "pyproject.toml"
+        pyproject_content = pyproject_path.read_text(encoding="utf-8")
+        pyproject_content += f"\nlicense-files = {license_files}"
+        pyproject_path.write_text(pyproject_content, encoding="utf-8")
+
     WheelBuilder.make(Factory().create_poetry(root))
 
     whl = root / "dist" / "my_package-1.2.3-py3-none-any.whl"
-
+    licenses_path = "my_package-1.2.3.dist-info/licenses"
     assert whl.exists()
     with zipfile.ZipFile(str(whl)) as z:
-        assert "my_package-1.2.3.dist-info/COPYING" in z.namelist()
-        assert "my_package-1.2.3.dist-info/COPYING.txt" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSE" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSE.md" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSES/CUSTOM-LICENSE" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSES/BSD-3.md" in z.namelist()
-        assert "my_package-1.2.3.dist-info/LICENSES/MIT.txt" in z.namelist()
+        licenses_content = {p for p in z.namelist() if p.startswith(licenses_path)}
+    assert licenses_content == {f"{licenses_path}/{p}" for p in expected}
 
 
 def test_wheel_with_file_with_comma() -> None:
