@@ -593,6 +593,21 @@ def test_include_dependency_groups() -> None:
         assert dep.groups == {"group3"}
 
 
+def test_include_empty_dependency_group() -> None:
+    group_main = DependencyGroup(name="group")
+    group_main.add_poetry_dependency(
+        Dependency(name="foo", constraint="*", groups=["group"])
+    )
+
+    empty_group = DependencyGroup(name="empty")
+    # Include empty dependency group
+    group_main.include_dependency_group(empty_group)
+
+    # Assert that including an empty group does not affect group_main's dependencies.
+    assert [dep.name for dep in group_main.dependencies] == ["foo"]
+    assert [dep.name for dep in group_main.dependencies_for_locking] == ["foo"]
+
+
 @pytest.mark.parametrize("group_name", ["group_2", "Group-2", "group-2"])
 def test_include_dependency_group_raise_if_including_itself(group_name: str) -> None:
     group = DependencyGroup(name="group-2")
