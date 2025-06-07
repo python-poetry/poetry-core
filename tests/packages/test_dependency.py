@@ -339,6 +339,7 @@ def test_with_constraint() -> None:
 
     assert new.name == dependency.name
     assert str(new.constraint) == ">=1.2.6,<2.0.0"
+    assert str(dependency.constraint) == ">=1.2.3,<2.0.0"
     assert new.is_optional()
     assert new.groups == frozenset(["dev"])
     assert new.allows_prereleases()
@@ -346,6 +347,17 @@ def test_with_constraint() -> None:
     assert new.marker == dependency.marker
     assert new.transitive_marker == dependency.transitive_marker
     assert new.python_constraint == dependency.python_constraint
+
+
+def test_with_groups() -> None:
+    dependency = Dependency("foo", "^1.2.3", groups=["DEV"])
+
+    new = dependency.with_groups(["DOC", "test"])
+
+    assert new.name == dependency.name
+    assert str(dependency.constraint) == ">=1.2.3,<2.0.0"
+    assert new.groups == frozenset(["doc", "test"])
+    assert dependency.groups == frozenset(["dev"])
 
 
 @pytest.mark.parametrize(
