@@ -1191,6 +1191,7 @@ def test_create_poetry_with_self_referenced_dependency_groups(
     include_group_name: str,
     temporary_directory: Path,
 ) -> None:
+    """testing-group -> testing-group"""
     content = f"""\
 [project]
 name = "my-package"
@@ -1208,7 +1209,7 @@ pytest-cov ="*"
 
     expected = """\
 The Poetry configuration is invalid:
-  - Cyclic dependency group include in testing-group: testing-group -> testing-group
+  - Cyclic dependency group include in testing-group: testing-group
 """
     assert_invalid_group_including(
         toml_data=content,
@@ -1221,6 +1222,10 @@ The Poetry configuration is invalid:
 def test_create_poetry_with_direct_cyclic_dependency_groups(
     temporary_directory: Path,
 ) -> None:
+    """
+    testing -> dev
+    dev -> testing
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1259,6 +1264,11 @@ The Poetry configuration is invalid:
 def test_create_poetry_with_indirect_full_cyclic_dependency_groups(
     temporary_directory: Path,
 ) -> None:
+    """
+    group-1 -> group-3
+    group-2 -> group-1
+    group-3 -> group-2
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1289,9 +1299,9 @@ baz = "*"
 
     expected = """\
 The Poetry configuration is invalid:
-  - Cyclic dependency group include in group-1: group-2 -> group-1
-  - Cyclic dependency group include in group-2: group-3 -> group-2
-  - Cyclic dependency group include in group-3: group-1 -> group-3
+  - Cyclic dependency group include in group-1: group-3 -> group-2 -> group-1
+  - Cyclic dependency group include in group-2: group-1 -> group-3 -> group-2
+  - Cyclic dependency group include in group-3: group-2 -> group-1 -> group-3
 """
     assert_invalid_group_including(
         toml_data=content,
@@ -1304,6 +1314,11 @@ The Poetry configuration is invalid:
 def test_create_poetry_with_indirect_partial_cyclic_dependency_groups(
     temporary_directory: Path,
 ) -> None:
+    """
+    group-1 -> group-2
+    group-2 -> group-1
+    group-3 -> group-2
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1336,7 +1351,7 @@ baz = "*"
 The Poetry configuration is invalid:
   - Cyclic dependency group include in group-1: group-2 -> group-1
   - Cyclic dependency group include in group-2: group-1 -> group-2
-  - Cyclic dependency group include in group-3: group-1 -> group-2
+  - Cyclic dependency group include in group-3: group-2 -> group-1 -> group-2
 """
     assert_invalid_group_including(
         toml_data=content,
@@ -1349,6 +1364,11 @@ The Poetry configuration is invalid:
 def test_create_poetry_with_shared_dependency_groups(
     temporary_directory: Path,
 ) -> None:
+    """
+    root -> child-1, child-2
+    child-1 -> shared
+    child-2 -> shared
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1396,8 +1416,10 @@ quux = "*"
         ("foo", "root"),
         ("quux", "child-1"),
         ("quux", "child-2"),
+        # Duplicates because dependency is included via several groups.
+        # This is ok because they are merged during depenendency resolution.
         ("quux", "root"),
-        ("quux", "root"),  # TODO: is this expected?
+        ("quux", "root"),
         ("quux", "shared"),
     ]
 
@@ -1405,6 +1427,12 @@ quux = "*"
 def test_create_poetry_with_shared_dependency_groups_more_complicated(
     temporary_directory: Path,
 ) -> None:
+    """
+    root -> child-1, child-2
+    child-1 -> shared
+    child-2 -> grandchild
+    grandchild -> shared
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1463,8 +1491,10 @@ quux = "*"
         ("quux", "child-1"),
         ("quux", "child-2"),
         ("quux", "grandchild"),
+        # Duplicates because dependency is included via several groups.
+        # This is ok because they are merged during depenendency resolution.
         ("quux", "root"),
-        ("quux", "root"),  # TODO: is this expected?
+        ("quux", "root"),
         ("quux", "shared"),
     ]
 
@@ -1472,6 +1502,13 @@ quux = "*"
 def test_create_poetry_with_complicated_cyclic_diamond_dependency_groups(
     temporary_directory: Path,
 ) -> None:
+    """
+    root -> child-1, child-2
+    child-1 -> shared
+    child-2 -> shared
+    shared -> grandchild
+    grandchild -> child-2
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1517,12 +1554,12 @@ bar = "*"
 
     expected = """\
 The Poetry configuration is invalid:
-  - Cyclic dependency group include in root: grandchild -> child-2
-  - Cyclic dependency group include in root: grandchild -> child-2
-  - Cyclic dependency group include in child-1: child-2 -> shared
-  - Cyclic dependency group include in child-2: grandchild -> child-2
-  - Cyclic dependency group include in shared: child-2 -> shared
-  - Cyclic dependency group include in grandchild: shared -> grandchild
+  - Cyclic dependency group include in root: child-2 -> shared -> grandchild -> child-2
+  - Cyclic dependency group include in root: child-1 -> shared -> grandchild -> child-2 -> shared
+  - Cyclic dependency group include in child-1: shared -> grandchild -> child-2 -> shared
+  - Cyclic dependency group include in child-2: shared -> grandchild -> child-2
+  - Cyclic dependency group include in shared: grandchild -> child-2 -> shared
+  - Cyclic dependency group include in grandchild: child-2 -> shared -> grandchild
 """
 
     assert_invalid_group_including(
@@ -1536,6 +1573,11 @@ The Poetry configuration is invalid:
 def test_create_poetry_with_noncanonical_names_cyclic_dependency_groups(
     temporary_directory: Path,
 ) -> None:
+    """
+    group-1 -> group-2
+    group-2 -> group-1
+    group-3 -> group-2
+    """
     content = """\
 [project]
 name = "my-package"
@@ -1568,7 +1610,7 @@ baz = "*"
 The Poetry configuration is invalid:
   - Cyclic dependency group include in group-1: group-2 -> group-1
   - Cyclic dependency group include in group-2: group-1 -> group-2
-  - Cyclic dependency group include in group-3: group-1 -> group-2
+  - Cyclic dependency group include in group-3: group-2 -> group-1 -> group-2
 """
     assert_invalid_group_including(
         toml_data=content,
@@ -1665,7 +1707,9 @@ foo = "*"
     assert [
         (dep.name, ",".join(dep.groups)) for dep in poetry.package.all_requires
     ] == [
+        # Duplicates because dependency is included via several groups.
+        # This is ok because they are merged during depenendency resolution.
         ("foo", "parent"),
-        ("foo", "parent"),  # TODO: dupe!
+        ("foo", "parent"),
         ("foo", "child"),
     ]

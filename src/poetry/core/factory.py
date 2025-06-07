@@ -654,34 +654,22 @@ class Factory:
                     canonicalize_name(name) for name in include_groups
                 ]
 
-        for group_name in group_includes:
-            ancestors: defaultdict[NormalizedName, set[NormalizedName]] = defaultdict(
-                set
-            )
-            stack = [group_name]
+        for root in group_includes:
+            # group, path to group, ancestors
+            stack: list[
+                tuple[NormalizedName, list[NormalizedName], set[NormalizedName]]
+            ] = [(root, [], {root})]
             while stack:
-                group = stack.pop()
-                current_ancestors = ancestors.get(group, set())
-                child_ancestors = current_ancestors.union({group})
-
+                group, path, ancestors = stack.pop()
                 for include in group_includes.get(group, []):
-                    if include in child_ancestors:
+                    new_path = [*path, include]
+                    if include in ancestors:
                         result["errors"].append(
-                            f"Cyclic dependency group include in {group_name}:"
-                            f" {group} -> {include}"
+                            f"Cyclic dependency group include in {root}:"
+                            f" {' -> '.join(new_path)}"
                         )
-                        # Avoid infinite loop; we've already found an error.
-                        continue
-
-                    # This must be a union with any existing known ancestors.
-                    # Otherwise, we might accidentally miss a cycle (since we'd
-                    # be tossing out known dependencies). That cycle will be
-                    # caught when we use the share dependency as `group_name`,
-                    # but best to be safe.
-                    ancestors[include] = ancestors.get(include, set()).union(
-                        child_ancestors
-                    )
-                    stack.append(include)
+                    else:
+                        stack.append((include, new_path, ancestors | {include}))
 
     @classmethod
     def _validate_legacy_vs_project(
