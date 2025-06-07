@@ -38,27 +38,27 @@ class DependencyGroup:
 
     @property
     def dependencies(self) -> list[Dependency]:
-        group_dependencies = self._dependencies
+        dependencies = self._dependencies
         included_group_dependencies = self._resolve_included_dependency_groups(
             dependencies_for_locking=False
         )
 
-        if not group_dependencies:
+        if not dependencies:
             # legacy mode
-            group_dependencies = self._poetry_dependencies
+            dependencies = self._poetry_dependencies
         elif self._mixed_dynamic and self._poetry_dependencies:
             if all(dep.is_optional() for dep in self._dependencies):
-                group_dependencies = [
+                dependencies = [
                     *self._dependencies,
                     *(d for d in self._poetry_dependencies if not d.is_optional()),
                 ]
             elif all(not dep.is_optional() for dep in self._dependencies):
-                group_dependencies = [
+                dependencies = [
                     *self._dependencies,
                     *(d for d in self._poetry_dependencies if d.is_optional()),
                 ]
 
-        return group_dependencies + included_group_dependencies
+        return dependencies + included_group_dependencies
 
     @property
     def dependencies_for_locking(self) -> list[Dependency]:
@@ -105,7 +105,7 @@ class DependencyGroup:
         return dependencies + included_group_dependencies
 
     def _resolve_included_dependency_groups(
-        self, dependencies_for_locking: bool = False
+        self, *, dependencies_for_locking: bool = False
     ) -> list[Dependency]:
         """Resolves and returns the dependencies from included dependency groups.
 
