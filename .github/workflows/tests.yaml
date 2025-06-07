@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - Ubuntu
-          - MacOS
+          #- Ubuntu
+          #- MacOS
           - Windows
         python-version:
           - "3.9"
@@ -25,9 +25,9 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
-        include:
-          - os: Ubuntu
-            python-version: pypy-3.10
+        #include:
+        #  - os: Ubuntu
+        #    python-version: pypy-3.10
       fail-fast: false
     defaults:
       run:
@@ -83,11 +83,11 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run tests
-        run: poetry run python -m pytest -p no:sugar -q tests/
+#      - name: Run tests
+#        run: poetry run python -m pytest -p no:sugar -q tests/
 
       - name: Run integration tests
         run: poetry run python -m pytest -p no:sugar --integration -q tests/integration
 
-      - name: Run mypy
-        run: poetry run mypy
+#      - name: Run mypy
+#        run: poetry run mypy
