@@ -355,8 +355,8 @@ class Factory:
                     current_group = package.dependency_group(group_name)
                     for name in include_groups:
                         try:
-                            # `name` isn't normalized, but `.dependency_group()`
-                            # handles that.
+                            # `name` isn't normalized,
+                            # but `.dependency_group()` handles that.
                             group_to_include = package.dependency_group(name)
                         except ValueError as e:
                             raise ValueError(
