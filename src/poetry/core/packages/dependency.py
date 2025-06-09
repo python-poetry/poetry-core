@@ -73,7 +73,7 @@ class Dependency(PackageSpecification):
         if not groups:
             groups = [MAIN_GROUP]
 
-        self._groups = frozenset(canonicalize_name(g) for g in groups)
+        self.groups = frozenset(canonicalize_name(g) for g in groups)
         self._allows_prereleases = allows_prereleases
         # "_develop" is only required for enriching [project] dependencies
         self._develop = False
@@ -114,10 +114,6 @@ class Dependency(PackageSpecification):
     @property
     def pretty_name(self) -> str:
         return self._pretty_name
-
-    @property
-    def groups(self) -> frozenset[NormalizedName]:
-        return self._groups
 
     @property
     def python_versions(self) -> str:
@@ -332,6 +328,11 @@ class Dependency(PackageSpecification):
         dependency.constraint = constraint  # type: ignore[assignment]
         return dependency
 
+    def with_groups(self, groups: Iterable[str]) -> Dependency:
+        dependency = self.clone()
+        dependency.groups = frozenset(canonicalize_name(g) for g in groups)
+        return dependency
+
     @classmethod
     def create_from_pep_508(
         cls, name: str, relative_to: Path | None = None
@@ -504,7 +505,7 @@ def _make_file_or_dir_dep(
     Helper function to create a file or directoru dependency with the given arguments.
 
     If path is not a file or directory that exists, a guess is made based on the suffix
-    of the given path. This is done to prevent dependendencies from being parsed as normal
+    of the given path. This is done to prevent dependencies from being parsed as normal
     dependencies. This allows for downstream error handling.
 
     See also: poetry#10068
