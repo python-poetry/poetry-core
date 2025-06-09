@@ -234,6 +234,16 @@
     true,
     false
   ],
+  "Artistic-dist": [
+    "Artistic License 1.0 (dist)",
+    false,
+    false
+  ],
+  "Aspell-RU": [
+    "Aspell Russian License",
+    false,
+    false
+  ],
   "BSD-1-Clause": [
     "BSD 1-Clause License",
     true,
@@ -1164,6 +1174,11 @@
     false,
     false
   ],
+  "FSFULLRSD": [
+    "FSF Unlimited License (with License Retention and Short Disclaimer)",
+    false,
+    false
+  ],
   "FSFULLRWD": [
     "FSF Unlimited License (With License Retention and Warranty Disclaimer)",
     false,
@@ -1461,6 +1476,11 @@
   ],
   "Gutmann": [
     "Gutmann License",
+    false,
+    false
+  ],
+  "HDF5": [
+    "HDF5 License",
     false,
     false
   ],
@@ -2744,6 +2764,11 @@
     false,
     false
   ],
+  "SOFA": [
+    "SOFA Software License",
+    false,
+    false
+  ],
   "SPL-1.0": [
     "Sun Public License v1.0",
     true,
@@ -2997,6 +3022,16 @@
   "Unlicense": [
     "The Unlicense",
     true,
+    false
+  ],
+  "Unlicense-libtelnet": [
+    "Unlicense - libtelnet variant",
+    false,
+    false
+  ],
+  "Unlicense-libwhirlpool": [
+    "Unlicense - libwhirlpool variant",
+    false,
     false
   ],
   "VOSTROM": [
@@ -3279,6 +3314,11 @@
     false,
     false
   ],
+  "libpng-1.6.35": [
+    "PNG Reference Library License v1 (for libpng 0.5 through 1.6.35",
+    false,
+    false
+  ],
   "libpng-2.0": [
     "PNG Reference Library version 2",
     false,
@@ -3336,6 +3376,11 @@
   ],
   "mplus": [
     "mplus Font License",
+    false,
+    false
+  ],
+  "ngrep": [
+    "ngrep License",
     false,
     false
   ],
