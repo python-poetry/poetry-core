@@ -1,0 +1,7 @@
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[tool.poetry]
+exclude = [ "*/exclude-dir" ]
+include = [ "*/*exclude-dir/include-dir", "*/*exclude-dir/other-dir/include-file" ]

@@ -37,6 +37,31 @@ def test_builder_find_excluded_files(mocker: MockerFixture) -> None:
     assert builder.find_excluded_files() == {"my_package/sub_pkg1/extra_file.xml"}
 
 
+def test_builder_find_excluded_files_dirs(mocker: MockerFixture) -> None:
+    mocker.patch(
+        "poetry.core.vcs.git.Git.get_ignored_files",
+        return_value=[
+            "my_package/git-exclude-dir/include-dir/file",
+            "my_package/git-exclude-dir/other-dir/include-file",
+            "my_package/git-exclude-dir/other-dir/other-file",
+            "my_package/git-exclude-dir/file",
+        ],
+    )
+
+    builder = Builder(
+        Factory().create_poetry(
+            Path(__file__).parent / "fixtures" / "exclude-include-dir"
+        )
+    )
+
+    assert builder.find_excluded_files() == {
+        "my_package/exclude-dir/file",
+        "my_package/exclude-dir/other-dir/other-file",
+        "my_package/git-exclude-dir/file",
+        "my_package/git-exclude-dir/other-dir/other-file",
+    }
+
+
 @pytest.mark.xfail(
     sys.platform == "win32",
     reason="Windows is case insensitive for the most part",
