@@ -1417,7 +1417,7 @@ quux = "*"
         ("quux", "child-1"),
         ("quux", "child-2"),
         # Duplicates because dependency is included via several groups.
-        # This is ok because they are merged during depenendency resolution.
+        # This is ok because they are merged during dependency resolution.
         ("quux", "root"),
         ("quux", "root"),
         ("quux", "shared"),
@@ -1492,7 +1492,7 @@ quux = "*"
         ("quux", "child-2"),
         ("quux", "grandchild"),
         # Duplicates because dependency is included via several groups.
-        # This is ok because they are merged during depenendency resolution.
+        # This is ok because they are merged during dependency resolution.
         ("quux", "root"),
         ("quux", "root"),
         ("quux", "shared"),
@@ -1708,7 +1708,7 @@ foo = "*"
         (dep.name, ",".join(dep.groups)) for dep in poetry.package.all_requires
     ] == [
         # Duplicates because dependency is included via several groups.
-        # This is ok because they are merged during depenendency resolution.
+        # This is ok because they are merged during dependency resolution.
         ("foo", "parent"),
         ("foo", "parent"),
         ("foo", "child"),

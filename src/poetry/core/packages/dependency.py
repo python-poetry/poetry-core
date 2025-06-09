@@ -505,7 +505,7 @@ def _make_file_or_dir_dep(
     Helper function to create a file or directoru dependency with the given arguments.
 
     If path is not a file or directory that exists, a guess is made based on the suffix
-    of the given path. This is done to prevent dependendencies from being parsed as normal
+    of the given path. This is done to prevent dependencies from being parsed as normal
     dependencies. This allows for downstream error handling.
 
     See also: poetry#10068
