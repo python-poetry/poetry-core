@@ -100,20 +100,26 @@ class Builder:
             vcs = get_vcs(self._path)
             vcs_ignored_files = set(vcs.get_ignored_files()) if vcs else set()
 
-            explicitly_excluded = set()
+            def add_all_files(path: Path, target: set[str]) -> None:
+                all_files = (
+                    [f for f in path.glob("**/*") if f.is_file()]
+                    if path.is_dir()
+                    else [path]
+                )
+                target.update(f.relative_to(self._path).as_posix() for f in all_files)
+
+            explicitly_excluded: set[str] = set()
             for excluded_glob in self._package.exclude:
                 for excluded in self._path.glob(str(excluded_glob)):
-                    explicitly_excluded.add(
-                        Path(excluded).relative_to(self._path).as_posix()
-                    )
+                    add_all_files(excluded, explicitly_excluded)
 
-            explicitly_included = set()
+            explicitly_included: set[str] = set()
             for inc in self._module.explicit_includes:
                 if fmt and fmt not in inc.formats:
                     continue
 
                 for included in inc.elements:
-                    explicitly_included.add(included.relative_to(self._path).as_posix())
+                    add_all_files(included, explicitly_included)
 
             ignored = (vcs_ignored_files | explicitly_excluded) - explicitly_included
             for ignored_file in ignored:
