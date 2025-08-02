@@ -312,8 +312,11 @@ def test_create_poetry(project: str) -> None:
         ]
 
 
-def test_create_poetry_with_groups() -> None:
-    poetry = Factory().create_poetry(fixtures_dir / "sample_project_with_groups_new")
+@pytest.mark.parametrize(
+    "project", ["sample_project_with_groups", "sample_project_with_groups_new"]
+)
+def test_create_poetry_with_groups(project: str) -> None:
+    poetry = Factory().create_poetry(fixtures_dir / project)
 
     assert "docs" in poetry.package._dependency_groups
     assert "test" in poetry.package._dependency_groups
@@ -1090,12 +1093,15 @@ The Poetry configuration is invalid:
 
 
 def test_create_poetry_with_duplicated_dependency_groups() -> None:
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(RuntimeError) as e:
         _ = Factory().create_poetry(
             fixtures_dir / "project_with_duplicated_dependency_groups",
         )
 
-    assert str(e.value) == "Duplicate dependency group names: test (test, Test)"
+    assert (
+        "Duplicate dependency group name after normalization: test (Test, test)"
+        in str(e.value)
+    )
 
 
 def test_create_poetry_with_dependency_groups_missing_include() -> None:
@@ -1104,23 +1110,38 @@ def test_create_poetry_with_dependency_groups_missing_include() -> None:
             fixtures_dir / "project_with_dependency_groups_missing_include",
         )
 
-    assert str(e.value) == "Dependency group 'coverage' (included in 'test') not found"
+    assert (
+        str(e.value) == "Group 'test' includes group 'coverage' which is not defined."
+    )
 
 
 @pytest.mark.parametrize(
     ("fixture", "expected"),
     [
-        ("project_with_dependency_groups_simple_cycle", "coverage -> test"),
-        ("project_with_dependency_groups_complex_cycle", "test -> dev"),
+        (
+            "project_with_dependency_groups_simple_cycle",
+            [
+                "Cyclic dependency group include in test: coverage -> test",
+                "Cyclic dependency group include in coverage: test -> coverage",
+            ],
+        ),
+        (
+            "project_with_dependency_groups_complex_cycle",
+            [
+                "Cyclic dependency group include in test: coverage -> dev -> test",
+                "Cyclic dependency group include in coverage: dev -> test -> coverage",
+                "Cyclic dependency group include in dev: test -> coverage -> dev",
+            ],
+        ),
     ],
 )
 def test_create_poetry_with_dependency_groups_simple_cycle(
-    fixture: str, expected: str
+    fixture: str, expected: list[str]
 ) -> None:
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(RuntimeError) as e:
         _ = Factory().create_poetry(fixtures_dir / fixture)
 
-    assert str(e.value) == f"Cyclic dependency group include: {expected}"
+    assert all(exp in str(e.value) for exp in expected)
 
 
 def test_create_poetry_with_groups_and_legacy_dev(caplog: LogCaptureFixture) -> None:
