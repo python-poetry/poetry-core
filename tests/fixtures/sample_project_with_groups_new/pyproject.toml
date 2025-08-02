@@ -69,8 +69,8 @@ all = [
     { "include-group" = "docs" },
 ]
 
-[tool.poetry.group.docs]
+[tool.poetry.group.Docs]
 optional = true
 
-[tool.poetry.group.docs.dependencies]
+[tool.poetry.group.Docs.dependencies]
 mkdocs = { develop = true }
