@@ -4,6 +4,7 @@ import logging
 
 from collections import defaultdict
 from collections.abc import Mapping
+from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -13,6 +14,8 @@ from typing import cast
 
 from packaging.utils import canonicalize_name
 
+from poetry.core.packages.dependency import Dependency
+from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.utils.helpers import combine_unicode
 from poetry.core.utils.helpers import readme_content_type
 
@@ -20,8 +23,6 @@ from poetry.core.utils.helpers import readme_content_type
 if TYPE_CHECKING:
     from packaging.utils import NormalizedName
 
-    from poetry.core.packages.dependency import Dependency
-    from poetry.core.packages.dependency_group import DependencyGroup
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.poetry import Poetry
     from poetry.core.pyproject.toml import PyProjectTOML
@@ -87,7 +88,27 @@ class Factory:
         return ProjectPackage(name, version)
 
     @classmethod
-    def _add_package_group_dependencies(
+    def _add_package_pep735_group_dependencies(
+        cls,
+        package: ProjectPackage,
+        group: DependencyGroup,
+        dependencies: list[str | dict[str, str]],
+    ) -> list[str]:
+        group_includes = []
+        for constraint in dependencies:
+            if isinstance(constraint, str):
+                dep = Dependency.create_from_pep_508(
+                    constraint,
+                    relative_to=package.root_dir,
+                    groups=[group.pretty_name],
+                )
+                group.add_dependency(dep)
+            elif include := constraint.get("include-group"):
+                group_includes.append(include)
+        return group_includes
+
+    @classmethod
+    def _add_package_poetry_group_dependencies(
         cls,
         package: ProjectPackage,
         group: str | DependencyGroup,
@@ -134,13 +155,18 @@ class Factory:
     ) -> None:
         project = pyproject.data.get("project", {})
         tool_poetry = pyproject.poetry_config
+        dependency_groups = pyproject.data.get("dependency-groups", {})
 
         package.root_dir = root
 
         cls._configure_package_metadata(package, project, tool_poetry, root)
         cls._configure_entry_points(package, project, tool_poetry)
         cls._configure_package_dependencies(
-            package, project, tool_poetry, with_groups=with_groups
+            package=package,
+            project=project,
+            tool_poetry=tool_poetry,
+            dependency_groups=dependency_groups,
+            with_groups=with_groups,
         )
         cls._configure_package_poetry_specifics(package, tool_poetry)
 
@@ -289,6 +315,7 @@ class Factory:
         package: ProjectPackage,
         project: dict[str, Any],
         tool_poetry: dict[str, Any],
+        dependency_groups: dict[str, list[str | dict[str, str]]],
         with_groups: bool = True,
     ) -> None:
         from poetry.core.packages.dependency import Dependency
@@ -333,41 +360,19 @@ class Factory:
             package.extras = package_extras
 
         if "dependencies" in tool_poetry:
-            cls._add_package_group_dependencies(
+            cls._add_package_poetry_group_dependencies(
                 package=package,
                 group=MAIN_GROUP,
                 dependencies=tool_poetry["dependencies"],
             )
 
-        if with_groups and "group" in tool_poetry:
-            for group_name, group_config in tool_poetry["group"].items():
-                group = DependencyGroup(
-                    group_name, optional=group_config.get("optional", False)
-                )
-                cls._add_package_group_dependencies(
-                    package=package,
-                    group=group,
-                    dependencies=group_config.get("dependencies", {}),
-                )
-
-            for group_name, group_config in tool_poetry["group"].items():
-                if include_groups := group_config.get("include-groups", []):
-                    current_group = package.dependency_group(group_name)
-                    for name in include_groups:
-                        try:
-                            # `name` isn't normalized,
-                            # but `.dependency_group()` handles that.
-                            group_to_include = package.dependency_group(name)
-                        except ValueError as e:
-                            raise ValueError(
-                                f"Group '{group_name}' includes group '{name}'"
-                                " which is not defined."
-                            ) from e
-
-                        current_group.include_dependency_group(group_to_include)
+        if with_groups:
+            cls._configure_package_dependency_groups(
+                package, tool_poetry, dependency_groups
+            )
 
         if with_groups and "dev-dependencies" in tool_poetry:
-            cls._add_package_group_dependencies(
+            cls._add_package_poetry_group_dependencies(
                 package=package,
                 group="dev",
                 dependencies=tool_poetry["dev-dependencies"],
@@ -392,6 +397,74 @@ class Factory:
                             package_extras[extra_name].append(dep)
 
             package.extras = package_extras
+
+    @classmethod
+    def _configure_package_dependency_groups(
+        cls,
+        package: ProjectPackage,
+        tool_poetry: dict[str, Any],
+        dependency_groups: dict[str, list[str | dict[str, str]]],
+    ) -> None:
+        tool_poetry_groups = tool_poetry.get("group", {})
+        tool_poetry_groups_normalized = {
+            canonicalize_name(name): config
+            for name, config in tool_poetry_groups.items()
+        }
+        # create groups from the dependency-groups section considering
+        # additional information from the corresponding tool.poetry.group section
+        pep739_include_groups = {}
+        for group_name, dependencies in dependency_groups.items():
+            poetry_group_config = tool_poetry_groups_normalized.get(
+                canonicalize_name(group_name), {}
+            )
+            group = DependencyGroup(
+                name=group_name,
+                optional=poetry_group_config.get("optional", False),
+            )
+            package.add_dependency_group(group)
+            included_groups = cls._add_package_pep735_group_dependencies(
+                package=package,
+                group=group,
+                dependencies=dependencies,
+            )
+            pep739_include_groups[group_name] = included_groups
+        # create groups from the tool.poetry.group section
+        # with no corresponding entry in dependency-groups
+        # and add dependency information for existing groups
+        poetry_include_groups = {}
+        for group_name, group_config in tool_poetry_groups.items():
+            poetry_include_groups[group_name] = group_config.get("include-groups", [])
+            if package.has_dependency_group(group_name):
+                group = package.dependency_group(group_name)
+            else:
+                group = DependencyGroup(
+                    name=group_name,
+                    optional=group_config.get("optional", False),
+                )
+                package.add_dependency_group(group)
+            cls._add_package_poetry_group_dependencies(
+                package=package,
+                group=group,
+                dependencies=group_config.get("dependencies", {}),
+            )
+
+        for group_name, include_groups in chain(
+            pep739_include_groups.items(), poetry_include_groups.items()
+        ):
+            if include_groups:
+                current_group = package.dependency_group(group_name)
+                for name in include_groups:
+                    try:
+                        # `name` isn't normalized,
+                        # but `.dependency_group()` handles that.
+                        group_to_include = package.dependency_group(name)
+                    except ValueError as e:
+                        raise ValueError(
+                            f"Group '{group_name}' includes group '{name}'"
+                            " which is not defined."
+                        ) from e
+
+                    current_group.include_dependency_group(group_to_include)
 
     @classmethod
     def _prepare_formats(
@@ -609,6 +682,14 @@ class Factory:
         ]
         result["errors"] += tool_poetry_validation_errors
 
+        dependency_groups = toml_data.get("dependency-groups")
+        if dependency_groups is not None:
+            dependency_groups_validation_errors = [
+                e.replace("data", "dependency-groups")
+                for e in validate_object(dependency_groups, "dependency-groups-schema")
+            ]
+            result["errors"] += dependency_groups_validation_errors
+
         # Check for required fields if package mode.
         # In non-package mode, there are no required fields.
         package_mode = tool_poetry.get("package-mode", True)
@@ -630,7 +711,7 @@ class Factory:
                 ' Use "poetry.group.dev.dependencies" instead.'
             )
 
-        cls._validate_dependency_groups_includes(toml_data, result)
+        cls._validate_dependency_groups(toml_data, result)
 
         if strict:
             # Validate relation between [project] and [tool.poetry]
@@ -641,18 +722,40 @@ class Factory:
         return result
 
     @classmethod
-    def _validate_dependency_groups_includes(
+    def _validate_dependency_groups(
         cls, toml_data: dict[str, Any], result: dict[str, list[str]]
     ) -> None:
-        """Ensure that dependency groups do not include themselves."""
-        config = toml_data.setdefault("tool", {}).setdefault("poetry", {})
-
+        """Ensure that there are no duplicated dependency groups
+        and that they do not include themselves."""
+        original_names = defaultdict(set)
         group_includes: dict[NormalizedName, list[NormalizedName]] = {}
-        for group_name, group_config in config.get("group", {}).items():
+
+        for group_name, dependencies in toml_data.get("dependency-groups", {}).items():
+            normalized_group_name = canonicalize_name(group_name)
+            original_names[normalized_group_name].add(group_name)
+            for constraint in dependencies:
+                if isinstance(constraint, dict) and (
+                    include := constraint.get("include-group")
+                ):
+                    group_includes.setdefault(normalized_group_name, []).append(
+                        canonicalize_name(include)
+                    )
+
+        poetry_config = toml_data.get("tool", {}).get("poetry", {})
+        for group_name, group_config in poetry_config.get("group", {}).items():
+            normalized_group_name = canonicalize_name(group_name)
+            original_names[normalized_group_name].add(group_name)
             if include_groups := group_config.get("include-groups", []):
-                group_includes[canonicalize_name(group_name)] = [
+                group_includes[normalized_group_name] = [
                     canonicalize_name(name) for name in include_groups
                 ]
+
+        for normed_name, names in original_names.items():
+            if len(names) > 1:
+                result["errors"].append(
+                    "Duplicate dependency group name after normalization:"
+                    f" {normed_name} ({', '.join(sorted(names))})"
+                )
 
         for root in group_includes:
             # group, path to group, ancestors
