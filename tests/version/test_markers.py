@@ -1910,6 +1910,27 @@ def test_partially_inverse_atomic_markers() -> None:
     assert str(m2.union(m1)) == 'sys_platform != "darwin"'
 
 
+def test_atomic_marker_union_is_any() -> None:
+    m1 = parse_marker('platform_machine != "arm64" and platform_machine != "aarch64"')
+    m2 = parse_marker('platform_machine != "darwin" and platform_machine != "x86_64"')
+
+    assert m1.union(m2).is_any()
+    assert m2.union(m1).is_any()
+
+
+def test_atomic_marker_union_is_single() -> None:
+    m1 = parse_marker('platform_machine != "arm64" and platform_machine != "aarch64"')
+    m2 = parse_marker('platform_machine != "arm64" and platform_machine != "x86_64"')
+
+    result1 = m1.union(m2)
+    assert str(result1) == 'platform_machine != "arm64"'
+    assert isinstance(result1, SingleMarker)
+
+    result2 = m2.union(m1)
+    assert str(result2) == 'platform_machine != "arm64"'
+    assert isinstance(result2, SingleMarker)
+
+
 @pytest.mark.parametrize(
     "scheme, marker, expected",
     [
