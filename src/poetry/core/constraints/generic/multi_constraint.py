@@ -87,6 +87,11 @@ class MultiConstraint(BaseConstraint):
         if isinstance(other, MultiConstraint):
             theirs = set(other.constraints)
             common = [c for c in self.constraints if c in theirs]
+            if not common:
+                return AnyConstraint()
+            if len(common) == 1:
+                return common[0]
+
             return self.__class__(*common)
 
         if not isinstance(other, Constraint):
