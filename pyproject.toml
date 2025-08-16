@@ -14,7 +14,7 @@ maintainers = [
     { name = "finswimmer", email = "finswimmer77@gmail.com" },
     { name = "Bartosz Sokorski", email = "b.sokorski@gmail.com" },
 ]
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.9, <4.0"
 readme = "README.md"
 keywords = ["packaging", "dependency", "poetry"]

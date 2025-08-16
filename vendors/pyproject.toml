@@ -12,5 +12,5 @@ poetry-plugin-export = "^1.9"
 [tool.poetry.dependencies]
 fastjsonschema = "^2.18.0"
 lark = "^1.1.3"
-packaging = ">=22.0"
+packaging = ">=24.2"  # PEP 639 support was added in 24.2
 tomli = "^2.0.1"
