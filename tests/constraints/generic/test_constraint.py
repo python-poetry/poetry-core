@@ -1152,7 +1152,12 @@ def test_intersect_extra(
         (
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
             MultiConstraint(Constraint("win32", "!="), Constraint("darwin", "!=")),
-            MultiConstraint(Constraint("win32", "!=")),
+            Constraint("win32", "!="),
+        ),
+        (
+            MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
+            MultiConstraint(Constraint("bsd", "!="), Constraint("darwin", "!=")),
+            AnyConstraint(),
         ),
         (
             Constraint("tegra", "not in"),
