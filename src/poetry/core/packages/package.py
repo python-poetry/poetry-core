@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+    from packaging.licenses import NormalizedLicenseExpression
     from packaging.utils import NormalizedName
 
     from poetry.core.constraints.version import Version
@@ -95,6 +96,13 @@ class Package(PackageSpecification):
         self.documentation_url: str | None = None
         self.keywords: Sequence[str] = []
         self._license: License | None = None
+        self._license_expression: NormalizedLicenseExpression | None = None
+        # meaning of different values:
+        # - tuple: project.license-files -> NO default handling
+        #   - empty tuple: explicitly no files!
+        # - None: nothing specified -> default handling
+        # - Path: deprecated project.license.file -> file + default handling
+        self.license_files: tuple[str, ...] | Path | None = None
         self.readmes: tuple[Path, ...] = ()
         self.readme_content_type: str | None = None
         self.readme_content: str | None = None
@@ -296,10 +304,27 @@ class Package(PackageSpecification):
         from poetry.core.spdx.helpers import license_by_id
         from poetry.core.spdx.license import License
 
+        if value is not None and self.license_expression is not None:
+            raise ValueError(
+                "Cannot set license when license_expression is already set."
+            )
+
         if value is None or isinstance(value, License):
             self._license = value
         else:
             self._license = license_by_id(value)
+
+    @property
+    def license_expression(self) -> NormalizedLicenseExpression | None:
+        return self._license_expression
+
+    @license_expression.setter
+    def license_expression(self, value: NormalizedLicenseExpression | None) -> None:
+        if value is not None and self._license is not None:
+            raise ValueError(
+                "Cannot set license_expression when license is already set."
+            )
+        self._license_expression = value
 
     @property
     def all_classifiers(self) -> list[str]:
@@ -333,6 +358,9 @@ class Package(PackageSpecification):
 
         # Automatically set license classifiers
         if self.license:
+            # License classifiers have been deprecated in PEP 639.
+            # We only use them for licenses from the deprecated [project.license] table
+            # (via self.license) and not if self.license_expression is set.
             classifiers.append(self.license.classifier)
 
         # Sort classifiers and insert python classifiers at the right location. We do

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import shutil
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -177,8 +179,13 @@ def test_create_poetry(project: str) -> None:
     assert package.description == "Some description."
     assert package.authors == ["Sébastien Eustace <sebastien@eustace.io>"]
     assert package.maintainers == ["Sébastien Eustace <sebastien@eustace.io>"]
-    assert package.license
-    assert package.license.id == "MIT"
+    if new_format:
+        assert package.license is None
+        assert package.license_expression == "MIT"
+    else:
+        assert package.license is not None
+        assert package.license.id == "MIT"
+        assert package.license_expression is None
     assert (
         package.readmes[0].relative_to(fixtures_dir).as_posix()
         == f"{project}/README.rst"
@@ -401,24 +408,124 @@ def test_create_poetry_non_package_mode() -> None:
     assert not poetry.is_package_mode
 
 
-@pytest.mark.parametrize("license_type", ["file", "text", "str"])
-def test_create_poetry_with_license_type_file(license_type: str) -> None:
-    project_dir = fixtures_dir / f"with_license_type_{license_type}"
-    poetry = Factory().create_poetry(project_dir)
+@pytest.mark.parametrize(
+    "project", ["none", "file", "text", "text_spdx", "str", "str_empty", "str_no_spdx"]
+)
+@pytest.mark.parametrize("with_license_files", [False, True, "empty"])
+def test_create_poetry_with_license_type(
+    project: str, with_license_files: bool | str, tmp_path: Path
+) -> None:
+    project_dir = fixtures_dir / f"with_license_type_{project}"
+    expected_license_files: tuple[str, ...] | Path | None = None
+    if with_license_files:
+        if with_license_files == "empty":
+            content = ""
+            expected_license_files = ()
+        else:
+            content = '"LICEN[CS]E*", "AUTHORS*"'
+            expected_license_files = ("LICEN[CS]E*", "AUTHORS*")
 
-    if license_type == "file":
-        license_content = (project_dir / "LICENSE").read_text(encoding="utf-8")
-    elif license_type == "text":
-        license_content = (
-            (project_dir / "pyproject.toml").read_text(encoding="utf-8").split('"""')[1]
-        )
-    elif license_type == "str":
-        license_content = "MIT"
+        orig_project_dir = project_dir
+        project_dir = tmp_path / project
+        shutil.copytree(orig_project_dir, project_dir)
+        pyproject_file = project_dir / "pyproject.toml"
+        new_lines = []
+        for line in pyproject_file.read_text(encoding="utf-8").splitlines():
+            if line.startswith("keywords = "):
+                new_lines.append(f"license-files = [{content}]")
+            new_lines.append(line)
+        pyproject_file.write_text("\n".join(new_lines), encoding="utf-8")
+
+    license_type = project.split("_", 1)[0]
+    expected_license_id: str | None = None
+    expected_license_expression: str | None = None
+    if license_type == "none":
+        pass
+    elif license_type == "file":
+        expected_license_id = (project_dir / "LICENSE").read_text(encoding="utf-8")
+        expected_license_files = Path("LICENSE")
+    elif license_type in {"str", "text"}:
+        with (project_dir / "pyproject.toml").open("rb") as f:
+            data = tomllib.load(f)
+        project_license = data["project"]["license"]
+        if license_type == "text":
+            expected_license_id = project_license["text"]
+        elif project == "str_no_spdx":
+            expected_license_id = project_license
+        elif project == "str":
+            expected_license_expression = project_license
     else:
         raise RuntimeError("unexpected license type")
 
-    assert poetry.package.license
-    assert poetry.package.license.id == license_content
+    if with_license_files and license_type in {"file", "text"}:
+        with pytest.raises(ValueError) as e:
+            Factory().create_poetry(project_dir)
+        assert str(e.value) == (
+            "[project.license] must be of type string"
+            " if [project.license-files] is defined."
+        )
+    else:
+        poetry = Factory().create_poetry(project_dir)
+
+        if expected_license_id is None:
+            assert poetry.package.license is None
+        else:
+            assert poetry.package.license is not None
+            assert poetry.package.license.id == expected_license_id
+        assert poetry.package.license_expression == expected_license_expression
+        assert poetry.package.license_files == expected_license_files
+
+
+@pytest.mark.parametrize(
+    ("invalid_glob", "expected_message"),
+    [
+        (
+            r"sub\\LICENSE",
+            (
+                "Invalid entry in [project.license-files]: 'sub\\LICENSE'"
+                " (Path delimiters must be forward slashes.)"
+            ),
+        ),
+        (
+            "../LICENSE",
+            (
+                "Invalid entry in [project.license-files]: '../LICENSE'"
+                " ('..' must not be used.)"
+            ),
+        ),
+        (
+            "./../LICENSE",
+            (
+                "Invalid entry in [project.license-files]: './../LICENSE'"
+                " ('..' must not be used.)"
+            ),
+        ),
+        (
+            "sub/../../LICENSE",
+            (
+                "Invalid entry in [project.license-files]: 'sub/../../LICENSE'"
+                " ('..' must not be used.)"
+            ),
+        ),
+    ],
+)
+def test_create_poetry_with_invalid_license_files_glob(
+    tmp_path: Path, invalid_glob: str, expected_message: str
+) -> None:
+    project_file = tmp_path / "pyproject.toml"
+    project_file.write_text(f"""\
+[project]
+name = "foo"
+version = "1"
+license-files = [
+    "LICENSE",
+    "{invalid_glob}",
+    "licenses/**",
+]
+""")
+    with pytest.raises(ValueError) as e:
+        Factory().create_poetry(tmp_path)
+    assert str(e.value) == expected_message
 
 
 def test_create_poetry_fails_with_missing_license_file() -> None:
@@ -779,6 +886,78 @@ def test_validate_python_non_package_mode(with_project_section: bool) -> None:
             )
         ]
     assert Factory.validate(content, strict=True) == expected
+
+
+@pytest.mark.parametrize("section", ["project", "poetry"])
+@pytest.mark.parametrize("with_license_classifier", [True, False])
+def test_validate_deprecated_license_classifiers(
+    section: str, with_license_classifier: bool
+) -> None:
+    content: dict[str, Any] = {
+        "project": {"name": "my-project", "version": "1.0", "license": "MIT"},
+        "tool": {"poetry": {}},
+    }
+    classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
+
+    expected: dict[str, list[str]] = {"errors": [], "warnings": []}
+    if with_license_classifier:
+        classifiers.append("License :: OSI Approved :: MIT License")
+        expected["warnings"].append(
+            "License classifiers are deprecated. Use [project.license] instead."
+        )
+
+    if section == "project":
+        content["project"]["classifiers"] = classifiers
+    elif section == "poetry":
+        content["tool"]["poetry"]["classifiers"] = classifiers
+        content["project"]["dynamic"] = ["classifiers"]
+    else:
+        raise RuntimeError("unexpected section")
+
+    assert Factory.validate(content, strict=True) == expected
+
+
+@pytest.mark.parametrize(
+    "project", ["none", "file", "text", "text_spdx", "str", "str_empty", "str_no_spdx"]
+)
+@pytest.mark.parametrize("with_license_files", [False, True])
+def test_validate_with_license_type(
+    project: str, with_license_files: bool, tmp_path: Path
+) -> None:
+    project_dir = fixtures_dir / f"with_license_type_{project}"
+    pyproject_file = project_dir / "pyproject.toml"
+    if with_license_files:
+        orig_project_dir = project_dir
+        project_dir = tmp_path / project
+        shutil.copytree(orig_project_dir, project_dir)
+        pyproject_file = project_dir / "pyproject.toml"
+        new_lines = []
+        for line in pyproject_file.read_text(encoding="utf-8").splitlines():
+            if line.startswith("keywords = "):
+                new_lines.append('license-files = ["LICEN[CS]E*", "AUTHORS*"]')
+            new_lines.append(line)
+        pyproject_file.write_text("\n".join(new_lines), encoding="utf-8")
+
+    expected_warnings = []
+    if project.split("_", 1)[0] in {"file", "text"}:
+        expected_warnings.append(
+            "Defining [project.license] as a table is deprecated."
+            " [project.license] should be a valid SPDX license expression."
+            " License files can be referenced in [project.license-files]."
+        )
+    elif project in {"str_empty", "str_no_spdx"}:
+        expected_warnings.append(
+            "[project.license] is not a valid SPDX identifier."
+            " This is deprecated and will raise an error in the future."
+        )
+
+    with pyproject_file.open("rb") as f:
+        content = tomllib.load(f)
+
+    assert Factory.validate(content, strict=True) == {
+        "errors": [],
+        "warnings": expected_warnings,
+    }
 
 
 def test_strict_validation_success_on_multiple_readme_files() -> None:

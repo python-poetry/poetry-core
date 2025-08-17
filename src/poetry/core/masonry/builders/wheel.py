@@ -332,7 +332,7 @@ print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
                 logger.debug(f"Skipping: {legal_file.as_posix()}")
                 continue
 
-            dest = dist_info / legal_file.relative_to(self._path)
+            dest = dist_info / "licenses" / legal_file.relative_to(self._path)
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(legal_file, dest)
 

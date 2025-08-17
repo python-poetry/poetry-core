@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 METADATA_BASE = """\
-Metadata-Version: 2.3
+Metadata-Version: {metadata_version}
 Name: {name}
 Version: {version}
 Summary: {summary}
@@ -229,12 +229,14 @@ class Builder:
 
     def get_metadata_content(self) -> str:
         content = METADATA_BASE.format(
+            metadata_version=self._meta.metadata_version,
             name=self._meta.name,
             version=self._meta.version,
             summary=str(self._meta.summary),
         )
 
         if self._meta.license:
+            assert self._meta.license_expression is None
             license_field = "License: "
             # Indentation is not only for readability, but required
             # so that the line break is not treated as end of field.
@@ -244,6 +246,11 @@ class Builder:
                 self._meta.license, " " * len(license_field), lambda line: True
             ).strip()
             content += f"{license_field}{escaped_license}\n"
+        elif self._meta.license_expression:
+            content += f"License-Expression: {self._meta.license_expression}\n"
+
+        for license_file in self._meta.license_files:
+            content += f"License-File: {license_file}\n"
 
         if self._meta.keywords:
             content += f"Keywords: {self._meta.keywords}\n"
@@ -330,14 +337,7 @@ class Builder:
         return script_files
 
     def _get_legal_files(self) -> set[Path]:
-        include_files_patterns = {"COPYING*", "LICEN[SC]E*", "AUTHORS*", "NOTICE*"}
-        files: set[Path] = set()
-
-        for pattern in include_files_patterns:
-            files.update(self._path.glob(pattern))
-
-        files.update(self._path.joinpath("LICENSES").glob("**/*"))
-        return files
+        return {self._path / f for f in self._meta.license_files}
 
 
 class BuildIncludeFile:

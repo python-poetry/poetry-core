@@ -136,8 +136,17 @@
           "file": "LICENSE"
         },
         "MIT",
+        "BSD-2-Clause OR Apache-2.0",
         "LicenseRef-Proprietary"
       ]
+    },
+    "license-files": {
+      "title": "License files",
+      "description": "Relative paths or globs to paths of license files. Can be an empty list.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "authors": {
       "title": "Project authors",
@@ -281,6 +290,7 @@
           "readme",
           "requires-python",
           "license",
+          "license-files",
           "authors",
           "maintainers",
           "keywords",

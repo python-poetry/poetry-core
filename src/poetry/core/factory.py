@@ -9,8 +9,9 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
 from typing import Union
-from typing import cast
 
+from packaging.licenses import InvalidLicenseExpression
+from packaging.licenses import canonicalize_license_expression
 from packaging.utils import canonicalize_name
 
 from poetry.core.utils.helpers import combine_unicode
@@ -25,7 +26,6 @@ if TYPE_CHECKING:
     from poetry.core.packages.project_package import ProjectPackage
     from poetry.core.poetry import Poetry
     from poetry.core.pyproject.toml import PyProjectTOML
-    from poetry.core.spdx.license import License
 
     DependencyConstraint = Union[str, Mapping[str, Any]]
     DependencyConfig = Mapping[
@@ -177,14 +177,46 @@ class Factory:
         package.description = project.get("description") or tool_poetry.get(
             "description", ""
         )
+        raw_license: str | None = None
         if project_license := project.get("license"):
             if isinstance(project_license, str):
-                raw_license = project_license
+                try:
+                    package.license_expression = canonicalize_license_expression(
+                        project_license
+                    )
+                except InvalidLicenseExpression:
+                    # This is handled in validate().
+                    raw_license = project_license
             else:
-                raw_license = project_license.get("text", "")
-                if not raw_license and (
-                    license_file := cast("str", project_license.get("file", ""))
-                ):
+                # Table values for the license key in the [project] table,
+                # including the text and file table subkeys, are now deprecated.
+                # If the new license-files key is present, build tools MUST raise an
+                # error if the license key is defined and has a value other
+                # than a single top-level string.
+                # https://peps.python.org/pep-0639/#deprecate-license-key-table-subkeys
+                if "license-files" in project:
+                    raise ValueError(
+                        "[project.license] must be of type string"
+                        " if [project.license-files] is defined."
+                    )
+
+                # Tools MUST NOT use the contents of the license.text [project] key
+                # (or equivalent tool-specific format), [...] to fill [...] the Core
+                # Metadata License-Expression field without informing the user and
+                # requiring unambiguous, affirmative user action to select and confirm
+                # the desired license expression value before proceeding.
+                # https://peps.python.org/pep-0639/#converting-legacy-metadata
+                # -> We just set the old license field in this case
+                #    (and give a warning in validate).
+                raw_license = project_license.get("text")
+                if not raw_license and (license_file := project_license.get("file")):
+                    # If the specified license file is present in the source tree,
+                    # build tools SHOULD use it to fill the License-File field
+                    # in the core metadata, and MUST include the specified file
+                    # as if it were specified in a license-file field.
+                    # If the file does not exist at the specified path,
+                    # tools MUST raise an informative error as previously specified.
+                    # https://peps.python.org/pep-0639/#deprecate-license-key-table-subkeys
                     license_path = (root / license_file).absolute()
                     try:
                         raw_license = Path(license_path).read_text(encoding="utf-8")
@@ -192,13 +224,36 @@ class Factory:
                         raise FileNotFoundError(
                             f"Poetry: license file '{license_path}' not found"
                         ) from e
+                    else:
+                        # explicitly not a tuple to allow default handling
+                        # to find additional license files later
+                        package.license_files = Path(license_file)
         else:
-            raw_license = tool_poetry.get("license", "")
-        try:
-            license_: License | None = license_by_id(raw_license)
-        except ValueError:
-            license_ = None
-        package.license = license_
+            raw_license = tool_poetry.get("license")
+        if raw_license:
+            package.license = license_by_id(raw_license)
+
+        # important: distinction between empty array and None:
+        # - empty array: explicitly no license files
+        # - None (not set): default handling allowed
+        if (license_files := project.get("license-files")) is not None:
+            # Build tools MUST treat each value as a glob pattern,
+            # and MUST raise an error if the pattern contains invalid glob syntax.
+            # https://peps.python.org/pep-0639/#add-license-files-key
+            for entry in license_files:
+                if "\\" in entry:
+                    # Path delimiters MUST be the forward slash character (/).
+                    raise ValueError(
+                        f"Invalid entry in [project.license-files]: '{entry}'"
+                        " (Path delimiters must be forward slashes.)"
+                    )
+                if ".." in Path(entry).parts:
+                    # Parent directory indicators (..) MUST NOT be used.
+                    raise ValueError(
+                        f"Invalid entry in [project.license-files]: '{entry}'"
+                        " ('..' must not be used.)"
+                    )
+            package.license_files = tuple(license_files)
 
         package.requires_python = project.get("requires-python", "*")
         package.keywords = project.get("keywords") or tool_poetry.get("keywords", [])
@@ -633,6 +688,10 @@ class Factory:
         cls._validate_dependency_groups_includes(toml_data, result)
 
         if strict:
+            # Validate [project] section
+            if project:
+                cls._validate_project(project, result)
+
             # Validate relation between [project] and [tool.poetry]
             cls._validate_legacy_vs_project(toml_data, result)
 
@@ -670,6 +729,32 @@ class Factory:
                         )
                     else:
                         stack.append((include, new_path, ancestors | {include}))
+
+    @classmethod
+    def _validate_project(
+        cls, project: dict[str, Any], result: dict[str, list[str]]
+    ) -> None:
+        if (project_license := project.get("license")) is not None:
+            if isinstance(project_license, str):
+                try:
+                    canonicalize_license_expression(project_license)
+                except InvalidLicenseExpression:
+                    result["warnings"].append(
+                        "[project.license] is not a valid SPDX identifier."
+                        " This is deprecated and will raise an error in the future."
+                    )
+            else:
+                result["warnings"].append(
+                    "Defining [project.license] as a table is deprecated."
+                    " [project.license] should be a valid SPDX license expression."
+                    " License files can be referenced in [project.license-files]."
+                )
+
+        for classifier in project.get("classifiers", []):
+            if classifier.startswith("License :: "):
+                result["warnings"].append(
+                    "License classifiers are deprecated. Use [project.license] instead."
+                )
 
     @classmethod
     def _validate_legacy_vs_project(
@@ -805,6 +890,12 @@ class Factory:
     def _validate_strict(
         cls, config: dict[str, Any], result: dict[str, list[str]]
     ) -> None:
+        for classifier in config.get("classifiers", []):
+            if classifier.startswith("License :: "):
+                result["warnings"].append(
+                    "License classifiers are deprecated. Use [project.license] instead."
+                )
+
         if "dependencies" in config:
             python_versions = config["dependencies"].get("python")
             if python_versions == "*":
