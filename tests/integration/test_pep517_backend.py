@@ -14,7 +14,7 @@ pytestmark = pytest.mark.integration
 
 BUILD_SYSTEM_TEMPLATE = """
 [build-system]
-requires = ["poetry-core @ file://{project_path}"]
+requires = ["poetry-core @ {project_uri}"]
 build-backend = "poetry.core.masonry.api"
 """
 
@@ -41,9 +41,7 @@ def test_pip_install(
     with (temp_pep_517_backend_path / "pyproject.toml").open(
         mode="a", encoding="utf-8"
     ) as f:
-        f.write(
-            BUILD_SYSTEM_TEMPLATE.format(project_path=project_source_root.as_posix())
-        )
+        f.write(BUILD_SYSTEM_TEMPLATE.format(project_uri=project_source_root.as_uri()))
 
     subprocess_run(
         python,

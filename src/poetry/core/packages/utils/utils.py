@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import re
 import sys
+import warnings
 
 from contextlib import suppress
 from pathlib import Path
@@ -72,8 +73,24 @@ def url_to_path(url: str) -> Path:
         # According to RFC 8089, same as empty authority.
         netloc = ""
     elif netloc not in {".", ".."} and sys.platform == "win32":
-        # If we have a UNC path, prepend UNC share notation.
-        netloc = "\\\\" + netloc
+        if re.match(r"^(localhost)?([a-zA-Z]:)$", netloc):
+            path = f"/{netloc[-2:]}{path}"
+            if netloc.startswith("localhost"):
+                message = (
+                    f"The file URL {url} is missing a slash between localhost"
+                    " and the drive letter."
+                    f" Did you mean file://localhost{path}?"
+                )
+            else:
+                message = (
+                    f"The file URL {url} uses a drive letter without a leading slash."
+                    f" Did you mean file://{path}?"
+                )
+            warnings.warn(message, UserWarning, stacklevel=2)
+            netloc = ""
+        else:
+            # If we have a UNC path, prepend UNC share notation.
+            netloc = "\\\\" + netloc
     else:
         raise ValueError(
             f"non-local file URIs are not supported on this platform: {url}"
