@@ -56,6 +56,28 @@ def test_url_to_path(url: str, win_expected: str, non_win_expected: str | None) 
 
 
 @pytest.mark.skipif("sys.platform != 'win32'")
+def test_url_to_path_deprecated() -> None:
+    # This is actually not valid, but we keep it for backwards-compatibility.
+    with pytest.warns(UserWarning) as e:
+        assert url_to_path("file://c:/tmp/file") == Path(r"C:\tmp\file")
+    assert str(e[0].message) == (
+        "The file URL file://c:/tmp/file uses a drive letter without a leading slash."
+        " Did you mean file:///c:/tmp/file?"
+    )
+
+
+@pytest.mark.skipif("sys.platform != 'win32'")
+def test_url_to_path_deprecated_localhost() -> None:
+    # This is actually not valid, but we keep it for backwards-compatibility.
+    with pytest.warns(UserWarning) as e:
+        assert url_to_path("file://localhostc:/tmp/file") == Path(r"C:\tmp\file")
+    assert str(e[0].message) == (
+        "The file URL file://localhostc:/tmp/file is missing a slash between localhost"
+        " and the drive letter. Did you mean file://localhost/c:/tmp/file?"
+    )
+
+
+@pytest.mark.skipif("sys.platform != 'win32'")
 def test_url_to_path_path_to_url_symmetry_win() -> None:
     path = r"C:\tmp\file"
     assert url_to_path(path_to_url(path)) == Path(path)
