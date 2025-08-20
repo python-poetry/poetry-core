@@ -66,7 +66,7 @@ class Dependency(PackageSpecification):
 
         self._constraint: VersionConstraint
         self._pretty_constraint: str
-        self.constraint = constraint  # type: ignore[assignment]
+        self.constraint = constraint
 
         self._optional = optional
 
@@ -325,7 +325,7 @@ class Dependency(PackageSpecification):
 
     def with_constraint(self: T, constraint: str | VersionConstraint) -> T:
         dependency = self.clone()
-        dependency.constraint = constraint  # type: ignore[assignment]
+        dependency.constraint = constraint
         return dependency
 
     def with_groups(self, groups: Iterable[str]) -> Dependency:

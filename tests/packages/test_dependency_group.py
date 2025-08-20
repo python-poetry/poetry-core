@@ -39,7 +39,7 @@ def create_dependency(
     if source_name:
         dep.source_name = source_name
     if marker:
-        dep.marker = marker  # type: ignore[assignment]
+        dep.marker = marker
     return dep
 
 

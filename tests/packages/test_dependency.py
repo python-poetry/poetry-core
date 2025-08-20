@@ -308,14 +308,14 @@ def test_dependency_string_representation(
 def test_set_constraint_sets_pretty_constraint() -> None:
     dependency = Dependency("A", "^1.0")
     assert dependency.pretty_constraint == "^1.0"
-    dependency.constraint = "^2.0"  # type: ignore[assignment]
+    dependency.constraint = "^2.0"
     assert dependency.pretty_constraint == "^2.0"
 
 
 def test_set_bogus_constraint_raises_exception() -> None:
     dependency = Dependency("A", "^1.0")
     with pytest.raises(ParseConstraintError):
-        dependency.constraint = "^=4.5"  # type: ignore[assignment]
+        dependency.constraint = "^=4.5"
 
 
 def test_with_constraint() -> None:
@@ -371,7 +371,7 @@ def test_with_groups() -> None:
 )
 def test_marker_properly_sets_python_constraint(marker: str, expected: str) -> None:
     dependency = Dependency("foo", "^1.2.3")
-    dependency.marker = marker  # type: ignore[assignment]
+    dependency.marker = marker
     assert str(dependency.python_constraint) == expected
 
 
@@ -385,10 +385,10 @@ def test_dependency_markers_are_the_same_as_markers() -> None:
 def test_marker_properly_unsets_python_constraint() -> None:
     dependency = Dependency("foo", "^1.2.3")
 
-    dependency.marker = 'python_version >= "3.6"'  # type: ignore[assignment]
+    dependency.marker = 'python_version >= "3.6"'
     assert str(dependency.python_constraint) == ">=3.6"
 
-    dependency.marker = "*"  # type: ignore[assignment]
+    dependency.marker = "*"
     assert str(dependency.python_constraint) == "*"
 
 

@@ -667,7 +667,7 @@ def test_cannot_update_package_version() -> None:
 
 def test_project_package_version_update_string() -> None:
     package = ProjectPackage("foo", "1.2.3")
-    package.version = "1.2.4"  # type: ignore[assignment]
+    package.version = "1.2.4"
     assert package.version.text == "1.2.4"
 
 

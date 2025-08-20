@@ -183,7 +183,7 @@ def test_directory_dependency_string_representation(
         name=name, vcs="git", source=source, branch=branch, extras=extras
     )
     if constraint:
-        dependency.constraint = constraint  # type: ignore[assignment]
+        dependency.constraint = constraint
     assert str(dependency) == expected
 
 
