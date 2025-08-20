@@ -87,5 +87,5 @@ def test_directory_dependency_string_representation(
 ) -> None:
     dependency = URLDependency(name=name, url=url, extras=extras)
     if constraint:
-        dependency.constraint = constraint  # type: ignore[assignment]
+        dependency.constraint = constraint
     assert str(dependency) == expected

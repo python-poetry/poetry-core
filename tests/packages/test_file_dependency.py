@@ -200,5 +200,5 @@ def test_file_dependency_string_representation(
 ) -> None:
     dependency = FileDependency(name=name, path=path, extras=extras)
     if constraint:
-        dependency.constraint = constraint  # type: ignore[assignment]
+        dependency.constraint = constraint
     assert str(dependency) == expected

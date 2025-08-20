@@ -208,10 +208,10 @@ def _enrich_dependency(
 
         dependency = project_dependency.clone()
         if isinstance(project_dependency, (DirectoryDependency, VCSDependency)):
-            dependency._develop = poetry_dependency._develop  # type: ignore[has-type]
+            dependency._develop = poetry_dependency._develop
     else:
         dependency = poetry_dependency.with_features(project_dependency.features)
-        dependency._optional = project_dependency.is_optional()  # type: ignore[has-type]
+        dependency._optional = project_dependency.is_optional()
         dependency._in_extras = project_dependency.in_extras
 
     dependency.constraint = constraint
