@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import cast
@@ -83,7 +85,8 @@ def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture) -> N
     path = DIST_PATH / "demo-0.2.0.tar.gz"
     expected = f"demo @ {path.as_uri()}"
 
-    requirement = f"demo @ file://{path.as_posix()}"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f"demo @ file://{prefix}{path.as_posix()}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
     requirement = f"demo @ {path}"
@@ -92,7 +95,8 @@ def test_file_dependency_pep_508_local_file_absolute(mocker: MockerFixture) -> N
 
 def test_file_dependency_pep_508_local_file_localhost(mocker: MockerFixture) -> None:
     path = DIST_PATH / "demo-0.2.0.tar.gz"
-    requirement = f"demo @ file://localhost{path.as_posix()}"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f"demo @ file://localhost{prefix}{path.as_posix()}"
     expected = f"demo @ {path.as_uri()}"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
@@ -116,7 +120,8 @@ def test_file_dependency_pep_508_with_subdirectory(mocker: MockerFixture) -> Non
     path = DIST_PATH / "demo.zip"
     expected = f"demo @ {path.as_uri()}#subdirectory=sub"
 
-    requirement = f"demo @ file://{path.as_posix()}#subdirectory=sub"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f"demo @ file://{prefix}{path.as_posix()}#subdirectory=sub"
     _test_file_dependency_pep_508(mocker, "demo", path, requirement, expected)
 
 
