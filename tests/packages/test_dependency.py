@@ -363,10 +363,10 @@ def test_with_groups() -> None:
 @pytest.mark.parametrize(
     "marker, expected",
     [
-        ('python_version >= "3.6" and python_version < "4.0"', ">=3.6,<4.0"),
+        ('python_version >= "3.6" and python_version < "4.0"', ">=3.6.dev0,<4.0"),
         ('sys_platform == "linux"', "*"),
         ('python_version >= "3.9" or sys_platform == "linux"', "*"),
-        ('python_version >= "3.9" and sys_platform == "linux"', ">=3.9"),
+        ('python_version >= "3.9" and sys_platform == "linux"', ">=3.9.dev0"),
     ],
 )
 def test_marker_properly_sets_python_constraint(marker: str, expected: str) -> None:
@@ -386,7 +386,7 @@ def test_marker_properly_unsets_python_constraint() -> None:
     dependency = Dependency("foo", "^1.2.3")
 
     dependency.marker = 'python_version >= "3.6"'
-    assert str(dependency.python_constraint) == ">=3.6"
+    assert str(dependency.python_constraint) == ">=3.6.dev0"
 
     dependency.marker = "*"
     assert str(dependency.python_constraint) == "*"

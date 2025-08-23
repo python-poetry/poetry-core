@@ -22,6 +22,26 @@ from poetry.core.version.pep440 import ReleaseTag
         ("<1.2.3", VersionRange(max=Version.from_parts(1, 2, 3))),
         ("<=1.2.3", VersionRange(max=Version.from_parts(1, 2, 3), include_max=True)),
         (">=1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),
+        (
+            ">1.2.dev0",
+            VersionRange(min=Version.from_parts(1, 2, dev=ReleaseTag("dev", 0))),
+        ),
+        (
+            "<1.2.dev0",
+            VersionRange(max=Version.from_parts(1, 2, dev=ReleaseTag("dev", 0))),
+        ),
+        (
+            ">=1.2.dev0",
+            VersionRange(
+                min=Version.from_parts(1, 2, dev=ReleaseTag("dev", 0)), include_min=True
+            ),
+        ),
+        (
+            "<=1.2.dev0",
+            VersionRange(
+                max=Version.from_parts(1, 2, dev=ReleaseTag("dev", 0)), include_max=True
+            ),
+        ),
         ("=1.2.3", Version.from_parts(1, 2, 3)),
         ("1.2.3", Version.from_parts(1, 2, 3)),
         ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
@@ -582,6 +602,25 @@ def test_parse_constraint_with_white_space_padding(
     padding = " " * (4 if with_whitespace_padding else 0)
     constraint = padding.join(["", *constraint_parts, ""])
     assert parse_constraint(constraint) == expected
+
+
+@pytest.mark.parametrize(
+    ("constraint", "expected"),
+    [
+        (">=3.14.dev0", VersionRange(min=Version.from_parts(3, 14), include_min=True)),
+        (
+            "3.14.*",
+            VersionRange(
+                Version.from_parts(3, 14), Version.from_parts(3, 15), include_min=True
+            ),
+        ),
+    ],
+)
+def test_parse_marker_constraint_special_cases(
+    constraint: str, expected: Version | VersionRange
+) -> None:
+    assert parse_marker_version_constraint(constraint) == expected
+    assert parse_constraint(constraint) != expected
 
 
 def test_parse_marker_constraint_does_not_allow_invalid_version() -> None:

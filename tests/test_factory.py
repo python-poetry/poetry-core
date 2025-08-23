@@ -239,7 +239,7 @@ def test_create_poetry(project: str) -> None:
 
     pathlib2 = dependencies["pathlib2"]
     assert pathlib2.pretty_constraint == (">=2.2,<3.0" if new_format else "^2.2")
-    assert pathlib2.python_versions in {"~2.7", ">=2.7 <2.8"}
+    assert pathlib2.python_versions == "2.7.*"
     assert not pathlib2.is_optional()
 
     demo = dependencies["demo"]
@@ -1091,9 +1091,9 @@ def test_create_poetry_with_markers_and_extras() -> None:
 @pytest.mark.parametrize(
     "constraint, exp_python, exp_marker",
     [
-        ({"python": "3.7"}, "~3.7", 'python_version == "3.7"'),
+        ({"python": "3.7"}, "3.7.*", 'python_version == "3.7"'),
         ({"platform": "linux"}, "*", 'sys_platform == "linux"'),
-        ({"markers": 'python_version == "3.7"'}, "~3.7", 'python_version == "3.7"'),
+        ({"markers": 'python_version == "3.7"'}, "3.7.*", 'python_version == "3.7"'),
         (
             {"markers": 'platform_machine == "x86_64"'},
             "*",
@@ -1101,7 +1101,7 @@ def test_create_poetry_with_markers_and_extras() -> None:
         ),
         (
             {"python": "3.7", "markers": 'platform_machine == "x86_64"'},
-            "~3.7",
+            "3.7.*",
             'platform_machine == "x86_64" and python_version == "3.7"',
         ),
         (
@@ -1115,7 +1115,7 @@ def test_create_poetry_with_markers_and_extras() -> None:
                 "platform": "linux",
                 "markers": 'platform_machine == "x86_64"',
             },
-            "~3.7",
+            "3.7.*",
             (
                 'platform_machine == "x86_64" and python_version == "3.7" and'
                 ' sys_platform == "linux"'
@@ -1123,7 +1123,7 @@ def test_create_poetry_with_markers_and_extras() -> None:
         ),
         (
             {"python": ">=3.7", "markers": 'python_version < "4.0"'},
-            "<4.0 >=3.7",
+            "<4.0 >=3.7.dev0",
             'python_version < "4.0" and python_version >= "3.7"',
         ),
         (
