@@ -180,6 +180,8 @@ def parse_single_constraint(
         if op == ">":
             return VersionRange(min=version)
         if op == ">=":
+            if is_marker_constraint:
+                version = version.stable
             return VersionRange(min=version, include_min=True)
 
         if m.group("wildcard") is not None:

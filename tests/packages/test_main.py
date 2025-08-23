@@ -73,7 +73,7 @@ def test_dependency_from_pep_508_with_python_version() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == ">=2.6 <2.8"
+    assert dep.python_versions == ">=2.6.dev0 <2.8"
     assert str(dep.marker) == 'python_version >= "2.6" and python_version < "2.8"'
 
 
@@ -84,7 +84,7 @@ def test_dependency_from_pep_508_with_single_python_version() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == "~2.7"
+    assert dep.python_versions == "2.7.*"
     assert str(dep.marker) == 'python_version == "2.7"'
 
 
@@ -111,7 +111,7 @@ def test_dependency_from_pep_508_complex() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.in_extras == ["foo"]
-    assert dep.python_versions == ">=2.7 !=3.2.*"
+    assert dep.python_versions == ">=2.7.dev0 !=3.2.*"
     assert (
         str(dep.marker) == 'python_version >= "2.7" and python_version != "3.2" '
         'and (sys_platform == "win32" or sys_platform == "darwin") '
@@ -176,7 +176,7 @@ def test_dependency_from_pep_508_with_python_version_union_of_multi() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == "~2.7 || ~3.4"
+    assert dep.python_versions == "2.7.* || 3.4.*"
     assert str(dep.marker) == 'python_version == "2.7" or python_version == "3.4"'
 
 
@@ -291,7 +291,7 @@ def test_dependency_from_pep_508_with_python_full_version() -> None:
     assert dep.name == "requests"
     assert str(dep.constraint) == "2.18.0"
     assert dep.extras == frozenset()
-    assert dep.python_versions == "~2.7 || >=3.4.0 <3.5.4"
+    assert dep.python_versions == "2.7.* || >=3.4.0 <3.5.4"
     assert (
         str(dep.marker) == 'python_version == "2.7" '
         'or python_full_version >= "3.4.0" and python_full_version < "3.5.4"'

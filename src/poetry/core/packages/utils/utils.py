@@ -336,11 +336,14 @@ def normalize_python_version_markers(  # NOSONAR
         for op, version in or_:
             # Expand python version
             if op == "==" and "*" not in version and version.count(".") < 2:
-                version = "~" + version
+                version += ".*"
                 op = ""
 
             elif op == "!=" and "*" not in version and version.count(".") < 2:
                 version += ".*"
+
+            elif op == ">=" and version.count(".") < 2:
+                version += ".dev0"
 
             elif op in ("<=", ">"):
                 # Make adjustments on encountering versions with less than full
