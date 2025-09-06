@@ -947,7 +947,7 @@ def test_validate_with_license_type(
         )
     elif project in {"str_empty", "str_no_spdx"}:
         expected_warnings.append(
-            "[project.license] is not a valid SPDX identifier."
+            "[project.license] is not a valid SPDX expression."
             " This is deprecated and will raise an error in the future."
         )
 
