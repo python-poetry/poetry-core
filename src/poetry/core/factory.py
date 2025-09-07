@@ -740,7 +740,7 @@ class Factory:
                     canonicalize_license_expression(project_license)
                 except InvalidLicenseExpression:
                     result["warnings"].append(
-                        "[project.license] is not a valid SPDX identifier."
+                        "[project.license] is not a valid SPDX expression."
                         " This is deprecated and will raise an error in the future."
                     )
             else:
