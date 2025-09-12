@@ -234,6 +234,16 @@
     true,
     false
   ],
+  "Artistic-dist": [
+    "Artistic License 1.0 (dist)",
+    false,
+    false
+  ],
+  "Aspell-RU": [
+    "Aspell Russian License",
+    false,
+    false
+  ],
   "BSD-1-Clause": [
     "BSD 1-Clause License",
     true,
@@ -336,6 +346,11 @@
   ],
   "BSD-3-Clause-Sun": [
     "BSD 3-Clause Sun Microsystems",
+    false,
+    false
+  ],
+  "BSD-3-Clause-Tso": [
+    "BSD 3-Clause Tso variant",
     false,
     false
   ],
@@ -1094,6 +1109,11 @@
     true,
     false
   ],
+  "ESA-PL-weak-copyleft-2.4": [
+    "European Space Agency Public License – v2.4 – Weak Copyleft (Type 2)",
+    false,
+    false
+  ],
   "EUDatagrid": [
     "EU DataGrid Software License",
     true,
@@ -1161,6 +1181,11 @@
   ],
   "FSFULLR": [
     "FSF Unlimited License (with License Retention)",
+    false,
+    false
+  ],
+  "FSFULLRSD": [
+    "FSF Unlimited License (with License Retention and Short Disclaimer)",
     false,
     false
   ],
@@ -1461,6 +1486,11 @@
   ],
   "Gutmann": [
     "Gutmann License",
+    false,
+    false
+  ],
+  "HDF5": [
+    "HDF5 License",
     false,
     false
   ],
@@ -2744,6 +2774,11 @@
     false,
     false
   ],
+  "SOFA": [
+    "SOFA Software License",
+    false,
+    false
+  ],
   "SPL-1.0": [
     "Sun Public License v1.0",
     true,
@@ -2766,6 +2801,11 @@
   ],
   "SSPL-1.0": [
     "Server Side Public License, v 1",
+    false,
+    false
+  ],
+  "SUL-1.0": [
+    "Sustainable Use License v1.0",
     false,
     false
   ],
@@ -2999,6 +3039,16 @@
     true,
     false
   ],
+  "Unlicense-libtelnet": [
+    "Unlicense - libtelnet variant",
+    false,
+    false
+  ],
+  "Unlicense-libwhirlpool": [
+    "Unlicense - libwhirlpool variant",
+    false,
+    false
+  ],
   "VOSTROM": [
     "VOSTROM Public License for Open Source",
     false,
@@ -3029,6 +3079,11 @@
     true,
     false
   ],
+  "WTFNMFPL": [
+    "Do What The F*ck You Want To But It's Not My Fault Public License",
+    false,
+    false
+  ],
   "WTFPL": [
     "Do What The F*ck You Want To Public License",
     false,
@@ -3042,6 +3097,11 @@
   "Widget-Workshop": [
     "Widget Workshop License",
     false,
+    false
+  ],
+  "WordNet": [
+    "WordNet License",
+    true,
     false
   ],
   "Wsuipa": [
@@ -3279,6 +3339,11 @@
     false,
     false
   ],
+  "libpng-1.6.35": [
+    "PNG Reference Library License v1 (for libpng 0.5 through 1.6.35)",
+    false,
+    false
+  ],
   "libpng-2.0": [
     "PNG Reference Library version 2",
     false,
@@ -3336,6 +3401,11 @@
   ],
   "mplus": [
     "mplus Font License",
+    false,
+    false
+  ],
+  "ngrep": [
+    "ngrep License",
     false,
     false
   ],
