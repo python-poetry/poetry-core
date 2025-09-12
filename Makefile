@@ -10,7 +10,7 @@ POETRY_BIN                      ?= $(shell which poetry)
 .PHONY: vendor/lock
 vendor/lock: $(VENDOR_LOCK)
 	# regenerate lock file
-	@pushd $(VENDOR_SRC) && $(POETRY_BIN) lock
+	@pushd $(VENDOR_SRC) && $(POETRY_BIN) lock --regenerate
 
 .PHONY: vendor/sync
 vendor/sync:
