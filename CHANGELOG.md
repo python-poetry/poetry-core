@@ -1,6 +1,28 @@
 # Change Log
 
 
+## [2.2.0] - 2025-09-14
+
+### Added
+
+- Add support for nesting dependency groups ([#837](https://github.com/python-poetry/poetry-core/pull/837)).
+- Add support for PEP 735 dependency groups ([#823](https://github.com/python-poetry/poetry-core/pull/823)).
+- Add support for PEP 639 license clarity ([#870](https://github.com/python-poetry/poetry-core/pull/870)).
+- Add support for Python 3.14 ([#877](https://github.com/python-poetry/poetry-core/pull/877),
+  [#884](https://github.com/python-poetry/poetry-core/pull/884)).
+
+### Changed
+
+- Normalize dependency group names ([#868](https://github.com/python-poetry/poetry-core/pull/868)).
+- Deprecate table values and values that are not valid SPDX expressions for `[project.license]` ([#870](https://github.com/python-poetry/poetry-core/pull/870)).
+- Update list of supported licenses ([#872](https://github.com/python-poetry/poetry-core/pull/872)).
+
+### Fixed
+
+- Fix an issue where explicitly included files that are in `.gitignore` were not included in the distribution ([#874](https://github.com/python-poetry/poetry-core/pull/874)).
+- Fix an issue where marker operations could result in invalid markers ([#875](https://github.com/python-poetry/poetry-core/pull/875)).
+
+
 ## [2.1.3] - 2025-05-04
 
 ### Changed
@@ -781,7 +803,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.1.3...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.2.0...main
+[2.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.0
 [2.1.3]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.3
 [2.1.2]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.2
 [2.1.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.1
