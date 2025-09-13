@@ -554,7 +554,8 @@ def test_create_poetry_with_invalid_license_files_glob(
     tmp_path: Path, invalid_glob: str, expected_message: str
 ) -> None:
     project_file = tmp_path / "pyproject.toml"
-    project_file.write_text(f"""\
+    project_file.write_text(
+        f"""\
 [project]
 name = "foo"
 version = "1"
@@ -563,7 +564,9 @@ license-files = [
     "{invalid_glob}",
     "licenses/**",
 ]
-""")
+""",
+        encoding="utf-8",
+    )
     with pytest.raises(ValueError) as e:
         Factory().create_poetry(tmp_path)
     assert str(e.value) == expected_message
@@ -1435,7 +1438,7 @@ pytest-cov ="*"
         replace_included_group_name, included_group_name
     )
 
-    pyproject_toml.write_text(content)
+    pyproject_toml.write_text(content, encoding="utf-8")
     poetry = Factory().create_poetry(temporary_directory)
 
     # Groups are reported internally using their canonical names.
@@ -1464,7 +1467,7 @@ def assert_invalid_group_including(
     temporary_directory: Path,
 ) -> None:
     pyproject_toml = temporary_directory / "pyproject.toml"
-    pyproject_toml.write_text(toml_data)
+    pyproject_toml.write_text(toml_data, encoding="utf-8")
 
     with pytest.raises(error_type) as error:
         _ = Factory().create_poetry(temporary_directory)
@@ -1689,7 +1692,7 @@ baz = "*"
 quux = "*"
 """
     pyproject_toml = temporary_directory / "pyproject.toml"
-    pyproject_toml.write_text(content)
+    pyproject_toml.write_text(content, encoding="utf-8")
     poetry = Factory().create_poetry(temporary_directory)
 
     assert len(poetry.package.all_requires) == 10
@@ -1760,7 +1763,7 @@ bax = "*"
 quux = "*"
 """
     pyproject_toml = temporary_directory / "pyproject.toml"
-    pyproject_toml.write_text(content)
+    pyproject_toml.write_text(content, encoding="utf-8")
     poetry = Factory().create_poetry(temporary_directory)
 
     assert len(poetry.package.all_requires) == 14
@@ -1952,7 +1955,7 @@ include-groups = [
     "testing",
 ]
 """
-    pyproject_toml.write_text(content)
+    pyproject_toml.write_text(content, encoding="utf-8")
 
     poetry = Factory().create_poetry(temporary_directory)
     assert len(poetry.package.all_requires) == 4
@@ -1988,7 +1991,7 @@ foo = "*"
 
 """
 
-    pyproject_toml.write_text(content)
+    pyproject_toml.write_text(content, encoding="utf-8")
 
     poetry = Factory().create_poetry(temporary_directory)
     assert len(poetry.package.all_requires) == 3
