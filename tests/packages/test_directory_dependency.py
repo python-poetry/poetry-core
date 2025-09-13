@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import cast
@@ -94,7 +96,8 @@ def test_directory_dependency_pep_508_local_absolute() -> None:
     )
     expected = f"demo @ {path.as_uri()}"
 
-    requirement = f"demo @ file://{path.as_posix()}"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f"demo @ file://{prefix}{path.as_posix()}"
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
     requirement = f"demo @ {path}"
@@ -107,7 +110,8 @@ def test_directory_dependency_pep_508_localhost() -> None:
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = f"demo @ file://localhost{path.as_posix()}"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f"demo @ file://localhost{prefix}{path.as_posix()}"
     expected = f"demo @ {path.as_uri()}"
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
@@ -115,8 +119,8 @@ def test_directory_dependency_pep_508_localhost() -> None:
 def test_directory_dependency_pep_508_local_relative() -> None:
     path = Path("..") / "fixtures" / "project_with_multi_constraints_dependency"
 
+    requirement = f"demo @ file://{path.as_posix()}"
     with pytest.raises(ValueError):
-        requirement = f"demo @ file://{path.as_posix()}"
         _test_directory_dependency_pep_508("demo", path, requirement)
 
     requirement = f"demo @ {path}"
@@ -133,7 +137,10 @@ def test_directory_dependency_pep_508_with_subdirectory() -> None:
     )
     expected = f"demo @ {path.as_uri()}"
 
-    requirement = f"demo @ file://{path.parent.as_posix()}#subdirectory={path.name}"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = (
+        f"demo @ file://{prefix}{path.parent.as_posix()}#subdirectory={path.name}"
+    )
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
 
@@ -143,7 +150,8 @@ def test_directory_dependency_pep_508_extras() -> None:
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = f"demo[foo,bar] @ file://{path.as_posix()}"
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f"demo[foo,bar] @ file://{prefix}{path.as_posix()}"
     expected = f"demo[bar,foo] @ {path.as_uri()}"
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
@@ -154,7 +162,8 @@ def test_directory_dependency_pep_508_with_marker() -> None:
         / "fixtures"
         / "project_with_multi_constraints_dependency"
     )
-    requirement = f'demo @ file://{path.as_posix()} ; sys_platform == "linux"'
+    prefix = "/" if sys.platform == "win32" else ""
+    requirement = f'demo @ file://{prefix}{path.as_posix()} ; sys_platform == "linux"'
     expected = f'demo @ {path.as_uri()} ; sys_platform == "linux"'
     _test_directory_dependency_pep_508("demo", path, requirement, expected)
 
