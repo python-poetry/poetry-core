@@ -66,7 +66,7 @@ class VersionUnion(VersionConstraint):
             if not isinstance(constraint, VersionRangeConstraint):
                 raise ValueError(f"Unknown VersionConstraint type {constraint}.")
 
-        flattened.sort()  # type: ignore[call-overload]
+        flattened.sort()  # type: ignore[call-arg]
 
         merged: list[VersionRangeConstraint] = []
         for constraint in flattened:
