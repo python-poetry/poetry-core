@@ -181,6 +181,11 @@
               "required": [
                 "include-groups"
               ]
+            },
+            {
+              "required": [
+                "optional"
+              ]
             }
           ],
           "properties": {

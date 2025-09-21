@@ -2006,3 +2006,29 @@ foo = "*"
         ("foo", "parent"),
         ("foo", "child"),
     ]
+
+
+@pytest.mark.parametrize("optional", [False, True])
+def test_create_poetry_with_optional_dependency_group(
+    temporary_directory: Path, optional: bool
+) -> None:
+    pyproject_toml = temporary_directory / "pyproject.toml"
+    content = f"""\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[dependency-groups]
+dev = [ "foo" ]
+
+# only "optional" in poetry section, no dependencies or include-groups
+[tool.poetry.group.dev]
+optional = {str(optional).lower()}
+"""
+
+    pyproject_toml.write_text(content, encoding="utf-8")
+
+    poetry = Factory().create_poetry(temporary_directory)
+    assert len(poetry.package.all_requires) == 1
+    assert poetry.package.has_dependency_group("dev")
+    assert poetry.package.dependency_group("dev").is_optional() is optional
