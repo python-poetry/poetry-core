@@ -1,6 +1,13 @@
 # Change Log
 
 
+## [2.2.1] - 2025-09-21
+
+### Fixed
+
+- Fix an issue where it was not possible to declare a PEP 735 dependency group as optional ([#888](https://github.com/python-poetry/poetry-core/pull/888)).
+
+
 ## [2.2.0] - 2025-09-14
 
 ### Added
@@ -803,7 +810,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.2.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.2.1...main
+[2.2.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.1
 [2.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.0
 [2.1.3]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.3
 [2.1.2]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.2
