@@ -179,6 +179,11 @@
     false,
     false
   ],
+  "Advanced-Cryptics-Dictionary": [
+    "Advanced Cryptics Dictionary License",
+    false,
+    false
+  ],
   "Afmparse": [
     "Afmparse License",
     false,
@@ -341,7 +346,7 @@
   ],
   "BSD-3-Clause-Open-MPI": [
     "BSD 3-Clause Open MPI variant",
-    false,
+    true,
     false
   ],
   "BSD-3-Clause-Sun": [
@@ -401,6 +406,11 @@
   ],
   "BSD-Inferno-Nettverk": [
     "BSD-Inferno-Nettverk",
+    false,
+    false
+  ],
+  "BSD-Mark-Modifications": [
+    "BSD Mark Modifications License",
     false,
     false
   ],
@@ -1107,6 +1117,11 @@
   "EPL-2.0": [
     "Eclipse Public License 2.0",
     true,
+    false
+  ],
+  "ESA-PL-permissive-2.4": [
+    "European Space Agency Public License – v2.4 – Permissive (Type 3)",
+    false,
     false
   ],
   "ESA-PL-weak-copyleft-2.4": [
