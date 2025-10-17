@@ -81,6 +81,11 @@ class Requirement:
                 f'The requirement is invalid: invalid version constraint "{constraint}"'
             )
 
+        if self.constraint.is_empty():
+            raise InvalidRequirementError(
+                f'The requirement is invalid: unsatisfiable requirement: "{constraint}"'
+            )
+
         self.pretty_constraint = constraint
 
         marker = next(parsed.find_data("marker_spec"), None)
