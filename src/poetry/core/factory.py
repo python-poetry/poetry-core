@@ -377,12 +377,14 @@ class Factory:
         from poetry.core.packages.dependency_group import MAIN_GROUP
         from poetry.core.packages.dependency_group import DependencyGroup
 
-        dependencies = project.get("dependencies", {})
+        dependencies = project.get("dependencies")
         optional_dependencies = project.get("optional-dependencies", {})
         dynamic = project.get("dynamic", [])
 
         package_extras: dict[NormalizedName, list[Dependency]]
-        if dependencies or optional_dependencies:
+        if dependencies is not None or optional_dependencies:
+            dependencies = dependencies or {}
+
             group = DependencyGroup(
                 MAIN_GROUP,
                 mixed_dynamic=(
