@@ -69,9 +69,7 @@ class PEP440Version:
         if isinstance(self.release, tuple):
             object.__setattr__(self, "release", Release(*self.release))
 
-        object.__setattr__(
-            self, "text", self.to_string()
-        )
+        object.__setattr__(self, "text", self.to_string())
 
         object.__setattr__(self, "_compare_key", self._make_compare_key())
 
