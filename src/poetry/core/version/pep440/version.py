@@ -57,7 +57,7 @@ class PEP440Version:
     post: ReleaseTag | None = dataclasses.field(default=None, compare=False)
     dev: ReleaseTag | None = dataclasses.field(default=None, compare=False)
     local: LocalSegmentType = dataclasses.field(default=None, compare=False)
-    text: str = dataclasses.field(default="", compare=False)
+    text: str = dataclasses.field(init=False, compare=False)
     _compare_key: tuple[
         int, Release, ReleaseTag, ReleaseTag, ReleaseTag, tuple[int | str, ...]
     ] = dataclasses.field(init=False, compare=True)
@@ -69,9 +69,8 @@ class PEP440Version:
         if isinstance(self.release, tuple):
             object.__setattr__(self, "release", Release(*self.release))
 
-        # we do this here to handle both None and tomlkit string values
         object.__setattr__(
-            self, "text", self.to_string() if not self.text else str(self.text)
+            self, "text", self.to_string()
         )
 
         object.__setattr__(self, "_compare_key", self._make_compare_key())
