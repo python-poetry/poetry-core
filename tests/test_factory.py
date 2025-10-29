@@ -313,6 +313,18 @@ def test_create_poetry(project: str) -> None:
         ]
 
 
+def test_create_poetry_with_empty_dependencies() -> None:
+    project = "sample_project_new_no_deps"
+    poetry = Factory().create_poetry(fixtures_dir / project)
+
+    assert poetry.is_package_mode
+
+    package = poetry.package
+
+    assert "main" in package._dependency_groups
+    assert package._dependency_groups[canonicalize_name("main")].dependencies == []
+
+
 @pytest.mark.parametrize(
     "project", ["sample_project_with_groups", "sample_project_with_groups_new"]
 )
