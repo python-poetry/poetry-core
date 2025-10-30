@@ -323,6 +323,9 @@ class Factory:
             )
             package.readmes = tuple(root / r for r in custom_readmes if r)
 
+        package.import_names = project.get("import-names")
+        package.import_namespaces = project.get("import-namespaces")
+
     @classmethod
     def _configure_entry_points(
         cls,

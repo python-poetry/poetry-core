@@ -325,6 +325,16 @@ def test_create_poetry_with_empty_dependencies() -> None:
     assert package._dependency_groups[canonicalize_name("main")].dependencies == []
 
 
+def test_create_poetry_with_import_names() -> None:
+    project = "sample_project_new_with_import_names"
+    poetry = Factory().create_poetry(fixtures_dir / project)
+
+    package = poetry.package
+
+    assert package.import_names == ["my_package.a", "my_package.b"]
+    assert package.import_namespaces == ["my_package"]
+
+
 @pytest.mark.parametrize(
     "project", ["sample_project_with_groups", "sample_project_with_groups_new"]
 )
