@@ -148,6 +148,22 @@
         "type": "string"
       }
     },
+    "import-names": {
+      "title": "Import names",
+      "description": "Import names that the project exclusively provides when installed.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "import-namespaces": {
+      "title": "Import namespaces",
+      "description": "Import names that the project provides when installed, but not exclusively.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "authors": {
       "title": "Project authors",
       "type": "array",

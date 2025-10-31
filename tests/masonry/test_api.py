@@ -11,6 +11,7 @@ import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
+from poetry.core.masonry.metadata import METADATA_VERSION
 from poetry.core.utils.helpers import temporary_directory
 from tests.testutils import validate_sdist_contents
 from tests.testutils import validate_wheel_contents
@@ -175,8 +176,8 @@ Generator: poetry-core {__version__}
 Root-Is-Purelib: true
 Tag: py3-none-any
 """
-    metadata = """\
-Metadata-Version: 2.4
+    metadata = f"""\
+Metadata-Version: {METADATA_VERSION}
 Name: my-package
 Version: 1.2.3
 Summary: Some description.
@@ -262,7 +263,7 @@ Root-Is-Purelib: true
 Tag: py3-none-any
 """
     metadata = f"""\
-Metadata-Version: 2.4
+Metadata-Version: {METADATA_VERSION}
 Name: my-package
 Version: 1.2.3+{local_version}
 Summary: Some description.
@@ -339,8 +340,8 @@ def test_prepare_metadata_excludes_optional_without_extras() -> None:
         with (dist_info / "METADATA").open(encoding="utf-8") as f:
             assert (
                 f.read()
-                == """\
-Metadata-Version: 2.4
+                == f"""\
+Metadata-Version: {METADATA_VERSION}
 Name: my-packager
 Version: 0.1
 Summary: Something
@@ -369,6 +370,46 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     record = caplog.records[0]
     assert record.levelname == "WARNING"
     assert "does not exist" in record.message
+
+
+def test_prepare_metadata_with_import_names() -> None:
+    with (
+        temporary_directory() as tmp_dir,
+        cwd(fixtures / "with-import-names"),
+    ):
+        dirname = api.prepare_metadata_for_build_wheel(str(tmp_dir))
+        dist_info = Path(tmp_dir, dirname)
+        assert (dist_info / "METADATA").exists()
+
+        with (dist_info / "METADATA").open(encoding="utf-8") as f:
+            assert (
+                f.read()
+                == f"""\
+Metadata-Version: {METADATA_VERSION}
+Name: with-import-names
+Version: 1.2.3
+Summary: Some description.
+License-Expression: MIT
+Keywords: packaging,dependency,poetry
+Author: Sébastien Eustace
+Author-email: sebastien@eustace.io
+Requires-Python: >=3.6,<4.0
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3.14
+Import-Name: my_package.a
+Import-Name: another_package.b
+Import-Namespace: my_package
+Import-Namespace: another_package
+"""
+            )
 
 
 @pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])

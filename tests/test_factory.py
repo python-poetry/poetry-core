@@ -13,6 +13,7 @@ import pytest
 from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version import parse_constraint
+from poetry.core.exceptions import PoetryCoreError
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -323,6 +324,50 @@ def test_create_poetry_with_empty_dependencies() -> None:
 
     assert "main" in package._dependency_groups
     assert package._dependency_groups[canonicalize_name("main")].dependencies == []
+
+
+def test_create_poetry_with_import_names() -> None:
+    project = "sample_project_new_with_import_names"
+    poetry = Factory().create_poetry(fixtures_dir / project)
+
+    package = poetry.package
+
+    assert package.import_names == ["my_package.a", "my_package.b"]
+    assert package.import_namespaces == ["my_package"]
+
+
+@pytest.mark.parametrize(
+    ["namespace_name", "import_name"],
+    [
+        ("my_package", "my_package"),
+        ("my_package; private", "my_package"),
+        ("my_package  ; private", "my_package"),
+        ("my_package; private", "my_package;  private"),
+    ],
+)
+def test_create_poetry_raise_on_name_in_import_names_and_spaces(
+    namespace_name: str, import_name: str, tmp_path: Path
+) -> None:
+    content = f"""
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6"
+
+import-namespaces = ["{namespace_name}", "another_package"]
+import-names = ["{import_name}"]
+
+dependencies = []
+"""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    with pytest.raises(
+        PoetryCoreError,
+        match="Import names found in both import-names and import-namespaces: my_package",
+    ):
+        _ = Factory().create_poetry(pyproject)
 
 
 @pytest.mark.parametrize(

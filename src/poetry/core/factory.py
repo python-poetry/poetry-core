@@ -15,6 +15,7 @@ from packaging.licenses import InvalidLicenseExpression
 from packaging.licenses import canonicalize_license_expression
 from packaging.utils import canonicalize_name
 
+from poetry.core.exceptions import PoetryCoreError
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import DependencyGroup
 from poetry.core.utils.helpers import combine_unicode
@@ -322,6 +323,25 @@ class Factory:
                 (custom_readme,) if isinstance(custom_readme, str) else custom_readme
             )
             package.readmes = tuple(root / r for r in custom_readmes if r)
+
+        cls._validate_import_names(project)
+
+        package.import_names = project.get("import-names")
+        package.import_namespaces = project.get("import-namespaces")
+
+    @classmethod
+    def _validate_import_names(cls, project: dict[str, Any]) -> None:
+        import_names = {
+            name.split(";")[0].strip() for name in project.get("import-names", [])
+        }
+        import_namespaces = {
+            name.split(";")[0].strip() for name in project.get("import-namespaces", [])
+        }
+
+        if duplicates := import_names & import_namespaces:
+            raise PoetryCoreError(
+                f"Import names found in both import-names and import-namespaces: {', '.join(duplicates)}"
+            )
 
     @classmethod
     def _configure_entry_points(
