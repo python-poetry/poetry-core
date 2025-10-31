@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import functools
 import re
 import sys
@@ -288,8 +289,15 @@ def create_nested_marker(
                 and not constraint.include_min
                 and version.precision < 3
             ):
-                padding = ".0" * (3 - version.precision)
-                part = f'python_full_version > "{version}{padding}"'
+                release = version.release
+                release = dataclasses.replace(
+                    release,
+                    major=release.major or 0,
+                    minor=release.minor or 0,
+                    patch=release.patch or 0,
+                )
+                version = dataclasses.replace(version, release=release)
+                part = f'python_full_version > "{version}"'
             else:
                 part = f'{min_name} {op} "{version.stable}"'
 
@@ -306,8 +314,15 @@ def create_nested_marker(
                 and constraint.include_max
                 and version.precision < 3
             ):
-                padding = ".0" * (3 - version.precision)
-                part = f'python_full_version <= "{version}{padding}"'
+                release = version.release
+                release = dataclasses.replace(
+                    release,
+                    major=release.major or 0,
+                    minor=release.minor or 0,
+                    patch=release.patch or 0,
+                )
+                version = dataclasses.replace(version, release=release)
+                part = f'python_full_version <= "{version}"'
             else:
                 part = f'{max_name} {op} "{version.stable}"'
 

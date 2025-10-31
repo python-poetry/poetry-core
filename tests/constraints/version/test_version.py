@@ -16,31 +16,47 @@ if TYPE_CHECKING:
 
 
 @pytest.mark.parametrize(
-    "text,version",
+    "text,version,normalized",
     [
-        ("1.0.0", Version.from_parts(1, 0, 0)),
-        ("1", Version.from_parts(1, 0, 0)),
-        ("1.0", Version.from_parts(1, 0, 0)),
-        ("1b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
-        ("1.0b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
-        ("1.0.0b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
-        ("1.0.0-b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
-        ("1.0.0-beta.1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1))),
-        ("1.0.0+1", Version.from_parts(1, 0, 0, local=1)),
-        ("1.0.0-1", Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1))),
-        ("1.0.0.0", Version.from_parts(1, 0, 0, extra=0)),
-        ("1.0.0-post", Version.from_parts(1, 0, 0, post=ReleaseTag("post"))),
-        ("1.0.0-post1", Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1))),
-        ("0.6c", Version.from_parts(0, 6, 0, pre=ReleaseTag("rc", 0))),
-        ("0.6pre", Version.from_parts(0, 6, 0, pre=ReleaseTag("preview", 0))),
-        ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1)),
+        ("1.0.0", Version.from_parts(1, 0, 0), "1.0.0"),
+        ("1", Version.from_parts(1, 0, 0), "1"),
+        ("1.0", Version.from_parts(1, 0, 0), "1.0"),
+        ("1b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1)), "1b1"),
+        ("1.0b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1)), "1.0b1"),
+        ("1.0.0b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1)), "1.0.0b1"),
+        ("1.0.0-b1", Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1)), "1.0.0b1"),
+        (
+            "1.0.0-beta.1",
+            Version.from_parts(1, 0, 0, pre=ReleaseTag("beta", 1)),
+            "1.0.0b1",
+        ),
+        ("1.0.0+1", Version.from_parts(1, 0, 0, local=1), "1.0.0+1"),
+        (
+            "1.0.0-1",
+            Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1)),
+            "1.0.0.post1",
+        ),
+        ("1.0.0.0", Version.from_parts(1, 0, 0, extra=0), "1.0.0.0"),
+        (
+            "1.0.0-post",
+            Version.from_parts(1, 0, 0, post=ReleaseTag("post")),
+            "1.0.0.post0",
+        ),
+        (
+            "1.0.0-post1",
+            Version.from_parts(1, 0, 0, post=ReleaseTag("post", 1)),
+            "1.0.0.post1",
+        ),
+        ("0.6c", Version.from_parts(0, 6, 0, pre=ReleaseTag("rc", 0)), "0.6rc0"),
+        ("0.6pre", Version.from_parts(0, 6, 0, pre=ReleaseTag("preview", 0)), "0.6rc0"),
+        ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1), "1!2.3.4"),
     ],
 )
-def test_parse_valid(text: str, version: Version) -> None:
+def test_parse_valid(text: str, version: Version, normalized: str) -> None:
     parsed = Version.parse(text)
 
     assert parsed == version
-    assert parsed.text == text
+    assert parsed.text == normalized
 
 
 @pytest.mark.parametrize("value", [None, "example"])
