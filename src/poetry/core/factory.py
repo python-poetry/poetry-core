@@ -324,6 +324,25 @@ class Factory:
         package.import_namespaces = project.get("import-namespaces")
 
     @classmethod
+    def _validate_import_names(
+        cls, project: dict[str, Any], result: dict[str, list[str]]
+    ) -> None:
+        if "import-namespaces" in project and len(project["import-namespaces"]) == 0:
+            result["errors"].append("import-namespaces must not be an empty array.")
+
+        import_names = {
+            name.split(";")[0].strip() for name in project.get("import-names", [])
+        }
+        import_namespaces = {
+            name.split(";")[0].strip() for name in project.get("import-namespaces", [])
+        }
+
+        if duplicates := import_names & import_namespaces:
+            result["errors"].append(
+                f"Import names found in both import-names and import-namespaces: {', '.join(duplicates)}"
+            )
+
+    @classmethod
     def _configure_entry_points(
         cls,
         package: ProjectPackage,
@@ -730,6 +749,8 @@ class Factory:
                 for e in validate_object(project, "project-schema")
             ]
             result["errors"] += project_validation_errors
+            cls._validate_import_names(project, result)
+
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and
         # validate it so that default values (e.g. for package-mode) are set.
         tool_poetry = toml_data.setdefault("tool", {}).setdefault("poetry", {})
