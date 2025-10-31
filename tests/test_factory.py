@@ -336,6 +336,62 @@ def test_create_poetry_with_import_names() -> None:
 
 
 @pytest.mark.parametrize(
+    ["namespace_name", "import_name"],
+    [
+        ("my_package", "my_package"),
+        ("my_package; private", "my_package"),
+        ("my_package  ; private", "my_package"),
+        ("my_package; private", "my_package;  private"),
+    ],
+)
+def test_create_poetry_raise_on_name_in_import_names_and_spaces(
+    namespace_name: str, import_name: str, tmp_path: Path
+) -> None:
+    content = f"""
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6"
+
+import-namespaces = ["{namespace_name}", "another_package"]
+import-names = ["{import_name}"]
+
+dependencies = []
+"""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    with pytest.raises(
+        RuntimeError,
+        match="Import names found in both import-names and import-namespaces: my_package",
+    ):
+        _ = Factory().create_poetry(pyproject)
+
+
+def test_create_poetry_raise_on_empty_import_namespaces(tmp_path: Path) -> None:
+    content = """
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6"
+
+import-namespaces = []
+
+dependencies = []
+"""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    with pytest.raises(
+        RuntimeError,
+        match="import-namespaces must not be an empty array",
+    ):
+        _ = Factory().create_poetry(pyproject)
+
+
+@pytest.mark.parametrize(
     "project", ["sample_project_with_groups", "sample_project_with_groups_new"]
 )
 def test_create_poetry_with_groups(project: str) -> None:
