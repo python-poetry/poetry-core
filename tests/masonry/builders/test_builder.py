@@ -10,6 +10,7 @@ import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
+from poetry.core.masonry.metadata import METADATA_VERSION
 from poetry.core.utils._compat import tomllib
 
 
@@ -116,7 +117,7 @@ def test_get_metadata_content(project: str) -> None:
     p = Parser()
     parsed = p.parsestr(metadata)
 
-    assert parsed["Metadata-Version"] == "2.4"
+    assert parsed["Metadata-Version"] == METADATA_VERSION
     assert parsed["Name"] == "my-package"
     assert parsed["Version"] == "1.2.3"
     assert parsed["Summary"] == "Some description."
@@ -175,6 +176,12 @@ def test_get_metadata_content(project: str) -> None:
         "Issue Tracker, https://github.com/python-poetry/poetry/issues",
         "Repository, https://github.com/python-poetry/poetry",
     ]
+
+    import_names = parsed.get_all("Import-Name", False)
+    assert import_names is False
+
+    import_namespaces = parsed.get_all("Import-Namespace", False)
+    assert import_namespaces is False
 
 
 def test_metadata_pretty_name() -> None:
