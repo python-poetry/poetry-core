@@ -1124,6 +1124,11 @@
     false,
     false
   ],
+  "ESA-PL-strong-copyleft-2.4": [
+    "European Space Agency Public License (ESA-PL) - V2.4 - Strong Copyleft (Type 1)",
+    false,
+    false
+  ],
   "ESA-PL-weak-copyleft-2.4": [
     "European Space Agency Public License – v2.4 – Weak Copyleft (Type 2)",
     false,
@@ -1571,6 +1576,11 @@
   ],
   "HPND-Pbmplus": [
     "Historical Permission Notice and Disclaimer - Pbmplus variant",
+    false,
+    false
+  ],
+  "HPND-SMC": [
+    "Historical Permission Notice and Disclaimer - SMC variant",
     false,
     false
   ],
@@ -2214,6 +2224,11 @@
     false,
     false
   ],
+  "NIST-PD-TNT": [
+    "NIST    Public Domain Notice TNT variant",
+    false,
+    false
+  ],
   "NIST-PD-fallback": [
     "NIST Public Domain Notice with license fallback",
     false,
@@ -2549,6 +2564,11 @@
     true,
     false
   ],
+  "OSSP": [
+    "OSSP License",
+    false,
+    false
+  ],
   "OpenPBS-2.3": [
     "OpenPBS v2.3 Software License",
     false,
@@ -2736,6 +2756,11 @@
   ],
   "SGI-OpenGL": [
     "SGI OpenGL License",
+    false,
+    false
+  ],
+  "SGMLUG-PM": [
+    "SGMLUG Parser Materials License",
     false,
     false
   ],
@@ -3341,6 +3366,11 @@
   ],
   "hdparm": [
     "hdparm License",
+    false,
+    false
+  ],
+  "hyphen-bulgarian": [
+    "hyphen-bulgarian License",
     false,
     false
   ],
