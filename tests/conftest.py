@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from typing import Callable
 
 import pytest
-import virtualenv
 
 from poetry.core.factory import Factory
 from poetry.core.utils._compat import WINDOWS
@@ -86,21 +85,6 @@ def masonry_project(
 def temporary_directory() -> Iterator[Path]:
     with tempfile.TemporaryDirectory(prefix="poetry-core") as tmp:
         yield Path(tmp)
-
-
-@pytest.fixture
-def venv(temporary_directory: Path) -> Path:
-    venv_dir = temporary_directory / ".venv"
-    virtualenv.cli_run(
-        [
-            "--no-download",
-            "--no-periodic-update",
-            "--python",
-            sys.executable,
-            venv_dir.as_posix(),
-        ]
-    )
-    return venv_dir
 
 
 @pytest.fixture
