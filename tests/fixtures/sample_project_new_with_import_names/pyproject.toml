@@ -1,0 +1,25 @@
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6"
+license = "MIT"
+keywords = ["packaging", "dependency", "poetry"]
+authors = [
+    { name = "Sébastien Eustace", email = "sebastien@eustace.io" }
+]
+maintainers = [
+    { name = "Sébastien Eustace", email = "sebastien@eustace.io" }
+]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+import-namespaces = ["my_package"]
+import-names = ["my_package.a", "my_package.b"]
+
+# Requirements
+dependencies = [
+]
