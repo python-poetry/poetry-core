@@ -391,6 +391,43 @@ dependencies = []
         _ = Factory().create_poetry(pyproject)
 
 
+def test_create_poetry_raise_warning_on_shortest_import_names_not_listed(
+    caplog: LogCaptureFixture, tmp_path: Path
+) -> None:
+    content = """
+    [project]
+    name = "my-package"
+    version = "1.2.3"
+    description = "Some description."
+    requires-python = ">=3.6"
+
+    import-names = ["anotherpackage", "my_package.foo.bar", "foo.bar"]
+    import-namespaces = ["foo", "namespace.foo", "another_namespace"]
+
+    dependencies = []
+    """
+
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    _ = Factory().create_poetry(pyproject)
+
+    assert (
+        "Import name 'my_package.foo.bar' should have all its parents up to 'my_package' included in import-names or import-namespaces."
+        in caplog.text
+    )
+    assert (
+        "Import namespace 'namespace.foo' should have all its parents up to 'namespace' included in import-namespaces."
+        in caplog.text
+    )
+
+    assert "'anotherpackage'" not in caplog.text
+    assert "'foo.bar'" not in caplog.text
+
+    assert "'foo'" not in caplog.text
+    assert "'another_namespace'" not in caplog.text
+
+
 @pytest.mark.parametrize(
     "project", ["sample_project_with_groups", "sample_project_with_groups_new"]
 )
