@@ -325,6 +325,109 @@ def test_create_poetry_with_empty_dependencies() -> None:
     assert package._dependency_groups[canonicalize_name("main")].dependencies == []
 
 
+def test_create_poetry_with_import_names() -> None:
+    project = "sample_project_new_with_import_names"
+    poetry = Factory().create_poetry(fixtures_dir / project)
+
+    package = poetry.package
+
+    assert package.import_names == ["my_package.a", "my_package.b"]
+    assert package.import_namespaces == ["my_package"]
+
+
+@pytest.mark.parametrize(
+    ["namespace_name", "import_name"],
+    [
+        ("my_package", "my_package"),
+        ("my_package; private", "my_package"),
+        ("my_package  ; private", "my_package"),
+        ("my_package; private", "my_package;  private"),
+    ],
+)
+def test_create_poetry_raise_on_name_in_import_names_and_spaces(
+    namespace_name: str, import_name: str, tmp_path: Path
+) -> None:
+    content = f"""
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6"
+
+import-namespaces = ["{namespace_name}", "another_package"]
+import-names = ["{import_name}"]
+
+dependencies = []
+"""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    with pytest.raises(
+        RuntimeError,
+        match="Import names found in both import-names and import-namespaces: my_package",
+    ):
+        _ = Factory().create_poetry(pyproject)
+
+
+def test_create_poetry_raise_on_empty_import_namespaces(tmp_path: Path) -> None:
+    content = """
+[project]
+name = "my-package"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6"
+
+import-namespaces = []
+
+dependencies = []
+"""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    with pytest.raises(
+        RuntimeError,
+        match="import-namespaces must not be an empty array",
+    ):
+        _ = Factory().create_poetry(pyproject)
+
+
+def test_create_poetry_raise_warning_on_shortest_import_names_not_listed(
+    caplog: LogCaptureFixture, tmp_path: Path
+) -> None:
+    content = """
+    [project]
+    name = "my-package"
+    version = "1.2.3"
+    description = "Some description."
+    requires-python = ">=3.6"
+
+    import-names = ["anotherpackage", "my_package.foo.bar", "foo.bar"]
+    import-namespaces = ["foo", "namespace.foo", "another_namespace"]
+
+    dependencies = []
+    """
+
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(content)
+
+    _ = Factory().create_poetry(pyproject)
+
+    assert (
+        "Import name 'my_package.foo.bar' should have all its parents up to 'my_package' included in import-names or import-namespaces."
+        in caplog.text
+    )
+    assert (
+        "Import namespace 'namespace.foo' should have all its parents up to 'namespace' included in import-namespaces."
+        in caplog.text
+    )
+
+    assert "'anotherpackage'" not in caplog.text
+    assert "'foo.bar'" not in caplog.text
+
+    assert "'foo'" not in caplog.text
+    assert "'another_namespace'" not in caplog.text
+
+
 @pytest.mark.parametrize(
     "project", ["sample_project_with_groups", "sample_project_with_groups_new"]
 )
