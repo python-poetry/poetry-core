@@ -342,6 +342,61 @@ class Factory:
                 f"Import names found in both import-names and import-namespaces: {', '.join(duplicates)}"
             )
 
+        cls._validate_shortest_import_names(
+            import_names=import_names,
+            import_namespaces=import_namespaces,
+            result=result,
+        )
+
+    @classmethod
+    def _validate_shortest_import_names(
+        cls,
+        import_names: set[str],
+        import_namespaces: set[str],
+        result: dict[str, list[str]],
+    ) -> None:
+        """
+        Ensure import names and namespaces include their parent packages.
+
+        For entries in `import-names`, any parent package may be listed in
+        either `import-names` or `import-namespaces`. For entries in
+        `import-namespaces`, any parent package must be listed in
+        `import-namespaces` only.
+        """
+        for import_name in import_names:
+            if "." in import_name:
+                parent: str | None = import_name.rsplit(".", maxsplit=1)[0]
+
+                while parent:
+                    if parent not in import_names and parent not in import_namespaces:
+                        base = parent.split(".", maxsplit=1)[0]
+                        result["warnings"].append(
+                            f"Import name '{import_name}' should have all its parents up to '{base}'"
+                            f" included in import-names or import-namespaces."
+                        )
+                        break
+
+                    parent = (
+                        parent.rsplit(".", maxsplit=1)[0] if "." in parent else None
+                    )
+
+        for import_namespace in import_namespaces:
+            if "." in import_namespace:
+                parent = import_namespace.rsplit(".", maxsplit=1)[0]
+
+                while parent:
+                    if parent not in import_namespaces:
+                        base = parent.split(".", maxsplit=1)[0]
+                        result["warnings"].append(
+                            f"Import namespace '{import_namespace}' should have all its parents up to '{base}'"
+                            f" included in import-namespaces."
+                        )
+                        break
+
+                    parent = (
+                        parent.rsplit(".", maxsplit=1)[0] if "." in parent else None
+                    )
+
     @classmethod
     def _configure_entry_points(
         cls,
