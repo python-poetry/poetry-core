@@ -13,7 +13,6 @@ from typing import Any
 from typing import ClassVar
 from typing import Generic
 from typing import TypeVar
-from typing import Union
 
 from packaging.utils import canonicalize_name
 
@@ -229,7 +228,7 @@ class EmptyMarker(BaseMarker):
 
 
 SingleMarkerConstraint = TypeVar(
-    "SingleMarkerConstraint", bound=Union[BaseConstraint, VersionConstraint]
+    "SingleMarkerConstraint", bound=BaseConstraint | VersionConstraint
 )
 
 
@@ -344,7 +343,7 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
         return hash(self._key)
 
 
-class SingleMarker(SingleMarkerLike[Union[BaseConstraint, VersionConstraint]]):
+class SingleMarker(SingleMarkerLike[BaseConstraint | VersionConstraint]):
     _CONSTRAINT_RE_PATTERN_1 = re.compile(
         r"(?i)^(?P<op>~=|!=|>=?|<=?|==?=?|not in |in )?\s*(?P<value>.+)$"
     )
