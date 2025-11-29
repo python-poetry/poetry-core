@@ -378,7 +378,7 @@ class Dependency(PackageSpecification):
             link = Link(req.url)
         else:
             path_str = os.path.normpath(os.path.abspath(name))  # noqa: PTH100
-            p, extras = strip_extras(path_str)
+            p, _extras = strip_extras(path_str)
             if cached_is_dir(p) and (os.path.sep in name or name.startswith(".")):
                 if not is_python_project(Path(name)):
                     raise ValueError(

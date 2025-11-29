@@ -64,7 +64,7 @@ def test_directory_dependency_is_not_a_python_project(
     assert record.levelname == "WARNING"
     assert "a Python package" in record.message
 
-    with pytest.raises(ValueError, match="not .* a Python package"):
+    with pytest.raises(ValueError, match=r"not .* a Python package"):
         dep.validate(raise_error=True)
 
 
