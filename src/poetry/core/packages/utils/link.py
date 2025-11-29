@@ -140,7 +140,7 @@ class Link:
 
     @cached_property
     def url_without_fragment(self) -> str:
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(self.url)
+        scheme, netloc, path, query, _fragment = urlparse.urlsplit(self.url)
         return urlparse.urlunsplit((scheme, netloc, path, query, None))
 
     _egg_fragment_re = re.compile(r"[#&]egg=([^&]*)")
