@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import tempfile
 
 from pathlib import Path
@@ -127,8 +126,7 @@ def test_utils_helpers_readme_content_type(
     assert readme_content_type(readme) == content_type
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10 or higher")
-def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None:
+def test_temporary_directory(mocker: MockerFixture) -> None:
     mocked_rmtree = mocker.patch("shutil.rmtree")
     mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
     mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
@@ -143,8 +141,7 @@ def test_temporary_directory_python_3_10_or_newer(mocker: MockerFixture) -> None
     mocked_temp_dir.assert_called_with(ignore_cleanup_errors=True)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10 or higher")
-def test_temporary_directory_python_3_10_or_newer_ensure_cleanup_on_error(
+def test_temporary_directory_ensure_cleanup_on_error(
     mocker: MockerFixture,
 ) -> None:
     mocked_rmtree = mocker.patch("shutil.rmtree")
@@ -164,49 +161,6 @@ def test_temporary_directory_python_3_10_or_newer_ensure_cleanup_on_error(
     assert not mocked_rmtree.called
     assert not mocked_mkdtemp.called
     mocked_temp_dir.assert_called_with(ignore_cleanup_errors=True)
-
-
-@pytest.mark.skipif(
-    sys.version_info >= (3, 10), reason="Not supported on Python 3.10 or higher"
-)
-def test_temporary_directory_python_3_9_or_older(mocker: MockerFixture) -> None:
-    mocked_rmtree = mocker.patch("shutil.rmtree")
-    mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
-    mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
-
-    mocked_mkdtemp.return_value = "hello from test"
-
-    with temporary_directory() as tmp:
-        assert tmp == Path("hello from test")
-
-    assert mocked_rmtree.called
-    assert mocked_mkdtemp.called
-    assert not mocked_temp_dir.called
-
-
-@pytest.mark.skipif(
-    sys.version_info >= (3, 10), reason="Not supported on Python 3.10 or higher"
-)
-def test_temporary_directory_python_3_9_or_older_ensure_cleanup_on_error(
-    mocker: MockerFixture,
-) -> None:
-    mocked_rmtree = mocker.patch("shutil.rmtree")
-    mocked_temp_dir = mocker.patch("tempfile.TemporaryDirectory")
-    mocked_mkdtemp = mocker.patch("tempfile.mkdtemp")
-
-    mocked_mkdtemp.return_value = "hello from test"
-
-    with (
-        pytest.raises(Exception, match="Something went wrong"),
-        temporary_directory() as tmp,
-    ):
-        assert tmp == Path("hello from test")
-
-        raise Exception("Something went wrong")
-
-    assert mocked_rmtree.called
-    assert mocked_mkdtemp.called
-    assert not mocked_temp_dir.called
 
 
 def test_robust_rmtree(mocker: MockerFixture) -> None:

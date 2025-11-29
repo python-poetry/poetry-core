@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import shutil
 import stat
-import sys
 import tempfile
 import time
 import unicodedata
@@ -29,18 +28,11 @@ def module_name(name: str) -> str:
 
 @contextmanager
 def temporary_directory(*args: Any, **kwargs: Any) -> Iterator[Path]:
-    if sys.version_info >= (3, 10):
-        # mypy reports an error if ignore_cleanup_errors is
-        # specified literally in the call
-        kwargs["ignore_cleanup_errors"] = True
-        with tempfile.TemporaryDirectory(*args, **kwargs) as name:
-            yield Path(name)
-    else:
-        name = tempfile.mkdtemp(*args, **kwargs)
-        try:
-            yield Path(name)
-        finally:
-            robust_rmtree(name)
+    # mypy reports an error if ignore_cleanup_errors is
+    # specified literally in the call
+    kwargs["ignore_cleanup_errors"] = True
+    with tempfile.TemporaryDirectory(*args, **kwargs) as name:
+        yield Path(name)
 
 
 def parse_requires(requires: str) -> list[str]:
