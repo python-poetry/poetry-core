@@ -27,7 +27,7 @@ jobs:
           - "3.14"
         include:
           - os: Ubuntu
-            python-version: pypy-3.10
+            python-version: pypy-3.11
       fail-fast: false
     defaults:
       run:
@@ -90,4 +90,7 @@ jobs:
         run: poetry run python -m pytest -p no:sugar --integration -q tests/integration
 
       - name: Run mypy
+        # mypy 1.19 introduces a dependency on librt, which does not support PyPy
+        # It is recommended to run mypy only on CPython, see https://github.com/mypyc/librt/issues/16
+        if: ${{ !startsWith(matrix.python-version, 'pypy') }}
         run: poetry run mypy

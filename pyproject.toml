@@ -53,7 +53,9 @@ virtualenv = ">=20.21"
 trove-classifiers = ">=2022.5.19"
 
 [tool.poetry.group.typing.dependencies]
-mypy = ">=1.0"
+# mypy 1.19 introduces a dependency on librt, which does not support PyPy
+# It is recommended to run mypy only on CPython, see https://github.com/mypyc/librt/issues/16
+mypy = { version = ">=1.18.0", markers = "platform_python_implementation != 'PyPy'" }
 types-setuptools = ">=57.4.14"
 
 [tool.ruff]
