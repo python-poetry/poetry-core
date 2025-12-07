@@ -15,7 +15,7 @@ maintainers = [
     { name = "Bartosz Sokorski", email = "b.sokorski@gmail.com" },
 ]
 license = "MIT"
-requires-python = ">=3.9, <4.0"
+requires-python = ">=3.10, <4.0"
 readme = "README.md"
 keywords = ["packaging", "dependency", "poetry"]
 dynamic = ["classifiers"]
@@ -64,7 +64,6 @@ extend-exclude = [
 fix = true
 line-length = 88
 src = ["src"]
-target-version = "py39"
 
 [tool.ruff.lint]
 extend-select = [

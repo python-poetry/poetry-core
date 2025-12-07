@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
-from typing import Union
 
 from packaging.licenses import InvalidLicenseExpression
 from packaging.licenses import canonicalize_license_expression
@@ -28,10 +27,8 @@ if TYPE_CHECKING:
     from poetry.core.poetry import Poetry
     from poetry.core.pyproject.toml import PyProjectTOML
 
-    DependencyConstraint = Union[str, Mapping[str, Any]]
-    DependencyConfig = Mapping[
-        str, Union[list[DependencyConstraint], DependencyConstraint]
-    ]
+    DependencyConstraint = str | Mapping[str, Any]
+    DependencyConfig = Mapping[str, list[DependencyConstraint] | DependencyConstraint]
 
 
 logger = logging.getLogger(__name__)

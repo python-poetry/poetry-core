@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-import sys
 import tarfile
 import tempfile
 import zipfile
@@ -64,9 +63,8 @@ def subprocess_run(*args: str, **kwargs: Any) -> subprocess.CompletedProcess[str
     """
     Helper method to run a subprocess. Asserts for success.
     """
-    encoding = "locale" if sys.version_info >= (3, 10) else None
     result = subprocess.run(
-        args, text=True, encoding=encoding, capture_output=True, **kwargs
+        args, text=True, encoding="locale", capture_output=True, **kwargs
     )
     assert result.returncode == 0
     return result
