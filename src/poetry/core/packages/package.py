@@ -108,6 +108,9 @@ class Package(PackageSpecification):
         self.readme_content_type: str | None = None
         self.readme_content: str | None = None
 
+        self.import_names: list[str] | None = None
+        self.import_namespaces: list[str] | None = None
+
         self.extras: Mapping[NormalizedName, Sequence[Dependency]] = {}
 
         self._dependency_groups: Mapping[NormalizedName, DependencyGroup] = {}
