@@ -15,7 +15,7 @@ maintainers = [
     { name = "Bartosz Sokorski", email = "b.sokorski@gmail.com" },
 ]
 license = "MIT"
-requires-python = ">=3.10, <4.0"
+requires-python = ">=3.10"
 readme = "README.md"
 keywords = ["packaging", "dependency", "poetry"]
 dynamic = ["classifiers"]
@@ -40,7 +40,7 @@ classifiers = [
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=2.15.0"
-vendoring = ">=1.0"
+vendoring = { version = ">=1.0", markers = "python_version < '4.0'" }
 
 [tool.poetry.group.test.dependencies]
 pytest = ">=7.1.2"
