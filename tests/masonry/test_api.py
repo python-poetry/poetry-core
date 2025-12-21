@@ -5,13 +5,13 @@ import zipfile
 
 from contextlib import contextmanager
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
 import pytest
 
 from poetry.core import __version__
 from poetry.core.masonry import api
-from poetry.core.utils.helpers import temporary_directory
 from tests.testutils import validate_sdist_contents
 from tests.testutils import validate_wheel_contents
 
@@ -51,47 +51,62 @@ def test_get_requires_for_build_sdist(project: str) -> None:
 
 @pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_wheel(project: str) -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / project):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / project),
+    ):
         filename = api.build_wheel(str(tmp_dir))
         validate_wheel_contents(
             name="my_package",
             version="1.2.3",
-            path=tmp_dir / filename,
+            path=Path(tmp_dir) / filename,
             files=["entry_points.txt"],
         )
 
 
 def test_build_wheel_with_local_version() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "complete"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "complete"),
+    ):
         filename = api.build_wheel(
             str(tmp_dir), config_settings={"local-version": "some-label"}
         )
         validate_wheel_contents(
             name="my_package",
             version="1.2.3+some-label",
-            path=tmp_dir / filename,
+            path=Path(tmp_dir) / filename,
             files=["entry_points.txt"],
         )
 
 
 def test_build_wheel_with_include() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with-include"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with-include"),
+    ):
         filename = api.build_wheel(str(tmp_dir))
         validate_wheel_contents(
             name="with_include",
             version="1.2.3",
-            path=tmp_dir / filename,
+            path=Path(tmp_dir) / filename,
             files=["entry_points.txt"],
         )
 
 
 def test_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with_bad_path_dev_dep"),
+    ):
         api.build_wheel(str(tmp_dir))
 
 
 def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dep"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with_bad_path_dep"),
+    ):
         api.build_wheel(str(tmp_dir))
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -100,7 +115,10 @@ def test_build_wheel_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> No
 
 
 def test_build_wheel_extended() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "extended"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "extended"),
+    ):
         filename = api.build_wheel(str(tmp_dir))
         whl = Path(tmp_dir) / filename
         assert whl.exists()
@@ -109,47 +127,62 @@ def test_build_wheel_extended() -> None:
 
 @pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_sdist(project: str) -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / project):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / project),
+    ):
         filename = api.build_sdist(str(tmp_dir))
         validate_sdist_contents(
             name="my-package",
             version="1.2.3",
-            path=tmp_dir / filename,
+            path=Path(tmp_dir) / filename,
             files=["LICENSE"],
         )
 
 
 def test_build_sdist_with_local_version() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "complete"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "complete"),
+    ):
         filename = api.build_sdist(
             str(tmp_dir), config_settings={"local-version": "some-label"}
         )
         validate_sdist_contents(
             name="my-package",
             version="1.2.3+some-label",
-            path=tmp_dir / filename,
+            path=Path(tmp_dir) / filename,
             files=["LICENSE"],
         )
 
 
 def test_build_sdist_with_include() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with-include"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with-include"),
+    ):
         filename = api.build_sdist(str(tmp_dir))
         validate_sdist_contents(
             name="with-include",
             version="1.2.3",
-            path=tmp_dir / filename,
+            path=Path(tmp_dir) / filename,
             files=["LICENSE"],
         )
 
 
 def test_build_sdist_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with_bad_path_dev_dep"),
+    ):
         api.build_sdist(str(tmp_dir))
 
 
 def test_build_sdist_with_bad_path_dep_succeeds(caplog: LogCaptureFixture) -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dep"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with_bad_path_dep"),
+    ):
         api.build_sdist(str(tmp_dir))
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -222,7 +255,10 @@ My Package
         metadata = metadata.replace("License:", "License-Expression:").replace(
             "Classifier: License :: OSI Approved :: MIT License\n", ""
         )
-    with temporary_directory() as tmp_dir, cwd(fixtures / project):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / project),
+    ):
         dirname = api.prepare_metadata_for_build_wheel(str(tmp_dir))
 
         assert dirname == "my_package-1.2.3.dist-info"
@@ -304,7 +340,10 @@ My Package
 ==========
 
 """
-    with temporary_directory() as tmp_dir, cwd(fixtures / "complete"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "complete"),
+    ):
         dirname = api.prepare_metadata_for_build_wheel(
             str(tmp_dir), config_settings={"local-version": local_version}
         )
@@ -329,7 +368,7 @@ My Package
 
 def test_prepare_metadata_excludes_optional_without_extras() -> None:
     with (
-        temporary_directory() as tmp_dir,
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
         cwd(fixtures / "with_optional_without_extras"),
     ):
         dirname = api.prepare_metadata_for_build_wheel(str(tmp_dir))
@@ -356,14 +395,20 @@ Requires-Dist: pycowsay (>=0.1.0,<0.2.0)
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dev_dep_succeeds() -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dev_dep"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with_bad_path_dev_dep"),
+    ):
         api.prepare_metadata_for_build_wheel(str(tmp_dir))
 
 
 def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
     caplog: LogCaptureFixture,
 ) -> None:
-    with temporary_directory() as tmp_dir, cwd(fixtures / "with_bad_path_dep"):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,
+        cwd(fixtures / "with_bad_path_dep"),
+    ):
         api.prepare_metadata_for_build_wheel(str(tmp_dir))
     assert len(caplog.records) == 1
     record = caplog.records[0]
@@ -374,7 +419,7 @@ def test_prepare_metadata_for_build_wheel_with_bad_path_dep_succeeds(
 @pytest.mark.parametrize("project", ["complete", "complete_new", "complete_dynamic"])
 def test_build_editable_wheel(project: str) -> None:
     pkg_dir = fixtures / project
-    with temporary_directory() as tmp_dir, cwd(pkg_dir):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(pkg_dir):
         filename = api.build_editable(str(tmp_dir))
         wheel_pth = Path(tmp_dir) / filename
 
@@ -393,7 +438,7 @@ def test_build_editable_wheel(project: str) -> None:
 
 def test_build_editable_wheel_with_local_version() -> None:
     pkg_dir = fixtures / "complete"
-    with temporary_directory() as tmp_dir, cwd(pkg_dir):
+    with TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir, cwd(pkg_dir):
         filename = api.build_editable(
             str(tmp_dir), config_settings={"local-version": "some-label"}
         )
@@ -410,10 +455,13 @@ def test_build_editable_wheel_with_local_version() -> None:
 def test_build_wheel_with_metadata_directory(project: str) -> None:
     pkg_dir = fixtures / project
 
-    with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as metadata_tmp_dir,
+        cwd(pkg_dir),
+    ):
         metadata_directory = api.prepare_metadata_for_build_wheel(str(metadata_tmp_dir))
 
-        with temporary_directory() as wheel_tmp_dir:
+        with TemporaryDirectory(ignore_cleanup_errors=True) as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
             (dist_info_path / "CUSTOM").touch()
             filename = api.build_wheel(
@@ -438,12 +486,15 @@ def test_build_wheel_with_metadata_directory(project: str) -> None:
 def test_build_editable_wheel_with_metadata_directory(project: str) -> None:
     pkg_dir = fixtures / project
 
-    with temporary_directory() as metadata_tmp_dir, cwd(pkg_dir):
+    with (
+        TemporaryDirectory(ignore_cleanup_errors=True) as metadata_tmp_dir,
+        cwd(pkg_dir),
+    ):
         metadata_directory = api.prepare_metadata_for_build_editable(
             str(metadata_tmp_dir)
         )
 
-        with temporary_directory() as wheel_tmp_dir:
+        with TemporaryDirectory(ignore_cleanup_errors=True) as wheel_tmp_dir:
             dist_info_path = Path(metadata_tmp_dir) / metadata_directory
             (dist_info_path / "CUSTOM").touch()
             filename = api.build_editable(
