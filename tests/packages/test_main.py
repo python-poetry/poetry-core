@@ -325,7 +325,7 @@ def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correc
 ):
     name = (
         'pytest-mypy; python_implementation != "PyPy" and python_version <= "3.10" and'
-        ' python_version > "3"'
+        ' python_version >= "3"'
     )
     dep = Dependency.create_from_pep_508(name)
 
@@ -339,5 +339,5 @@ def test_dependency_from_pep_508_should_not_produce_empty_constraints_for_correc
     assert (
         str(dep.marker)
         == 'platform_python_implementation != "PyPy" and python_version <= "3.10" and'
-        ' python_version > "3"'
+        ' python_version >= "3"'
     )

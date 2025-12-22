@@ -177,14 +177,16 @@ def test_create_nested_marker_version_constraint(
         ('python_version == "3.6"', "~3.6"),
         ('python_version == "3.6.*"', "==3.6.*"),
         ('python_version == "3.6.* "', "==3.6.*"),
+        ('python_version == "3"', ">=3.0,<3.1"),
+        ('python_version == "3.*"', ">=3,<4"),
         # !=
         ('python_version != "3.6"', "!=3.6.*"),
         ('python_version != "3.6.*"', "!=3.6.*"),
         ('python_version != "3.6.* "', "!=3.6.*"),
         # <, <=, >, >= precision 1
         ('python_version < "3"', "<3"),
-        ('python_version <= "3"', "<3"),
-        ('python_version > "3"', ">=3"),
+        ('python_version <= "3"', "<3.1"),
+        ('python_version > "3"', ">=3.1"),
         ('python_version >= "3"', ">=3"),
         # <, <=, >, >= precision 2
         ('python_version < "3.6"', "<3.6"),
