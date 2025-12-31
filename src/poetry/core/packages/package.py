@@ -4,6 +4,7 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import ClassVar
+from typing import TypedDict
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
@@ -34,6 +35,11 @@ if TYPE_CHECKING:
     from poetry.core.version.markers import BaseMarker
 
     T = TypeVar("T", bound="Package")
+
+
+class PackageFile(TypedDict):
+    file: str
+    hash: str
 
 
 class Package(PackageSpecification):
@@ -112,7 +118,7 @@ class Package(PackageSpecification):
 
         self._dependency_groups: Mapping[NormalizedName, DependencyGroup] = {}
 
-        self.files: Sequence[Mapping[str, str]] = []
+        self.files: Sequence[PackageFile] = []
         self.optional = False
 
         self.classifiers: Sequence[str] = []
