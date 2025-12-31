@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import posixpath
 import re
+import sys
 import urllib.parse as urlparse
 
+from datetime import datetime
 from functools import cached_property
 from typing import TYPE_CHECKING
 
@@ -24,6 +26,8 @@ class Link:
         hashes: Mapping[str, str] | None = None,
         metadata: str | bool | dict[str, str] | None = None,
         yanked: str | bool = False,
+        size: int | None = None,
+        upload_time: str | None = None,
     ) -> None:
         """
         Object representing a parsed link from https://pypi.python.org/simple/*
@@ -49,6 +53,10 @@ class Link:
             A string, if the data-yanked attribute has a string value.
             True, if the data-yanked attribute is present but has no value.
             According to PEP 592.
+        size:
+            The size of the files in bytes.
+        upload_time:
+            The upload time of the file as an ISO 8601 formatted string.
         """
 
         # url can be a UNC windows share
@@ -66,6 +74,8 @@ class Link:
 
         self._metadata = metadata
         self._yanked = yanked
+        self._size = size
+        self._upload_time = upload_time
 
     def __str__(self) -> str:
         if self.requires_python:
@@ -224,3 +234,23 @@ class Link:
         if isinstance(self._yanked, str):
             return self._yanked
         return ""
+
+    @cached_property
+    def size(self) -> int | None:
+        return self._size
+
+    @cached_property
+    def upload_time_isoformat(self) -> str | None:
+        return self._upload_time
+
+    @cached_property
+    def upload_time(self) -> datetime | None:
+        if self._upload_time is None:
+            return None
+        try:
+            # Python < 3.11 does not support 'Z' suffix for UTC, replace it with '+00:00'
+            if sys.version_info < (3, 11) and self._upload_time.endswith("Z"):
+                return datetime.fromisoformat(self._upload_time[:-1] + "+00:00")
+            return datetime.fromisoformat(self._upload_time)
+        except ValueError:
+            return None
