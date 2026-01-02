@@ -719,20 +719,15 @@ def test_create_poetry_empty_readme(tmp_path: Path) -> None:
     assert not poetry.package.readmes
 
 
-def test_validate() -> None:
+@pytest.mark.parametrize("strict", [False, True])
+def test_validate_strict_legacy_warnings(
+    complete_legacy_warnings: list[str], strict: bool
+) -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
         content = tomllib.load(f)
 
-    assert Factory.validate(content) == {"errors": [], "warnings": []}
-
-
-def test_validate_strict_legacy_warnings(complete_legacy_warnings: list[str]) -> None:
-    complete = fixtures_dir / "complete.toml"
-    with complete.open("rb") as f:
-        content = tomllib.load(f)
-
-    assert Factory.validate(content, strict=True) == {
+    assert Factory.validate(content, strict=strict) == {
         "errors": [],
         "warnings": complete_legacy_warnings,
     }
@@ -809,13 +804,27 @@ def test_validate_local_version(tmp_path: Path) -> None:
     assert Factory.validate(content) == {"errors": [], "warnings": []}
 
 
-def test_validate_fails() -> None:
+def test_validate_fails(complete_legacy_warnings: list[str]) -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
         content = tomllib.load(f)
     content["tool"]["poetry"]["authors"] = "this is not a valid array"
 
     expected = "tool.poetry.authors must be array"
+
+    assert Factory.validate(content) == {
+        "errors": [expected],
+        "warnings": complete_legacy_warnings,
+    }
+
+
+def test_validate_new_fails() -> None:
+    complete = fixtures_dir / "complete_new.toml"
+    with complete.open("rb") as f:
+        content = tomllib.load(f)
+    content["project"]["authors"] = "this is not a valid array"
+
+    expected = "project.authors must be array"
 
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
@@ -829,13 +838,24 @@ def test_validate_without_strict_fails_only_non_strict() -> None:
 
     assert Factory.validate(content) == {
         "errors": [
+            "project must contain ['name'] properties",
             "Either [project.name] or [tool.poetry.name] is required in package mode.",
             (
                 "Either [project.version] or [tool.poetry.version] is required in "
                 "package mode."
             ),
         ],
-        "warnings": [],
+        "warnings": [
+            (
+                "[tool.poetry.extras] is deprecated. Use "
+                "[project.optional-dependencies] instead."
+            ),
+            (
+                "Defining console scripts in [tool.poetry.scripts] is deprecated. "
+                "Use [project.scripts] instead. "
+                "([tool.poetry.scripts] should only be used for scripts of type 'file')."
+            ),
+        ],
     }
 
 
@@ -848,6 +868,7 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
 
     assert Factory.validate(content, strict=True) == {
         "errors": [
+            "project must contain ['name'] properties",
             "Either [project.name] or [tool.poetry.name] is required in package mode.",
             (
                 "Either [project.version] or [tool.poetry.version] is required in "
@@ -871,13 +892,6 @@ def test_validate_strict_fails_strict_and_non_strict() -> None:
             ),
         ],
         "warnings": [
-            (
-                "[tool.poetry.readme] is set but 'readme' is not in "
-                "[project.dynamic]. If it is static use [project.readme]. If it "
-                "is dynamic, add 'readme' to [project.dynamic].\n"
-                "If you want to define multiple readmes, you should define them "
-                "in [tool.poetry] and add 'readme' to [project.dynamic]."
-            ),
             (
                 "[tool.poetry.extras] is deprecated. Use "
                 "[project.optional-dependencies] instead."
