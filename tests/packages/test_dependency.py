@@ -49,16 +49,6 @@ def test_to_pep_508() -> None:
     result = dependency.to_pep_508()
     assert result == "Django (>=1.23,<2.0)"
 
-    dependency = Dependency("Django", "^1.23")
-    dependency.python_versions = "~2.7 || ^3.6"
-
-    result = dependency.to_pep_508()
-    assert (
-        result == "Django (>=1.23,<2.0) ; "
-        'python_version == "2.7" '
-        'or python_version >= "3.6" and python_version < "4.0"'
-    )
-
 
 def test_to_pep_508_wilcard() -> None:
     dependency = Dependency("Django", "*")
@@ -136,11 +126,15 @@ def test_to_pep_508_with_excluded_versions(exclusion: str, expected: str) -> Non
         ("<3.5.4", 'python_full_version < "3.5.4"'),
         (">=3.5.4", 'python_full_version >= "3.5.4"'),
         ("== 3.5.4", 'python_full_version == "3.5.4"'),
+        (">=3,<4", 'python_version >= "3" and python_version < "4"'),
+        ("==3.*", 'python_version >= "3" and python_version < "4"'),
+        (
+            "~2.7 || ^3.6",
+            'python_version == "2.7" or python_version >= "3.6" and python_version < "4.0"',
+        ),
     ],
 )
-def test_to_pep_508_with_patch_python_version(
-    python_versions: str, marker: str
-) -> None:
+def test_to_pep_508_with_python_versions(python_versions: str, marker: str) -> None:
     dependency = Dependency("Django", "^1.23")
     dependency.python_versions = python_versions
 

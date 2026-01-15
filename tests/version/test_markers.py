@@ -32,6 +32,9 @@ EMPTY = "<empty>"
 @pytest.mark.parametrize(
     "marker",
     [
+        'python_version >= "3.6" and python_version < "3.9"',
+        'python_version >= "3.0" and python_version < "4.0"',
+        'python_version >= "3" and python_version < "4"',
         'sys_platform == "linux" or sys_platform == "win32"',
         'sys_platform == "win32" or sys_platform == "linux"',
         (
@@ -271,6 +274,13 @@ def test_single_marker_not_in_python_intersection() -> None:
         parse_marker('python_version not in "2.7, 3.0, 3.1, 3.2"')
     )
     assert str(intersection) == 'python_version not in "2.7, 3.0, 3.1, 3.2"'
+
+
+def test_single_marker_intersect_python_version_only_major() -> None:
+    m = parse_marker('python_version >= "3"')
+    m2 = parse_marker('python_version < "4"')
+    intersection = m.intersect(m2)
+    assert str(intersection) == 'python_version >= "3" and python_version < "4"'
 
 
 @pytest.mark.parametrize(

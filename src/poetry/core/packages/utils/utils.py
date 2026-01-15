@@ -368,10 +368,14 @@ def normalize_python_version_markers(  # NOSONAR
         for op, version in or_:
             # Expand python version
             if op == "==" and "*" not in version and version.count(".") < 2:
+                if version.count(".") == 0:
+                    version += ".0"
                 version = "~" + version
                 op = ""
 
             elif op == "!=" and "*" not in version and version.count(".") < 2:
+                if version.count(".") == 0:
+                    version += ".0"
                 version += ".*"
 
             elif op in ("<=", ">"):
@@ -402,7 +406,6 @@ def normalize_python_version_markers(  # NOSONAR
                     elif op == ">":
                         op = ">="
 
-                if parsed_version.precision == 2:
                     version = parsed_version.next_minor().text
 
             elif op in ("in", "not in"):
