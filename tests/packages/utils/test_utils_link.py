@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import uuid
 
+from datetime import datetime
+from datetime import timezone
 from hashlib import sha256
 
 import pytest
@@ -157,3 +159,46 @@ def test_package_link_pep592_yanked(
 
     assert link.yanked == expected_yanked
     assert link.yanked_reason == expected_yanked_reason
+
+
+def test_package_link_size_default_is_none() -> None:
+    link = Link("https://example.org")
+
+    assert link.size is None
+
+
+def test_package_link_size() -> None:
+    link = Link("https://example.org", size=1234)
+
+    assert link.size == 1234
+
+
+def test_package_link_upload_time_default_is_none() -> None:
+    link = Link("https://example.org")
+
+    assert link.upload_time is None
+
+
+@pytest.mark.parametrize(
+    ("upload_time", "expected"),
+    [
+        ("2023-06-15T08:30:45Z", datetime(2023, 6, 15, 8, 30, 45, tzinfo=timezone.utc)),
+        (
+            "2022-12-31T23:59:59+00:00",
+            datetime(2022, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+        ),
+        (
+            "2023-06-15T08:30:45.123456Z",
+            datetime(2023, 6, 15, 8, 30, 45, 123456, tzinfo=timezone.utc),
+        ),
+        (
+            "2023-06-15T10:30:45+02:00",
+            datetime(2023, 6, 15, 8, 30, 45, tzinfo=timezone.utc),
+        ),
+        ("not-a-timestamp", None),
+    ],
+)
+def test_package_link_upload_time(upload_time: str, expected: datetime) -> None:
+    link = Link("https://example.org", upload_time=upload_time)
+
+    assert link.upload_time == expected
