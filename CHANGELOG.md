@@ -1,6 +1,28 @@
 # Change Log
 
 
+## [2.3.0] - 2026-01-18
+
+### Added
+
+- Add (optional) `size` and `upload_time` to `Link` and `Package.files` ([#905](https://github.com/python-poetry/poetry-core/pull/905)).
+
+### Changed
+
+- Drop support for Python 3.9 ([#897](https://github.com/python-poetry/poetry-core/pull/897)).
+- Normalize versions ([#893](https://github.com/python-poetry/poetry-core/pull/893)).
+- Remove helper function to create temporary directories ([#337](https://github.com/python-poetry/poetry-core/pull/337)).
+- Improve type hint of `Package.files` ([#904](https://github.com/python-poetry/poetry-core/pull/904)).
+- Update list of supported licenses ([#890](https://github.com/python-poetry/poetry-core/pull/890),
+[#895](https://github.com/python-poetry/poetry-core/pull/895)).
+
+### Fixed
+
+- Fix an issue where unsatisfiable requirements did not raise an error ([#891](https://github.com/python-poetry/poetry-core/pull/891)).
+- Fix an issue where the implicit main group did not exist if it was explicitly declared as not having any dependencies ([#892](https://github.com/python-poetry/poetry-core/pull/892)).
+- Fix an issue where `python_full_version` markers with pre-release versions were parsed incorrectly ([#893](https://github.com/python-poetry/poetry-core/pull/893)).
+
+
 ## [2.2.1] - 2025-09-21
 
 ### Fixed
@@ -810,7 +832,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.2.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.3.0...main
+[2.3.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.0
 [2.2.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.1
 [2.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.0
 [2.1.3]: https://github.com/python-poetry/poetry-core/releases/tag/2.1.3
