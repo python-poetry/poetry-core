@@ -282,11 +282,24 @@ class Builder:
         for url in sorted(self._meta.project_urls, key=lambda u: u[0]):
             content += f"Project-URL: {url}\n"
 
+        if self._meta.import_names is not None:
+            if len(self._meta.import_names) == 0:
+                content += "Import-Name: \n"
+
+            for import_name in self._meta.import_names:
+                content += f"Import-Name: {import_name}\n"
+
+        if self._meta.import_namespaces is not None:
+            for namespace in self._meta.import_namespaces:
+                content += f"Import-Namespace: {namespace}\n"
+
         if self._meta.description_content_type:
             content += (
                 f"Description-Content-Type: {self._meta.description_content_type}\n"
             )
 
+        # The distribution's description is provided in the message body. Therefore, it must be located after
+        # any headers. A blank line separates the headers from the body.
         if self._meta.description is not None:
             content += f"\n{self._meta.description}\n"
 

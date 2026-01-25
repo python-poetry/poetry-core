@@ -12,9 +12,11 @@ if TYPE_CHECKING:
 
     from poetry.core.packages.project_package import ProjectPackage
 
+METADATA_VERSION = "2.5"
+
 
 class Metadata:
-    metadata_version = "2.4"
+    metadata_version = METADATA_VERSION
     # version 1.0
     name: str | None = None
     version: str
@@ -50,6 +52,10 @@ class Metadata:
     # Version 2.4
     license_expression: str | None = None
     license_files: tuple[str, ...] = ()
+
+    # Version 2.5
+    import_names: list[str] | None = None
+    import_namespaces: list[str] | None = None
 
     @classmethod
     def from_package(cls, package: ProjectPackage) -> Metadata:
@@ -127,6 +133,9 @@ class Metadata:
         meta.project_urls = tuple(
             f"{name}, {url}" for name, url in package.urls.items()
         )
+
+        meta.import_names = package.import_names
+        meta.import_namespaces = package.import_namespaces
 
         return meta
 
