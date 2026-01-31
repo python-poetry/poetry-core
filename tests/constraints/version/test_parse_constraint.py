@@ -584,12 +584,22 @@ def test_parse_constraint_with_white_space_padding(
     assert parse_constraint(constraint) == expected
 
 
-def test_parse_marker_constraint_does_not_allow_invalid_version() -> None:
+@pytest.mark.parametrize("constraint", ["4.9.253-tegra", "2022Server"])
+def test_parse_marker_constraint_does_not_allow_invalid_version(
+    constraint: str,
+) -> None:
     with pytest.raises(ParseConstraintError):
-        parse_marker_version_constraint("4.9.253-tegra")
+        parse_marker_version_constraint(constraint)
 
 
-def test_parse_marker_constraint_does_allow_invalid_version_if_requested() -> None:
-    assert parse_marker_version_constraint(
-        "4.9.253-tegra", pep440=False
-    ) == Version.from_parts(4, 9, 253, local="tegra")
+@pytest.mark.parametrize(
+    ("constraint", "expected"),
+    [
+        ("4.9.253-tegra", Version.from_parts(4, 9, 253, local="tegra")),
+        ("2022Server", Version.from_parts(2022, local="Server")),
+    ],
+)
+def test_parse_marker_constraint_does_allow_invalid_version_if_requested(
+    constraint: str, expected: VersionConstraint
+) -> None:
+    assert parse_marker_version_constraint(constraint, pep440=False) == expected
