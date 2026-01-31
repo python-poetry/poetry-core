@@ -29,7 +29,7 @@ BASIC_CONSTRAINT = re.compile(
 
 RELEASE_PATTERN = r"""
 (?P<release>[0-9]+(?:\.[0-9]+)*)
-(?:(\+|-)(?P<build>
+(?:(\+|-)?(?P<build>
     [0-9a-zA-Z-]+
     (?:\.[0-9a-zA-Z-]+)*
 ))?
