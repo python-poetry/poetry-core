@@ -1,6 +1,17 @@
 # Change Log
 
 
+## [2.3.1] - 2026-02-01
+
+### Changed
+
+- Update list of supported licenses ([#912](https://github.com/python-poetry/poetry-core/pull/912)).
+
+### Fixed
+
+- Fix an issue where `platform_release` could not be parsed on Windows Server ([#911](https://github.com/python-poetry/poetry-core/pull/911)).
+
+
 ## [2.3.0] - 2026-01-18
 
 ### Added
@@ -832,7 +843,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.3.0...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.3.1...main
+[2.3.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.1
 [2.3.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.0
 [2.2.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.1
 [2.2.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.0
