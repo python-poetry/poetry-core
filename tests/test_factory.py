@@ -696,6 +696,19 @@ def test_create_poetry_classifiers(
     assert poetry.package.all_classifiers == expected
 
 
+def test_create_poetry_inline_readme_text(tmp_path: Path) -> None:
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname="foo"\nversion="1"\ndescription = ""\n'
+        'readme = { text = "some text", content-type = "text/markdown" }\n',
+        encoding="utf-8",
+    )
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.readme_content == "some text"
+    assert poetry.package.readme_content_type == "text/markdown"
+
+
 def test_create_poetry_no_readme(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
