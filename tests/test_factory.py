@@ -719,6 +719,22 @@ def test_create_poetry_empty_readme(tmp_path: Path) -> None:
     assert not poetry.package.readmes
 
 
+def test_create_poetry_readme_text_not_treated_as_path(tmp_path: Path) -> None:
+    """readme.text in pyproject.toml should be used as content, not as a file path."""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\n'
+        'name = "foo"\n'
+        'version = "1"\n'
+        'readme = {text = "Some readme content", content-type = "text/markdown"}\n',
+        encoding="utf-8",
+    )
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.readme_content == "Some readme content"
+    assert poetry.package.readme_content_type == "text/markdown"
+
+
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:

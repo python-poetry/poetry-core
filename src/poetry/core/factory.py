@@ -312,7 +312,7 @@ class Factory:
                 package.readmes = (root / readme["file"],)
                 package.readme_content_type = readme["content-type"]
             elif "text" in readme:
-                package.readme_content = root / readme["text"]
+                package.readme_content = readme["text"]
                 package.readme_content_type = readme["content-type"]
         elif custom_readme := tool_poetry.get("readme"):
             custom_readmes = (
