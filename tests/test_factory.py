@@ -733,6 +733,7 @@ def test_create_poetry_readme_text_not_treated_as_path(tmp_path: Path) -> None:
 
     assert poetry.package.readme_content == "Some readme content"
     assert poetry.package.readme_content_type == "text/markdown"
+    assert poetry.package.readmes == ()
 
 
 def test_validate() -> None:
