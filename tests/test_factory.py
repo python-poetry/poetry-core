@@ -723,7 +723,7 @@ def test_create_poetry_readme_text_not_treated_as_path(tmp_path: Path) -> None:
     """readme.text in pyproject.toml should be used as content, not as a file path."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        '[project]\n'
+        "[project]\n"
         'name = "foo"\n'
         'version = "1"\n'
         'readme = {text = "Some readme content", content-type = "text/markdown"}\n',
