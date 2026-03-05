@@ -154,8 +154,7 @@ def test_remove_dependency_removes_from_both_lists() -> None:
 
 
 def test_remove_dependency_does_not_leak_included_group_deps() -> None:
-    """Removing a dep must not copy included-group deps into _dependencies.
-    """
+    """Removing a dep must not copy included-group deps into _dependencies."""
     main = DependencyGroup(name="main")
     main.add_dependency(Dependency(name="flask", constraint="*"))
 
