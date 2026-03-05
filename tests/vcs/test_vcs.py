@@ -565,8 +565,7 @@ def test_get_vcs_ignored_subdir(tmp_path: Path) -> None:
 
 
 def test_get_ignored_files_empty_repo(tmp_path: Path) -> None:
-    """get_ignored_files must return [] when no files are ignored.
-    """
+    """get_ignored_files must return [] when no files are ignored."""
     repo_path = tmp_path / "repo"
     repo_path.mkdir()
     assert subprocess.check_call([executable(), "init"], cwd=repo_path) == 0
