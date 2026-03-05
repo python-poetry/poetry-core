@@ -284,6 +284,41 @@ def test_find_packages(project_name: str) -> None:
     assert pkg_data == {"": ["*"]}
 
 
+def test_find_packages_no_duplicate_data_entries(tmp_path: Path) -> None:
+    """Test that find_packages does not produce duplicate package_data entries."""
+    # Create a minimal project with a data directory where one file is excluded
+    pkg = tmp_path / "my_package"
+    pkg.mkdir()
+    (pkg / "__init__.py").touch()
+
+    data_dir = pkg / "data"
+    data_dir.mkdir()
+    (data_dir / "keep1.txt").touch()
+    (data_dir / "keep2.txt").touch()
+    (data_dir / "excluded.dat").touch()
+
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.poetry]\n'
+        'name = "my-package"\n'
+        'version = "0.1.0"\n'
+        'description = "test"\n'
+        'authors = ["Test <test@test.com>"]\n'
+        'exclude = ["**/*.dat"]\n'
+        "\n"
+        "[tool.poetry.dependencies]\n"
+        'python = "^3.8"\n'
+    )
+
+    poetry = Factory().create_poetry(tmp_path)
+    builder = SdistBuilder(poetry)
+    include = PackageInclude(tmp_path, "my_package", formats=["sdist"])
+
+    _, _, pkg_data = builder.find_packages(include)
+
+    data_entries = pkg_data.get("my_package", [])
+    assert sorted(data_entries) == ["data/keep1.txt", "data/keep2.txt"]
+
+
 @pytest.mark.parametrize(
     "project_name", ["complete", "complete_new", "complete_dynamic"]
 )
