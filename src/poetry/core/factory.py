@@ -804,9 +804,9 @@ class Factory:
             normalized_group_name = canonicalize_name(group_name)
             original_names[normalized_group_name].add(group_name)
             if include_groups := group_config.get("include-groups", []):
-                group_includes[normalized_group_name] = [
+                group_includes.setdefault(normalized_group_name, []).extend(
                     canonicalize_name(name) for name in include_groups
-                ]
+                )
 
         for normed_name, names in original_names.items():
             if len(names) > 1:

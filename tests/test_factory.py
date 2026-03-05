@@ -2057,3 +2057,52 @@ optional = {str(optional).lower()}
     assert len(poetry.package.all_requires) == 1
     assert poetry.package.has_dependency_group("dev")
     assert poetry.package.dependency_group("dev").is_optional() is optional
+
+
+def test_pep735_includes_not_overwritten_by_poetry_includes(
+    temporary_directory: Path,
+) -> None:
+    """PEP 735 include-group entries must not be lost when [tool.poetry.group]
+    also defines include-groups for the same group.
+
+    Setup:
+        [dependency-groups] dev includes testing (PEP 735)
+        [tool.poetry.group.dev] includes utils (poetry)
+        [dependency-groups] testing includes dev (PEP 735)
+    The poetry-side include (dev -> utils) must not erase the PEP 735 one.
+    """
+    content = """\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+[dependency-groups]
+dev = [
+    {include-group = "testing"},
+    "black",
+]
+testing = [
+    {include-group = "dev"},
+    "pytest",
+]
+utils = [
+    "mypy",
+]
+
+[tool.poetry.group.dev]
+include-groups = [
+    "utils",
+]
+"""
+
+    expected = """\
+The Poetry configuration is invalid:
+  - Cyclic dependency group include in dev: testing -> dev
+  - Cyclic dependency group include in testing: dev -> testing
+"""
+    assert_invalid_group_including(
+        toml_data=content,
+        expected_error=expected,
+        error_type=RuntimeError,
+        temporary_directory=temporary_directory,
+    )
