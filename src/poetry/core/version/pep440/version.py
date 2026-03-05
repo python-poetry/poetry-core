@@ -26,11 +26,23 @@ class AlwaysSmaller:
     def __lt__(self, other: object) -> bool:
         return True
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, AlwaysSmaller)
+
+    def __hash__(self) -> int:
+        return id(AlwaysSmaller)
+
 
 @functools.total_ordering
 class AlwaysGreater:
     def __gt__(self, other: object) -> bool:
         return True
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, AlwaysGreater)
+
+    def __hash__(self) -> int:
+        return id(AlwaysGreater)
 
 
 class Infinity(AlwaysGreater, int):
