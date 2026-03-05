@@ -298,7 +298,7 @@ def test_find_packages_no_duplicate_data_entries(tmp_path: Path) -> None:
     (data_dir / "excluded.dat").touch()
 
     (tmp_path / "pyproject.toml").write_text(
-        '[tool.poetry]\n'
+        "[tool.poetry]\n"
         'name = "my-package"\n'
         'version = "0.1.0"\n'
         'description = "test"\n'
