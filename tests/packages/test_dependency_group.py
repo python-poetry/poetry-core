@@ -153,6 +153,32 @@ def test_remove_dependency_removes_from_both_lists() -> None:
     assert {d.name for d in group._poetry_dependencies} == {"baz"}
 
 
+def test_remove_dependency_does_not_leak_included_group_deps() -> None:
+    """Removing a dep must not copy included-group deps into _dependencies.
+    """
+    main = DependencyGroup(name="main")
+    main.add_dependency(Dependency(name="flask", constraint="*"))
+
+    extras = DependencyGroup(name="extras")
+    extras.add_dependency(Dependency(name="requests", constraint="*"))
+    main.include_dependency_group(extras)
+
+    # Before removal: flask from _dependencies, requests from included group
+    assert [d.name for d in main.dependencies] == ["flask", "requests"]
+
+    # Remove a dep that doesn't exist — should be a no-op
+    main.remove_dependency("nonexistent")
+
+    # Nothing changed.
+    assert [d.name for d in main.dependencies] == ["flask", "requests"]
+    assert [d.name for d in main._dependencies] == ["flask"]
+
+    # Also verify removing an actual dep still works correctly
+    main.remove_dependency("flask")
+    assert [d.name for d in main.dependencies] == ["requests"]
+    assert main._dependencies == []
+
+
 @pytest.mark.parametrize("mixed_dynamic", [False, True])
 @pytest.mark.parametrize(
     (

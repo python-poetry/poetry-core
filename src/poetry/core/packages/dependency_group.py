@@ -140,7 +140,7 @@ class DependencyGroup:
         name = canonicalize_name(name)
 
         dependencies = []
-        for dependency in self.dependencies:
+        for dependency in self._dependencies:
             if dependency.name == name:
                 continue
             dependencies.append(dependency)
