@@ -562,3 +562,14 @@ def test_get_vcs_ignored_subdir(tmp_path: Path) -> None:
 
     vcs = get_vcs(subdir)
     assert vcs is None
+
+
+def test_get_ignored_files_empty_repo(tmp_path: Path) -> None:
+    """get_ignored_files must return [] when no files are ignored."""
+    repo_path = tmp_path / "repo"
+    repo_path.mkdir()
+    assert subprocess.check_call([executable(), "init"], cwd=repo_path) == 0
+
+    git = Git()
+    result = git.get_ignored_files(folder=repo_path)
+    assert result == []
