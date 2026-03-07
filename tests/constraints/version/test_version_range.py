@@ -137,6 +137,7 @@ def v300b1() -> Version:
         (">1.7.post2", "1.7.1", True),
         (">1.7.post2", "1.7.0.post2", False),
         (">1.7.post2", "1.7.0.post3", True),
+        (">1.7", "1.7.0.post1+local.1", False),
         ## >V MUST NOT match a local version of the specified version
         (">1.7.0", "1.7.0+local.1", False),
         ("<1.7.0", "1.7.0+local.1", False),  # spec does not clarify this

@@ -80,7 +80,7 @@ class VersionRange(VersionRangeConstraint):
                 # a local version of the specified version.
                 # https://peps.python.org/pep-0440/#exclusive-ordered-comparison
                 # e.g. "2.0+local.version" does not match ">2"
-                _other = other.without_local()
+                _other = _other.without_local()
 
             if _other < _this:
                 return False
