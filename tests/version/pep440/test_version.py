@@ -528,3 +528,16 @@ def test_without_postrelease(version: str, expected: str) -> None:
 def test_without_devrelease(version: str, expected: str) -> None:
     v = PEP440Version.parse(version)
     assert v.without_devrelease().text == expected
+
+
+def test_local_version_ordering_and_equality() -> None:
+    """PEP 440: versions with a local segment must sort after the same
+    version without one, and they must not compare equal.
+    """
+    v_plain = PEP440Version.parse("1.0")
+    v_local = PEP440Version.parse("1.0+0")
+
+    # 1.0+0 must be greater than 1.0 (local versions sort after)
+    assert v_local > v_plain
+    # They must not be equal
+    assert v_plain != v_local
