@@ -180,7 +180,7 @@ class Constraint(BaseConstraint):
 
             ops = {self.operator, other.operator}
             if (
-                (ops in ({"!="}, {"not in"}))
+                ops == {"!="}
                 or (
                     (
                         ops in ({"in", "!="}, {"in", "not in"})

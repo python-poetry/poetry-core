@@ -1203,7 +1203,15 @@ def test_intersect_extra(
         (
             Constraint("tegra", "not in"),
             Constraint("rpi", "not in"),
-            AnyConstraint(),
+            # NB not AnyConstraint - eg "tegra-rpi" does not satisfy either constraint
+            (
+                UnionConstraint(
+                    Constraint("tegra", "not in"), Constraint("rpi", "not in")
+                ),
+                UnionConstraint(
+                    Constraint("rpi", "not in"), Constraint("tegra", "not in")
+                ),
+            ),
         ),
         (
             Constraint("tegra", "in"),
