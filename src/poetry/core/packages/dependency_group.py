@@ -169,8 +169,9 @@ class DependencyGroup:
 
         return (
             self._name == other.name
-            and set(self._dependencies) == set(other.dependencies)
+            and set(self._dependencies) == set(other._dependencies)
             and set(self._poetry_dependencies) == set(other._poetry_dependencies)
+            and self._included_dependency_groups == other._included_dependency_groups
         )
 
     def __repr__(self) -> str:

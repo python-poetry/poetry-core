@@ -644,3 +644,17 @@ def test_include_dependency_group_raise_if_already_included(group_name: str) -> 
         ValueError, match=f"Dependency group {group_name} is already included"
     ):
         group.include_dependency_group(group_3)
+
+
+def test_dependency_group_inequality() -> None:
+    a = DependencyGroup(name="test")
+    a.add_dependency(Dependency(name="dep1", constraint="*"))
+
+    b = DependencyGroup(name="test")
+    b.add_dependency(Dependency(name="dep1", constraint="*"))
+    extras = DependencyGroup(name="extras")
+    extras.add_dependency(Dependency(name="dep2", constraint="*"))
+    b.include_dependency_group(extras)
+
+    assert a != b
+    assert b != a
