@@ -319,6 +319,54 @@ def test_find_packages_no_duplicate_data_entries(tmp_path: Path) -> None:
     assert sorted(data_entries) == ["data/keep1.txt", "data/keep2.txt"]
 
 
+def test_find_packages_nested_subpackage_data(tmp_path: Path) -> None:
+    """Data in a nested subpackage must be attributed to that subpackage.
+
+    On Windows os.path.relpath returns backslash-separated paths, but
+    find_nearest_pkg reconstructs ancestors with forward slashes.  If the
+    two are not normalised the lookup in subpkg_paths misses and data
+    files get attributed to the wrong (higher-level) package.
+    """
+    pkg = tmp_path / "my_package"
+    pkg.mkdir()
+    (pkg / "__init__.py").touch()
+
+    sub = pkg / "sub"
+    sub.mkdir()
+    (sub / "__init__.py").touch()
+
+    nested = sub / "nested"
+    nested.mkdir()
+    (nested / "__init__.py").touch()
+
+    data_dir = nested / "data"
+    data_dir.mkdir()
+    (data_dir / "file.txt").touch()
+
+    (tmp_path / "pyproject.toml").write_text(
+        "[tool.poetry]\n"
+        'name = "my-package"\n'
+        'version = "0.1.0"\n'
+        'description = "test"\n'
+        'authors = ["Test <test@test.com>"]\n'
+        "\n"
+        "[tool.poetry.dependencies]\n"
+        'python = "^3.8"\n'
+    )
+
+    poetry = Factory().create_poetry(tmp_path)
+    builder = SdistBuilder(poetry)
+    include = PackageInclude(tmp_path, "my_package", formats=["sdist"])
+
+    _, packages, pkg_data = builder.find_packages(include)
+
+    assert "my_package.sub.nested" in packages
+    # Data must be attributed to the nearest subpackage (my_package.sub.nested),
+    # not to a higher-level package like my_package.sub or my_package.
+    assert "my_package.sub.nested" in pkg_data
+    assert pkg_data["my_package.sub.nested"] == ["data/*"]
+
+
 @pytest.mark.parametrize(
     "project_name", ["complete", "complete_new", "complete_dynamic"]
 )
