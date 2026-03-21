@@ -115,9 +115,6 @@ class Constraint(BaseConstraint):
             if other.operator == "==":
                 return self.allows(other)
 
-            if other.operator == "!=" and self._operator == "==":
-                return self._value != other.value
-
             if other.operator == "not in" and self._operator == "in":
                 return other.value not in self.value
 
