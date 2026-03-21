@@ -280,9 +280,7 @@ def test_allows(
         ),
         (
             Constraint("tegra", "in"),
-            UnionConstraint(
-                Constraint("1.2-tegra"), Constraint("plain")
-            ),
+            UnionConstraint(Constraint("1.2-tegra"), Constraint("plain")),
             True,  # "tegra" is in "1.2-tegra"
             False,
         ),
