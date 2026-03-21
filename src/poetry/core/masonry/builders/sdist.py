@@ -273,7 +273,7 @@ class SdistBuilder(Builder):
                 # This is just a shortcut. It will be ignored later anyway.
                 continue
 
-            from_top_level = os.path.relpath(path, base)
+            from_top_level = Path(os.path.relpath(path, base)).as_posix()
             if from_top_level == ".":
                 continue
 
