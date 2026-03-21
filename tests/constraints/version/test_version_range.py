@@ -430,6 +430,14 @@ def test_union(
             ("2.0.1", "!=2.0"),
             ("2.0.1", "!=2.0.0"),
             ("2.0", "!=2.0+deadbeef"),
+            # != must not inherit exclusive ordered comparison rules from < and >
+            # (pre-releases, post-releases, dev-releases of the specified
+            # version are not equal to it)
+            ("2.0.dev1", "!=2"),
+            ("2.0a1", "!=2"),
+            ("2.0b1", "!=2"),
+            ("2.0rc1", "!=2"),
+            ("2.0.post1", "!=2"),
             # Test the in-equality operation with a prefix
             ("2.0", "!=3.*"),
             ("2.1", "!=2.0.*"),
@@ -581,25 +589,10 @@ def test_specifiers(version: str, spec: str, expected: bool) -> None:
     https://github.com/pypa/packaging/blob/8b86d85797b9f26d98ecfbe0271ce4dc9495d98c/tests/test_specifiers.py#L469
     """
     constraint = parse_constraint(spec)
-
     v = Version.parse(version)
 
-    if expected:
-        # Test that the plain string form works
-        # assert version in spec
-        assert constraint.allows(v)
-
-        # Test that the version instance form works
-        # assert version in spec
-        assert constraint.allows(v)
-    else:
-        # Test that the plain string form works
-        # assert version not in spec
-        assert not constraint.allows(v)
-
-        # Test that the version instance form works
-        # assert version not in spec
-        assert not constraint.allows(v)
+    allowed = constraint.allows(v)
+    assert allowed is expected
 
 
 @pytest.mark.parametrize(

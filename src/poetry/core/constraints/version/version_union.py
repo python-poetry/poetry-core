@@ -100,14 +100,7 @@ class VersionUnion(VersionConstraint):
 
     def allows(self, version: Version) -> bool:
         if self.excludes_single_version:
-            # when excluded version is local, special handling is required
-            # to ensure that a constraint (!=2.0+deadbeef) will allow the
-            # provided version (2.0)
-
-            excluded = self._excluded_single_version
-
-            if excluded.is_local():
-                return excluded != version
+            return not self._excluded_single_version.allows(version)
 
         return any(constraint.allows(version) for constraint in self._ranges)
 
