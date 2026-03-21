@@ -123,13 +123,11 @@ class Constraint(BaseConstraint):
 
             return True
 
-        elif isinstance(other, MultiConstraint):
-            return self._operator == "!="
+        if isinstance(other, MultiConstraint):
+            return all(self.allows_any(c) for c in other.constraints)
 
-        elif isinstance(other, UnionConstraint):
-            return self._operator == "!=" and any(
-                self.allows_any(c) for c in other.constraints
-            )
+        if isinstance(other, UnionConstraint):
+            return any(self.allows_any(c) for c in other.constraints)
 
         return other.is_any()
 
