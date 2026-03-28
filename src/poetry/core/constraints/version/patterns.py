@@ -27,11 +27,12 @@ BASIC_CONSTRAINT = re.compile(
     re.VERBOSE | re.IGNORECASE,
 )
 
+# pattern for non Python versions such as OS versions in `platform_release`
 RELEASE_PATTERN = r"""
 (?P<release>[0-9]+(?:\.[0-9]+)*)
 (?:(\+|-)?(?P<build>
-    [0-9a-zA-Z-]+
-    (?:\.[0-9a-zA-Z-]+)*
+    [0-9a-zA-Z+-]+
+    (?:\.[0-9a-zA-Z+-]+)*
 ))?
 """
 
