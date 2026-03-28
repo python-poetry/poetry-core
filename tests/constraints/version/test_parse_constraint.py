@@ -584,7 +584,9 @@ def test_parse_constraint_with_white_space_padding(
     assert parse_constraint(constraint) == expected
 
 
-@pytest.mark.parametrize("constraint", ["4.9.253-tegra", "2022Server", "6.12.74+deb13+1-amd64"])
+@pytest.mark.parametrize(
+    "constraint", ["4.9.253-tegra", "2022Server", "6.12.74+deb13+1-amd64"]
+)
 def test_parse_marker_constraint_does_not_allow_invalid_version(
     constraint: str,
 ) -> None:
