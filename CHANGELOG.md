@@ -1,6 +1,27 @@
 # Change Log
 
 
+## [2.3.2] - 2026-03-29
+
+### Changed
+
+- Update list of supported licenses ([#917](https://github.com/python-poetry/poetry-core/pull/917)).
+
+### Fixed
+
+- Fix an issue where `platform_release` could not be parsed on Debian Trixie ([#930](https://github.com/python-poetry/poetry-core/pull/930)).
+- Fix an issue where using `project.readme.text` in the `pyproject.toml` file resulted in broken metadata ([#914](https://github.com/python-poetry/poetry-core/pull/914)).
+- Fix an issue where dependency groups were considered equal when their resolved dependencies were equal, even if the groups themselves were not ([#919](https://github.com/python-poetry/poetry-core/pull/919)).
+- Fix an issue where removing a dependency from a group that included another group resulted in other dependencies being added to the included group ([#922](https://github.com/python-poetry/poetry-core/pull/922)).
+- Fix an issue where PEP 735 `include-group` entries were lost when `[tool.poetry.group]` also defined `include-groups` for the same group ([#924](https://github.com/python-poetry/poetry-core/pull/924)).
+- Fix an issue where the union of `<value> not in <marker>` constraints was wrongly treated as always satisfied ([#925](https://github.com/python-poetry/poetry-core/pull/925)).
+- Fix an issue where a post release with a local version identifier was wrongly allowed by a `>` version constraint ([#921](https://github.com/python-poetry/poetry-core/pull/921)).
+- Fix an issue where a version with the local version identifier `0` was treated as equal to the corresponding public version ([#920](https://github.com/python-poetry/poetry-core/pull/920)).
+- Fix an issue where a `!= <version>` constraint wrongly disallowed pre releases and post releases of the specified version ([#929](https://github.com/python-poetry/poetry-core/pull/929)).
+- Fix an issue where `in` and `not in` constraints were wrongly not allowed by specific compound constraints ([#927](https://github.com/python-poetry/poetry-core/pull/927)).
+- Fix an issue where data entries in generated `setup.py` files were duplicated ([#923](https://github.com/python-poetry/poetry-core/pull/923)).
+
+
 ## [2.3.1] - 2026-02-01
 
 ### Changed
@@ -843,7 +864,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.3.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.3.2...main
+[2.3.2]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.2
 [2.3.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.1
 [2.3.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.0
 [2.2.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.2.1
