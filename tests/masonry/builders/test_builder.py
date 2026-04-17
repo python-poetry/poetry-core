@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-
 from email.parser import Parser
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -63,10 +61,6 @@ def test_builder_find_excluded_files_dirs(mocker: MockerFixture) -> None:
     }
 
 
-@pytest.mark.xfail(
-    sys.platform == "win32",
-    reason="Windows is case insensitive for the most part",
-)
 def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> None:
     mocker.patch("poetry.core.vcs.git.Git.get_ignored_files", return_value=[])
 
@@ -87,10 +81,6 @@ def test_builder_find_case_sensitive_excluded_files(mocker: MockerFixture) -> No
     }
 
 
-@pytest.mark.xfail(
-    sys.platform == "win32",
-    reason="Windows is case insensitive for the most part",
-)
 def test_builder_find_invalid_case_sensitive_excluded_files(
     mocker: MockerFixture,
 ) -> None:
