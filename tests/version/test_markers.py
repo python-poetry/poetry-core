@@ -187,7 +187,7 @@ def test_single_marker_intersect() -> None:
         ('python_version >= "3.6"', 'python_version < "3.6"'),
         ('python_version == "3.6"', 'python_version == "3.7"'),
         ('python_version > "3.6"', 'python_version <= "3.6"'),
-        ('python_version >= "3.6"', 'python_version < "3.6"'),
+        ('python_version > "3.6"', 'python_version < "3.6"'),
         ('python_version > "3.6"', 'python_version < "3.7"'),
     ],
 )
@@ -921,14 +921,6 @@ def test_multi_marker_union_multi_is_multi(
         (
             'python_version == "3.8" or python_version == "3.9"',
             'python_version >= "3.8" and python_version <= "3.9"',
-            'python_version >= "3.8" and python_version < "3.10"',
-        ),
-        (
-            'python_version == "3.8" or python_version == "3.9"',
-            (
-                'python_version >= "3.8" and python_version <= "3.9"'
-                ' and sys_platform == "linux"'
-            ),
             'python_version >= "3.8" and python_version < "3.10"',
         ),
         (

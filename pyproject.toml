@@ -43,7 +43,7 @@ pre-commit = ">=2.15.0"
 vendoring = ">=1.0"
 
 [tool.poetry.group.test.dependencies]
-pytest = ">=7.1.2"
+pytest = ">=9.0"
 pytest-cov = ">=3.0.0"
 pytest-mock = ">=3.10"
 build = ">=0.10.0"
@@ -131,6 +131,9 @@ module = [
   'virtualenv.*',
 ]
 ignore_missing_imports = true
+
+[tool.pytest]
+strict = true
 
 [tool.vendoring]
 destination = "src/poetry/core/_vendor/"
