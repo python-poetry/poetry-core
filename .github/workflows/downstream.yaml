@@ -33,7 +33,7 @@ jobs:
           ref: ${{ matrix.ref }}
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.10"
 
@@ -47,7 +47,7 @@ jobs:
           poetry config virtualenvs.in-project true
 
       - name: Set up cache
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         id: cache
         with:
           path: ./poetry/.venv
