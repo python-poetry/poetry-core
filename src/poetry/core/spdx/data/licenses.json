@@ -529,6 +529,11 @@
     false,
     false
   ],
+  "Brian-Gladman-3-Clause-no-conversion": [
+    "Brian Gladman 3-Clause License (no conversion clause)",
+    false,
+    false
+  ],
   "Buddy": [
     "Buddy License",
     false,
@@ -2151,6 +2156,11 @@
   ],
   "MTLL": [
     "Matrix Template Library License",
+    false,
+    false
+  ],
+  "MVT-1.1": [
+    "MVT License 1.1",
     false,
     false
   ],
