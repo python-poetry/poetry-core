@@ -138,6 +138,13 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
         # version exclusions
         ("!=1.0", "!=1.0"),
         ("!=1.0+local", "!=1.0+local"),
+        # punctured ranges round-trip through string serialization
+        (">1,!=2", ">1,!=2"),
+        (">=1,!=2,<5", ">=1,!=2,<5"),
+        (">=1,!=2,!=3,<5", ">=1,!=2,!=3,<5"),
+        # canonical (PEP 440 ordered) `<V || >V` is *not* `!=V` -- it
+        # excludes V's prereleases too -- so it must NOT collapse
+        ("<2 || >2", "<2 || >2"),
         # wildcard exclusions
         ("!=1.*", "!=1.*"),
         ("!=1.0.*", "!=1.0.*"),

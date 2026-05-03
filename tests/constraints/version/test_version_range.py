@@ -764,3 +764,26 @@ def test_ne_allows_prereleases_per_pep440_strict_equality() -> None:
     assert not rng.allows(Version.parse("2"))
     assert rng.allows(Version.parse("2.dev0"))
     assert rng.allows(Version.parse("2.post1"))
+
+
+def test_punctured_range_round_trips_through_string() -> None:
+    """Algebraic results that puncture single points must serialize so they
+    re-parse to an equivalent constraint -- otherwise lockfile round-trips
+    silently change the allowed set (see PR #645).  The renderer collapses
+    ``<V || >V`` (raw) to ``!=V`` to achieve this."""
+    rng = parse_constraint(">1").intersect(parse_constraint("!=2"))
+    assert str(rng) == ">1,!=2"
+    assert parse_constraint(str(rng)) == rng
+
+
+def test_punctured_range_handles_mixed_seams() -> None:
+    """A union with both puncture seams and gap seams partitions into
+    contiguous punctured ranges joined by ``||``."""
+    rng = (
+        parse_constraint(">=1,<10")
+        .difference(Version.parse("2"))
+        .difference(Version.parse("3"))
+    )
+    # (1 <= x < 10) - {2,3}: three contiguous pieces, both seams are punctures
+    assert str(rng) == ">=1,!=2,!=3,<10"
+    assert parse_constraint(str(rng)) == rng
