@@ -20,6 +20,23 @@ if TYPE_CHECKING:
     from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
+def _range_or_empty(
+    min: Version | None = None,
+    max: Version | None = None,
+    include_min: bool = False,
+    include_max: bool = False,
+) -> VersionConstraint:
+    """Construct a ``VersionRange``, returning ``EmptyConstraint`` if the
+    constructed range is empty.  ``VersionRange.__init__`` cannot return a
+    different type, so a tail-side normalisation is required for arithmetic
+    operations whose result may be empty (e.g.
+    ``VersionRange(V, V, True, False)`` is empty)."""
+    range_ = VersionRange(min, max, include_min, include_max)
+    if range_.is_empty():
+        return EmptyConstraint()
+    return range_
+
+
 class VersionRange(VersionRangeConstraint):
     def __init__(
         self,
@@ -159,7 +176,7 @@ class VersionRange(VersionRangeConstraint):
         from poetry.core.constraints.version.version import Version
 
         if other.is_empty():
-            return other
+            return EmptyConstraint()
 
         if isinstance(other, VersionUnion):
             return other.intersect(self)
@@ -172,7 +189,7 @@ class VersionRange(VersionRangeConstraint):
             # `>=1.2.3+local` intersects `1.2.3` to return `>=1.2.3+local,<1.2.4`.
             if self.min is not None and self.min.is_local() and other.allows(self.min):
                 upper = other.stable.next_patch()
-                return VersionRange(
+                return _range_or_empty(
                     min=self.min,
                     max=upper,
                     include_min=self.include_min,
@@ -217,7 +234,7 @@ class VersionRange(VersionRangeConstraint):
             return intersect_min
 
         # If we got here, there is an actual range.
-        return VersionRange(
+        return _range_or_empty(
             intersect_min, intersect_max, intersect_include_min, intersect_include_max
         )
 
@@ -287,17 +304,17 @@ class VersionRange(VersionRangeConstraint):
                 if not self.include_min:
                     return self
 
-                return VersionRange(self.min, self.max, False, self.include_max)
+                return _range_or_empty(self.min, self.max, False, self.include_max)
 
             if other == self.max:
                 if not self.include_max:
                     return self
 
-                return VersionRange(self.min, self.max, self.include_min, False)
+                return _range_or_empty(self.min, self.max, self.include_min, False)
 
             return VersionUnion.of(
-                VersionRange(self.min, other, self.include_min, False),
-                VersionRange(other, self.max, False, self.include_max),
+                _range_or_empty(self.min, other, self.include_min, False),
+                _range_or_empty(other, self.max, False, self.include_max),
             )
         elif isinstance(other, VersionRangeConstraint):
             if not self.allows_any(other):
@@ -309,7 +326,7 @@ class VersionRange(VersionRangeConstraint):
             elif self.min == other.min:
                 before = self.min
             else:
-                before = VersionRange(
+                before = _range_or_empty(
                     self.min, other.min, self.include_min, not other.include_min
                 )
 
@@ -319,7 +336,7 @@ class VersionRange(VersionRangeConstraint):
             elif self.max == other.max:
                 after = self.max
             else:
-                after = VersionRange(
+                after = _range_or_empty(
                     other.max, self.max, not other.include_max, self.include_max
                 )
 

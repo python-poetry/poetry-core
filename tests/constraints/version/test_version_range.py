@@ -711,3 +711,25 @@ def test_is_empty_for_inverted_bounds() -> None:
     lo = Version.parse("1.0")
     hi = Version.parse("2.0")
     assert VersionRange(hi, lo, include_min=True, include_max=True).is_empty()
+
+
+def test_intersect_returns_empty_constraint_not_empty_range() -> None:
+    """Operations whose result is empty due to canonicalization must
+    normalize to ``EmptyConstraint``.  ``VersionRange.__init__`` cannot
+    return a different type, so a tail-side check is required: e.g.
+    ``[V, V] ∩ [V, V)`` canonicalizes the rhs max to ``V.dev0`` and the
+    intersection is empty."""
+    v = Version.parse("1.2.3")
+    point = VersionRange(v, v, include_min=True, include_max=True)
+    half_open = VersionRange(v, v, include_min=True, include_max=False)
+    result = point.intersect(half_open)
+    assert isinstance(result, EmptyConstraint)
+
+
+def test_difference_returns_empty_constraint_not_empty_range() -> None:
+    """Subtracting a range that fully covers ``self`` yields
+    ``EmptyConstraint`` even when canonicalization is involved."""
+    v = Version.parse("2.0")
+    rng = VersionRange(Version.parse("1.0"), v, include_min=True, include_max=False)
+    result = rng.difference(rng)
+    assert isinstance(result, EmptyConstraint)
