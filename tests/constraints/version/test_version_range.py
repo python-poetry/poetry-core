@@ -733,3 +733,34 @@ def test_difference_returns_empty_constraint_not_empty_range() -> None:
     rng = VersionRange(Version.parse("1.0"), v, include_min=True, include_max=False)
     result = rng.difference(rng)
     assert isinstance(result, EmptyConstraint)
+
+
+def test_parsed_strict_max_excludes_dev_releases_of_stable() -> None:
+    """PEP 440: ``<V`` for stable V MUST NOT allow pre-/dev-releases of V.
+    The parser canonicalizes to ``<V.dev0`` so ``allows`` reports correctly."""
+    rng = parse_constraint("<2")
+    assert not rng.allows(Version.parse("2"))
+    assert not rng.allows(Version.parse("2.dev0"))
+    assert not rng.allows(Version.parse("2a1"))
+    assert rng.allows(Version.parse("1.999"))
+
+
+def test_interior_split_preserves_raw_max_and_allows_dev() -> None:
+    """The raw (non-canonical) ``<V`` shape only arises from interior splits
+    of an arithmetic operation; in that context ``V.dev0`` correctly belongs
+    to the lower fragment because nothing has excluded it."""
+    rng = VersionRange(Version.parse("1"), Version.parse("3"))
+    result = rng.difference(Version.parse("2"))
+    assert result.allows(Version.parse("2.dev0"))
+    assert not result.allows(Version.parse("2"))
+
+
+def test_ne_allows_prereleases_per_pep440_strict_equality() -> None:
+    """PEP 440: ``!=V`` is strict equality and must allow prereleases of V
+    (since e.g. ``2.0.dev1 != 2``).  Distinct from ``<V || >V`` typed by the
+    user, where ``<V`` and ``>V`` are PEP 440 ordered comparisons that DO
+    exclude pre-/post-releases."""
+    rng = parse_constraint("!=2")
+    assert not rng.allows(Version.parse("2"))
+    assert rng.allows(Version.parse("2.dev0"))
+    assert rng.allows(Version.parse("2.post1"))

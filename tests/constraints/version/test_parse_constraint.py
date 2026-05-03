@@ -19,7 +19,7 @@ from poetry.core.version.pep440 import ReleaseTag
         ("*.*", VersionRange()),
         ("v*.*", VersionRange()),
         (">1.0.0", VersionRange(min=Version.from_parts(1, 0, 0))),
-        ("<1.2.3", VersionRange(max=Version.from_parts(1, 2, 3))),
+        ("<1.2.3", VersionRange(max=Version.from_parts(1, 2, 3).first_devrelease())),
         ("<=1.2.3", VersionRange(max=Version.from_parts(1, 2, 3), include_max=True)),
         (">=1.2.3", VersionRange(min=Version.from_parts(1, 2, 3), include_min=True)),
         ("=1.2.3", Version.from_parts(1, 2, 3)),
@@ -107,38 +107,48 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
         (
             "~v1",
             VersionRange(
-                Version.from_parts(1, 0, 0), Version.from_parts(2, 0, 0), True
+                Version.from_parts(1, 0, 0),
+                Version.from_parts(2, 0, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~1.0",
             VersionRange(
-                Version.from_parts(1, 0, 0), Version.from_parts(1, 1, 0), True
+                Version.from_parts(1, 0, 0),
+                Version.from_parts(1, 1, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~1.0.0",
             VersionRange(
-                Version.from_parts(1, 0, 0), Version.from_parts(1, 1, 0), True
+                Version.from_parts(1, 0, 0),
+                Version.from_parts(1, 1, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~1.2",
             VersionRange(
-                Version.from_parts(1, 2, 0), Version.from_parts(1, 3, 0), True
+                Version.from_parts(1, 2, 0),
+                Version.from_parts(1, 3, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~1.2.3",
             VersionRange(
-                Version.from_parts(1, 2, 3), Version.from_parts(1, 3, 0), True
+                Version.from_parts(1, 2, 3),
+                Version.from_parts(1, 3, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~1.0.0a1",
             VersionRange(
                 min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
-                max=Version.from_parts(1, 1, 0),
+                max=Version.from_parts(1, 1, 0).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -148,7 +158,7 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 min=Version.from_parts(
                     1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
                 ),
-                max=Version.from_parts(1, 1, 0),
+                max=Version.from_parts(1, 1, 0).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -156,7 +166,7 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
             "~1.2-beta",
             VersionRange(
                 Version.from_parts(1, 2, 0, pre=ReleaseTag("beta")),
-                Version.from_parts(1, 3, 0),
+                Version.from_parts(1, 3, 0).first_devrelease(),
                 True,
             ),
         ),
@@ -164,39 +174,47 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
             "~1.2-b2",
             VersionRange(
                 Version.from_parts(1, 2, 0, pre=ReleaseTag("beta", 2)),
-                Version.from_parts(1, 3, 0),
+                Version.from_parts(1, 3, 0).first_devrelease(),
                 True,
             ),
         ),
         (
             "~0.3",
             VersionRange(
-                Version.from_parts(0, 3, 0), Version.from_parts(0, 4, 0), True
+                Version.from_parts(0, 3, 0),
+                Version.from_parts(0, 4, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~3.5",
             VersionRange(
-                Version.from_parts(3, 5, 0), Version.from_parts(3, 6, 0), True
+                Version.from_parts(3, 5, 0),
+                Version.from_parts(3, 6, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "~=3.5",
             VersionRange(
-                Version.from_parts(3, 5, 0), Version.from_parts(4, 0, 0), True
+                Version.from_parts(3, 5, 0),
+                Version.from_parts(4, 0, 0).first_devrelease(),
+                True,
             ),
         ),  # PEP 440
         (
             "~=3.5.3",
             VersionRange(
-                Version.from_parts(3, 5, 3), Version.from_parts(3, 6, 0), True
+                Version.from_parts(3, 5, 3),
+                Version.from_parts(3, 6, 0).first_devrelease(),
+                True,
             ),
         ),  # PEP 440
         (
             "~=3.5.3rc1",
             VersionRange(
                 Version.from_parts(3, 5, 3, pre=ReleaseTag("rc", 1)),
-                Version.from_parts(3, 6, 0),
+                Version.from_parts(3, 6, 0).first_devrelease(),
                 True,
             ),
         ),  # PEP 440
@@ -212,65 +230,86 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
         (
             "^v1",
             VersionRange(
-                Version.from_parts(1, 0, 0), Version.from_parts(2, 0, 0), True
+                Version.from_parts(1, 0, 0),
+                Version.from_parts(2, 0, 0).first_devrelease(),
+                True,
             ),
         ),
-        ("^0", VersionRange(Version.from_parts(0), Version.from_parts(1), True)),
+        (
+            "^0",
+            VersionRange(
+                Version.from_parts(0), Version.from_parts(1).first_devrelease(), True
+            ),
+        ),
         (
             "^0.0",
             VersionRange(
-                Version.from_parts(0, 0, 0), Version.from_parts(0, 1, 0), True
+                Version.from_parts(0, 0, 0),
+                Version.from_parts(0, 1, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "^1.2",
             VersionRange(
-                Version.from_parts(1, 2, 0), Version.from_parts(2, 0, 0), True
+                Version.from_parts(1, 2, 0),
+                Version.from_parts(2, 0, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "^1.2.3-beta.2",
             VersionRange(
                 Version.from_parts(1, 2, 3, pre=ReleaseTag("beta", 2)),
-                Version.from_parts(2, 0, 0),
+                Version.from_parts(2, 0, 0).first_devrelease(),
                 True,
             ),
         ),
         (
             "^1.2.3",
             VersionRange(
-                Version.from_parts(1, 2, 3), Version.from_parts(2, 0, 0), True
+                Version.from_parts(1, 2, 3),
+                Version.from_parts(2, 0, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "^0.2.3",
             VersionRange(
-                Version.from_parts(0, 2, 3), Version.from_parts(0, 3, 0), True
+                Version.from_parts(0, 2, 3),
+                Version.from_parts(0, 3, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "^0.2",
             VersionRange(
-                Version.from_parts(0, 2, 0), Version.from_parts(0, 3, 0), True
+                Version.from_parts(0, 2, 0),
+                Version.from_parts(0, 3, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "^0.2.0",
             VersionRange(
-                Version.from_parts(0, 2, 0), Version.from_parts(0, 3, 0), True
+                Version.from_parts(0, 2, 0),
+                Version.from_parts(0, 3, 0).first_devrelease(),
+                True,
             ),
         ),
         (
             "^0.0.3",
             VersionRange(
-                Version.from_parts(0, 0, 3), Version.from_parts(0, 0, 4), True
+                Version.from_parts(0, 0, 3),
+                Version.from_parts(0, 0, 4).first_devrelease(),
+                True,
             ),
         ),
         (
             "^0.0.3-alpha.21",
             VersionRange(
                 Version.from_parts(0, 0, 3, pre=ReleaseTag("alpha", 21)),
-                Version.from_parts(0, 0, 4),
+                Version.from_parts(0, 0, 4).first_devrelease(),
                 True,
             ),
         ),
@@ -278,7 +317,7 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
             "^0.1.3-alpha.21",
             VersionRange(
                 Version.from_parts(0, 1, 3, pre=ReleaseTag("alpha", 21)),
-                Version.from_parts(0, 2, 0),
+                Version.from_parts(0, 2, 0).first_devrelease(),
                 True,
             ),
         ),
@@ -286,7 +325,7 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
             "^0.0.0-alpha.21",
             VersionRange(
                 Version.from_parts(0, 0, 0, pre=ReleaseTag("alpha", 21)),
-                Version.from_parts(0, 0, 1),
+                Version.from_parts(0, 0, 1).first_devrelease(),
                 True,
             ),
         ),
@@ -294,7 +333,7 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
             "^1.0.0a1",
             VersionRange(
                 min=Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)),
-                max=Version.from_parts(2, 0, 0),
+                max=Version.from_parts(2, 0, 0).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -304,7 +343,7 @@ def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
                 min=Version.from_parts(
                     1, 0, 0, pre=ReleaseTag("a", 1), dev=ReleaseTag("dev", 0)
                 ),
-                max=Version.from_parts(2, 0, 0),
+                max=Version.from_parts(2, 0, 0).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -339,7 +378,7 @@ def test_parse_constraint_multi() -> None:
             ">=1!2,<2!3",
             VersionRange(
                 Version.from_parts(2, 0, 0, epoch=1),
-                Version.from_parts(3, 0, 0, epoch=2),
+                Version.from_parts(3, 0, 0, epoch=2).first_devrelease(),
                 include_min=True,
                 include_max=False,
             ),
@@ -405,24 +444,33 @@ def test_parse_constraints_negative_wildcard(
         (">3.7 , ", VersionRange(min=Version.parse("3.7"))),
         (
             ">3.7,<3.8,",
-            VersionRange(min=Version.parse("3.7"), max=Version.parse("3.8")),
+            VersionRange(
+                min=Version.parse("3.7"),
+                max=Version.parse("3.8").first_devrelease(),
+            ),
         ),
         (
             ">3.7,||<3.6,",
             VersionRange(min=Version.parse("3.7")).union(
-                VersionRange(max=Version.parse("3.6"))
+                VersionRange(max=Version.parse("3.6").first_devrelease())
             ),
         ),
         (
             ">3.7 , || <3.6 , ",
             VersionRange(min=Version.parse("3.7")).union(
-                VersionRange(max=Version.parse("3.6"))
+                VersionRange(max=Version.parse("3.6").first_devrelease())
             ),
         ),
         (
             ">3.7, <3.8, || <3.6, >3.5",
-            VersionRange(min=Version.parse("3.7"), max=Version.parse("3.8")).union(
-                VersionRange(min=Version.parse("3.5"), max=Version.parse("3.6"))
+            VersionRange(
+                min=Version.parse("3.7"),
+                max=Version.parse("3.8").first_devrelease(),
+            ).union(
+                VersionRange(
+                    min=Version.parse("3.5"),
+                    max=Version.parse("3.6").first_devrelease(),
+                )
             ),
         ),
     ],
@@ -471,13 +519,13 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
         (["==", "3.8"], Version.from_parts(3, 8)),
         ([">", "3.8"], VersionRange(min=Version.from_parts(3, 8))),
         ([">=", "3.8"], VersionRange(min=Version.from_parts(3, 8), include_min=True)),
-        (["<", "3.8"], VersionRange(max=Version.from_parts(3, 8))),
+        (["<", "3.8"], VersionRange(max=Version.from_parts(3, 8).first_devrelease())),
         (["<=", "3.8"], VersionRange(max=Version.from_parts(3, 8), include_max=True)),
         (
             ["^", "3.8"],
             VersionRange(
                 min=Version.from_parts(3, 8),
-                max=Version.from_parts(4, 0),
+                max=Version.from_parts(4, 0).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -485,7 +533,7 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             ["~", "3.8"],
             VersionRange(
                 min=Version.from_parts(3, 8),
-                max=Version.from_parts(3, 9),
+                max=Version.from_parts(3, 9).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -493,7 +541,7 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             ["~=", "3.8"],
             VersionRange(
                 min=Version.from_parts(3, 8),
-                max=Version.from_parts(4, 0),
+                max=Version.from_parts(4, 0).first_devrelease(),
                 include_min=True,
             ),
         ),
@@ -541,12 +589,12 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             VersionUnion(
                 VersionRange(
                     min=Version.from_parts(2, 7),
-                    max=Version.from_parts(2, 8),
+                    max=Version.from_parts(2, 8).first_devrelease(),
                     include_min=True,
                 ),
                 VersionRange(
                     min=Version.from_parts(3, 8),
-                    max=Version.from_parts(3, 9),
+                    max=Version.from_parts(3, 9).first_devrelease(),
                     include_min=True,
                 ),
             ),
@@ -556,17 +604,17 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
             VersionUnion(
                 VersionRange(
                     min=Version.from_parts(2, 7),
-                    max=Version.from_parts(2, 8),
+                    max=Version.from_parts(2, 8).first_devrelease(),
                     include_min=True,
                 ),
                 VersionRange(
                     min=Version.from_parts(3, 8),
-                    max=Version.from_parts(3, 9),
+                    max=Version.from_parts(3, 9).first_devrelease(),
                     include_min=True,
                 ),
                 VersionRange(
                     min=Version.from_parts(3, 10),
-                    max=Version.from_parts(3, 12),
+                    max=Version.from_parts(3, 12).first_devrelease(),
                     include_min=True,
                 ),
             ),

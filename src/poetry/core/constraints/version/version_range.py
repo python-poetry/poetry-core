@@ -20,6 +20,24 @@ if TYPE_CHECKING:
     from poetry.core.constraints.version.version_constraint import VersionConstraint
 
 
+def _is_canonical_strict_max(version: Version) -> bool:
+    """True if ``version`` is the dev0 of a stable release — i.e., the
+    canonical exclusive upper bound that the parser produces for a
+    user-typed ``<V`` (with V stable).  See ``parser._canonical_strict_max``.
+    """
+    if version.dev is None or version.dev.number != 0:
+        return False
+    return not version.without_devrelease().is_unstable()
+
+
+def _display_max_text(max_: Version, include_max: bool) -> str:
+    """Render an exclusive ``<V.dev0`` (canonical-strict-max) back as ``<V``
+    so user-facing strings match what the user typed."""
+    if not include_max and _is_canonical_strict_max(max_):
+        return max_.without_devrelease().text
+    return max_.text
+
+
 def _range_or_empty(
     min: Version | None = None,
     max: Version | None = None,
@@ -115,7 +133,7 @@ class VersionRange(VersionRangeConstraint):
                 return False
 
         if self.max is not None:
-            _this, _other = self.allowed_max, other
+            _this, _other = self.max, other
 
             assert _this is not None
 
@@ -482,7 +500,7 @@ class VersionRange(VersionRangeConstraint):
                 text += ","
 
             op = "<=" if self.include_max else "<"
-            text += f"{op}{self.max.text}"
+            text += f"{op}{_display_max_text(self.max, self.include_max)}"
 
         if self.min is None and self.max is None:
             return "*"
