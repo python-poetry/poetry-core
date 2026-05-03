@@ -9,7 +9,7 @@ from typing import TypeVar
 
 from packaging.utils import canonicalize_name
 
-from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version import parse_marker_version_constraint
 from poetry.core.constraints.version.exceptions import ParseConstraintError
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
@@ -134,7 +134,7 @@ class Package(PackageSpecification):
         self.classifiers: Sequence[str] = []
 
         self._python_versions = "*"
-        self._python_constraint = parse_constraint("*")
+        self._python_constraint = parse_marker_version_constraint("*")
 
         self.marker: BaseMarker = AnyMarker()
 
@@ -283,7 +283,7 @@ class Package(PackageSpecification):
     @python_versions.setter
     def python_versions(self, value: str) -> None:
         try:
-            constraint = parse_constraint(value)
+            constraint = parse_marker_version_constraint(value)
         except ParseConstraintError:
             raise ParseConstraintError(f"Invalid python versions '{value}' on {self}")
 
@@ -351,7 +351,7 @@ class Package(PackageSpecification):
 
         # Automatically set python classifiers
         if self.python_versions == "*":
-            python_constraint = parse_constraint("~2.7 || ^3.4")
+            python_constraint = parse_marker_version_constraint("~2.7 || ^3.4")
         else:
             python_constraint = self.python_constraint
 
@@ -364,7 +364,7 @@ class Package(PackageSpecification):
             self.AVAILABLE_PYTHONS, key=lambda x: tuple(map(int, x.split(".")))
         ):
             if len(version) == 1:
-                constraint = parse_constraint(version + ".*")
+                constraint = parse_marker_version_constraint(version + ".*")
             else:
                 constraint = Version.parse(version)
 

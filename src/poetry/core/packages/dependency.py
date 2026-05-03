@@ -12,6 +12,7 @@ from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.generic import parse_constraint as parse_generic_constraint
 from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version import parse_marker_version_constraint
 from poetry.core.packages.dependency_group import MAIN_GROUP
 from poetry.core.packages.specification import PackageSpecification
 from poetry.core.packages.utils.utils import contains_group_without_marker
@@ -79,7 +80,7 @@ class Dependency(PackageSpecification):
         self._develop = False
 
         self._python_versions = "*"
-        self._python_constraint = parse_constraint("*")
+        self._python_constraint = parse_marker_version_constraint("*")
         self._transitive_marker: BaseMarker | None = None
 
         self._in_extras: Sequence[NormalizedName] = []
@@ -122,7 +123,7 @@ class Dependency(PackageSpecification):
     @python_versions.setter
     def python_versions(self, value: str) -> None:
         self._python_versions = value
-        self._python_constraint = parse_constraint(value)
+        self._python_constraint = parse_marker_version_constraint(value)
         if not self._python_constraint.is_any():
             self._marker = self._marker.intersect(
                 parse_marker(
@@ -136,7 +137,7 @@ class Dependency(PackageSpecification):
 
     @marker.setter
     def marker(self, marker: str | BaseMarker) -> None:
-        from poetry.core.constraints.version import parse_constraint
+        from poetry.core.constraints.version import parse_marker_version_constraint
         from poetry.core.packages.utils.utils import convert_markers
         from poetry.core.version.markers import BaseMarker
         from poetry.core.version.markers import parse_marker
@@ -176,7 +177,7 @@ class Dependency(PackageSpecification):
                 python_version_markers
             )
 
-        self._python_constraint = parse_constraint(self._python_versions)
+        self._python_constraint = parse_marker_version_constraint(self._python_versions)
 
     @property
     def transitive_marker(self) -> BaseMarker:

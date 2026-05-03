@@ -12,7 +12,7 @@ import pytest
 
 from packaging.utils import canonicalize_name
 
-from poetry.core.constraints.version import parse_constraint
+from poetry.core.constraints.version import parse_marker_version_constraint
 from poetry.core.factory import Factory
 from poetry.core.packages.dependency import Dependency
 from poetry.core.packages.dependency_group import MAIN_GROUP
@@ -1277,7 +1277,7 @@ def test_create_dependency_marker_variants(
     constraint["version"] = "1.0.0"
     dep = Factory.create_dependency("foo", constraint)
     assert dep.python_versions == exp_python
-    assert dep.python_constraint == parse_constraint(exp_python)
+    assert dep.python_constraint == parse_marker_version_constraint(exp_python)
     assert str(dep.marker) == exp_marker
 
 

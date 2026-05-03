@@ -485,6 +485,27 @@ class VersionRange(VersionRangeConstraint):
 
         return 0
 
+    def __repr__(self) -> str:
+        text = ""
+
+        if self.min is not None:
+            text += ">=" if self.include_min else ">"
+            text += self.min.text
+
+        if self.max is not None:
+            if self.min is not None:
+                text += ","
+
+            op = "<=" if self.include_max else "<"
+            # In contrast to __str__, we want to display the actual max so that
+            # we can distinguish between `< 1` and `< 1.dev0` in test output.
+            text += f"{op}{self.max}"
+
+        if self.min is None and self.max is None:
+            return "*"
+
+        return f"<{self.__class__.__name__} {text}>"
+
     def __str__(self) -> str:
         with suppress(ValueError):
             return self._single_wildcard_range_string
