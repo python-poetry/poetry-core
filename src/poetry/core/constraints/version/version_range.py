@@ -50,7 +50,16 @@ class VersionRange(VersionRangeConstraint):
         return self._include_max
 
     def is_empty(self) -> bool:
-        return False
+        # A bounded range is non-empty only when its min is strictly below
+        # its max, or when both bounds coincide and are inclusive (the
+        # single-point range ``[V, V]``).  Coincident-bound non-inclusive
+        # ranges and inverted ranges (min > max) are empty.  Previously
+        # this unconditionally returned False.
+        if self._min is None or self._max is None:
+            return False
+        if self._min == self._max:
+            return not (self._include_min and self._include_max)
+        return self._min > self._max
 
     def is_any(self) -> bool:
         return self._min is None and self._max is None

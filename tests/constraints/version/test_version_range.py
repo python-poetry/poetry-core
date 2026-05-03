@@ -683,3 +683,31 @@ def test_is_single_wildcard_range(
 )
 def test_str(version: str, expected: str) -> None:
     assert str(parse_constraint(version)) == expected
+
+
+@pytest.mark.parametrize(
+    ("include_min", "include_max", "expected_empty"),
+    [
+        (True, True, False),  # [V, V] = {V}
+        (True, False, True),  # [V, V) = ∅
+        (False, True, True),  # (V, V] = ∅
+        (False, False, True),  # (V, V) = ∅
+    ],
+)
+def test_is_empty_for_coincident_bounds(
+    include_min: bool, include_max: bool, expected_empty: bool
+) -> None:
+    """A range with coincident min/max is only non-empty when both bounds
+    are inclusive (the single-point range ``[V, V]``)."""
+    v = Version.parse("1.2.3")
+    assert (
+        VersionRange(v, v, include_min=include_min, include_max=include_max).is_empty()
+        is expected_empty
+    )
+
+
+def test_is_empty_for_inverted_bounds() -> None:
+    """A range whose min is greater than its max has no members."""
+    lo = Version.parse("1.0")
+    hi = Version.parse("2.0")
+    assert VersionRange(hi, lo, include_min=True, include_max=True).is_empty()
