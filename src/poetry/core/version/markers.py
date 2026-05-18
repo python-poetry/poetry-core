@@ -984,15 +984,10 @@ class MarkerUnion(BaseMarker):
 
         for m in self._markers:
             if isinstance(m, SingleMarkerLike) and m.name == marker_name:
-                # The marker is not relevant since it must be excluded
-                continue
+                return AnyMarker()
 
             marker = m.exclude(marker_name)
             new_markers.append(marker)
-
-        if not new_markers:
-            # All markers were the excluded marker.
-            return AnyMarker()
 
         return union(*new_markers)
 

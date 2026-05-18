@@ -1583,10 +1583,20 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
                 'python_version >= "3.6" or extra == "foo" and implementation_name =='
                 ' "pypy" or extra == "bar"'
             ),
-            'python_version >= "3.6" or implementation_name == "pypy"',
+            "",
         ),
         ('extra == "foo"', ""),
         ('extra == "foo" or extra == "bar"', ""),
+        # union with extras must collapse to "any" because the extras side of the union
+        # is satisfiable.
+        # Regression test for python-poetry/poetry#10910.
+        (
+            (
+                'platform_machine == "aarch64" or platform_machine == "x86_64"'
+                ' or extra == "asyncio"'
+            ),
+            "",
+        ),
     ],
 )
 def test_without_extras(marker: str, expected: str) -> None:
