@@ -749,9 +749,7 @@ def test_intersect_with_local_version_other_does_not_broaden_exclusive_min() -> 
     assert isinstance(exclusive.intersect(excluded_point), EmptyConstraint)
 
     # Inclusive-lower case still returns the literally-equal point.
-    inclusive = VersionRange(
-        excluded_point, upper, include_min=True, include_max=False
-    )
+    inclusive = VersionRange(excluded_point, upper, include_min=True, include_max=False)
     assert inclusive.intersect(excluded_point) == excluded_point
 
     # Original motivating case (``>=X+local ∩ public X``) still broadens.
@@ -782,9 +780,7 @@ def test_intersect_with_local_version_other_does_not_broaden_exclusive_min() -> 
         ("cpu", "cpu"),
     ],
 )
-def test_intersect_with_two_local_versions(
-    min_local: str, other_local: str
-) -> None:
+def test_intersect_with_two_local_versions(min_local: str, other_local: str) -> None:
     """Cross-local intersection: ``self.min`` and ``other`` both carry
     local segments. ``==X+other`` matches only the literal point
     ``X+other``, so the result is just the point if it falls in the
