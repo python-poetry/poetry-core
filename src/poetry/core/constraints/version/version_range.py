@@ -269,6 +269,39 @@ class VersionRange(VersionRangeConstraint):
         from poetry.core.constraints.version.version import Version
 
         if isinstance(other, Version):
+            # If ``other`` is a public version that covers any local-tagged
+            # variants at our bounds (by PEP 440 release-equality), the
+            # union absorbs those local variants and we can broaden the
+            # bound(s).  Handle both bounds at once so e.g. a range that is
+            # bracketed by two local variants of ``other`` collapses to a
+            # single release-spanning range.
+            new_min: Version | None = self._min
+            new_include_min = self._include_min
+            new_max: Version | None = self._max
+            new_include_max = self._include_max
+            broadened = False
+            if not other.is_local():
+                if (
+                    self._min is not None
+                    and self._min.is_local()
+                    and other.allows(self._min)
+                ):
+                    new_min = other
+                    new_include_min = True
+                    broadened = True
+                if (
+                    self._max is not None
+                    and self._max.is_local()
+                    and other.allows(self._max)
+                ):
+                    new_max = other.stable.next_patch()
+                    new_include_max = False
+                    broadened = True
+            if broadened:
+                return _range_or_empty(
+                    new_min, new_max, new_include_min, new_include_max
+                )
+
             if self.allows(other):
                 return self
 

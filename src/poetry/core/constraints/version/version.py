@@ -109,27 +109,15 @@ class Version(PEP440Version, VersionRangeConstraint):
         return other.intersect(self)
 
     def union(self, other: VersionConstraint) -> VersionConstraint:
-        from poetry.core.constraints.version.version_range import VersionRange
+        if not isinstance(other, Version):
+            # Delegate to the other operand's ``union`` so the broadening
+            # rules for local-tagged bounds are applied symmetrically
+            # whether the union is written as ``range.union(point)`` or
+            # ``point.union(range)``.
+            return other.union(self)
 
         if other.allows(self):
             return other
-
-        if isinstance(other, VersionRangeConstraint):
-            if self.allows(other.min):
-                return VersionRange(
-                    other.min,
-                    other.max,
-                    include_min=True,
-                    include_max=other.include_max,
-                )
-
-            if self.allows(other.max):
-                return VersionRange(
-                    other.min,
-                    other.max,
-                    include_min=other.include_min,
-                    include_max=True,
-                )
 
         return VersionUnion.of(self, other)
 

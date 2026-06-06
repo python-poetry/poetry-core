@@ -812,6 +812,123 @@ def test_intersect_punctured_range_with_excluded_point_is_empty() -> None:
     assert excluded_point.intersect(punctured).is_empty()
 
 
+def test_union_upper_bound_local_with_public_extends_to_next_patch() -> None:
+    """``>=X,<X+local union ==X`` broadens the upper bound to
+    ``X.next_patch()`` (exclusive). ``==X`` matches every ``X+local``
+    variant by PEP 440 release-equality, so the union must cover them.
+    """
+    range_below = VersionRange(
+        Version.parse("0.21.0"),
+        Version.parse("0.21.0+cpu"),
+        include_min=True,
+        include_max=False,
+    )
+    public = Version.parse("0.21.0")
+    expected = VersionRange(
+        Version.parse("0.21.0"),
+        Version.parse("0.21.1"),
+        include_min=True,
+        include_max=False,
+    )
+    assert range_below.union(public) == expected
+
+
+def test_union_lower_bound_local_with_public_extends_to_public() -> None:
+    """``>X+local,<Y union ==X`` extends the lower bound down to ``X``
+    (inclusive). ``==X`` matches the literal point ``X`` and every
+    ``X+local`` variant, including the excluded ``X+local`` lower bound.
+    """
+    range_above = VersionRange(
+        Version.parse("0.21.0+cpu"),
+        Version.parse("0.22.0"),
+        include_min=False,
+        include_max=False,
+    )
+    public = Version.parse("0.21.0")
+    expected = VersionRange(
+        Version.parse("0.21.0"),
+        Version.parse("0.22.0"),
+        include_min=True,
+        include_max=False,
+    )
+    assert range_above.union(public) == expected
+
+
+@pytest.mark.parametrize(
+    (
+        "min",
+        "include_min",
+        "max",
+        "include_max",
+        "expected_min",
+        "expected_max",
+    ),
+    [
+        # Upper bound is a local of the public version.
+        ("0.21.0", True, "0.21.0+cpu", False, "0.21.0", "0.21.1"),
+        # Lower bound is a local of the public version.
+        ("0.21.0+cpu", False, "0.22.0", False, "0.21.0", "0.22.0"),
+    ],
+)
+def test_union_with_public_version_is_symmetric(
+    min: str,
+    include_min: bool,
+    max: str,
+    include_max: bool,
+    expected_min: str,
+    expected_max: str,
+) -> None:
+    """``range union ==X`` and ``==X union range`` produce the same result.
+    The broadening must apply regardless of operand order.
+    """
+    rng = VersionRange(
+        Version.parse(min),
+        Version.parse(max),
+        include_min=include_min,
+        include_max=include_max,
+    )
+    public = Version.parse("0.21.0")
+    expected = VersionRange(
+        Version.parse(expected_min),
+        Version.parse(expected_max),
+        include_min=True,
+        include_max=False,
+    )
+    assert rng.union(public) == expected
+    assert public.union(rng) == expected
+
+
+def test_union_punctured_versionunion_with_public_collapses_puncture() -> None:
+    """End-to-end on a punctured ``VersionUnion``: ``==X`` fills the
+    interior puncture at ``X+local``, collapsing the two-range union
+    back to a single unpunctured range.
+    """
+    punctured = parse_constraint(">=0.21.0,!=0.21.0+cpu,<0.22.0")
+    public = parse_constraint("==0.21.0")
+    plain = parse_constraint(">=0.21.0,<0.22.0")
+    assert punctured.union(public) == plain
+    assert public.union(punctured) == plain
+
+
+def test_union_range_with_local_other_does_not_broaden() -> None:
+    """Negative control: a *local* ``==X+other`` matches only itself
+    literally, never sibling local-tagged versions. Unioning it with a
+    range that excludes a different ``X+local`` must preserve the
+    puncture rather than broaden.
+    """
+    range_below = VersionRange(
+        Version.parse("0.21.0"),
+        Version.parse("0.21.0+cpu"),
+        include_min=True,
+        include_max=False,
+    )
+    other_local = Version.parse("0.21.0+other")
+    result = range_below.union(other_local)
+    assert result.allows(Version.parse("0.21.0"))
+    assert result.allows(other_local)
+    assert not result.allows(Version.parse("0.21.0+cpu"))
+
+
 def test_parsed_strict_max_excludes_dev_releases_of_stable() -> None:
     """PEP 440: ``<V`` for stable V MUST NOT allow pre-/dev-releases of V.
     The parser canonicalizes to ``<V.dev0`` so ``allows`` reports correctly."""
