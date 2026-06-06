@@ -205,7 +205,16 @@ class VersionRange(VersionRangeConstraint):
                 return other
 
             # `>=1.2.3+local` intersects `1.2.3` to return `>=1.2.3+local,<1.2.4`.
-            if self.min is not None and self.min.is_local() and other.allows(self.min):
+            # Skip when ``other`` is itself a local version: for an exclusive
+            # lower bound like ``>1.2.3+local`` intersected with the excluded
+            # point ``1.2.3+local``, broadening would wrongly return a
+            # non-empty range instead of the correct empty constraint.
+            if (
+                self.min is not None
+                and self.min.is_local()
+                and not other.is_local()
+                and other.allows(self.min)
+            ):
                 upper = other.stable.next_patch()
                 return _range_or_empty(
                     min=self.min,

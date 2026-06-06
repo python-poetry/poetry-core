@@ -735,6 +735,82 @@ def test_difference_returns_empty_constraint_not_empty_range() -> None:
     assert isinstance(result, EmptyConstraint)
 
 
+def test_intersect_with_local_version_other_does_not_broaden_exclusive_min() -> None:
+    """Regression test: ``>0.21.0+cpu,<0.22.0 ∩ ==0.21.0+cpu`` must be
+    empty. Previously returned ``>0.21.0+cpu,<0.21.1`` because the
+    ``>=X+local ∩ public_X`` broadening fired for local ``other`` too.
+    """
+    excluded_point = Version.parse("0.21.0+cpu")
+    upper = Version.parse("0.22.0")
+
+    exclusive = VersionRange(
+        excluded_point, upper, include_min=False, include_max=False
+    )
+    assert isinstance(exclusive.intersect(excluded_point), EmptyConstraint)
+
+    # Inclusive-lower case still returns the literally-equal point.
+    inclusive = VersionRange(
+        excluded_point, upper, include_min=True, include_max=False
+    )
+    assert inclusive.intersect(excluded_point) == excluded_point
+
+    # Original motivating case (``>=X+local ∩ public X``) still broadens.
+    public = Version.parse("0.21.0")
+    range_ge_local = VersionRange(
+        excluded_point, Version.parse("1.0"), include_min=True, include_max=False
+    )
+    assert range_ge_local.intersect(public) == VersionRange(
+        excluded_point,
+        public.next_patch(),
+        include_min=True,
+        include_max=False,
+    )
+
+
+@pytest.mark.parametrize(
+    ("min_local", "other_local"),
+    [
+        # other lex-orders after min: in range → return other.
+        ("a", "b"),
+        ("cpu", "cu124"),
+        ("cpu", "cpu1"),
+        # other lex-orders before min: out of range → empty.
+        ("b", "a"),
+        ("cu124", "cpu"),
+        # literal equal: handled by self.allows(other) on line 204 for
+        # inclusive; falls through to the special case for exclusive.
+        ("cpu", "cpu"),
+    ],
+)
+def test_intersect_with_two_local_versions(
+    min_local: str, other_local: str
+) -> None:
+    """Cross-local intersection: ``self.min`` and ``other`` both carry
+    local segments. ``==X+other`` matches only the literal point
+    ``X+other``, so the result is just the point if it falls in the
+    range and empty otherwise — never a broadened range."""
+    self_min = Version.parse(f"1.2.3+{min_local}")
+    other = Version.parse(f"1.2.3+{other_local}")
+    upper = Version.parse("2.0")
+
+    for include_min in (True, False):
+        rng = VersionRange(self_min, upper, include_min=include_min)
+        expected = other if rng.allows(other) else EmptyConstraint()
+        assert rng.intersect(other) == expected, (
+            f"include_min={include_min}: {rng} ∩ =={other} should be {expected}"
+        )
+
+
+def test_intersect_punctured_range_with_excluded_point_is_empty() -> None:
+    """A punctured ``VersionUnion`` (``>=A,!=V,<B``) intersected with
+    the excluded point ``V`` must be empty.
+    """
+    punctured = parse_constraint(">=0.21.0,!=0.21.0+cpu,<0.22.0")
+    excluded_point = parse_constraint("==0.21.0+cpu")
+    assert punctured.intersect(excluded_point).is_empty()
+    assert excluded_point.intersect(punctured).is_empty()
+
+
 def test_parsed_strict_max_excludes_dev_releases_of_stable() -> None:
     """PEP 440: ``<V`` for stable V MUST NOT allow pre-/dev-releases of V.
     The parser canonicalizes to ``<V.dev0`` so ``allows`` reports correctly."""
