@@ -747,22 +747,26 @@ def test_intersect_with_local_version_other_does_not_broaden_exclusive_min() -> 
         excluded_point, upper, include_min=False, include_max=False
     )
     assert isinstance(exclusive.intersect(excluded_point), EmptyConstraint)
+    assert isinstance(excluded_point.intersect(exclusive), EmptyConstraint)
 
     # Inclusive-lower case still returns the literally-equal point.
     inclusive = VersionRange(excluded_point, upper, include_min=True, include_max=False)
     assert inclusive.intersect(excluded_point) == excluded_point
+    assert excluded_point.intersect(inclusive) == excluded_point
 
     # Original motivating case (``>=X+local ∩ public X``) still broadens.
     public = Version.parse("0.21.0")
     range_ge_local = VersionRange(
         excluded_point, Version.parse("1.0"), include_min=True, include_max=False
     )
-    assert range_ge_local.intersect(public) == VersionRange(
+    broadened_range = VersionRange(
         excluded_point,
         public.next_patch(),
         include_min=True,
         include_max=False,
     )
+    assert range_ge_local.intersect(public) == broadened_range
+    assert public.intersect(range_ge_local) == broadened_range
 
 
 @pytest.mark.parametrize(
@@ -794,9 +798,8 @@ def test_intersect_with_two_local_versions(
 
     rng = VersionRange(self_min, upper, include_min=include_min)
     expected = other if rng.allows(other) else EmptyConstraint()
-    assert rng.intersect(other) == expected, (
-        f"include_min={include_min}: {rng} ∩ =={other} should be {expected}"
-    )
+    assert rng.intersect(other) == expected
+    assert other.intersect(rng) == expected
 
 
 def test_intersect_punctured_range_with_excluded_point_is_empty() -> None:
