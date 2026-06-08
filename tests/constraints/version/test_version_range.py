@@ -780,7 +780,10 @@ def test_intersect_with_local_version_other_does_not_broaden_exclusive_min() -> 
         ("cpu", "cpu"),
     ],
 )
-def test_intersect_with_two_local_versions(min_local: str, other_local: str) -> None:
+@pytest.mark.parametrize("include_min", [True, False])
+def test_intersect_with_two_local_versions(
+    min_local: str, other_local: str, include_min: bool
+) -> None:
     """Cross-local intersection: ``self.min`` and ``other`` both carry
     local segments. ``==X+other`` matches only the literal point
     ``X+other``, so the result is just the point if it falls in the
@@ -789,12 +792,11 @@ def test_intersect_with_two_local_versions(min_local: str, other_local: str) -> 
     other = Version.parse(f"1.2.3+{other_local}")
     upper = Version.parse("2.0")
 
-    for include_min in (True, False):
-        rng = VersionRange(self_min, upper, include_min=include_min)
-        expected = other if rng.allows(other) else EmptyConstraint()
-        assert rng.intersect(other) == expected, (
-            f"include_min={include_min}: {rng} ∩ =={other} should be {expected}"
-        )
+    rng = VersionRange(self_min, upper, include_min=include_min)
+    expected = other if rng.allows(other) else EmptyConstraint()
+    assert rng.intersect(other) == expected, (
+        f"include_min={include_min}: {rng} ∩ =={other} should be {expected}"
+    )
 
 
 def test_intersect_punctured_range_with_excluded_point_is_empty() -> None:
