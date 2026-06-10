@@ -215,6 +215,9 @@ class VersionRange(VersionRangeConstraint):
                 and not other.is_local()
                 and other.allows(self.min)
             ):
+                # Strictly speaking, next_patch() is not quite correct
+                # because you cannot specify the upper bound. It only
+                # works for versions with a precision of three or less.
                 upper = other.stable.next_patch()
                 return _range_or_empty(
                     min=self.min,
@@ -294,6 +297,9 @@ class VersionRange(VersionRangeConstraint):
                     and self._max.is_local()
                     and other.allows(self._max)
                 ):
+                    # Strictly speaking, next_patch() is not quite correct
+                    # because you cannot specify the upper bound. It only
+                    # works for versions with a precision of three or less.
                     new_max = other.stable.next_patch()
                     new_include_max = False
                     broadened = True

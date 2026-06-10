@@ -831,6 +831,30 @@ def test_union_upper_bound_local_with_public_extends_to_next_patch() -> None:
         include_max=False,
     )
     assert range_below.union(public) == expected
+    assert public.union(range_below) == expected
+
+
+def test_union_local_bounds_with_public_collapses_to_next_patch() -> None:
+    """``>=X+local1,<=X+local2 union ==X`` collapses to ``[X, X.next_patch())``.
+    Both bounds are local variants of the same public version ``X``.
+    Since ``==X`` matches all of them by PEP 440 release-equality, the
+    union must cover the entire public range up to ``X.next_patch()``.
+    """
+    range_locals = VersionRange(
+        Version.parse("0.21.0+cpu"),
+        Version.parse("0.21.0+gpu"),
+        include_min=True,
+        include_max=True,
+    )
+    public = Version.parse("0.21.0")
+    expected = VersionRange(
+        Version.parse("0.21.0"),
+        Version.parse("0.21.1"),
+        include_min=True,
+        include_max=False,
+    )
+    assert range_locals.union(public) == expected
+    assert public.union(range_locals) == expected
 
 
 def test_union_lower_bound_local_with_public_extends_to_public() -> None:
@@ -852,50 +876,7 @@ def test_union_lower_bound_local_with_public_extends_to_public() -> None:
         include_max=False,
     )
     assert range_above.union(public) == expected
-
-
-@pytest.mark.parametrize(
-    (
-        "min",
-        "include_min",
-        "max",
-        "include_max",
-        "expected_min",
-        "expected_max",
-    ),
-    [
-        # Upper bound is a local of the public version.
-        ("0.21.0", True, "0.21.0+cpu", False, "0.21.0", "0.21.1"),
-        # Lower bound is a local of the public version.
-        ("0.21.0+cpu", False, "0.22.0", False, "0.21.0", "0.22.0"),
-    ],
-)
-def test_union_with_public_version_is_symmetric(
-    min: str,
-    include_min: bool,
-    max: str,
-    include_max: bool,
-    expected_min: str,
-    expected_max: str,
-) -> None:
-    """``range union ==X`` and ``==X union range`` produce the same result.
-    The broadening must apply regardless of operand order.
-    """
-    rng = VersionRange(
-        Version.parse(min),
-        Version.parse(max),
-        include_min=include_min,
-        include_max=include_max,
-    )
-    public = Version.parse("0.21.0")
-    expected = VersionRange(
-        Version.parse(expected_min),
-        Version.parse(expected_max),
-        include_min=True,
-        include_max=False,
-    )
-    assert rng.union(public) == expected
-    assert public.union(rng) == expected
+    assert public.union(range_above) == expected
 
 
 def test_union_punctured_versionunion_with_public_collapses_puncture() -> None:
