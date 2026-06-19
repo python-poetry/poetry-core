@@ -39,6 +39,7 @@ def parse_constraint(constraints: str) -> VersionConstraint:
     return _parse_constraint(constraints=constraints)
 
 
+@functools.cache
 def parse_marker_version_constraint(
     constraints: str, *, pep440: bool = True
 ) -> VersionConstraint:
