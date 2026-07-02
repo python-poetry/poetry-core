@@ -518,6 +518,25 @@ def test_difference() -> None:
     )
 
 
+def test_difference_local_version() -> None:
+    """The difference of a non-local version and one of its local variants
+    must not allow the subtracted local variant.
+
+    Regression test for https://github.com/python-poetry/poetry/issues/10965
+    (the solver looped forever because the difference made no progress).
+    """
+    public = Version.parse("2.12.1")
+    local = Version.parse("2.12.1+cpu")
+
+    difference = public.difference(local)
+
+    assert not difference.allows(local)
+    assert difference.allows(public)
+    # The reverse direction is unchanged: a non-local version constraint
+    # subsumes its local variants entirely.
+    assert local.difference(public).is_empty()
+
+
 @pytest.mark.parametrize(
     "version,normalized_version",
     [

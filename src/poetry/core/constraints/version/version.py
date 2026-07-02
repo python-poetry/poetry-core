@@ -121,9 +121,22 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return VersionUnion.of(self, other)
 
-    def difference(self, other: VersionConstraint) -> Version | EmptyConstraint:
+    def difference(self, other: VersionConstraint) -> VersionConstraint:
         if other.allows(self):
             return EmptyConstraint()
+
+        if isinstance(other, Version) and self.allows(other):
+            # `self` is a non-local version and `other` a local variant of it,
+            # e.g. `2.12.1`.difference(`2.12.1+cpu`). The result must not
+            # allow `other`, which a plain `Version` cannot express, so
+            # delegate to the equivalent single-point range whose difference
+            # arithmetic can represent the split.
+            # See https://github.com/python-poetry/poetry/issues/10965.
+            from poetry.core.constraints.version.version_range import VersionRange
+
+            return VersionRange(
+                self, self, include_min=True, include_max=True
+            ).difference(other)
 
         return self
 
