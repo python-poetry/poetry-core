@@ -73,6 +73,7 @@ EMPTY = "<empty>"
         '"tegra" not in platform_release',
         '"tegra" in platform_release or "rpi-v8" in platform_release',
         '"tegra" not in platform_release and "rpi-v8" not in platform_release',
+        'platform_release != "1" and "a" not in platform_release',
         # extra starting with "in"
         'extra == "in1" or extra == "in2"',
         'extra == "in1" and extra == "in2"',

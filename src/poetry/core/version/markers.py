@@ -1286,6 +1286,11 @@ def _merge_single_markers(
     if marker1.name != marker2.name:
         return None
 
+    if isinstance(marker1.constraint, VersionConstraint) != isinstance(
+        marker2.constraint, VersionConstraint
+    ):
+        return None
+
     if merge_class == MultiMarker:
         merge_method = marker1.constraint.intersect
     else:
