@@ -1466,6 +1466,10 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_release": "4.9.253"},
             True,
         ),
+        # both terms must be kept, not just the "not in" one
+        ("os_name != 'a' and 'b' not in os_name", {"os_name": "a"}, False),
+        ("os_name != 'a' and 'b' not in os_name", {"os_name": "ab"}, False),
+        ("os_name != 'a' and 'b' not in os_name", {"os_name": "c"}, True),
         (
             "platform_release >= '6.6.0+rpt-rpi-v8'",
             {"platform_release": "6.6.20+rpt-rpi-v8"},

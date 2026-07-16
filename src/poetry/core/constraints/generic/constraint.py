@@ -89,10 +89,8 @@ class Constraint(BaseConstraint):
                 return self.value in other.value
 
             if other.operator == "not in":
-                if self._operator == "not in":
+                if self._operator in ("not in", "!="):
                     return other.value in self.value
-                if self._operator == "!=":
-                    return self.value not in other.value
 
             return self == other
 
