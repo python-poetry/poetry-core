@@ -1495,6 +1495,17 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_release": "2a"},
             False,
         ),
+        # Same crash, but through the MarkerUnion (`or`) merge path.
+        (
+            'platform_release != "1" or "1" not in platform_release',
+            {"platform_release": "1"},
+            False,
+        ),
+        (
+            'platform_release != "1" or "1" not in platform_release',
+            {"platform_release": "2"},
+            True,
+        ),
         # extras
         # single extra
         ("extra == 'security'", {"extra": "quux"}, False),
