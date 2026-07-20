@@ -1476,6 +1476,25 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_release": "4.9.254-tegra"},
             True,
         ),
+        # Mixing the plain (`!=`) and swapped (`not in`) forms of a
+        # platform_release marker used to raise AttributeError while merging
+        # markers, because the two forms parse to incompatible constraint
+        # types (VersionConstraint vs. generic Constraint).
+        (
+            'platform_release != "1" and "a" not in platform_release',
+            {"platform_release": "1"},
+            False,
+        ),
+        (
+            'platform_release != "1" and "a" not in platform_release',
+            {"platform_release": "2"},
+            True,
+        ),
+        (
+            'platform_release != "1" and "a" not in platform_release',
+            {"platform_release": "2a"},
+            False,
+        ),
         # extras
         # single extra
         ("extra == 'security'", {"extra": "quux"}, False),

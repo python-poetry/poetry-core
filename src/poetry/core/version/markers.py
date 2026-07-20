@@ -1286,6 +1286,16 @@ def _merge_single_markers(
     if marker1.name != marker2.name:
         return None
 
+    if isinstance(marker1.constraint, VersionConstraint) != isinstance(
+        marker2.constraint, VersionConstraint
+    ):
+        # Same marker name, but the constraints come from incompatible parses:
+        # e.g. `platform_release != "1"` produces a VersionConstraint, while
+        # the swapped form `"a" not in platform_release` produces a generic
+        # Constraint. They can't be intersected/unioned together, so leave
+        # them as separate ANDed/ORed markers instead of crashing below.
+        return None
+
     if merge_class == MultiMarker:
         merge_method = marker1.constraint.intersect
     else:
