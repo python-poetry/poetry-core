@@ -532,9 +532,24 @@ def test_difference_local_version() -> None:
 
     assert not difference.allows(local)
     assert difference.allows(public)
+    assert difference.allows(Version.parse("2.12.1+aaa"))
+    assert difference.allows(Version.parse("2.12.1+zzz"))
+    assert not difference.allows(Version.parse("2.12.1.post0"))
     # The reverse direction is unchanged: a non-local version constraint
     # subsumes its local variants entirely.
     assert local.difference(public).is_empty()
+
+
+def test_difference_local_dev_version() -> None:
+    public = Version.parse("2.12.1.dev1")
+    local = Version.parse("2.12.1.dev1+cpu")
+
+    difference = public.difference(local)
+
+    assert not difference.allows(local)
+    assert difference.allows(public)
+    assert difference.allows(Version.parse("2.12.1.dev1+zzz"))
+    assert not difference.allows(Version.parse("2.12.1.dev2"))
 
 
 @pytest.mark.parametrize(

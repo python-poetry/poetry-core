@@ -126,17 +126,18 @@ class Version(PEP440Version, VersionRangeConstraint):
             return EmptyConstraint()
 
         if isinstance(other, Version) and self.allows(other):
-            # `self` is a non-local version and `other` a local variant of it,
-            # e.g. `2.12.1`.difference(`2.12.1+cpu`). The result must not
-            # allow `other`, which a plain `Version` cannot express, so
-            # delegate to the equivalent single-point range whose difference
-            # arithmetic can represent the split.
-            # See https://github.com/python-poetry/poetry/issues/10965.
+            # A public version constraint also allows all of its local
+            # variants. Represent that set as a half-open range before
+            # removing the one local variant. Using ``self`` as both bounds
+            # would discard local variants ordered after ``other``.
             from poetry.core.constraints.version.version_range import VersionRange
 
-            return VersionRange(
-                self, self, include_min=True, include_max=True
-            ).difference(other)
+            upper = (
+                self.next_devrelease()
+                if self.is_devrelease()
+                else self.next_postrelease()
+            )
+            return VersionRange(self, upper, include_min=True).difference(other)
 
         return self
 
