@@ -552,6 +552,25 @@ def test_difference_local_dev_version() -> None:
     assert not difference.allows(Version.parse("2.12.1.dev2"))
 
 
+def test_difference_constraint_excluding_only_some_local_variants() -> None:
+    """A public version constraint is only fully removed by a constraint that
+    also covers its local variants.
+
+    ``>=2.12.1,!=2.12.1+cpu,<2.12.1.post0`` allows ``2.12.1`` but not
+    ``2.12.1+cpu``, so subtracting it from ``==2.12.1`` has to leave that
+    variant behind rather than yield the empty constraint.
+    """
+    public = Version.parse("2.12.1")
+    local = Version.parse("2.12.1+cpu")
+    without_local = public.difference(local)
+
+    difference = public.difference(without_local)
+
+    assert not difference.is_empty()
+    assert difference.allows(local)
+    assert not difference.allows(public)
+
+
 @pytest.mark.parametrize(
     "version,normalized_version",
     [
