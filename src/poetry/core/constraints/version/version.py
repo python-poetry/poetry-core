@@ -121,9 +121,23 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return VersionUnion.of(self, other)
 
-    def difference(self, other: VersionConstraint) -> Version | EmptyConstraint:
+    def difference(self, other: VersionConstraint) -> VersionConstraint:
         if other.allows(self):
             return EmptyConstraint()
+
+        if isinstance(other, Version) and self.allows(other):
+            # A public version constraint also allows all of its local
+            # variants. Represent that set as a half-open range before
+            # removing the one local variant. Using ``self`` as both bounds
+            # would discard local variants ordered after ``other``.
+            from poetry.core.constraints.version.version_range import VersionRange
+
+            upper = (
+                self.next_devrelease()
+                if self.is_devrelease()
+                else self.next_postrelease()
+            )
+            return VersionRange(self, upper, include_min=True).difference(other)
 
         return self
 
