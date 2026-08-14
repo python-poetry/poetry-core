@@ -1289,6 +1289,9 @@ def _merge_single_markers(
     if isinstance(marker1.constraint, VersionConstraint) != isinstance(
         marker2.constraint, VersionConstraint
     ):
+        # `platform_release` can be a VersionConstraint (e.g. `platform_release != "1"`)
+        # or a (generic) Constraint (e.g. `"a" not in platform_release`),
+        # which cannot be merged.
         return None
 
     if merge_class == MultiMarker:
