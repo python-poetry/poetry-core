@@ -233,8 +233,9 @@
     "plugins": {
       "type": "object",
       "description": "A hash of hashes representing plugins",
+      "additionalProperties": false,
       "patternProperties": {
-        "^[a-zA-Z-_.0-9]+$": {
+        "^\\w+(\\.\\w+)*$": {
           "type": "object",
           "patternProperties": {
             "^[a-zA-Z-_.0-9]+$": {

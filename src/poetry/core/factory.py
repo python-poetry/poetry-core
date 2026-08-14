@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from collections import defaultdict
 from collections.abc import Mapping
@@ -32,6 +33,18 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+# https://packaging.python.org/en/latest/specifications/entry-points/#data-model
+_ENTRY_POINT_GROUP_RE = re.compile(r"^\w+(\.\w+)*$")
+
+
+def _entry_point_group_error(group_name: str, source: str | None = None) -> str:
+    where = f" in [{source}]" if source else ""
+    return (
+        f"Invalid entry-point group name {group_name!r}{where}. "
+        "Group names must be valid identifiers with dots as separators "
+        "(https://packaging.python.org/en/latest/specifications/entry-points/#data-model)."
+    )
 
 
 class Factory:
@@ -354,9 +367,13 @@ class Factory:
                         f"Group '{group_name}' is reserved and cannot be used"
                         " as a custom entry-point group."
                     )
+                if not _ENTRY_POINT_GROUP_RE.fullmatch(group_name):
+                    raise ValueError(_entry_point_group_error(group_name))
                 entry_points[group_name] = scripts
         elif other_scripts := tool_poetry.get("plugins"):
             for group_name, scripts in sorted(other_scripts.items()):
+                if not _ENTRY_POINT_GROUP_RE.fullmatch(group_name):
+                    raise ValueError(_entry_point_group_error(group_name))
                 entry_points[group_name] = scripts
 
         package.entry_points = dict(entry_points)
@@ -766,6 +783,18 @@ class Factory:
             )
 
         cls._validate_dependency_groups(toml_data, result)
+
+        for source, groups in (
+            ("project.entry-points", (project or {}).get("entry-points")),
+            ("tool.poetry.plugins", config.get("plugins")),
+        ):
+            if not groups:
+                continue
+            for group_name in groups:
+                if not _ENTRY_POINT_GROUP_RE.fullmatch(group_name):
+                    result["errors"].append(
+                        _entry_point_group_error(group_name, source)
+                    )
 
         if strict:
             # Validate [project] section

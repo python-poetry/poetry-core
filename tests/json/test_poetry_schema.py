@@ -100,3 +100,18 @@ def test_bad_extra(base_object: dict[str, Any]) -> None:
     errors = validate_object(base_object, "poetry-schema")
     assert len(errors) == 1
     assert errors[0] == "data.extras.test[0] must match pattern ^[a-zA-Z-_.0-9]+$"
+
+
+def test_plugins_reject_hyphenated_group_name(base_object: dict[str, Any]) -> None:
+    base_object["plugins"] = {"epot-test.test": {"abc": "pkg:Cls"}}
+
+    errors = validate_object(base_object, "poetry-schema")
+
+    assert errors
+    assert any("epot-test.test" in error for error in errors)
+
+
+def test_plugins_accept_dotted_group_name(base_object: dict[str, Any]) -> None:
+    base_object["plugins"] = {"poetry.application.plugin": {"my-command": "pkg:Cls"}}
+
+    assert validate_object(base_object, "poetry-schema") == []

@@ -2106,3 +2106,47 @@ The Poetry configuration is invalid:
         error_type=RuntimeError,
         temporary_directory=temporary_directory,
     )
+
+
+@pytest.mark.parametrize(
+    "section",
+    [
+        '[tool.poetry.plugins."epot-test.test"]\n"abc" = "pkg:Cls"\n',
+        '[project.entry-points."epot-test.test"]\n"abc" = "pkg:Cls"\n',
+    ],
+)
+def test_create_poetry_rejects_invalid_entry_point_group(
+    section: str, temporary_directory: Path
+) -> None:
+    (temporary_directory / "pyproject.toml").write_text(
+        f"""\
+[project]
+name = "my-package"
+version = "1.2.3"
+
+{section}
+"""
+    )
+
+    with pytest.raises(RuntimeError, match="Invalid entry-point group name") as error:
+        Factory().create_poetry(temporary_directory)
+
+    assert "epot-test.test" in str(error.value)
+
+
+def test_validate_invalid_plugin_group_name() -> None:
+    result = Factory.validate(
+        {
+            "project": {"name": "my-package", "version": "1.2.3"},
+            "tool": {
+                "poetry": {
+                    "plugins": {"epot-test.test": {"abc": "pkg:Cls"}},
+                }
+            },
+        }
+    )
+
+    assert any(
+        "Invalid entry-point group name" in message and "epot-test.test" in message
+        for message in result["errors"]
+    )
