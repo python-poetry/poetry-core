@@ -46,8 +46,8 @@ def _parse_constraint(
 
     or_constraints = re.split(r"\s*\|\|?\s*", constraints.strip())
     or_groups = []
-    for constraints in or_constraints:
-        and_constraints = re.split(r"\s*,\s*", constraints)
+    for or_constraint in or_constraints:
+        and_constraints = re.split(r"\s*,\s*", or_constraint)
         constraint_objects = []
 
         if len(and_constraints) > 1:

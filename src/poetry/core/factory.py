@@ -938,7 +938,7 @@ class Factory:
         # scripts are special because entry-points are deprecated
         # but files are not because there is no equivalent in [project]
         if scripts := tool_poetry.get("scripts"):
-            for __, script in scripts.items():
+            for script in scripts.values():
                 if not isinstance(script, dict) or script.get("type") != "file":
                     if "scripts" in project:
                         warning = (
@@ -1080,7 +1080,6 @@ class Factory:
             if poetry_file.exists():
                 return poetry_file
 
-        else:
-            raise RuntimeError(
-                f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
-            )
+        raise RuntimeError(
+            f"Poetry could not find a pyproject.toml file in {cwd} or its parents"
+        )

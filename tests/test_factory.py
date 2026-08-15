@@ -1046,8 +1046,10 @@ def test_strict_validation_fails_on_readme_files_with_unmatching_types() -> None
 
     assert Factory.validate(content, strict=True) == {
         "errors": [
-            "Declared README files must be of same type: found text/markdown,"
-            " text/x-rst"
+            (
+                "Declared README files must be of same type:"
+                " found text/markdown, text/x-rst"
+            )
         ],
         "warnings": [],
     }
