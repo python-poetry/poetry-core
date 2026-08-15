@@ -86,7 +86,7 @@ class VersionUnion(VersionConstraint):
         # filtered out above.
         for constraint in flattened:
             if not isinstance(constraint, VersionRangeConstraint):
-                raise ValueError(f"Unknown VersionConstraint type {constraint}.")
+                raise TypeError(f"Unknown VersionConstraint type {constraint}.")
 
         flattened.sort()  # type: ignore[call-arg]
 

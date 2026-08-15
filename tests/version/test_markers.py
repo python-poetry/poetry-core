@@ -1568,7 +1568,6 @@ def test_validate(
         ("python_version >= '3.8'", {"python_version": "3.10"}, ""),
         ("python_version >= '3.8'", {"python_version": "3.7"}, EMPTY),
         # SingleMarker with name not in env is returned unchanged.
-        ("os_name == 'foo'", {}, "os_name == 'foo'"),
         ("os_name == 'foo'", {"sys_platform": "linux"}, "os_name == 'foo'"),
         # MultiMarker: only one name in env -> residual is the other branch.
         (

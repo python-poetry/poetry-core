@@ -196,7 +196,7 @@ def test_package_equality_source_type() -> None:
     a3 = Package(a1.name, a1.version, source_type=a1.source_type)
     a4 = Package(a1.name, a1.version)
 
-    assert a1 == a1
+    assert a1 == a1  # noqa: PLR0124
     assert a1 == a3
     assert a1 != a2
     assert a2 != a3
@@ -214,7 +214,7 @@ def test_package_equality_source_url() -> None:
     )
     a4 = Package(a1.name, a1.version, source_type=a1.source_type)
 
-    assert a1 == a1
+    assert a1 == a1  # noqa: PLR0124
     assert a1 == a3
     assert a1 != a2
     assert a2 != a3
@@ -246,7 +246,7 @@ def test_package_equality_source_reference() -> None:
     )
     a4 = Package(a1.name, a1.version, source_type="git")
 
-    assert a1 == a1
+    assert a1 == a1  # noqa: PLR0124
     assert a1 == a3
     assert a1 != a2
     assert a2 != a3
@@ -289,7 +289,7 @@ def test_package_resolved_reference_is_relevant_for_equality_only_if_present_for
         source_reference="master",
     )
 
-    assert a1 == a1
+    assert a1 == a1  # noqa: PLR0124
     assert a1 == a3
     assert a1 != a2
     assert a2 != a3

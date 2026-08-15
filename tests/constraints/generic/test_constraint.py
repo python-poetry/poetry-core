@@ -1588,11 +1588,6 @@ def test_union(
         ),
         (
             ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
-            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
-            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
-        ),
-        (
-            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
             ExtraMultiConstraint(
                 ExtraConstraint("extra1"),
                 ExtraConstraint("extra2"),

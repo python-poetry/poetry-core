@@ -248,7 +248,7 @@ class VersionRange(VersionRangeConstraint):
             return EmptyConstraint()
 
         if not isinstance(other, VersionRangeConstraint):
-            raise ValueError(f"Unknown VersionConstraint type {other}.")
+            raise TypeError(f"Unknown VersionConstraint type {other}.")
 
         if self.allows_lower(other):
             if self.is_strictly_lower(other):
