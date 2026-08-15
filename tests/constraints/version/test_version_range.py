@@ -668,7 +668,7 @@ def test_is_single_wildcard_range_include_min_include_max(
         ("1.2.dev0", "1.3.dev0", True),
         ("1.dev0", "2", True),
         ("1.2.3.4.5.dev0", "1.2.3.4.6", True),
-        # simple non wilcard ranges
+        # simple non wildcard ranges
         (None, "1.3", False),
         ("1.2.dev0", None, False),
         (None, None, False),
