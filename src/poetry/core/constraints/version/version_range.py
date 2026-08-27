@@ -156,7 +156,26 @@ class VersionRange(VersionRangeConstraint):
             return True
 
         if isinstance(other, Version):
-            return self.allows(other)
+            if not self.allows(other):
+                return False
+
+            if other.is_local():
+                # `==1.2.3+local` allows nothing but that very version.
+                return True
+
+            # A public version constraint also allows every local variant of
+            # the version, so allowing `1.2.3` is not enough: `1.2.3+local`
+            # has to be allowed, too. A bound that is itself a local variant
+            # of `other` splits that band and leaves some of them out.
+            #
+            # Only the upper bound can be one: a local variant sorts above the
+            # version it belongs to, so a range with such a lower bound does
+            # not allow `other` in the first place and has returned already.
+            return not (
+                self._max is not None
+                and self._max.is_local()
+                and self._max.without_local() == other
+            )
 
         if isinstance(other, VersionUnion):
             return all(self.allows_all(constraint) for constraint in other.ranges)
@@ -229,7 +248,7 @@ class VersionRange(VersionRangeConstraint):
             return EmptyConstraint()
 
         if not isinstance(other, VersionRangeConstraint):
-            raise ValueError(f"Unknown VersionConstraint type {other}.")
+            raise TypeError(f"Unknown VersionConstraint type {other}.")
 
         if self.allows_lower(other):
             if self.is_strictly_lower(other):

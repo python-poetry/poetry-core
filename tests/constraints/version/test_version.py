@@ -518,6 +518,59 @@ def test_difference() -> None:
     )
 
 
+def test_difference_local_version() -> None:
+    """The difference of a non-local version and one of its local variants
+    must not allow the subtracted local variant.
+
+    Regression test for https://github.com/python-poetry/poetry/issues/10965
+    (the solver looped forever because the difference made no progress).
+    """
+    public = Version.parse("2.12.1")
+    local = Version.parse("2.12.1+cpu")
+
+    difference = public.difference(local)
+
+    assert not difference.allows(local)
+    assert difference.allows(public)
+    assert difference.allows(Version.parse("2.12.1+aaa"))
+    assert difference.allows(Version.parse("2.12.1+zzz"))
+    assert not difference.allows(Version.parse("2.12.1.post0"))
+    # The reverse direction is unchanged: a non-local version constraint
+    # subsumes its local variants entirely.
+    assert local.difference(public).is_empty()
+
+
+def test_difference_local_dev_version() -> None:
+    public = Version.parse("2.12.1.dev1")
+    local = Version.parse("2.12.1.dev1+cpu")
+
+    difference = public.difference(local)
+
+    assert not difference.allows(local)
+    assert difference.allows(public)
+    assert difference.allows(Version.parse("2.12.1.dev1+zzz"))
+    assert not difference.allows(Version.parse("2.12.1.dev2"))
+
+
+def test_difference_constraint_excluding_only_some_local_variants() -> None:
+    """A public version constraint is only fully removed by a constraint that
+    also covers its local variants.
+
+    ``>=2.12.1,!=2.12.1+cpu,<2.12.1.post0`` allows ``2.12.1`` but not
+    ``2.12.1+cpu``, so subtracting it from ``==2.12.1`` has to leave that
+    variant behind rather than yield the empty constraint.
+    """
+    public = Version.parse("2.12.1")
+    local = Version.parse("2.12.1+cpu")
+    without_local = public.difference(local)
+
+    difference = public.difference(without_local)
+
+    assert not difference.is_empty()
+    assert difference.allows(local)
+    assert not difference.allows(public)
+
+
 @pytest.mark.parametrize(
     "version,normalized_version",
     [

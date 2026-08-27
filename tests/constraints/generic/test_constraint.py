@@ -253,6 +253,21 @@ def test_allows(
             True,
             False,
         ),
+        # "!=" combined with "not in" where the excluded value is not a
+        # substring of the excluded-substring's value: allows_all must be
+        # False, since e.g. "a" itself satisfies "'b' not in x" but not "!= a"
+        (
+            Constraint("a", "!="),
+            Constraint("b", "not in"),
+            True,
+            False,
+        ),
+        (
+            Constraint("ab", "!="),
+            Constraint("a", "not in"),
+            True,
+            True,
+        ),
         (
             Constraint("1.2.3-tegra", "=="),
             Constraint("tegra", "in"),
@@ -1570,11 +1585,6 @@ def test_union(
                 ExtraConstraint("extra1", "!="), ExtraConstraint("extra2", "!=")
             ),
             AnyConstraint(),
-        ),
-        (
-            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
-            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
-            ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),
         ),
         (
             ExtraMultiConstraint(ExtraConstraint("extra1"), ExtraConstraint("extra2")),

@@ -250,8 +250,8 @@ print(sysconfig.get_platform(), sys.implementation.cache_tag, sep='-')
                 )
             plat_specifier = output.strip()
         else:
-            plat_specifier = "-".join(
-                (sysconfig.get_platform(), sys.implementation.cache_tag)
+            plat_specifier = (
+                f"{sysconfig.get_platform()}-{sys.implementation.cache_tag}"
             )
         return self._path / "build" / f"lib.{plat_specifier}"
 
@@ -541,8 +541,9 @@ for t in packaging_tags.sys_tags():
 
         for group_name in sorted(entry_points):
             fp.write(f"[{group_name}]\n")
-            for ep in sorted(entry_points[group_name]):
-                fp.write(ep.replace(" ", "") + "\n")
+            fp.writelines(
+                ep.replace(" ", "") + "\n" for ep in sorted(entry_points[group_name])
+            )
 
             fp.write("\n")
 

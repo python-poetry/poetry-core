@@ -166,6 +166,54 @@ def test_allows_all(
     assert not range.allows_all(v300)
 
 
+def test_allows_all_public_version_includes_its_local_variants() -> None:
+    """A public version constraint denotes the release *and* all of its local
+    variants, so a range that excludes one of those variants does not allow
+    all of it.
+    """
+    public = Version.parse("2.12.1")
+    local = Version.parse("2.12.1+cpu")
+    local_a = Version.parse("2.12.1+aaa")
+    local_z = Version.parse("2.12.1+zzz")
+
+    # `<2.12.1+cpu` allows 2.12.1 but leaves out the local variants from
+    # +cpu onwards.
+    assert VersionRange(max=local).allows(public)
+    assert not VersionRange(max=local).allows_all(public)
+    assert VersionRange(max=local).allows_all(local_a)
+    assert not VersionRange(max=local).allows_all(local)
+    assert not VersionRange(max=local).allows_all(local_z)
+
+    # similar for `<=2.12.1+cpu`
+    assert VersionRange(max=local, include_max=True).allows(public)
+    assert not VersionRange(max=local, include_max=True).allows_all(public)
+    assert VersionRange(max=local, include_max=True).allows_all(local_a)
+    assert VersionRange(max=local, include_max=True).allows_all(local)
+    assert not VersionRange(max=local, include_max=True).allows_all(local_z)
+
+    # `>2.12.1+cpu` does not allow 2.12.1 but allows the local variants from
+    # +cpu onwards.
+    assert not VersionRange(min=local).allows(public)
+    assert not VersionRange(min=local).allows_all(public)
+    assert not VersionRange(min=local).allows_all(local_a)
+    assert not VersionRange(min=local).allows_all(local)
+    assert VersionRange(min=local).allows_all(local_z)
+
+    # similar for `>=2.12.1+cpu`
+    assert not VersionRange(min=local, include_min=True).allows(public)
+    assert not VersionRange(min=local, include_min=True).allows_all(public)
+    assert not VersionRange(min=local, include_min=True).allows_all(local_a)
+    assert VersionRange(min=local, include_min=True).allows_all(local)
+    assert VersionRange(min=local, include_min=True).allows_all(local_z)
+
+    # Bounds that are not local variants of the version cover the whole band.
+    assert VersionRange(
+        public, Version.parse("2.12.2+cpu"), include_min=True
+    ).allows_all(public)
+    assert VersionRange(min=public, include_min=True).allows_all(public)
+    assert VersionRange(max=public, include_max=True).allows_all(public)
+
+
 def test_allows_all_with_no_min(
     v080: Version, v140: Version, v250: Version, v300: Version
 ) -> None:
@@ -620,7 +668,7 @@ def test_is_single_wildcard_range_include_min_include_max(
         ("1.2.dev0", "1.3.dev0", True),
         ("1.dev0", "2", True),
         ("1.2.3.4.5.dev0", "1.2.3.4.6", True),
-        # simple non wilcard ranges
+        # simple non wildcard ranges
         (None, "1.3", False),
         ("1.2.dev0", None, False),
         (None, None, False),

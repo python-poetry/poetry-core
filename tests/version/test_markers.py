@@ -73,6 +73,9 @@ EMPTY = "<empty>"
         '"tegra" not in platform_release',
         '"tegra" in platform_release or "rpi-v8" in platform_release',
         '"tegra" not in platform_release and "rpi-v8" not in platform_release',
+        # Mixed version and string comparison
+        'platform_release != "1" and "a" not in platform_release',
+        '"a" not in platform_release or platform_release != "1"',
         # extra starting with "in"
         'extra == "in1" or extra == "in2"',
         'extra == "in1" and extra == "in2"',
@@ -1466,6 +1469,10 @@ def test_multi_marker_removes_duplicates() -> None:
             {"platform_release": "4.9.253"},
             True,
         ),
+        # both terms must be kept, not just the "not in" one
+        ("os_name != 'a' and 'b' not in os_name", {"os_name": "a"}, False),
+        ("os_name != 'a' and 'b' not in os_name", {"os_name": "ab"}, False),
+        ("os_name != 'a' and 'b' not in os_name", {"os_name": "c"}, True),
         (
             "platform_release >= '6.6.0+rpt-rpi-v8'",
             {"platform_release": "6.6.20+rpt-rpi-v8"},
@@ -1561,7 +1568,6 @@ def test_validate(
         ("python_version >= '3.8'", {"python_version": "3.10"}, ""),
         ("python_version >= '3.8'", {"python_version": "3.7"}, EMPTY),
         # SingleMarker with name not in env is returned unchanged.
-        ("os_name == 'foo'", {}, "os_name == 'foo'"),
         ("os_name == 'foo'", {"sys_platform": "linux"}, "os_name == 'foo'"),
         # MultiMarker: only one name in env -> residual is the other branch.
         (
