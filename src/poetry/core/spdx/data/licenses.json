@@ -539,6 +539,11 @@
     false,
     false
   ],
+  "Bugroff": [
+    "Bugroff License",
+    false,
+    false
+  ],
   "C-UDA-1.0": [
     "Computational Use of Data Agreement v1.0",
     false,
@@ -646,6 +651,11 @@
   ],
   "CC-BY-NC-3.0-DE": [
     "Creative Commons Attribution Non Commercial 3.0 Germany",
+    false,
+    false
+  ],
+  "CC-BY-NC-3.0-IGO": [
+    "Creative Commons Attribution Non Commercial 3.0 IGO",
     false,
     false
   ],
@@ -1761,6 +1771,11 @@
   ],
   "Info-ZIP": [
     "Info-ZIP License",
+    false,
+    false
+  ],
+  "Informatica": [
+    "Informatica License",
     false,
     false
   ],
@@ -3341,6 +3356,11 @@
   ],
   "any-OSI-perl-modules": [
     "Any OSI License - Perl Modules",
+    false,
+    false
+  ],
+  "atc-game": [
+    "atc Game License",
     false,
     false
   ],
