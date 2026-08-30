@@ -767,13 +767,13 @@ class Factory:
 
         cls._validate_dependency_groups(toml_data, result)
 
+        # Validate relation between [project] and [tool.poetry]
+        cls._validate_legacy_vs_project(toml_data, result)
+
         if strict:
             # Validate [project] section
             if project:
                 cls._validate_project(project, result)
-
-            # Validate relation between [project] and [tool.poetry]
-            cls._validate_legacy_vs_project(toml_data, result)
 
             cls._validate_strict(config, result)
 
