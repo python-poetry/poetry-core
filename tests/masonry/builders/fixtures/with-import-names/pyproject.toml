@@ -1,0 +1,20 @@
+[project]
+name = "with-import-names"
+version = "1.2.3"
+description = "Some description."
+requires-python = ">=3.6,<4.0"
+authors = [
+    { "name" = "Sébastien Eustace", "email" = "sebastien@eustace.io" }
+]
+license = "MIT"
+
+keywords = ["packaging", "dependency", "poetry"]
+dependencies = []
+
+import-namespaces = ["my_package", "another_package"]
+import-names = ["my_package.a", "another_package.b"]
+
+[tool.poetry]
+packages = [
+    { include = "my_package" },
+]

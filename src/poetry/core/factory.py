@@ -320,6 +320,83 @@ class Factory:
             )
             package.readmes = tuple(root / r for r in custom_readmes if r)
 
+        package.import_names = project.get("import-names")
+        package.import_namespaces = project.get("import-namespaces")
+
+    @classmethod
+    def _validate_import_names(
+        cls, project: dict[str, Any], result: dict[str, list[str]]
+    ) -> None:
+        if "import-namespaces" in project and len(project["import-namespaces"]) == 0:
+            result["errors"].append("import-namespaces must not be an empty array.")
+
+        import_names = {
+            name.split(";")[0].strip() for name in project.get("import-names", [])
+        }
+        import_namespaces = {
+            name.split(";")[0].strip() for name in project.get("import-namespaces", [])
+        }
+
+        if duplicates := import_names & import_namespaces:
+            result["errors"].append(
+                f"Import names found in both import-names and import-namespaces: {', '.join(duplicates)}"
+            )
+
+        cls._validate_shortest_import_names(
+            import_names=import_names,
+            import_namespaces=import_namespaces,
+            result=result,
+        )
+
+    @classmethod
+    def _validate_shortest_import_names(
+        cls,
+        import_names: set[str],
+        import_namespaces: set[str],
+        result: dict[str, list[str]],
+    ) -> None:
+        """
+        Ensure import names and namespaces include their parent packages.
+
+        For entries in `import-names`, any parent package may be listed in
+        either `import-names` or `import-namespaces`. For entries in
+        `import-namespaces`, any parent package must be listed in
+        `import-namespaces` only.
+        """
+        for import_name in import_names:
+            if "." in import_name:
+                parent: str | None = import_name.rsplit(".", maxsplit=1)[0]
+
+                while parent:
+                    if parent not in import_names and parent not in import_namespaces:
+                        base = parent.split(".", maxsplit=1)[0]
+                        result["warnings"].append(
+                            f"Import name '{import_name}' should have all its parents up to '{base}'"
+                            f" included in import-names or import-namespaces."
+                        )
+                        break
+
+                    parent = (
+                        parent.rsplit(".", maxsplit=1)[0] if "." in parent else None
+                    )
+
+        for import_namespace in import_namespaces:
+            if "." in import_namespace:
+                parent = import_namespace.rsplit(".", maxsplit=1)[0]
+
+                while parent:
+                    if parent not in import_namespaces:
+                        base = parent.split(".", maxsplit=1)[0]
+                        result["warnings"].append(
+                            f"Import namespace '{import_namespace}' should have all its parents up to '{base}'"
+                            f" included in import-namespaces."
+                        )
+                        break
+
+                    parent = (
+                        parent.rsplit(".", maxsplit=1)[0] if "." in parent else None
+                    )
+
     @classmethod
     def _configure_entry_points(
         cls,
@@ -727,6 +804,8 @@ class Factory:
                 for e in validate_object(project, "project-schema")
             ]
             result["errors"] += project_validation_errors
+            cls._validate_import_names(project, result)
+
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and
         # validate it so that default values (e.g. for package-mode) are set.
         tool_poetry = toml_data.setdefault("tool", {}).setdefault("poetry", {})

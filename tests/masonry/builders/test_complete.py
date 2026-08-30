@@ -18,6 +18,7 @@ from poetry.core import __version__
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.sdist import SdistBuilder
 from poetry.core.masonry.builders.wheel import WheelBuilder
+from poetry.core.masonry.metadata import METADATA_VERSION
 from tests.masonry.builders.test_wheel import WHEEL_TAG_REGEX
 
 
@@ -180,8 +181,8 @@ Tag: py3-none-any
         )
 
         metadata = zipf.read("my_package-1.2.3.dist-info/METADATA").decode()
-        expected_metadata = """\
-Metadata-Version: 2.4
+        expected_metadata = f"""\
+Metadata-Version: {METADATA_VERSION}
 Name: my-package
 Version: 1.2.3
 Summary: Some description.

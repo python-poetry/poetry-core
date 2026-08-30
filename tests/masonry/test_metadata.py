@@ -206,6 +206,28 @@ def test_from_package_multiple_readmes(package: ProjectPackage) -> None:
 
 
 @pytest.mark.parametrize(
+    ["import_names", "import_namespaces"],
+    [
+        (["my_package.a", "my_package.b"], ["my_package"]),
+        (None, None),
+        ([], []),
+    ],
+)
+def test_from_package_import_names(
+    import_names: list[str] | None,
+    import_namespaces: list[str] | None,
+    package: ProjectPackage,
+) -> None:
+    package.import_names = import_names
+    package.import_namespaces = import_namespaces
+
+    metadata = Metadata.from_package(package)
+
+    assert metadata.import_names == import_names
+    assert metadata.import_namespaces == import_namespaces
+
+
+@pytest.mark.parametrize(
     ("exception", "message"),
     [
         (FileNotFoundError, "Readme path `MyReadme.md` does not exist."),
