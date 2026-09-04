@@ -696,6 +696,10 @@ def test_is_single_wildcard_range_include_min_include_max(
         ("2.0.post1.dev0", "2.0.post2.dev1", False),
         ("2.0.post1.dev0", "2.0.post3", False),
         ("2.0.post1.dev0", "2.0.post1", False),
+        # upper bound that is zero in every part
+        ("0.dev0", "0", False),
+        ("0.dev0", "0.0", False),
+        ("0.0.dev0", "0", False),
     ],
 )
 def test_is_single_wildcard_range(
@@ -772,6 +776,17 @@ def test_intersect_returns_empty_constraint_not_empty_range() -> None:
     half_open = VersionRange(v, v, include_min=True, include_max=False)
     result = point.intersect(half_open)
     assert isinstance(result, EmptyConstraint)
+
+
+def test_str_of_range_whose_upper_bound_is_zero() -> None:
+    # ">=0.dev0,<0" arises as "==0.*" minus "==0"; str() used to raise
+    # IndexError because the upper bound has no non-zero part
+    version_range = VersionRange(
+        Version.parse("0.dev0"), Version.parse("0"), include_min=True
+    )
+    assert str(version_range) == ">=0.dev0,<0"
+    constraint = parse_constraint("==0.*").difference(parse_constraint("==0"))
+    assert str(constraint) == ">=0.dev0,!=0,<1"
 
 
 def test_difference_returns_empty_constraint_not_empty_range() -> None:
