@@ -36,6 +36,7 @@ def test_path_to_url_win() -> None:
         ("file:c:/path/to/file", r"C:\path\to\file", "c:/path/to/file"),
         ("file:/path/to/file", r"\path\to\file", "/path/to/file"),
         ("file://localhost/tmp/file", r"\tmp\file", "/tmp/file"),
+        ("file://LOCALHOST/tmp/file", r"\tmp\file", "/tmp/file"),
         ("file://localhost/c:/tmp/file", r"C:\tmp\file", "/c:/tmp/file"),
         ("file://somehost/tmp/file", r"\\somehost\tmp\file", None),
         ("file:///tmp/file", r"\tmp\file", "/tmp/file"),
