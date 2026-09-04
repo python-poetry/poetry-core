@@ -304,6 +304,11 @@
     false,
     false
   ],
+  "BSD-2-Clause-pos-unchanged": [
+    "BSD 2-Clause - position unchanged variant",
+    false,
+    false
+  ],
   "BSD-3-Clause": [
     "BSD 3-Clause \"New\" or \"Revised\" License",
     true,
@@ -434,6 +439,11 @@
     false,
     false
   ],
+  "BSD-Source-Code-no-disclaimer": [
+    "BSD Source Code Attribution - no disclaimer",
+    false,
+    false
+  ],
   "BSD-Source-beginning-file": [
     "BSD Source Code Attribution - beginning of file variant",
     false,
@@ -447,6 +457,11 @@
   "BSD-Systemics-W3Works": [
     "Systemics W3Works BSD variant license",
     false,
+    false
+  ],
+  "BSD-ask-to-endorse": [
+    "BSD - ask to endorse",
+    true,
     false
   ],
   "BSL-1.0": [
@@ -1216,6 +1231,11 @@
   ],
   "FDK-AAC": [
     "Fraunhofer FDK AAC Codec Library",
+    false,
+    false
+  ],
+  "FDK-MPEG-H": [
+    "Fraunhofer FDK MPEG-H Software",
     false,
     false
   ],
