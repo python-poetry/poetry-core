@@ -505,6 +505,14 @@ def test_union() -> None:
     assert result.allows(Version.parse("0.1.0"))
 
 
+def test_union_public_version_with_local_version() -> None:
+    public = Version.parse("1.2.3")
+    local = Version.parse("1.2.3+local")
+
+    assert public.union(local) == public
+    assert local.union(public) == public
+
+
 def test_difference() -> None:
     v = Version.parse("1.2.3")
 
