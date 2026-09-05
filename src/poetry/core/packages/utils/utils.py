@@ -71,7 +71,7 @@ def url_to_path(url: str) -> Path:
 
     _, netloc, path, _, _ = urlsplit(url)
 
-    if not netloc or netloc == "localhost":
+    if not netloc or netloc.lower() == "localhost":
         # According to RFC 8089, same as empty authority.
         netloc = ""
     elif netloc not in {".", ".."} and sys.platform == "win32":
