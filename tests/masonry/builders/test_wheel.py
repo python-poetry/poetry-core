@@ -86,6 +86,25 @@ def test_wheel_package(project: str) -> None:
         assert "my_package/sub_pkg1/__init__.py" in z.namelist()
 
 
+def test_wheel_dependency_marker_with_spaces(tmp_path: Path) -> None:
+    marker = "platform_version == '#1 SMP Wed Jun 16 20:00:10 PDT 2021'"
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "marker-project"\nversion = "1.0"\n'
+        f'dependencies = ["kivy; {marker}"]\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "marker_project.py").touch()
+
+    wheel = WheelBuilder.make_in(Factory().create_poetry(tmp_path))
+
+    with zipfile.ZipFile(tmp_path / "dist" / wheel) as z:
+        metadata = z.read("marker_project-1.0.dist-info/METADATA").decode()
+    assert (
+        'Requires-Dist: kivy ; platform_version == "#1 SMP Wed Jun 16 20:00:10 PDT 2021"\n'
+        in metadata
+    )
+
+
 @pytest.mark.parametrize("target_dir", [None, "dist", "dist/build"])
 def test_wheel_package_target_dir(tmp_path: Path, target_dir: str | None) -> None:
     module_path = fixtures_dir / "complete"
