@@ -114,6 +114,7 @@ def parse_single_constraint(
     from poetry.core.constraints.version.version import Version
     from poetry.core.constraints.version.version_range import VersionRange
     from poetry.core.constraints.version.version_union import VersionUnion
+    from poetry.core.version.pep440.segments import Release
 
     def canon_max(v: Version) -> Version:
         return _canonical_strict_max(v, is_marker_constraint=is_marker_constraint)
@@ -148,10 +149,24 @@ def parse_single_constraint(
                 f"Could not parse version constraint: {constraint}"
             ) from e
 
-        if version.release.precision == 2:
+        # Per PEP 440, ``~=V.N`` is short for ``>=V.N, ==V.*``, where ``V`` is
+        # the release with its last segment dropped, e.g. ``~=1.4.5`` becomes
+        # ``1.5`` and ``~=0.0.0.5`` becomes ``0.0.1``. That is: bump the
+        # second-to-last release segment and zero out the last one.
+        # next_major()/next_minor() only ever bump a fixed position, so
+        # releases with more than three segments were bumped in the wrong
+        # place; do the bump on the actual segments instead so any precision
+        # is handled the same way.
+        parts = list(version.stable.release.to_parts())
+        if len(parts) < 2:
             high = version.stable.next_major()
         else:
-            high = version.stable.next_minor()
+            parts[-2] += 1
+            parts[-1] = 0
+            high = version.stable.__class__(
+                epoch=version.stable.epoch,
+                release=Release.from_parts(*parts),
+            )
 
         return VersionRange(version, canon_max(high), include_min=True)
 
