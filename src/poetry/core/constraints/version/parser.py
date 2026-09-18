@@ -153,10 +153,6 @@ def parse_single_constraint(
         # the release with its last segment dropped, e.g. ``~=1.4.5`` becomes
         # ``1.5`` and ``~=0.0.0.5`` becomes ``0.0.1``. That is: bump the
         # second-to-last release segment and zero out the last one.
-        # next_major()/next_minor() only ever bump a fixed position, so
-        # releases with more than three segments were bumped in the wrong
-        # place; do the bump on the actual segments instead so any precision
-        # is handled the same way.
         parts = list(version.stable.release.to_parts())
         if len(parts) < 2:
             high = version.stable.next_major()
