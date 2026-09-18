@@ -288,6 +288,37 @@ def test_missing_script_files_throws_error() -> None:
     assert "is not found." in str(err.value)
 
 
+def test_script_files_cannot_escape_project_root(tmp_path: Path) -> None:
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "demo").mkdir()
+    (root / "demo" / "__init__.py").write_text("", encoding="utf-8")
+    (tmp_path / "outside.sh").write_text("#!/bin/sh\n", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        """
+[tool.poetry]
+name = "demo"
+version = "0.1.0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+
+[tool.poetry.scripts]
+outside = { reference = "../outside.sh", type = "file" }
+""".lstrip(),
+        encoding="utf-8",
+    )
+
+    builder = Builder(Factory().create_poetry(root))
+
+    with pytest.raises(RuntimeError) as err:
+        builder.convert_script_files()
+
+    assert "is outside the project root" in str(err.value)
+
+
 def test_invalid_script_files_definition() -> None:
     with pytest.raises(RuntimeError) as err:
         Builder(
