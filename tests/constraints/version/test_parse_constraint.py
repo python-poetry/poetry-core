@@ -194,6 +194,7 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 True,
             ),
         ),
+        # PEP 440
         (
             "~=3.5",
             VersionRange(
@@ -201,7 +202,7 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 Version.from_parts(4, 0, 0).first_devrelease(),
                 True,
             ),
-        ),  # PEP 440
+        ),
         (
             "~=3.5.3",
             VersionRange(
@@ -209,7 +210,7 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 Version.from_parts(3, 6, 0).first_devrelease(),
                 True,
             ),
-        ),  # PEP 440
+        ),
         (
             "~=3.5.3rc1",
             VersionRange(
@@ -217,26 +218,23 @@ def test_parse_constraint_wildcard(input: str, constraint: VersionRange) -> None
                 Version.from_parts(3, 6, 0).first_devrelease(),
                 True,
             ),
-        ),  # PEP 440
+        ),
         (
-            # A release with more than three segments: ~=V.N is >=V.N, ==V.*
-            # where V is the release without its last segment, so this is
-            # >=0.0.0.5, ==0.0.0.*, i.e. the upper bound is 0.0.1, not 0.1.0.
             "~=0.0.0.5",
             VersionRange(
                 Version.from_parts(0, 0, 0, 5),
                 Version.from_parts(0, 0, 1).first_devrelease(),
                 True,
             ),
-        ),  # PEP 440
+        ),
         (
-            "~=1.2.3.4",
+            "~=1.2.3.4.5",
             VersionRange(
-                Version.from_parts(1, 2, 3, 4),
-                Version.from_parts(1, 2, 4).first_devrelease(),
+                Version.from_parts(1, 2, 3, (4, 5)),
+                Version.from_parts(1, 2, 3, 5).first_devrelease(),
                 True,
             ),
-        ),  # PEP 440
+        ),
     ],
 )
 def test_parse_constraint_tilde(input: str, constraint: VersionRange) -> None:
