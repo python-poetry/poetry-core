@@ -56,6 +56,21 @@ def test_package_link_filename(filename: str | None, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
+    ("url", "filename"),
+    [
+        ("https://example.org/%2fdemo-1.0.0.whl", None),
+        ("https://example.org/%5cdemo-1.0.0.whl", None),
+        ("https://example.org/demo-1.0.0.whl", "/demo-1.0.0.whl"),
+        ("https://example.org/demo-1.0.0.whl", r"\\demo-1.0.0.whl"),
+    ],
+)
+def test_package_link_invalid_filename(url: str, filename: str | None) -> None:
+    link = Link(url, filename=filename)
+    with pytest.raises(ValueError):
+        _ = link.filename
+
+
+@pytest.mark.parametrize(
     ("filename", "expected"),
     [
         (None, ".whl"),
