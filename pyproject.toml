@@ -1,6 +1,6 @@
 [project]
 name = "poetry-core"
-version = "2.4.1"
+version = "2.5.0"
 description = "Poetry PEP 517 Build Backend"
 authors = [
   { name = "Sébastien Eustace", email =  "sebastien@eustace.io" }
