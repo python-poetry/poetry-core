@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import posixpath
+import os
 import re
 import sys
 import urllib.parse as urlparse
@@ -71,9 +71,7 @@ class Link:
             url = path_to_url(url)
 
         self.url = url
-        if filename:
-            # override cached_property
-            self.filename = filename
+        self._filename = filename
         self.requires_python = requires_python if requires_python else None
         self._hashes = hashes
 
@@ -133,9 +131,14 @@ class Link:
 
     @cached_property
     def filename(self) -> str:
-        _, netloc, path, _, _ = urlparse.urlsplit(self.url)
-        name = posixpath.basename(path.rstrip("/")) or netloc
-        name = urlparse.unquote(name)
+        if self._filename:
+            name = self._filename
+        else:
+            _, netloc, path, _, _ = urlparse.urlsplit(self.url)
+            name = os.path.basename(path.rstrip("/")) or netloc  # noqa: PTH119
+            name = urlparse.unquote(name)
+        if "/" in name or "\\" in name:
+            raise ValueError(f"Invalid filename: '{name}'")
 
         return name
 
@@ -217,7 +220,7 @@ class Link:
 
     @cached_property
     def show_url(self) -> str:
-        return posixpath.basename(self.url.split("#", 1)[0].split("?", 1)[0])
+        return os.path.basename(self.url.split("#", 1)[0].split("?", 1)[0])  # noqa: PTH119
 
     @cached_property
     def is_wheel(self) -> bool:

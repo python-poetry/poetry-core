@@ -93,6 +93,12 @@ def _is_wildcard_candidate(
     while parts_second and parts_second[-1] == 0:
         del parts_second[-1]
 
+    # second is zero in every part (e.g. the upper bound of ">=0.dev0,<0",
+    # which is "==0.*" minus "==0"): no release is one step below it,
+    # so this cannot be a wildcard range
+    if not parts_second:
+        return False
+
     # fill up first with zeros
     parts_first += [0] * (len(parts_second) - len(parts_first))
 

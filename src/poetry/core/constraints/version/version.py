@@ -119,6 +119,9 @@ class Version(PEP440Version, VersionRangeConstraint):
         if other.allows(self):
             return other
 
+        if self.allows(other):
+            return self
+
         return VersionUnion.of(self, other)
 
     def difference(self, other: VersionConstraint) -> VersionConstraint:
