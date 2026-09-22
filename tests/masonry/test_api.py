@@ -435,7 +435,17 @@ def test_build_editable_wheel(project: str) -> None:
             namelist = z.namelist()
 
             assert "my_package.pth" in namelist
-            assert z.read("my_package.pth").decode().strip() == pkg_dir.as_posix()
+            assert (
+                z.read("my_package.pth").decode().strip()
+                == "import _poetry_pth_my_package"
+            )
+            assert "_poetry_pth_my_package.py" in namelist
+            helper = z.read("_poetry_pth_my_package.py").decode()
+            assert pkg_dir.as_posix() in helper
+            # .pth must stay ASCII so site.py locale decoding cannot fail
+            assert z.read("my_package.pth").decode("ascii").strip() == (
+                "import _poetry_pth_my_package"
+            )
 
 
 def test_build_editable_wheel_with_local_version() -> None:
@@ -515,5 +525,11 @@ def test_build_editable_wheel_with_metadata_directory(project: str) -> None:
                 namelist = z.namelist()
 
                 assert "my_package.pth" in namelist
-                assert z.read("my_package.pth").decode().strip() == pkg_dir.as_posix()
+                assert (
+                    z.read("my_package.pth").decode().strip()
+                    == "import _poetry_pth_my_package"
+                )
+                assert "_poetry_pth_my_package.py" in namelist
+                helper = z.read("_poetry_pth_my_package.py").decode()
+                assert pkg_dir.as_posix() in helper
                 assert f"{metadata_directory}/CUSTOM" in namelist
