@@ -522,6 +522,32 @@ def test_editable_pth_is_ascii_for_non_ascii_project_path(
         assert pth_bytes.decode("gbk").strip() == "import _poetry_pth_my_package"
 
 
+def test_editable_pth_helper_name_strips_non_ascii_module_name(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    """Helper import in .pth must stay ASCII even if the module name is not.
+
+    str.isalnum() is true for Unicode letters, so those must not be kept in the
+    generated import line (python-poetry/poetry#11083 follow-up).
+    """
+    root = tmp_path / "complete"
+    shutil.copytree(fixtures_dir / "complete", root)
+    monkeypatch.chdir(root)
+
+    poetry = Factory().create_poetry(root)
+    builder = WheelBuilder(poetry, editable=True)
+    builder._module._name = "my_包"
+
+    whl = builder.build(target_dir=tmp_path / "dist")
+
+    with zipfile.ZipFile(str(whl)) as z:
+        pth_bytes = z.read("my_包.pth")
+        assert pth_bytes.decode("ascii").strip() == "import _poetry_pth_my__"
+        assert "_poetry_pth_my__.py" in z.namelist()
+        helper = z.read("_poetry_pth_my__.py").decode("utf-8")
+        assert root.resolve().as_posix() in helper
+
+
 def test_extended_editable_build_inplace() -> None:
     """Tests that a project with extensions builds the extension modules in-place
     when ran for an editable install.

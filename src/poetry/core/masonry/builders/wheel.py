@@ -169,7 +169,11 @@ class WheelBuilder(Builder):
         # a non-ASCII project path as UTF-8 breaks editable installs on Windows
         # with a non-UTF-8 ANSI code page (see python-poetry/poetry#11083).
         # The helper is normal UTF-8 source and inserts the paths into sys.path.
-        safe_name = "".join(c if c.isalnum() else "_" for c in self._module.name)
+        # Keep the .pth import ASCII-only: str.isalnum() is true for Unicode
+        # letters (e.g. Chinese), which would reintroduce the locale decode crash.
+        safe_name = "".join(
+            c if c.isascii() and c.isalnum() else "_" for c in self._module.name
+        )
         helper_name = f"_poetry_pth_{safe_name}"
         pth_file = Path(self._module.name).with_suffix(".pth")
 
