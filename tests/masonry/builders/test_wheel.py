@@ -488,8 +488,38 @@ def test_extended_editable_wheel_build() -> None:
     assert whl.exists()
     with zipfile.ZipFile(str(whl)) as z:
         assert "extended.pth" in z.namelist()
+        assert "_poetry_pth_extended.py" in z.namelist()
+        assert z.read("extended.pth").decode("ascii").strip() == (
+            "import _poetry_pth_extended"
+        )
         # Ensure the directory "extended/" does not exist in the whl
         assert all(not n.startswith("extended/") for n in z.namelist())
+
+
+def test_editable_pth_is_ascii_for_non_ascii_project_path(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    """Editable .pth must stay ASCII when the project path has non-ASCII chars.
+
+    Python ≤3.12 reads .pth files with the locale encoding; a UTF-8 absolute path
+    breaks site initialization on Windows with a non-UTF-8 ANSI code page
+    (python-poetry/poetry#11083).
+    """
+    root = tmp_path / "文档" / "complete"
+    shutil.copytree(fixtures_dir / "complete", root)
+    monkeypatch.chdir(root)
+
+    WheelBuilder.make_in(Factory().create_poetry(root), editable=True)
+    whl = next((root / "dist").glob("my_package-*.whl"))
+
+    with zipfile.ZipFile(str(whl)) as z:
+        pth_bytes = z.read("my_package.pth")
+        pth_bytes.decode("ascii")  # must not raise
+        assert pth_bytes.decode("ascii").strip() == "import _poetry_pth_my_package"
+        helper = z.read("_poetry_pth_my_package.py").decode("utf-8")
+        assert root.resolve().as_posix() in helper
+        # Simulate Python ≤3.12 locale decoding of the .pth (e.g. cp936): ASCII wins.
+        assert pth_bytes.decode("gbk").strip() == "import _poetry_pth_my_package"
 
 
 def test_extended_editable_build_inplace() -> None:
