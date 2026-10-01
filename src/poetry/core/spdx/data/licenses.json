@@ -364,6 +364,11 @@
     true,
     false
   ],
+  "BSD-3-Clause-OpenWebUI": [
+    "BSD 3-Clause - OpenWebUI variant",
+    false,
+    false
+  ],
   "BSD-3-Clause-Sun": [
     "BSD 3-Clause Sun Microsystems",
     false,
@@ -441,6 +446,11 @@
   ],
   "BSD-Source-Code-no-disclaimer": [
     "BSD Source Code Attribution - no disclaimer",
+    false,
+    false
+  ],
+  "BSD-Source-alt-GPL": [
+    "BSD Source Code Attribution - GPL alternative",
     false,
     false
   ],
@@ -976,7 +986,7 @@
   ],
   "CNRI-Python-GPL-Compatible": [
     "CNRI Python Open Source GPL Compatible License Agreement",
-    false,
+    true,
     false
   ],
   "COIL-1.0": [
@@ -1726,6 +1736,11 @@
   ],
   "Hippocratic-2.1": [
     "Hippocratic License 2.1",
+    false,
+    false
+  ],
+  "Hippocratic-3.0-core": [
+    "Hippocratic License 3.0",
     false,
     false
   ],
@@ -2761,7 +2776,7 @@
   ],
   "Python-2.0.1": [
     "Python License 2.0.1",
-    false,
+    true,
     false
   ],
   "QPL-1.0": [
@@ -3426,7 +3441,7 @@
   ],
   "curl": [
     "curl License",
-    false,
+    true,
     false
   ],
   "cve-tou": [
