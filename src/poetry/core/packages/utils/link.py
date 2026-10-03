@@ -175,11 +175,12 @@ class Link:
             return None
         return match.group(1)
 
-    _subdirectory_fragment_re = re.compile(r"[#&]subdirectory=([^&]*)")
+    _subdirectory_fragment_re = re.compile(r"(?:^|&)subdirectory=([^&]*)")
 
     @cached_property
     def subdirectory_fragment(self) -> str | None:
-        match = self._subdirectory_fragment_re.search(self.url)
+        fragment = urlparse.urlsplit(self.url).fragment
+        match = self._subdirectory_fragment_re.search(fragment)
         if not match:
             return None
         return match.group(1)

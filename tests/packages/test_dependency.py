@@ -235,6 +235,20 @@ def test_to_pep_508_with_invalid_path_requirement(
     assert dependency.source_url
 
 
+@pytest.mark.parametrize("subdirectory", [None, "package"])
+def test_url_subdirectory_is_not_taken_from_query(subdirectory: str | None) -> None:
+    url = "https://example.org/demo.tar.gz?download=1&subdirectory=query"
+    requirement = f"demo @ {url}"
+    if subdirectory:
+        requirement += f"#subdirectory={subdirectory}"
+
+    dependency = Dependency.create_from_pep_508(requirement)
+
+    assert dependency.source_url == url
+    assert dependency.source_subdirectory == subdirectory
+    assert dependency.to_pep_508() == requirement
+
+
 def test_complete_name() -> None:
     assert Dependency("foo", ">=1.2.3").complete_name == "foo"
     assert (
