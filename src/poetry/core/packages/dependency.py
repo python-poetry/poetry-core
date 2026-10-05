@@ -206,11 +206,35 @@ class Dependency(PackageSpecification):
     @property
     def base_pep_508_name(self) -> str:
         from poetry.core.constraints.version import Version
+        from poetry.core.constraints.version import VersionRange
+        from poetry.core.constraints.version import VersionRangeConstraint
         from poetry.core.constraints.version import VersionUnion
 
         requirement = self.complete_pretty_name
 
         constraint = self.constraint
+        if isinstance(constraint, VersionUnion):
+            merged: list[VersionRangeConstraint] = []
+            for r in constraint.ranges:
+                if not merged:
+                    merged.append(r)
+                    continue
+                prev = merged[-1]
+                if (
+                    prev.max
+                    and r.min
+                    and not prev.include_max
+                    and r.include_min
+                    and prev.max.is_devrelease()
+                    and prev.max.without_devrelease() == r.min
+                ):
+                    merged[-1] = VersionRange(
+                        prev.min, r.max, prev.include_min, r.include_max
+                    )
+                    continue
+                merged.append(r)
+            constraint = merged[0] if len(merged) == 1 else VersionUnion(*merged)
+
         if isinstance(constraint, VersionUnion):
             if (
                 constraint.excludes_single_version
@@ -264,13 +288,25 @@ class Dependency(PackageSpecification):
     def is_url(self) -> bool:
         return False
 
-    def to_pep_508(self, with_extras: bool = True, *, resolved: bool = False) -> str:
+    def to_pep_508(
+        self,
+        with_extras: bool = True,
+        *,
+        resolved: bool = False,
+        raise_errors: bool = True,
+    ) -> str:
         from poetry.core.packages.utils.utils import convert_markers
 
         if resolved:
             requirement = self.base_pep_508_name_resolved
         else:
             requirement = self.base_pep_508_name
+
+        if raise_errors and "||" in requirement:
+            raise ValueError(
+                f"Dependency constraint cannot be exported to PEP 508 "
+                f"(contains ||): {requirement}"
+            )
 
         markers = []
         has_extras = False
