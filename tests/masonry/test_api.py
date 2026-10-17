@@ -4,6 +4,7 @@ import os
 import zipfile
 
 from contextlib import contextmanager
+from email.parser import BytesParser
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
@@ -78,6 +79,64 @@ def test_build_wheel_with_local_version() -> None:
             path=Path(tmp_dir) / filename,
             files=["entry_points.txt"],
         )
+
+
+@pytest.mark.parametrize("legacy_classifiers", [False, True])
+def test_build_wheel_with_empty_static_classifiers(
+    tmp_path: Path, legacy_classifiers: bool
+) -> None:
+    content = """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = []
+"""
+    if legacy_classifiers:
+        content += """\
+[tool.poetry]
+classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
+"""
+    (tmp_path / "pyproject.toml").write_text(content, encoding="utf-8")
+    (tmp_path / "foo.py").touch()
+
+    with cwd(tmp_path):
+        filename = api.build_wheel(str(tmp_path / "dist"))
+
+    with zipfile.ZipFile(tmp_path / "dist" / filename) as wheel:
+        metadata = BytesParser().parsebytes(wheel.read("foo-1.dist-info/METADATA"))
+
+    assert metadata.get_all("Classifier", []) == []
+
+
+def test_build_wheel_with_empty_dynamic_classifiers(tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = []
+dynamic = ["classifiers"]
+
+[tool.poetry]
+classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
+""",
+        encoding="utf-8",
+    )
+    (tmp_path / "foo.py").touch()
+
+    with cwd(tmp_path):
+        filename = api.build_wheel(str(tmp_path / "dist"))
+
+    with zipfile.ZipFile(tmp_path / "dist" / filename) as wheel:
+        metadata = BytesParser().parsebytes(wheel.read("foo-1.dist-info/METADATA"))
+
+    assert metadata.get_all("Classifier", []) == [
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ]
 
 
 def test_build_wheel_with_include() -> None:
