@@ -686,6 +686,24 @@ python = "~3.10"
                 "Programming Language :: Python :: 3.10",
             ],
         ),
+        (  # dynamic with an empty initial list
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = []
+dynamic = ["classifiers"]
+
+[tool.poetry]
+classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
+""",
+            [
+                "Programming Language :: Python :: 3",
+                "Programming Language :: Python :: 3.10",
+                "Topic :: Software Development :: Libraries :: Python Modules",
+            ],
+        ),
     ],
 )
 def test_create_poetry_classifiers(
@@ -695,6 +713,29 @@ def test_create_poetry_classifiers(
     poetry = Factory().create_poetry(tmp_path)
 
     assert poetry.package.all_classifiers == expected
+
+
+@pytest.mark.parametrize("legacy_classifiers", [False, True])
+def test_create_poetry_empty_static_classifiers(
+    tmp_path: Path, legacy_classifiers: bool
+) -> None:
+    content = """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = []
+"""
+    if legacy_classifiers:
+        content += """\
+[tool.poetry]
+classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
+"""
+    (tmp_path / "pyproject.toml").write_text(content, encoding="utf-8")
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.classifiers == []
+    assert poetry.package.all_classifiers == []
 
 
 def test_create_poetry_inline_readme_text(tmp_path: Path) -> None:
