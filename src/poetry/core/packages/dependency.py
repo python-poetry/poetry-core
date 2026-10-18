@@ -206,6 +206,8 @@ class Dependency(PackageSpecification):
     @property
     def base_pep_508_name(self) -> str:
         from poetry.core.constraints.version import Version
+        from poetry.core.constraints.version import VersionRange
+        from poetry.core.constraints.version import VersionRangeConstraint
         from poetry.core.constraints.version import VersionUnion
 
         requirement = self.complete_pretty_name
@@ -221,10 +223,39 @@ class Dependency(PackageSpecification):
                 # no functional difference with the logic in the else branch.
                 requirement += f" ({constraint})"
             else:
-                constraints = ",".join(
-                    str(parse_constraint(c)) for c in self.pretty_constraint.split(",")
-                )
-                requirement += f" ({constraints})"
+                # A disjunction ("||") of version ranges cannot be expressed
+                # in PEP 508, so try to relax the union by merging ranges that
+                # are only separated by a pre-release gate: a raw exclusive
+                # bound "<V.dev0" (the canonical form of a user-typed "<V")
+                # followed by an inclusive bound ">=V" means that the union
+                # only excludes pre-releases of V. Since pre-releases are not
+                # installed unless explicitly requested anyway, such a union
+                # can safely be widened to a single range
+                # (e.g. "^4.5.0 || ^5.0.0" -> ">=4.5.0,<6.0.0").
+                merged: list[VersionRangeConstraint] = []
+                for range_ in constraint.ranges:
+                    if (
+                        merged
+                        and (prev := merged[-1]).max is not None
+                        and not prev.include_max
+                        and prev.max.is_devrelease()
+                        and range_.min is not None
+                        and range_.include_min
+                        and prev.max.without_devrelease() == range_.min
+                    ):
+                        merged[-1] = VersionRange(
+                            prev.min, range_.max, prev.include_min, range_.include_max
+                        )
+                    else:
+                        merged.append(range_)
+                if len(merged) == 1:
+                    requirement += f" ({merged[0]})"
+                else:
+                    constraints = ",".join(
+                        str(parse_constraint(c))
+                        for c in self.pretty_constraint.split(",")
+                    )
+                    requirement += f" ({constraints})"
         elif isinstance(constraint, Version):
             requirement += f" (=={constraint.text})"
         elif not constraint.is_any():
@@ -271,6 +302,17 @@ class Dependency(PackageSpecification):
             requirement = self.base_pep_508_name_resolved
         else:
             requirement = self.base_pep_508_name
+
+        if "||" in requirement:
+            # PEP 508 has no way to express a disjunction ("||") of version
+            # constraints, so emitting it would produce invalid metadata.
+            # Failing the build is better than creating a wheel that installers
+            # reject. (A union that only excludes pre-releases has been relaxed
+            # into a single range in base_pep_508_name already.)
+            raise ValueError(
+                "Dependency constraint cannot be represented in PEP 508"
+                f" (contains a disjunction of version constraints): {requirement}"
+            )
 
         markers = []
         has_extras = False
