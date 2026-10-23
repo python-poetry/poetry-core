@@ -81,6 +81,18 @@ def test_from_package_requires_python(
     assert meta.requires_python == expected
 
 
+def test_from_package_requires_python_union_beyond_known_series(
+    package: ProjectPackage,
+) -> None:
+    package.python_versions = "4.0 || 4.1"
+
+    meta = Metadata.from_package(package)
+
+    assert meta.requires_python is not None
+    assert meta.requires_python.startswith(">=4.0")
+    assert "||" not in meta.requires_python
+
+
 @pytest.mark.parametrize(
     "license",
     [None, "MIT", "Apache-2.0 OR BSD-2-Clause", "LicenseRef-MyProprietaryLicense"],

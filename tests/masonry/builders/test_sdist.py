@@ -306,7 +306,8 @@ def test_find_packages_no_duplicate_data_entries(tmp_path: Path) -> None:
         'exclude = ["**/*.dat"]\n'
         "\n"
         "[tool.poetry.dependencies]\n"
-        'python = "^3.8"\n'
+        'python = "^3.8"\n',
+        encoding="utf-8",
     )
 
     poetry = Factory().create_poetry(tmp_path)
@@ -351,7 +352,8 @@ def test_find_packages_nested_subpackage_data(tmp_path: Path) -> None:
         'authors = ["Test <test@test.com>"]\n'
         "\n"
         "[tool.poetry.dependencies]\n"
-        'python = "^3.8"\n'
+        'python = "^3.8"\n',
+        encoding="utf-8",
     )
 
     poetry = Factory().create_poetry(tmp_path)

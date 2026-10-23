@@ -22,6 +22,9 @@ from poetry.core.constraints.generic.parser import parse_extra_constraint
         ("===win32", Constraint("win32", "=")),
         ("!=win32", Constraint("win32", "!=")),
         ("!= win32", Constraint("win32", "!=")),
+        ("a b", Constraint("a b")),
+        ("== a  b", Constraint("a  b")),
+        ("!= a b", Constraint("a b", "!=")),
         ("'tegra' not in", Constraint("tegra", "not in")),
         ("'tegra' in", Constraint("tegra", "in")),
     ],
@@ -33,6 +36,10 @@ def test_parse_constraint(input: str, constraint: AnyConstraint | Constraint) ->
 @pytest.mark.parametrize(
     ("input", "constraint"),
     [
+        (
+            "!=a b, !=c d",
+            MultiConstraint(Constraint("a b", "!="), Constraint("c d", "!=")),
+        ),
         (
             "!=win32,!=linux",
             MultiConstraint(Constraint("win32", "!="), Constraint("linux", "!=")),
@@ -61,6 +68,7 @@ def test_parse_constraint_multi(input: str, constraint: MultiConstraint) -> None
 @pytest.mark.parametrize(
     ("input", "constraint"),
     [
+        ("a b || c d", UnionConstraint(Constraint("a b"), Constraint("c d"))),
         ("win32 || linux", UnionConstraint(Constraint("win32"), Constraint("linux"))),
         (
             "win32 || !=linux2",

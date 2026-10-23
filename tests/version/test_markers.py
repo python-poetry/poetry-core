@@ -167,6 +167,19 @@ def test_single_marker_normalisation() -> None:
     assert hash(m1) == hash(m2)
 
 
+@pytest.mark.parametrize("operator", ["==", "!="])
+def test_single_marker_with_spaces(operator: str) -> None:
+    value = "#1 SMP Wed Jun 16 20:00:10 PDT 2021"
+    marker_string = f'platform_version {operator} "{value}"'
+    marker = parse_marker(marker_string)
+
+    assert str(marker) == marker_string
+    assert marker.validate({"platform_version": value}) == (operator == "==")
+    assert marker.validate({"platform_version": "another kernel"}) == (operator == "!=")
+    assert marker.intersect(marker.invert()).is_empty()
+    assert marker.union(marker.invert()).is_any()
+
+
 def test_single_marker_intersect() -> None:
     m = parse_marker('sys_platform == "darwin"')
 

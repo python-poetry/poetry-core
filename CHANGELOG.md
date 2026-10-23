@@ -1,6 +1,49 @@
 # Change Log
 
 
+## [2.5.0] - 2026-09-19
+
+### Added
+
+- Add `Marker.apply()` to partially evaluate a marker for a given environment ([#945](https://github.com/python-poetry/poetry-core/pull/945)).
+- Add Python 3.15 to the automatically generated classifiers ([#961](https://github.com/python-poetry/poetry-core/pull/961)).
+
+### Changed
+
+- Reject links with filenames containing path separators ([#974](https://github.com/python-poetry/poetry-core/pull/974)).
+- Update list of supported licenses ([#946](https://github.com/python-poetry/poetry-core/pull/946),
+  [#958](https://github.com/python-poetry/poetry-core/pull/958),
+  [#968](https://github.com/python-poetry/poetry-core/pull/968)).
+- Improve performance of creating links and determining file extensions ([#940](https://github.com/python-poetry/poetry-core/pull/940),
+  [#941](https://github.com/python-poetry/poetry-core/pull/941)).
+- Improve performance of version comparisons ([#951](https://github.com/python-poetry/poetry-core/pull/951),
+  [#952](https://github.com/python-poetry/poetry-core/pull/952)).
+- Improve performance of schema validation by caching compiled JSON schema validators ([#965](https://github.com/python-poetry/poetry-core/pull/965)).
+
+### Fixed
+
+- Fix an issue where a `<V` version constraint wrongly allowed pre-releases of `V` in some cases ([#939](https://github.com/python-poetry/poetry-core/pull/939)).
+- Fix an issue where version ranges with coincident bounds were not recognized as empty ([#939](https://github.com/python-poetry/poetry-core/pull/939)).
+- Fix an issue where the string representation of a version union did not describe the same constraint after being parsed again ([#939](https://github.com/python-poetry/poetry-core/pull/939)).
+- Fix an issue where the intersection of a version range with a local version resulted in a wrong constraint ([#949](https://github.com/python-poetry/poetry-core/pull/949)).
+- Fix an issue where the union of a version range and a public version did not include all local versions of the public version ([#950](https://github.com/python-poetry/poetry-core/pull/950)).
+- Fix an issue where the union of a public version and one of its local versions did not result in the public version ([#966](https://github.com/python-poetry/poetry-core/pull/966)).
+- Fix an issue where the difference between a public version and one of its local versions still allowed the local version, which could result in an infinite loop during dependency resolution ([#953](https://github.com/python-poetry/poetry-core/pull/953)).
+- Fix an issue where a version range that excluded some local versions of a public version was wrongly considered to allow all versions of the public version ([#959](https://github.com/python-poetry/poetry-core/pull/959)).
+- Fix an issue where a `!= <value>` constraint was wrongly considered to allow all values of a `<value> not in` constraint ([#955](https://github.com/python-poetry/poetry-core/pull/955)).
+- Fix an issue where merging `platform_release` markers with incompatible constraint types failed ([#956](https://github.com/python-poetry/poetry-core/pull/956)).
+- Fix an issue where the string representation of a version range whose upper bound only consists of zeros raised an `IndexError` ([#964](https://github.com/python-poetry/poetry-core/pull/964)).
+- Fix an issue where formatting a Python constraint that only allows unknown Python versions raised an `IndexError` ([#971](https://github.com/python-poetry/poetry-core/pull/971)).
+- Fix an issue where marker values containing spaces could not be parsed ([#972](https://github.com/python-poetry/poetry-core/pull/972)).
+- Fix an issue where the upper bound of a `~=` constraint was wrong for versions with more than three release segments ([#973](https://github.com/python-poetry/poetry-core/pull/973)).
+- Fix an issue where the filename of a link created from a Windows path was wrong ([#974](https://github.com/python-poetry/poetry-core/pull/974)).
+
+### Vendoring
+
+- [`fastjsonschema==2.22.2`](https://github.com/horejsek/python-fastjsonschema/blob/master/CHANGELOG.txt)
+- [`packaging==26.3`](https://github.com/pypa/packaging/blob/main/CHANGELOG.rst)
+
+
 ## [2.4.1] - 2026-05-23
 
 ### Fixed
@@ -893,7 +936,8 @@ No changes.
 - Fixed support for stub-only packages ([#28](https://github.com/python-poetry/core/pull/28)).
 
 
-[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.4.1...main
+[Unreleased]: https://github.com/python-poetry/poetry-core/compare/2.5.0...main
+[2.5.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.5.0
 [2.4.1]: https://github.com/python-poetry/poetry-core/releases/tag/2.4.1
 [2.4.0]: https://github.com/python-poetry/poetry-core/releases/tag/2.4.0
 [2.3.2]: https://github.com/python-poetry/poetry-core/releases/tag/2.3.2
