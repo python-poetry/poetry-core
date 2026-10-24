@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import tomllib
 import zipfile
 
 from contextlib import contextmanager
@@ -12,8 +13,6 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 import tomli_w
-
-from poetry.core.utils._compat import tomllib
 
 
 if TYPE_CHECKING:

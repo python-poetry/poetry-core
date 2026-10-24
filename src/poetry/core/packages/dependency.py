@@ -6,6 +6,7 @@ import re
 from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Self
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
@@ -324,7 +325,7 @@ class Dependency(PackageSpecification):
 
         self._activated = False
 
-    def with_constraint(self: T, constraint: str | VersionConstraint) -> T:
+    def with_constraint(self, constraint: str | VersionConstraint) -> Self:
         dependency = self.clone()
         dependency.constraint = constraint
         return dependency

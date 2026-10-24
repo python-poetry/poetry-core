@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import tomllib
+
 from email.parser import Parser
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -8,7 +10,6 @@ import pytest
 
 from poetry.core.factory import Factory
 from poetry.core.masonry.builders.builder import Builder
-from poetry.core.utils._compat import tomllib
 
 
 if TYPE_CHECKING:

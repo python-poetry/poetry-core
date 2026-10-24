@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 import urllib.parse as urlparse
 
 from datetime import datetime
@@ -261,9 +260,6 @@ class Link:
         if self._upload_time is None:
             return None
         try:
-            # Python < 3.11 does not support 'Z' suffix for UTC, replace it with '+00:00'
-            if sys.version_info < (3, 11) and self._upload_time.endswith("Z"):
-                return datetime.fromisoformat(self._upload_time[:-1] + "+00:00")
             return datetime.fromisoformat(self._upload_time)
         except ValueError:
             return None

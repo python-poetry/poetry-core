@@ -15,7 +15,7 @@ maintainers = [
     { name = "Bartosz Sokorski", email = "b.sokorski@gmail.com" },
 ]
 license = "MIT"
-requires-python = ">=3.10, <4.0"
+requires-python = ">=3.11"
 readme = "README.md"
 keywords = ["packaging", "dependency", "poetry"]
 dynamic = ["classifiers"]
@@ -25,6 +25,28 @@ homepage = "https://github.com/python-poetry/poetry-core"
 repository = "https://github.com/python-poetry/poetry-core"
 "Bug Tracker" = "https://github.com/python-poetry/poetry/issues"
 
+[dependency-groups]
+dev = [
+  "pre-commit>=2.15.0",
+  "vendoring>=1.0",
+]
+test = [
+  "pytest>=9.0",
+  "pytest-cov>=3.0.0",
+  "pytest-mock>=3.10",
+  "build>=0.10.0",
+  "setuptools>=60",
+  "tomli-w>=1.0.0",
+  "virtualenv>=20.21",
+  "trove-classifiers>=2022.5.19",
+]
+
+typing = [
+  # mypy 1.19 introduces a dependency on librt, which does not support PyPy
+  # It is recommended to run mypy only on CPython, see https://github.com/mypyc/librt/issues/16
+  "mypy>=1.18.0 ; platform_python_implementation != 'PyPy'",
+  "types-setuptools>=57.4.14",
+]
 
 [tool.poetry]
 requires-poetry = ">=2.0"
@@ -36,27 +58,6 @@ classifiers = [
   "Topic :: Software Development :: Build Tools",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = ">=2.15.0"
-vendoring = ">=1.0"
-
-[tool.poetry.group.test.dependencies]
-pytest = ">=9.0"
-pytest-cov = ">=3.0.0"
-pytest-mock = ">=3.10"
-build = ">=0.10.0"
-setuptools = ">=60"
-tomli-w = "^1.0.0"
-virtualenv = ">=20.21"
-trove-classifiers = ">=2022.5.19"
-
-[tool.poetry.group.typing.dependencies]
-# mypy 1.19 introduces a dependency on librt, which does not support PyPy
-# It is recommended to run mypy only on CPython, see https://github.com/mypyc/librt/issues/16
-mypy = { version = ">=1.18.0", markers = "platform_python_implementation != 'PyPy'" }
-types-setuptools = ">=57.4.14"
 
 [tool.ruff]
 extend-exclude = [
@@ -151,6 +152,7 @@ patches-dir = "vendors/patches"
 
 [tool.vendoring.transformations]
 drop = [
+  "*.dist-info/",
   "bin/",
   "*.so",
   "typing.*",
