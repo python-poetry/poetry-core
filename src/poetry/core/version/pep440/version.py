@@ -5,6 +5,7 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Self
 from typing import TypeVar
 
 from poetry.core.version.pep440.segments import RELEASE_PHASE_ID_ALPHA
@@ -148,7 +149,7 @@ class PEP440Version:
         return version_string.lower()
 
     @classmethod
-    def parse(cls: type[T], value: str) -> T:
+    def parse(cls, value: str) -> Self:
         from poetry.core.version.pep440.parser import parse_pep440
 
         return parse_pep440(value, cls)
@@ -177,13 +178,13 @@ class PEP440Version:
     def _is_increment_required(self) -> bool:
         return self.is_stable() or (not self.is_prerelease() and self.is_postrelease())
 
-    def next_major(self: T) -> T:
+    def next_major(self) -> Self:
         release = self.release
         if self._is_increment_required() or Release(release.major, 0, 0) < release:
             release = release.next_major()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_minor(self: T) -> T:
+    def next_minor(self) -> Self:
         release = self.release
         if (
             self._is_increment_required()
@@ -192,7 +193,7 @@ class PEP440Version:
             release = release.next_minor()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_patch(self: T) -> T:
+    def next_patch(self) -> Self:
         release = self.release
         if (
             self._is_increment_required()
@@ -201,11 +202,11 @@ class PEP440Version:
             release = release.next_patch()
         return self.__class__(epoch=self.epoch, release=release)
 
-    def next_stable(self: T) -> T:
+    def next_stable(self) -> Self:
         release = self.release.next() if self.is_stable() else self.release
         return self.__class__(epoch=self.epoch, release=release, local=self.local)
 
-    def next_prerelease(self: T, next_phase: bool = False) -> T:
+    def next_prerelease(self, next_phase: bool = False) -> Self:
         if self.is_stable():
             warnings.warn(
                 "Calling next_prerelease() on a stable release is deprecated for"
@@ -224,7 +225,7 @@ class PEP440Version:
             pre = ReleaseTag(RELEASE_PHASE_ID_ALPHA)
         return self.__class__(epoch=self.epoch, release=self.release, pre=pre)
 
-    def next_postrelease(self: T) -> T:
+    def next_postrelease(self) -> Self:
         if self.is_postrelease():
             assert self.post is not None
             post = self.post.next() if self.dev is None else self.post
@@ -237,7 +238,7 @@ class PEP440Version:
             post=post,
         )
 
-    def next_devrelease(self: T) -> T:
+    def next_devrelease(self) -> Self:
         if self.is_devrelease():
             assert self.dev is not None
             dev = self.dev.next()
@@ -258,14 +259,14 @@ class PEP440Version:
             dev=dev,
         )
 
-    def first_prerelease(self: T) -> T:
+    def first_prerelease(self) -> Self:
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
             pre=ReleaseTag(RELEASE_PHASE_ID_ALPHA),
         )
 
-    def first_devrelease(self: T) -> T:
+    def first_devrelease(self) -> Self:
         return self.__class__(
             epoch=self.epoch,
             release=self.release,
@@ -274,7 +275,7 @@ class PEP440Version:
             dev=ReleaseTag(RELEASE_PHASE_ID_DEV),
         )
 
-    def replace(self: T, **kwargs: Any) -> T:
+    def replace(self, **kwargs: Any) -> Self:
         return self.__class__(
             **{
                 **{
@@ -286,13 +287,13 @@ class PEP440Version:
             }
         )
 
-    def without_local(self: T) -> T:
+    def without_local(self) -> Self:
         return self.replace(local=None)
 
-    def without_postrelease(self: T) -> T:
+    def without_postrelease(self) -> Self:
         if self.is_postrelease():
             return self.replace(post=None, dev=None)
         return self
 
-    def without_devrelease(self: T) -> T:
+    def without_devrelease(self) -> Self:
         return self.replace(dev=None)

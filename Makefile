@@ -1,4 +1,4 @@
-SHELL                           := $(shell which bash) -e
+SHELL                           := $(shell which bash) -euo pipefail
 MAKEFILE_PATH                   := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR                        := $(patsubst %/,%,$(dir $(MAKEFILE_PATH)))
 

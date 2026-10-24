@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import tomllib
+
 from contextlib import suppress
 from typing import TYPE_CHECKING
 from typing import Any
 
 from poetry.core.pyproject.tables import BuildSystem
-from poetry.core.utils._compat import tomllib
 
 
 if TYPE_CHECKING:
