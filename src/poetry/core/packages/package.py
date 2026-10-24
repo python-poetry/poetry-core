@@ -4,6 +4,7 @@ import warnings
 
 from typing import TYPE_CHECKING
 from typing import ClassVar
+from typing import Self
 from typing import TypedDict
 from typing import TypeVar
 
@@ -468,7 +469,7 @@ class Package(PackageSpecification):
 
         return dependency
 
-    def without_dependency_groups(self: T, groups: Collection[str]) -> T:
+    def without_dependency_groups(self, groups: Collection[str]) -> Self:
         """
         Returns a clone of the package with the given dependency groups excluded.
         """
@@ -484,7 +485,7 @@ class Package(PackageSpecification):
 
         return package
 
-    def without_optional_dependency_groups(self: T) -> T:
+    def without_optional_dependency_groups(self) -> Self:
         """
         Returns a clone of the package without optional dependency groups.
         """
@@ -499,8 +500,8 @@ class Package(PackageSpecification):
         return package
 
     def with_dependency_groups(
-        self: T, groups: Collection[str], only: bool = False
-    ) -> T:
+        self, groups: Collection[str], only: bool = False
+    ) -> Self:
         """
         Returns a clone of the package with the given dependency groups opted in.
 
