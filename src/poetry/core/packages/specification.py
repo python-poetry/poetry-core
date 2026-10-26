@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 
 from typing import TYPE_CHECKING
+from typing import Self
 from typing import TypeVar
 
 from packaging.utils import canonicalize_name
@@ -189,10 +190,10 @@ class PackageSpecification:
 
         return self.is_same_source_as(other)
 
-    def clone(self: T) -> T:
+    def clone(self) -> Self:
         return copy.copy(self)
 
-    def with_features(self: T, features: Iterable[str]) -> T:
+    def with_features(self, features: Iterable[str]) -> Self:
         package = self.clone()
 
         package._features = frozenset(
@@ -201,7 +202,7 @@ class PackageSpecification:
 
         return package
 
-    def without_features(self: T) -> T:
+    def without_features(self) -> Self:
         return self.with_features([])
 
     def __eq__(self, other: object) -> bool:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import tomllib
 
 from collections import defaultdict
 from pathlib import Path
@@ -21,7 +22,6 @@ from poetry.core.packages.file_dependency import FileDependency
 from poetry.core.packages.url_dependency import URLDependency
 from poetry.core.packages.vcs_dependency import VCSDependency
 from poetry.core.pyproject.tables import BuildSystem
-from poetry.core.utils._compat import tomllib
 from poetry.core.version.markers import SingleMarker
 
 
