@@ -447,3 +447,25 @@ def test_mutable_attributes_not_in_hash(attr_name: str, value: str) -> None:
 
     assert value != ref_value
     assert hash(dependency) == ref_hash
+
+
+def test_dependency_to_pep_508_relax_union() -> None:
+    # #10569: valid unions that can be merged by ignoring pre-release gaps
+    dependency = Dependency("A", "^4.5.0 || ^5.0.0")
+    assert dependency.to_pep_508() == "A (>=4.5.0,<6.0.0)"
+
+
+def test_dependency_to_pep_508_unrelaxable_union_raises_error() -> None:
+    # #11101: invalid unions that cannot be represented in PEP 508
+    dependency = Dependency("A", ">=1.6.5,<1.8.0 || >1.8.0,<3.1.0")
+    with pytest.raises(ValueError, match=r"contains \|\|"):
+        dependency.to_pep_508()
+
+
+def test_dependency_to_pep_508_unrelaxable_union_no_raise() -> None:
+    dependency = Dependency("A", ">=1.6.5,<1.8.0 || >1.8.0,<3.1.0")
+    # Should not raise when raise_errors=False
+    assert (
+        dependency.to_pep_508(raise_errors=False)
+        == "A (>=1.6.5,<1.8.0 || >1.8.0,<3.1.0)"
+    )
