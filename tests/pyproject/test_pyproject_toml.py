@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import tomllib
+
 from pathlib import Path
 
 import pytest
 
 from poetry.core.pyproject.exceptions import PyProjectError
 from poetry.core.pyproject.toml import PyProjectTOML
-from poetry.core.utils._compat import tomllib
 
 
 def test_pyproject_toml_simple(

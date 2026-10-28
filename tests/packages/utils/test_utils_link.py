@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import uuid
 
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from hashlib import sha256
 
 import pytest
@@ -222,18 +222,18 @@ def test_package_link_upload_time_default_is_none() -> None:
 @pytest.mark.parametrize(
     ("upload_time", "expected"),
     [
-        ("2023-06-15T08:30:45Z", datetime(2023, 6, 15, 8, 30, 45, tzinfo=timezone.utc)),
+        ("2023-06-15T08:30:45Z", datetime(2023, 6, 15, 8, 30, 45, tzinfo=UTC)),
         (
             "2022-12-31T23:59:59+00:00",
-            datetime(2022, 12, 31, 23, 59, 59, tzinfo=timezone.utc),
+            datetime(2022, 12, 31, 23, 59, 59, tzinfo=UTC),
         ),
         (
             "2023-06-15T08:30:45.123456Z",
-            datetime(2023, 6, 15, 8, 30, 45, 123456, tzinfo=timezone.utc),
+            datetime(2023, 6, 15, 8, 30, 45, 123456, tzinfo=UTC),
         ),
         (
             "2023-06-15T10:30:45+02:00",
-            datetime(2023, 6, 15, 8, 30, 45, tzinfo=timezone.utc),
+            datetime(2023, 6, 15, 8, 30, 45, tzinfo=UTC),
         ),
         ("not-a-timestamp", None),
     ],
