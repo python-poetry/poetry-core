@@ -1300,6 +1300,24 @@ def test_create_dependency_allow_prereleases(
     assert dep.allows_prereleases() is expected
 
 
+@pytest.mark.parametrize("dependency_type", ["file", "path"])
+@pytest.mark.parametrize("optional", [None, False, True])
+def test_create_dependency_optional_file(
+    dependency_type: str, optional: bool | None
+) -> None:
+    constraint: dict[str, Any] = {
+        dependency_type: "distributions/demo-0.1.0-py2.py3-none-any.whl"
+    }
+    if optional is not None:
+        constraint["optional"] = optional
+
+    dependency = Factory.create_dependency("demo", constraint, root_dir=fixtures_dir)
+
+    assert dependency.is_file()
+    assert dependency.is_optional() is (optional is True)
+    assert dependency.is_activated() is (optional is not True)
+
+
 def test_all_classifiers_unique_even_if_classifiers_is_duplicated() -> None:
     poetry = Factory().create_poetry(
         fixtures_dir / "project_with_duplicated_classifiers"

@@ -622,6 +622,7 @@ class Factory:
                     file_path,
                     directory=constraint.get("subdirectory", None),
                     groups=groups,
+                    optional=optional,
                     base=root_dir,
                     extras=constraint.get("extras", []),
                 )
