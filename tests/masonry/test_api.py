@@ -109,36 +109,6 @@ classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
     assert metadata.get_all("Classifier", []) == []
 
 
-def test_build_wheel_with_empty_dynamic_classifiers(tmp_path: Path) -> None:
-    (tmp_path / "pyproject.toml").write_text(
-        """\
-[project]
-name = "foo"
-version = "1"
-requires-python = "3.10"
-classifiers = []
-dynamic = ["classifiers"]
-
-[tool.poetry]
-classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
-""",
-        encoding="utf-8",
-    )
-    (tmp_path / "foo.py").touch()
-
-    with cwd(tmp_path):
-        filename = api.build_wheel(str(tmp_path / "dist"))
-
-    with zipfile.ZipFile(tmp_path / "dist" / filename) as wheel:
-        metadata = BytesParser().parsebytes(wheel.read("foo-1.dist-info/METADATA"))
-
-    assert metadata.get_all("Classifier", []) == [
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ]
-
-
 def test_build_wheel_with_include() -> None:
     with (
         TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir,

@@ -280,9 +280,7 @@ class Factory:
 
         package.requires_python = project.get("requires-python", "*")
         package.keywords = project.get("keywords") or tool_poetry.get("keywords", [])
-        if (static_classifiers := project.get("classifiers")) is None or (
-            not static_classifiers and "classifiers" in project.get("dynamic", [])
-        ):
+        if (static_classifiers := project.get("classifiers")) is None:
             package.classifiers = tool_poetry.get("classifiers", [])
             package.dynamic_classifiers = True
         else:

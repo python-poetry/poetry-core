@@ -686,24 +686,6 @@ python = "~3.10"
                 "Programming Language :: Python :: 3.10",
             ],
         ),
-        (  # dynamic with an empty initial list
-            """\
-[project]
-name = "foo"
-version = "1"
-requires-python = "3.10"
-classifiers = []
-dynamic = ["classifiers"]
-
-[tool.poetry]
-classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
-""",
-            [
-                "Programming Language :: Python :: 3",
-                "Programming Language :: Python :: 3.10",
-                "Topic :: Software Development :: Libraries :: Python Modules",
-            ],
-        ),
     ],
 )
 def test_create_poetry_classifiers(
