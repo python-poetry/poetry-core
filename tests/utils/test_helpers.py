@@ -79,6 +79,25 @@ isort@ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e5283576
     assert result == expected
 
 
+def test_parse_requires_extra_with_marker() -> None:
+    requires = """\
+[foo:python_version < "3.8" or sys_platform == "win32"]
+bar
+
+[baz:python_version < "3.8"]
+qux
+"""
+    result = parse_requires(requires)
+    expected = [
+        (
+            'bar ; (python_version < "3.8" or sys_platform == "win32")'
+            ' and extra == "foo"'
+        ),
+        'qux ; (python_version < "3.8") and extra == "baz"',
+    ]
+    assert result == expected
+
+
 def test_utils_helpers_combine_unicode() -> None:
     combined_expected = "é"
     decomposed = "é"
