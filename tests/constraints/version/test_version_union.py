@@ -157,3 +157,86 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
 )
 def test_str(version: str, expected: str) -> None:
     assert str(parse_constraint(version)) == expected
+
+
+@pytest.mark.parametrize(
+    ("constraint", "version", "expected"),
+    [
+        # post-releases of the excluded version must still be allowed
+        (">0.9,!=1.0", "1.post1", True),
+        (">0.9,!=1.0", "1.post1+local", True),
+        (">=2,!=3.0,<4", "3.post1", True),
+        (">=1,!=2,!=3,<4", "2.post1", True),
+        (">=1,!=2,!=3,<4", "3.post2", True),
+        ("!=2,<=3.3", "2.post3.dev1", True),
+        # post-releases of a pre-release seam
+        (">0.5,!=1.0a1", "1.0a1.post1", True),
+        # the excluded point itself and its local variants stay excluded
+        (">0.9,!=1.0", "1.0", False),
+        (">0.9,!=1.0", "1.0+local", False),
+        (">0.9,!=1.0", "1.0.0", False),
+        (">=2,!=3.0,<4", "3.0", False),
+        # pre/dev variants of the excluded version are still allowed
+        (">0.9,!=1.0", "1.0.dev1", True),
+        (">0.9,!=1.0", "1.0a1", True),
+        # the outer bounds still apply
+        (">0.9,!=1.0", "0.9", False),
+        (">0.9,!=1.0", "0.95", True),
+        (">=2,!=3.0,<4", "4.0", False),
+        (">=2,!=3.0,<4", "1.9", False),
+        # post-releases of a lower bound are still rejected (PEP 440)
+        (">0,!=0.4.2,<4.3", "0.post3", False),
+        (">0,!=3.2", "0.post3", False),
+        # other post-releases near a post-release seam are unaffected
+        (">3,!=3.post2", "3.post0", False),
+        (">3,!=3.post2", "3.post2", False),
+        (">3,!=3.post2", "3.post3", True),
+        # a literal exclusive comparison still rejects post-releases
+        (">1.0", "1.post1", False),
+        ("<1.0 || >2.0", "2.post1", False),
+    ],
+)
+def test_allows_punctured_union_post_releases(
+    constraint: str, version: str, expected: bool
+) -> None:
+    assert parse_constraint(constraint).allows(Version.parse(version)) is expected
+
+
+@pytest.mark.parametrize(
+    ("constraint", "version"),
+    [
+        (">0.9,!=1.0", "1.post1"),
+        (">=2,!=3.0,<4", "3.post1"),
+        (">=1,!=2,!=3,<4", "2.post1"),
+    ],
+)
+def test_punctured_union_set_operations_with_allowed_point(
+    constraint: str, version: str
+) -> None:
+    u = parse_constraint(constraint)
+    point = Version.parse(version)
+
+    assert u.intersect(point) == point
+    assert u.allows_any(point)
+    assert u.allows_all(point)
+
+    difference = u.difference(point)
+    assert not difference.allows(point)
+    assert difference.allows(Version.parse("0.95" if "0.9" in constraint else "2.5"))
+
+
+@pytest.mark.parametrize(
+    ("constraint", "version"),
+    [
+        (">0.9,!=1.0", "1.0"),
+        (">0.9,!=1.0", "1.0+local"),
+    ],
+)
+def test_punctured_union_set_operations_with_excluded_point(
+    constraint: str, version: str
+) -> None:
+    u = parse_constraint(constraint)
+    point = Version.parse(version)
+
+    assert u.intersect(point).is_empty()
+    assert not u.allows_any(point)

@@ -124,9 +124,78 @@ class VersionUnion(VersionConstraint):
         if self.excludes_single_version:
             return not self._excluded_single_version.allows(version)
 
-        return any(constraint.allows(version) for constraint in self._ranges)
+        return any(constraint.allows(version) for constraint in self._ranges) or self._allowed_at_puncture(version)
+
+    def _allowed_at_puncture(self, version: Version) -> bool:
+        """Allow pre/dev/post variants at a single-point puncture seam.
+
+        Adjacent pieces ``<V`` / ``>V`` with raw exclusive bounds exclude
+        only ``V`` itself (see ``_union_string``).  The right-hand piece is
+        spelled like the exclusive ordered comparison ``>V``, whose PEP 440
+        semantics strip post-releases of ``V`` before comparing, so a
+        post-release such as ``V.post1`` is wrongly rejected by the piece
+        even though it is not ``V``.  Rescue such variants of the seam
+        version here, as long as they lie within the outer bounds of the
+        seam pieces.  Pure local variants of ``V`` stay excluded, matching
+        the point semantics of ``!=V`` (``packaging`` agrees).
+        """
+        for prev, cur in pairwise(self._ranges):
+            if (
+                prev.max is None
+                or prev.max != cur.min
+                or prev.include_max
+                or cur.include_min
+            ):
+                continue
+            seam = prev.max
+            if seam.allows(version):
+                # the excluded point itself (or a pure local variant of it)
+                continue
+            if version.post is None or seam.post is not None:
+                # Only the post-release family of the seam version itself is
+                # wrongly rejected by the ``>V`` piece; pre/dev variants of
+                # ``V`` are already allowed by the ``<V`` piece, and a seam at
+                # a post-release excludes nothing extra.
+                continue
+            base = version.without_postrelease()
+            if base.is_local():
+                base = base.without_local()
+            if base != seam:
+                continue
+            if prev.min is not None and (
+                version < prev.min or (not prev.include_min and version == prev.min)
+            ):
+                continue
+            if cur.max is not None and (
+                version > cur.max or (not cur.include_max and version == cur.max)
+            ):
+                continue
+            return True
+
+        return False
 
     def allows_all(self, other: VersionConstraint) -> bool:
+        from poetry.core.constraints.version.version import Version
+
+        if isinstance(other, Version):
+            if not self.allows(other):
+                return False
+
+            if other.is_local():
+                # `==1.2.3+local` allows nothing but that very version.
+                return True
+
+            # A public version is fully allowed only if every local variant
+            # of it is allowed, too.  A bound that is a local variant of
+            # `other` splits that band (mirrors VersionRange.allows_all).
+            return not any(
+                r.max is not None
+                and r.max.is_local()
+                and r.max.without_local() == other
+                and (r.min is None or r.min <= other)
+                for r in self._ranges
+            )
+
         our_ranges = iter(self._ranges)
         their_ranges = iter(other.flatten())
 
@@ -142,6 +211,11 @@ class VersionUnion(VersionConstraint):
         return their_current_range is None
 
     def allows_any(self, other: VersionConstraint) -> bool:
+        from poetry.core.constraints.version.version import Version
+
+        if isinstance(other, Version) and self.allows(other):
+            return True
+
         our_ranges = iter(self._ranges)
         their_ranges = iter(other.flatten())
 
@@ -160,6 +234,14 @@ class VersionUnion(VersionConstraint):
         return False
 
     def intersect(self, other: VersionConstraint) -> VersionConstraint:
+        from poetry.core.constraints.version.version import Version
+
+        if isinstance(other, Version) and self.allows(other):
+            # A single point inside the union intersects to the point itself;
+            # the pairwise walk below would lose variants rescued at a
+            # puncture seam.
+            return other
+
         our_ranges = iter(self._ranges)
         their_ranges = iter(other.flatten())
         new_ranges = []
@@ -184,6 +266,22 @@ class VersionUnion(VersionConstraint):
         return VersionUnion.of(self, other)
 
     def difference(self, other: VersionConstraint) -> VersionConstraint:
+        from poetry.core.constraints.version.version import Version
+
+        if isinstance(other, Version) and self.allows(other):
+            # Removing a single point splits the containing piece (or the
+            # pieces around a puncture seam) at that point; express the
+            # complement of the point as ranges and let the comparison-based
+            # walk do the split.
+            from poetry.core.constraints.version.version_range import VersionRange
+
+            return self.intersect(
+                VersionUnion.of(
+                    VersionRange(max=other),
+                    VersionRange(min=other),
+                )
+            )
+
         our_ranges = iter(self._ranges)
         their_ranges = iter(other.flatten())
         new_ranges: list[VersionConstraint] = []
