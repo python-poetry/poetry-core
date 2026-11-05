@@ -124,7 +124,9 @@ class VersionUnion(VersionConstraint):
         if self.excludes_single_version:
             return not self._excluded_single_version.allows(version)
 
-        return any(constraint.allows(version) for constraint in self._ranges) or self._allowed_at_puncture(version)
+        return any(
+            constraint.allows(version) for constraint in self._ranges
+        ) or self._allowed_at_puncture(version)
 
     def _allowed_at_puncture(self, version: Version) -> bool:
         """Allow pre/dev/post variants at a single-point puncture seam.
