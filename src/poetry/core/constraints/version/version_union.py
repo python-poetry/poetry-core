@@ -124,9 +124,10 @@ class VersionUnion(VersionConstraint):
         if self.excludes_single_version:
             return not self._excluded_single_version.allows(version)
 
-        return any(
-            constraint.allows(version) for constraint in self._ranges
-        ) or self._allowed_at_puncture(version)
+        if any(constraint.allows(version) for constraint in self._ranges):
+            return not self._blocked_at_puncture(version)
+
+        return self._allowed_at_puncture(version)
 
     def _allowed_at_puncture(self, version: Version) -> bool:
         """Allow pre/dev/post variants at a single-point puncture seam.
@@ -173,6 +174,48 @@ class VersionUnion(VersionConstraint):
             ):
                 continue
             return True
+
+        return False
+
+    def _blocked_at_puncture(self, version: Version) -> bool:
+        """Reject post-releases that range algebra lets back in at a puncture.
+
+        A ``!=V`` puncture splits an exclusive lower bound ``>B`` into
+        ``>B,<V`` and ``>V``.  When ``V`` is itself a post-release of ``B``
+        (say ``!=3.post2`` under ``>3``), the right-hand piece ``>V`` admits
+        further post-releases of ``B`` (such as ``3.post3``), because the
+        PEP 440 rule that an exclusive ordered comparison ``>B`` matches no
+        post-release of ``B`` applies only to the exact bound ``B`` and is
+        lost in the split.  Restore the exclusion of the outer bound here:
+        above a seam that is a post-release of ``B``, post-releases of ``B``
+        stay rejected while the outer ``>B`` bound remains exclusive
+        (``packaging`` agrees).
+        """
+        if version.post is None:
+            return False
+
+        base = version.without_postrelease()
+        if base.is_local():
+            base = base.without_local()
+
+        for prev, cur in pairwise(self._ranges):
+            if (
+                prev.max is None
+                or prev.max != cur.min
+                or prev.include_max
+                or cur.include_min
+            ):
+                continue
+            seam = prev.max
+            if seam.post is None or seam.without_postrelease() != base:
+                continue
+            if version <= seam:
+                continue
+            if prev.min is not None and not prev.include_min and prev.min == base:
+                # the seam punctures an exclusive lower bound on the same
+                # base version, whose post-release exclusion covers
+                # everything above the seam, too
+                return True
 
         return False
 

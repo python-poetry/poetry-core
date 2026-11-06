@@ -190,7 +190,7 @@ def test_str(version: str, expected: str) -> None:
         # other post-releases near a post-release seam are unaffected
         (">3,!=3.post2", "3.post0", False),
         (">3,!=3.post2", "3.post2", False),
-        (">3,!=3.post2", "3.post3", True),
+        (">3,!=3.post2", "3.post3", False),
         # a literal exclusive comparison still rejects post-releases
         (">1.0", "1.post1", False),
         ("<1.0 || >2.0", "2.post1", False),
