@@ -22,15 +22,23 @@ if TYPE_CHECKING:
     from poetry.core.constraints.version.version import Version
 
 
-def _render_punctured_range(group: list[VersionRangeConstraint]) -> str:
-    """Render a contiguous run of pieces sharing single-point puncture
-    seams as a punctured range ``>=A,!=V1,!=V2,<B``.  Singleton runs
-    defer to ``str``."""
-    if len(group) == 1:
-        return str(group[0])
-    from poetry.core.constraints.version.version_range import _display_max_text
-
+def _render_punctured_range(
+    group: list[VersionRangeConstraint], next_min: Version | None = None
+) -> str:
+    """Render ranges separated by public-version exclusions."""
     first, last = group[0], group[-1]
+    max_ = last.max
+    preserve_raw = (
+        max_ is not None
+        and not last.include_max
+        and not max_.is_unstable()
+        and next_min is not None
+        and (max_.epoch, max_.release) == (next_min.epoch, next_min.release)
+    )
+    if len(group) == 1 and not preserve_raw:
+        return str(group[0])
+    from poetry.core.constraints.version.version_range import _format_upper_bound
+
     parts: list[str] = []
     if first.min is not None:
         parts.append(f"{'>=' if first.include_min else '>'}{first.min.text}")
@@ -38,8 +46,9 @@ def _render_punctured_range(group: list[VersionRangeConstraint]) -> str:
         assert r.max is not None  # by construction: r is not the last piece
         parts.append(f"!={r.max.text}")
     if last.max is not None:
-        max_op = "<=" if last.include_max else "<"
-        parts.append(f"{max_op}{_display_max_text(last.max, last.include_max)}")
+        parts.append(
+            _format_upper_bound(last.max, last.include_max, preserve_raw=preserve_raw)
+        )
     return ",".join(parts)
 
 
@@ -121,9 +130,6 @@ class VersionUnion(VersionConstraint):
         return all(constraint.has_upper_bound() for constraint in self._ranges)
 
     def allows(self, version: Version) -> bool:
-        if self.excludes_single_version:
-            return not self._excluded_single_version.allows(version)
-
         return any(constraint.allows(version) for constraint in self._ranges)
 
     def allows_all(self, other: VersionConstraint) -> bool:
@@ -329,47 +335,22 @@ class VersionUnion(VersionConstraint):
 
     @cached_property
     def _union_string(self) -> str:
-        """Render the union as one or more punctured ranges joined by
-        ``||``.  A punctured range is a maximal run of pieces whose
-        internal seams are single-point exclusions: ``<V`` immediately
-        followed by ``>V`` excludes only ``{V}`` (both bounds raw
-        exclusive), so the run renders as ``>=A,!=V1,!=V2,<B``.  A seam
-        ``<V.dev0`` followed by ``>V`` instead spans a whole range and
-        is *not* collapsible -- ``ranges[i].max == ranges[i+1].min``
-        distinguishes the two cases.
-
-        This makes results like ``(>1).intersect(!=2)`` round-trip:
-        ``>1,!=2`` re-parses to the same internal raw structure, whereas
-        ``>1,<2 || >2`` would re-parse with the canonicalized ``<2.dev0``
-        and yield a strictly smaller set.
-
-        When no seam is collapsible every group is a singleton and the
-        result is identical to the naive ``" || ".join(map(str, ...))``
-        rendering -- so this method also handles that case directly.
-        """
+        """Group ranges separated only by an excluded version."""
         # ``VersionUnion.of`` produces sorted ranges, but the bare
         # constructor doesn't enforce that, so sort defensively.
         ranges = sorted(self._ranges)  # type: ignore[type-var]
 
-        groups: list[list[VersionRangeConstraint]] = [[ranges[0]]]
+        rendered: list[str] = []
+        group = [ranges[0]]
         for prev, cur in pairwise(ranges):
-            # A puncture seam requires both bounds to be raw-exclusive at the
-            # same Version.  Adjacent inclusive bounds would mean the seam
-            # version is actually allowed by one of the pieces -- well-formed
-            # unions from ``VersionUnion.of`` never produce that shape, but
-            # the assertion-as-condition keeps us safe against direct
-            # ``VersionUnion(...)`` construction.
-            if (
-                prev.max is not None
-                and prev.max == cur.min
-                and not prev.include_max
-                and not cur.include_min
-            ):
-                groups[-1].append(cur)
+            if prev.excludes_single_version_before(cur):
+                group.append(cur)
             else:
-                groups.append([cur])
+                rendered.append(_render_punctured_range(group, next_min=cur.min))
+                group = [cur]
 
-        return " || ".join(_render_punctured_range(g) for g in groups)
+        rendered.append(_render_punctured_range(group))
+        return " || ".join(rendered)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, VersionUnion):
@@ -381,6 +362,8 @@ class VersionUnion(VersionConstraint):
         return reduce(op.xor, map(hash, self._ranges))
 
     def __str__(self) -> str:
+        if self.excludes_single_version:
+            return f"!={self._excluded_single_version}"
         try:
             return self._exclude_single_wildcard_range_string
         except ValueError:

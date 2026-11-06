@@ -138,6 +138,7 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
         # version exclusions
         ("!=1.0", "!=1.0"),
         ("!=1.0+local", "!=1.0+local"),
+        ("!=1.post1", "!=1.post1"),
         # punctured ranges round-trip through string serialization
         (">1,!=2", ">1,!=2"),
         (">=1,!=2,<5", ">=1,!=2,<5"),
@@ -157,3 +158,58 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
 )
 def test_str(version: str, expected: str) -> None:
     assert str(parse_constraint(version)) == expected
+
+
+@pytest.mark.parametrize(
+    ("constraint", "version"),
+    [
+        (">0.9,!=1a1", "1a1.post0.dev0"),
+        (">0.9,!=1.dev1", "1.dev2"),
+        (">0.9,!=1.post1", "1.post2.dev0"),
+        (">0.9,!=1+local", "1.post1"),
+    ],
+)
+def test_allows_versions_after_excluded_point(constraint: str, version: str) -> None:
+    assert parse_constraint(constraint).allows(Version.parse(version))
+
+
+@pytest.mark.parametrize(
+    ("constraint", "version"),
+    [
+        (">0.9,!=1", "1.post1"),
+        (">0.9,!=1,<=1.post1", "1.post1"),
+    ],
+)
+def test_set_operations_with_version_exclusions(constraint: str, version: str) -> None:
+    union = parse_constraint(constraint)
+    point = Version.parse(version)
+    local = Version.parse(f"{version}+local")
+
+    assert union.allows_all(point)
+    assert union.allows(local)
+    assert union.allows_any(point)
+    assert union.intersect(point) == point
+    assert not union.difference(point).allows(point)
+    assert not union.difference(point).allows(local)
+
+
+def test_intersect_version_exclusion_with_range() -> None:
+    union = parse_constraint(">0.9,!=1")
+    point = Version.parse("1.post1")
+
+    assert union.intersect(parse_constraint(">=1")).allows(point)
+    assert parse_constraint(">=1").intersect(union).allows(point)
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        "!=1,!=1.post0.dev0",
+        "!=1,!=2.post0,!=2.post1.dev0",
+        "<=2!1,!=2!1 || >=2!1.0.post0.dev999999999",
+    ],
+)
+def test_consecutive_version_exclusions_round_trip(expression: str) -> None:
+    constraint = parse_constraint(expression)
+
+    assert parse_constraint(str(constraint)) == constraint

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 
+from functools import cached_property
 from typing import TYPE_CHECKING
 
 from poetry.core.constraints.version.empty_constraint import EmptyConstraint
@@ -10,13 +11,14 @@ from poetry.core.constraints.version.version_range_constraint import (
 )
 from poetry.core.constraints.version.version_union import VersionUnion
 from poetry.core.version.pep440 import Release
+from poetry.core.version.pep440 import ReleaseTag
 from poetry.core.version.pep440.version import PEP440Version
 
 
 if TYPE_CHECKING:
     from poetry.core.constraints.version.version_constraint import VersionConstraint
+    from poetry.core.constraints.version.version_range import VersionRange
     from poetry.core.version.pep440 import LocalSegmentType
-    from poetry.core.version.pep440 import ReleaseTag
 
 
 @dataclasses.dataclass(frozen=True)
@@ -45,6 +47,27 @@ class Version(PEP440Version, VersionRangeConstraint):
             return self.stable.next_minor()
 
         return self.stable.next_patch()
+
+    @cached_property
+    def next_public_version(self) -> Version:
+        """First public version above this version and its local variants."""
+        if self.is_devrelease():
+            return self.next_devrelease()
+        return self.__class__(
+            epoch=self.epoch,
+            release=self.release,
+            pre=self.pre,
+            post=self.post.next() if self.post is not None else ReleaseTag("post"),
+            dev=ReleaseTag("dev"),
+        )
+
+    def to_range(self) -> VersionRange:
+        """Represent equality, including local variants, as a range."""
+        from poetry.core.constraints.version.version_range import VersionRange
+
+        if self.is_local():
+            return VersionRange(self, self, include_min=True, include_max=True)
+        return VersionRange(self, self.next_public_version, include_min=True)
 
     @property
     def min(self) -> Version:
@@ -87,11 +110,6 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         return _this == _other
 
-    def allows_all(self, other: VersionConstraint) -> bool:
-        return other.is_empty() or (
-            self.allows(other) if isinstance(other, self.__class__) else other == self
-        )
-
     def allows_any(self, other: VersionConstraint) -> bool:
         intersection = self.intersect(other)
         return not intersection.is_empty()
@@ -110,10 +128,6 @@ class Version(PEP440Version, VersionRangeConstraint):
 
     def union(self, other: VersionConstraint) -> VersionConstraint:
         if not isinstance(other, Version):
-            # Delegate to the other operand's ``union`` so the broadening
-            # rules for local-tagged bounds are applied symmetrically
-            # whether the union is written as ``range.union(point)`` or
-            # ``point.union(range)``.
             return other.union(self)
 
         if other.allows(self):
@@ -121,6 +135,9 @@ class Version(PEP440Version, VersionRangeConstraint):
 
         if self.allows(other):
             return self
+
+        if self.is_adjacent_to(other) or other.is_adjacent_to(self):
+            return self.to_range().union(other.to_range())
 
         return VersionUnion.of(self, other)
 
@@ -132,20 +149,7 @@ class Version(PEP440Version, VersionRangeConstraint):
             return EmptyConstraint()
 
         if other.allows_any(self):
-            # ``other`` covers part of what this constraint allows -- the
-            # version itself or some of its local variants -- which a plain
-            # ``Version`` cannot express. Represent the allowed set as a
-            # half-open range before subtracting, so that the remainder can be
-            # spelled out. Using ``self`` as both bounds would discard the
-            # local variants ordered after ``other``.
-            from poetry.core.constraints.version.version_range import VersionRange
-
-            upper = (
-                self.next_devrelease()
-                if self.is_devrelease()
-                else self.next_postrelease()
-            )
-            return VersionRange(self, upper, include_min=True).difference(other)
+            return self.to_range().difference(other)
 
         return self
 

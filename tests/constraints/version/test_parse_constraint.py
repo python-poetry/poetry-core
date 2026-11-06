@@ -528,6 +528,13 @@ def test_constraints_keep_version_precision(input: str, expected: str) -> None:
     assert str(parse_constraint(input)) == expected
 
 
+def test_exclusion_bounds_keep_version_precision() -> None:
+    for version in ("1", "1.0"):
+        constraint = parse_constraint(f">={version},!={version}")
+
+        assert str(constraint) == f">={version}.post0.dev0"
+
+
 @pytest.mark.parametrize(
     "constraint_parts,expected",
     [

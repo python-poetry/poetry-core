@@ -1048,11 +1048,6 @@ def test_multi_marker_union_multi_is_multi(
             'python_version >= "3.6" and python_version < "3.8"',
         ),
         (
-            'python_version >= "3.6" and python_full_version <= "3.6.2"',
-            'python_full_version > "3.6.2" and python_version < "3.7"',
-            'python_version == "3.6"',
-        ),
-        (
             'python_version >= "3.6" and python_full_version <= "3.7.2"',
             'python_full_version > "3.6.2" and python_version < "3.8"',
             'python_version >= "3.6" and python_version < "3.8"',
@@ -1172,6 +1167,25 @@ def test_version_ranges_collapse_on_union(
     m2 = parse_marker(marker2)
     assert str(m1.union(m2)) == expected
     assert str(m2.union(m1)) == expected
+
+
+def test_version_ranges_union_preserves_excluded_post_releases() -> None:
+    m1 = parse_marker('python_version >= "3.6" and python_full_version <= "3.6.2"')
+    m2 = parse_marker('python_full_version > "3.6.2" and python_version < "3.7"')
+    union = m1.union(m2)
+    reverse_union = m2.union(m1)
+    assert str(union) == (
+        'python_version == "3.6" and (python_full_version <= "3.6.2"'
+        ' or python_full_version > "3.6.2")'
+    )
+    assert str(reverse_union) == (
+        'python_version == "3.6" and (python_full_version > "3.6.2"'
+        ' or python_full_version <= "3.6.2")'
+    )
+    for marker in (union, reverse_union):
+        assert not marker.validate(
+            {"python_version": "3.6", "python_full_version": "3.6.2.post1"}
+        )
 
 
 def test_multi_marker_union_with_union() -> None:
@@ -2747,7 +2761,7 @@ def test_intersection_no_endless_recursion(
         ('> "3.6"', '== "3.7.0"', '== "3.7.0"', '> "3.6"'),
         ('> "3.6"', '== "3.7.1"', '== "3.7.1"', '> "3.6"'),
         ('> "3.6"', '!= "3.6.2"', '> "3.6"', '!= "3.6.2"'),
-        ('> "3.6"', '!= "3.7.0"', '> "3.7.0"', ""),
+        ('> "3.6"', '!= "3.7.0"', '>= "3.7.0.post0.dev0"', ""),
         ('> "3.6"', '!= "3.7.1"', None, ""),
         ('> "3.6"', '< "3.7.0"', EMPTY, ""),
         ('> "3.6"', '<= "3.7.0"', '== "3.7.0"', ""),
@@ -2763,7 +2777,7 @@ def test_intersection_no_endless_recursion(
         ('>= "3.6"', '== "3.5.2"', EMPTY, None),
         ('>= "3.6"', '== "3.6.0"', '== "3.6.0"', '>= "3.6"'),
         ('>= "3.6"', '!= "3.5.2"', '>= "3.6"', '!= "3.5.2"'),
-        ('>= "3.6"', '!= "3.6.0"', '> "3.6.0"', ""),
+        ('>= "3.6"', '!= "3.6.0"', '>= "3.6.0.post0.dev0"', ""),
         ('>= "3.6"', '!= "3.6.1"', None, ""),
         ('>= "3.6"', '!= "3.7.1"', None, ""),
         ('>= "3.6"', '< "3.6.0"', EMPTY, ""),
@@ -2885,3 +2899,11 @@ def test_merging_python_version_and_python_full_version(
 
     union = parse_marker(m).union(parse_marker(m2))
     assert str(union) == expected_union
+
+
+def test_merged_version_exclusion_allows_post_releases() -> None:
+    marker = parse_marker('python_version >= "3.6" and python_full_version != "3.6.0"')
+
+    assert marker.validate(
+        {"python_version": "3.6", "python_full_version": "3.6.0.post0.dev0"}
+    )
