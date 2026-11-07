@@ -1205,6 +1205,13 @@ def detect_recursion(func: Callable[..., BaseMarker]) -> Callable[..., BaseMarke
 
 @detect_recursion
 def intersection(*markers: BaseMarker) -> BaseMarker:
+    # An "any" marker does not change an intersection. Drop it before building
+    # the unnormalized candidate, which may be returned as is and would then
+    # render the "any" marker as an empty "()".
+    markers = tuple(m for m in markers if not m.is_any())
+    if not markers:
+        return AnyMarker()
+
     # Sometimes normalization makes it more complicated instead of simple
     # -> choose candidate with the least complexity
     unnormalized: BaseMarker = MultiMarker(*markers)
@@ -1232,6 +1239,13 @@ def intersection(*markers: BaseMarker) -> BaseMarker:
 
 @detect_recursion
 def union(*markers: BaseMarker) -> BaseMarker:
+    # An empty marker does not change a union. Drop it before building the
+    # unnormalized candidate, which may be returned as is and would then
+    # render the empty marker as "<empty>".
+    markers = tuple(m for m in markers if not m.is_empty())
+    if not markers:
+        return EmptyMarker()
+
     # Sometimes normalization makes it more complicated instead of simple
     # -> choose candidate with the least complexity
     unnormalized: BaseMarker = MarkerUnion(*markers)
