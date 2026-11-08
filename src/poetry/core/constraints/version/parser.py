@@ -113,7 +113,6 @@ def parse_single_constraint(
     from poetry.core.constraints.version.patterns import X_CONSTRAINT
     from poetry.core.constraints.version.version import Version
     from poetry.core.constraints.version.version_range import VersionRange
-    from poetry.core.constraints.version.version_union import VersionUnion
     from poetry.core.version.pep440.segments import Release
 
     def canon_max(v: Version) -> Version:
@@ -227,13 +226,7 @@ def parse_single_constraint(
             )
 
         if op == "!=":
-            # PEP 440 strict equality: ``!=V`` excludes exactly ``V``, *not* its
-            # prereleases (unlike the ordered ``<V`` comparison).  We therefore
-            # leave the upper piece raw; ``2.0.dev1`` correctly matches ``!=2``.
-            return VersionUnion(
-                VersionRange(max=version),
-                VersionRange(min=version),
-            )
+            return VersionRange().difference(version)
 
         return version
 
@@ -263,11 +256,7 @@ def parse_single_constraint(
         if op == ">=":
             return VersionRange(min=version, include_min=True)
         if op == "!=":
-            # See PEP 440 ``!=V`` note above (basic constraint branch).
-            return VersionUnion(
-                VersionRange(max=version),
-                VersionRange(min=version),
-            )
+            return VersionRange().difference(version)
         return version
 
     raise ParseConstraintError(f"Could not parse version constraint: {constraint}")

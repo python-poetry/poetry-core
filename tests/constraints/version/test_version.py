@@ -7,6 +7,7 @@ import pytest
 from poetry.core.constraints.version import EmptyConstraint
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
+from poetry.core.constraints.version import parse_constraint
 from poetry.core.version.exceptions import InvalidVersionError
 from poetry.core.version.pep440 import ReleaseTag
 
@@ -377,6 +378,14 @@ def test_allows_all() -> None:
     assert v.allows_all(EmptyConstraint())
 
 
+def test_public_version_allows_all_local_fragments() -> None:
+    public = Version.parse("1")
+    local = Version.parse("1+cpu")
+    fragment = VersionRange(public, local, include_min=True, include_max=True)
+
+    assert public.allows_all(fragment)
+
+
 @pytest.mark.parametrize(
     ("version1", "version2", "expected"),
     [
@@ -464,7 +473,7 @@ def test_allows_any(
             VersionRange(Version.parse("1.2.3+local"), include_min=True),
             VersionRange(
                 Version.parse("1.2.3+local"),
-                Version.parse("1.2.4"),
+                Version.parse("1.2.3.post0.dev0"),
                 include_min=True,
                 include_max=False,
             ),
@@ -478,6 +487,15 @@ def test_intersect(
 ) -> None:
     assert version1.intersect(version2) == expected
     assert version2.intersect(version1) == expected
+
+
+def test_intersect_public_version_with_local_exclusion() -> None:
+    intersection = Version.parse("1").intersect(parse_constraint("!=1+cpu"))
+
+    assert intersection.allows(Version.parse("1"))
+    assert intersection.allows(Version.parse("1+zzz"))
+    assert not intersection.allows(Version.parse("1+cpu"))
+    assert not intersection.allows(Version.parse("1.post0"))
 
 
 def test_union() -> None:
@@ -496,9 +514,9 @@ def test_union() -> None:
     union = Version.parse("1.1.4").union(
         VersionRange(Version.parse("1.1.4"), Version.parse("1.2.4"))
     )
-    assert union == VersionRange(
-        Version.parse("1.1.4"), Version.parse("1.2.4"), include_min=True
-    )
+    assert union.allows(Version.parse("1.1.4"))
+    assert union.allows(Version.parse("1.2.3"))
+    assert not union.allows(Version.parse("1.1.4.post1"))
 
     result = v.union(VersionRange(Version.parse("0.0.3"), Version.parse("1.1.4")))
     assert result.allows(v)
@@ -542,6 +560,7 @@ def test_difference_local_version() -> None:
     assert difference.allows(public)
     assert difference.allows(Version.parse("2.12.1+aaa"))
     assert difference.allows(Version.parse("2.12.1+zzz"))
+    assert not difference.allows(Version.parse("2.12.1.post0.dev0"))
     assert not difference.allows(Version.parse("2.12.1.post0"))
     # The reverse direction is unchanged: a non-local version constraint
     # subsumes its local variants entirely.

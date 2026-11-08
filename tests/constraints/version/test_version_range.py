@@ -381,6 +381,65 @@ def test_intersect(
     assert VersionRange(v123, v124).intersect(v114).is_empty()
 
 
+def test_difference_preserves_versions_after_excluded_point() -> None:
+    range_ = parse_constraint(">=0,<2")
+    point = Version.parse("1")
+    difference = range_.difference(point)
+
+    assert not difference.allows(point)
+    assert difference.allows(Version.parse("1.post0.dev0"))
+    assert parse_constraint(str(difference)) == difference
+
+
+def test_difference_removes_local_version_at_public_maximum() -> None:
+    difference = parse_constraint("<=1").difference(Version.parse("1+cpu"))
+
+    assert not difference.allows(Version.parse("1+cpu"))
+    assert difference.allows(Version.parse("1"))
+    assert difference.allows(Version.parse("1+zzz"))
+    assert not difference.allows(Version.parse("1.post0.dev0"))
+
+
+@pytest.mark.parametrize("version", ["1.post0.dev0", "1+local"])
+def test_exclusive_lower_bound_intersection(version: str) -> None:
+    exclusive = parse_constraint(">1")
+    lower = parse_constraint(f">={version}")
+    upper = parse_constraint(f"<={version}")
+
+    assert exclusive.intersect(lower) == exclusive
+    assert lower.intersect(exclusive) == exclusive
+    assert exclusive.intersect(upper).is_empty()
+    assert upper.intersect(exclusive).is_empty()
+    assert not exclusive.allows_any(upper)
+    assert not upper.allows_any(exclusive)
+
+
+@pytest.mark.parametrize(
+    ("constraint", "version", "expected"),
+    [
+        (">=1.post0.dev0", "1.0", ">=1.0"),
+        ("<=1", "1.post0.dev0", "<=1.post0.dev0"),
+        ("1.dev1", "1.dev0", ">=1.dev0,<1.dev2"),
+    ],
+)
+def test_union_with_adjacent_public_version(
+    constraint: str, version: str, expected: str
+) -> None:
+    range_ = parse_constraint(constraint)
+    point = Version.parse(version)
+    union = parse_constraint(expected)
+
+    assert range_.union(point) == union
+    assert point.union(range_) == union
+
+
+@pytest.mark.parametrize(
+    "constraint", ["<1.dev1 || >1.dev0", "<1.post1.dev0 || >1.post0"]
+)
+def test_union_with_complementary_normalized_bounds(constraint: str) -> None:
+    assert parse_constraint(constraint).is_any()
+
+
 def test_union(
     v003: Version,
     v010: Version,
@@ -400,10 +459,13 @@ def test_union(
     range = VersionRange(v114, v124)
     assert range.union(v123) == range
 
-    # with a version on the edge of the range, expands the range
+    # Adding the upper endpoint includes its local variants.
     range = VersionRange(v114, v124)
     assert range.union(v124) == VersionRange(v114, v124, include_max=True)
-    assert range.union(v114) == VersionRange(v114, v124, include_min=True)
+    result = range.union(v114)
+    assert result.allows(v114)
+    assert result.allows(v123)
+    assert not result.allows(Version.parse("1.1.4.post1"))
 
     # with a version allows both the range and the version if the range
     # doesn't contain the version
@@ -432,9 +494,13 @@ def test_union(
     result = VersionRange(v003, v114).union(VersionRange(v080, v200))
     assert result == VersionRange(v003, v200)
 
-    # considers closed ranges overlapping
+    # Strict lower bounds exclude post-releases of the boundary version.
     result = VersionRange(v003, v114, include_max=True).union(VersionRange(v114, v200))
-    assert result == VersionRange(v003, v200)
+    assert result.allows(v114)
+    assert not result.allows(Version.parse("1.1.4.post1"))
+    assert result.allows(v123)
+
+    # An inclusive lower bound covers those post-releases as well.
     result = VersionRange(v003, v114).union(VersionRange(v114, v200, include_min=True))
     assert result == VersionRange(v003, v200)
 
@@ -758,6 +824,14 @@ def test_is_empty_for_coincident_bounds(
     )
 
 
+@pytest.mark.parametrize("version", ["1.dev0", "1.post0"])
+def test_strict_lower_bound_at_inclusive_maximum_is_empty(version: str) -> None:
+    point = Version.parse(version)
+
+    assert VersionRange(point, point, include_max=True).is_empty()
+    assert parse_constraint(f">{version},<={version}").is_empty()
+
+
 def test_is_empty_for_inverted_bounds() -> None:
     """A range whose min is greater than its max has no members."""
     lo = Version.parse("1.0")
@@ -817,19 +891,19 @@ def test_intersect_with_local_version_other_does_not_broaden_exclusive_min() -> 
     assert inclusive.intersect(excluded_point) == excluded_point
     assert excluded_point.intersect(inclusive) == excluded_point
 
-    # Original motivating case (``>=X+local ∩ public X``) still broadens.
+    # Public equality intersects only its local variants.
     public = Version.parse("0.21.0")
     range_ge_local = VersionRange(
         excluded_point, Version.parse("1.0"), include_min=True, include_max=False
     )
-    broadened_range = VersionRange(
+    local_fragment = VersionRange(
         excluded_point,
-        public.next_patch(),
+        Version.parse("0.21.0.post0.dev0"),
         include_min=True,
         include_max=False,
     )
-    assert range_ge_local.intersect(public) == broadened_range
-    assert public.intersect(range_ge_local) == broadened_range
+    assert range_ge_local.intersect(public) == local_fragment
+    assert public.intersect(range_ge_local) == local_fragment
 
 
 @pytest.mark.parametrize(
@@ -875,11 +949,7 @@ def test_intersect_punctured_range_with_excluded_point_is_empty() -> None:
     assert excluded_point.intersect(punctured).is_empty()
 
 
-def test_union_upper_bound_local_with_public_extends_to_next_patch() -> None:
-    """``>=X,<X+local union ==X`` broadens the upper bound to
-    ``X.next_patch()`` (exclusive). ``==X`` matches every ``X+local``
-    variant by PEP 440 release-equality, so the union must cover them.
-    """
+def test_union_upper_bound_local_with_public() -> None:
     range_below = VersionRange(
         Version.parse("0.21.0"),
         Version.parse("0.21.0+cpu"),
@@ -887,22 +957,13 @@ def test_union_upper_bound_local_with_public_extends_to_next_patch() -> None:
         include_max=False,
     )
     public = Version.parse("0.21.0")
-    expected = VersionRange(
-        Version.parse("0.21.0"),
-        Version.parse("0.21.1"),
-        include_min=True,
-        include_max=False,
-    )
-    assert range_below.union(public) == expected
-    assert public.union(range_below) == expected
+    for union in (range_below.union(public), public.union(range_below)):
+        assert union == public
+        assert not union.allows(Version.parse("0.21.0.post0.dev0"))
+        assert not union.allows(Version.parse("0.21.0.0.1"))
 
 
-def test_union_local_bounds_with_public_collapses_to_next_patch() -> None:
-    """``>=X+local1,<=X+local2 union ==X`` collapses to ``[X, X.next_patch())``.
-    Both bounds are local variants of the same public version ``X``.
-    Since ``==X`` matches all of them by PEP 440 release-equality, the
-    union must cover the entire public range up to ``X.next_patch()``.
-    """
+def test_union_local_bounds_with_public() -> None:
     range_locals = VersionRange(
         Version.parse("0.21.0+cpu"),
         Version.parse("0.21.0+gpu"),
@@ -910,14 +971,8 @@ def test_union_local_bounds_with_public_collapses_to_next_patch() -> None:
         include_max=True,
     )
     public = Version.parse("0.21.0")
-    expected = VersionRange(
-        Version.parse("0.21.0"),
-        Version.parse("0.21.1"),
-        include_min=True,
-        include_max=False,
-    )
-    assert range_locals.union(public) == expected
-    assert public.union(range_locals) == expected
+    assert range_locals.union(public) == public
+    assert public.union(range_locals) == public
 
 
 def test_union_lower_bound_local_with_public_extends_to_public() -> None:

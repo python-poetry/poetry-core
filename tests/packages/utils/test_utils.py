@@ -198,7 +198,7 @@ def test_create_nested_marker_version_constraint(
         ('python_version in "2.7, 3.6"', ">=2.7.0,<2.8.0 || >=3.6.0,<3.7.0"),
         ('python_version in "2.7, 3.6.2"', ">=2.7.0,<2.8.0 || 3.6.2"),
         ('python_version not in "2.7, 3.6"', "<2.7.0 || >=2.8.0,<3.6.0 || >=3.7.0"),
-        ('python_version not in "2.7, 3.6.2"', "<2.7.0 || >=2.8.0,<3.6.2 || >3.6.2"),
+        ('python_version not in "2.7, 3.6.2"', "<2.7.0 || >=2.8.0,!=3.6.2"),
         # and
         ('python_version >= "3.6" and python_full_version < "4.0"', ">=3.6, <4.0"),
         (
@@ -233,7 +233,7 @@ def test_create_nested_marker_version_constraint(
         # exclude specific version
         (
             'python_version >= "3.5" and python_full_version != "3.7.6"',
-            ">=3.5,<3.7.6 || >3.7.6",
+            ">=3.5,!=3.7.6",
         ),
         # Full exact version
         (
