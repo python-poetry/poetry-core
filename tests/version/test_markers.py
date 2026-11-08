@@ -1365,6 +1365,41 @@ def test_marker_union_not_all_empty() -> None:
     assert not union.is_empty()
 
 
+# Normalizing these markers makes them more complex, so union() and intersection()
+# return the unnormalized form, which must not keep the empty or any marker.
+UNNORMALIZED_UNION = (
+    'python_version < "3.9" and sys_platform == "win32"'
+    ' or python_version >= "3.9" and platform_machine == "aarch64"'
+)
+UNNORMALIZED_MULTI = (
+    '(python_version < "3.9" or sys_platform == "win32")'
+    ' and (python_version >= "3.9" or platform_machine == "aarch64")'
+)
+
+
+@pytest.mark.parametrize("marker", [UNNORMALIZED_UNION, UNNORMALIZED_MULTI])
+def test_union_with_empty_marker(marker: str) -> None:
+    m = parse_marker(marker)
+
+    assert str(m.union(EmptyMarker())) == marker
+    assert str(EmptyMarker().union(m)) == marker
+    assert str(union(m, EmptyMarker())) == marker
+
+
+@pytest.mark.parametrize("marker", [UNNORMALIZED_UNION, UNNORMALIZED_MULTI])
+def test_intersection_with_any_marker(marker: str) -> None:
+    m = parse_marker(marker)
+
+    assert str(m.intersect(AnyMarker())) == marker
+    assert str(AnyMarker().intersect(m)) == marker
+    assert str(intersection(m, AnyMarker())) == marker
+
+
+def test_union_and_intersection_of_identity_markers() -> None:
+    assert union(EmptyMarker(), EmptyMarker()).is_empty()
+    assert intersection(AnyMarker(), AnyMarker()).is_any()
+
+
 def test_intersect_compacts_constraints() -> None:
     m = parse_marker('python_version < "4.0"')
 
@@ -1718,6 +1753,10 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
                 ' or extra == "asyncio"'
             ),
             "",
+        ),
+        (
+            f'{UNNORMALIZED_MULTI} and (extra == "foo" or sys_platform == "linux")',
+            UNNORMALIZED_MULTI,
         ),
     ],
 )
