@@ -35,7 +35,7 @@ def parse_requires(requires: str) -> list[str]:
 
             if extra:
                 if marker:
-                    marker = f'{marker} and extra == "{extra}"'
+                    marker = f'({marker}) and extra == "{extra}"'
                 else:
                     marker = f'extra == "{extra}"'
 
