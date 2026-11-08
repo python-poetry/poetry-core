@@ -653,6 +653,29 @@ classifiers = ["License :: OSI Approved :: MIT License"]
 """,
             ["License :: OSI Approved :: MIT License"],
         ),
+        (  # static and empty
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = []
+""",
+            [],
+        ),
+        (  # static and empty, with legacy classifiers to ignore
+            """\
+[project]
+name = "foo"
+version = "1"
+requires-python = "3.10"
+classifiers = []
+
+[tool.poetry]
+classifiers = ["License :: OSI Approved :: MIT License"]
+""",
+            [],
+        ),
         (  # dynamic
             """\
 [project]
