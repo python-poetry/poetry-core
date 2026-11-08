@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
 from poetry.core.constraints.version.exceptions import ParseConstraintError
@@ -447,3 +448,31 @@ def test_mutable_attributes_not_in_hash(attr_name: str, value: str) -> None:
 
     assert value != ref_value
     assert hash(dependency) == ref_hash
+
+
+def test_to_pep_508_with_or_constraint_relaxes_prerelease_gates() -> None:
+    # https://github.com/python-poetry/poetry/issues/11101
+    dependency = Dependency("lxml", "^4.5.0 || ^5.0.0")
+
+    result = dependency.to_pep_508()
+
+    assert result == "lxml (>=4.5.0,<6.0.0)"
+    # the generated metadata must be valid PEP 508
+    Requirement(result)
+
+    # multiple consecutive pre-release gates are merged in one go
+    dependency = Dependency("A", "^1.2 || ^2.0 || ^3.0")
+
+    assert dependency.to_pep_508() == "A (>=1.2,<4.0)"
+
+
+def test_to_pep_508_with_unrepresentable_or_constraint_raises() -> None:
+    # a union with a real gap between the ranges cannot be expressed in
+    # PEP 508, so it must be rejected instead of generating invalid metadata
+    dependency = Dependency("A", ">=1.0,<1.5 || >=2.0")
+
+    with pytest.raises(ValueError, match="PEP 508"):
+        dependency.to_pep_508()
+
+    # the base name itself does not raise (it is also used for debug output)
+    assert "||" in dependency.base_pep_508_name
