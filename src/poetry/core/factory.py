@@ -333,7 +333,7 @@ class Factory:
 
         if scripts := project.get("scripts"):
             entry_points["console-scripts"] = scripts
-        elif scripts := tool_poetry.get("scripts"):
+        elif "scripts" not in project and (scripts := tool_poetry.get("scripts")):
             for name, specification in scripts.items():
                 if isinstance(specification, str):
                     specification = {"reference": specification, "type": "console"}

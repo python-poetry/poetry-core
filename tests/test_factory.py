@@ -720,6 +720,31 @@ classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
     assert poetry.package.all_classifiers == []
 
 
+@pytest.mark.parametrize("scripts", [None, "{}", '{current = "foo:current"}'])
+@pytest.mark.parametrize(
+    "legacy_script",
+    ['"foo:legacy"', '{reference = "foo:legacy", type = "console"}'],
+)
+def test_create_poetry_console_scripts(
+    scripts: str | None, legacy_script: str, tmp_path: Path
+) -> None:
+    content = '[project]\nname = "foo"\nversion = "1"\n'
+    if scripts is not None:
+        content += f"scripts = {scripts}\n"
+    content += f"[tool.poetry.scripts]\nlegacy = {legacy_script}\n"
+    (tmp_path / "pyproject.toml").write_text(content, encoding="utf-8")
+
+    poetry = Factory().create_poetry(tmp_path)
+
+    if scripts is None:
+        expected = {"console-scripts": {"legacy": "foo:legacy"}}
+    elif scripts == "{}":
+        expected = {}
+    else:
+        expected = {"console-scripts": {"current": "foo:current"}}
+    assert poetry.package.entry_points == expected
+
+
 def test_create_poetry_inline_readme_text(tmp_path: Path) -> None:
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
