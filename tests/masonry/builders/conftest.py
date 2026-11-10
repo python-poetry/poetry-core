@@ -25,3 +25,26 @@ def complete_with_pycache_and_pyc_files(tmp_path: Path) -> Path:
         (pycache_location / "some_other_file").touch()
 
     return tmp_root
+
+
+@pytest.fixture
+def excluded_symlinks(tmp_path: Path) -> Path:
+    root = fixtures_dir / "excluded_symlinks"
+    tmp_root = tmp_path / "excluded_symlinks"
+    shutil.copytree(root, tmp_root)
+
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "file.txt").touch()
+
+    package = tmp_root / "excluded_symlinks"
+    try:
+        # excluded via the "exclude" setting
+        (package / "tests" / "broken").symlink_to(tmp_path / "missing")
+        (package / "tests" / "outside").symlink_to(outside, target_is_directory=True)
+        # excluded via VCS (get_ignored_files has to be mocked)
+        (package / "vcs_ignored").symlink_to(outside, target_is_directory=True)
+    except OSError:
+        pytest.skip("Symlinks are not supported.")
+
+    return tmp_root
