@@ -106,6 +106,9 @@ class Builder:
                     if path.is_dir()
                     else [path]
                 )
+                if path.is_dir() and path.is_symlink():
+                    # the link itself, so that excluding or including it covers it
+                    all_files.append(path)
                 target.update(f.relative_to(self._path).as_posix() for f in all_files)
 
             explicitly_excluded: set[str] = set()
