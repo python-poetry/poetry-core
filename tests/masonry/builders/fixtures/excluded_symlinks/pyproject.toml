@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "excluded-symlinks"
+version = "1.2.3"
+description = "Some description."
+authors = [
+    "Poetry Maintainers <noreply@python-poetry.org>"
+]
+exclude = ["excluded_symlinks/tests"]
+
+[tool.poetry.dependencies]
+python = "^3.6"

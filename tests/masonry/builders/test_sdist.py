@@ -682,6 +682,60 @@ def test_sdist_does_not_include_pycache_and_pyc_files(
             assert not name.endswith(".pyc")
 
 
+def test_sdist_excluded_symlinks(
+    excluded_symlinks: Path, mocker: MockerFixture
+) -> None:
+    mocker.patch(
+        "poetry.core.vcs.git.Git.get_ignored_files",
+        return_value=["excluded_symlinks/vcs_ignored"],
+    )
+    builder = SdistBuilder(Factory().create_poetry(excluded_symlinks))
+    builder.build()
+
+    sdist = excluded_symlinks / "dist" / "excluded_symlinks-1.2.3.tar.gz"
+
+    assert sdist.exists()
+
+    with tarfile.open(str(sdist), "r") as tar:
+        prefix = "excluded_symlinks-1.2.3/excluded_symlinks/"
+        names = [n for n in tar.getnames() if n.startswith(prefix)]
+        assert names == [f"{prefix}__init__.py"]
+
+
+def test_sdist_explicitly_included_vcs_ignored_dir_symlink(
+    tmp_path: Path, mocker: MockerFixture
+) -> None:
+    project = tmp_path / "project"
+    (project / "foo").mkdir(parents=True)
+    (project / "foo" / "__init__.py").touch()
+    (project / "shared").mkdir()
+    (project / "shared" / "x.txt").touch()
+    (project / "pyproject.toml").write_text(
+        """\
+[project]
+name = "foo"
+version = "1.2.3"
+
+[tool.poetry]
+include = [{ path = "foo/assets", format = ["sdist", "wheel"] }]
+""",
+        encoding="utf-8",
+    )
+    try:
+        (project / "foo" / "assets").symlink_to(
+            Path("..", "shared"), target_is_directory=True
+        )
+    except OSError:
+        pytest.skip("Symlinks are not supported.")
+    mocker.patch(
+        "poetry.core.vcs.git.Git.get_ignored_files", return_value=["foo/assets"]
+    )
+
+    builder = SdistBuilder(Factory().create_poetry(project))
+
+    assert "x.txt" in {f.path.name for f in builder.find_files_to_add()}
+
+
 def test_includes() -> None:
     poetry = Factory().create_poetry(project("with-include"))
 

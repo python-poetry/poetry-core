@@ -179,6 +179,24 @@ def test_wheel_excluded_nested_data() -> None:
         assert "my_package/public/item2/itemdata2.txt" not in z.namelist()
 
 
+def test_wheel_excluded_symlinks(
+    excluded_symlinks: Path, mocker: MockerFixture
+) -> None:
+    mocker.patch(
+        "poetry.core.vcs.git.Git.get_ignored_files",
+        return_value=["excluded_symlinks/vcs_ignored"],
+    )
+    WheelBuilder.make(Factory().create_poetry(excluded_symlinks))
+
+    whl = excluded_symlinks / "dist" / "excluded_symlinks-1.2.3-py3-none-any.whl"
+
+    assert whl.exists()
+
+    with zipfile.ZipFile(str(whl)) as z:
+        names = [n for n in z.namelist() if n.startswith("excluded_symlinks/")]
+        assert names == ["excluded_symlinks/__init__.py"]
+
+
 def test_include_excluded_code() -> None:
     module_path = fixtures_dir / "include_excluded_code"
     poetry = Factory().create_poetry(module_path)

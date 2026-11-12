@@ -102,10 +102,13 @@ class Builder:
 
             def add_all_files(path: Path, target: set[str]) -> None:
                 all_files = (
-                    [f for f in path.glob("**/*") if f.is_file()]
+                    [f for f in path.glob("**/*") if f.is_file() or f.is_symlink()]
                     if path.is_dir()
                     else [path]
                 )
+                if path.is_dir() and path.is_symlink():
+                    # the link itself, so that excluding or including it covers it
+                    all_files.append(path)
                 target.update(f.relative_to(self._path).as_posix() for f in all_files)
 
             explicitly_excluded: set[str] = set()
@@ -146,6 +149,13 @@ class Builder:
 
         return False
 
+    def _is_excluded_unresolved(self, path: Path) -> bool:
+        # BuildIncludeFile resolves symlinks, so an excluded symlink
+        # that points outside the project must be skipped before that.
+        return path.is_relative_to(self._path) and self.is_excluded(
+            path.relative_to(self._path)
+        )
+
     def find_files_to_add(self, exclude_build: bool = True) -> set[BuildIncludeFile]:
         """
         Finds all files to add to the tarball
@@ -184,6 +194,9 @@ class Builder:
                 if file.is_dir():
                     if self.format in formats:
                         for current_file in file.glob("**/*"):
+                            if self._is_excluded_unresolved(current_file):
+                                continue
+
                             include_file = BuildIncludeFile(
                                 path=current_file,
                                 project_root=self._path,
@@ -198,6 +211,11 @@ class Builder:
                                 )
                             ):
                                 to_add.add(include_file)
+                    continue
+
+                if isinstance(include, PackageInclude) and self._is_excluded_unresolved(
+                    file
+                ):
                     continue
 
                 include_file = BuildIncludeFile(
