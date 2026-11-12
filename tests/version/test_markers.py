@@ -180,6 +180,51 @@ def test_single_marker_with_spaces(operator: str) -> None:
     assert marker.union(marker.invert()).is_any()
 
 
+@pytest.mark.parametrize("operator", ["in", "not in"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "#1 SMP, kernel",
+        "kernel|other",
+        "kernel||other",
+        "!=kernel",
+        "==kernel",
+        " kernel ",
+        "",
+        "*",
+        "other",
+    ],
+)
+def test_marker_validate_literal_environment_membership(
+    operator: str, value: str
+) -> None:
+    marker = parse_marker(f'"kernel" {operator} platform_version')
+    expected = ("kernel" in value) == (operator == "in")
+    environment = {"platform_version": value}
+
+    assert marker.validate(environment) == expected
+    assert marker.apply(environment) == (AnyMarker() if expected else EmptyMarker())
+
+
+@pytest.mark.parametrize(
+    "expression",
+    ['os_name == "posix"', 'os_name == "posix" or os_name == "nt"'],
+)
+@pytest.mark.parametrize(
+    "value",
+    ["posix", " posix", "posix ", "!=posix", "posix,nt", "posix|nt", "", "*"],
+)
+def test_marker_validate_literal_environment_equality(
+    expression: str, value: str
+) -> None:
+    marker = parse_marker(expression)
+    expected = value == "posix"
+    environment = {"os_name": value}
+
+    assert marker.validate(environment) == expected
+    assert marker.apply(environment) == (AnyMarker() if expected else EmptyMarker())
+
+
 def test_single_marker_intersect() -> None:
     m = parse_marker('sys_platform == "darwin"')
 

@@ -261,9 +261,6 @@ SingleMarkerConstraint = TypeVar(
 
 class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
     def __init__(self, name: str, constraint: SingleMarkerConstraint) -> None:
-        from poetry.core.constraints.generic import (
-            parse_constraint as parse_generic_constraint,
-        )
         from poetry.core.constraints.generic import parse_extra_constraint
         from poetry.core.constraints.version import parse_marker_version_constraint
 
@@ -277,7 +274,8 @@ class SingleMarkerLike(BaseMarker, ABC, Generic[SingleMarkerConstraint]):
         elif name == "extra":
             self._parser = parse_extra_constraint
         else:
-            self._parser = parse_generic_constraint
+            # Environment values are literal strings, not constraint expressions.
+            self._parser = Constraint
 
     @property
     def name(self) -> str:
