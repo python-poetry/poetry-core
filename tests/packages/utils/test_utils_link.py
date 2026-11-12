@@ -82,6 +82,27 @@ def test_package_link_ext(filename: str | None, expected: str) -> None:
     assert link.ext == expected
 
 
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://example.org/demo.tar.gz?download=1&subdirectory=query", None),
+        ("https://example.org/path&subdirectory=name/demo.tar.gz", None),
+        (
+            (
+                "https://example.org/demo.tar.gz?download=1&subdirectory=query"
+                "#subdirectory=package"
+            ),
+            "package",
+        ),
+        ("https://example.org/demo.tar.gz#subdirectory=package", "package"),
+        ("https://example.org/demo.tar.gz#egg=demo&subdirectory=package", "package"),
+        ("https://example.org/demo.tar.gz#subdirectory=", ""),
+    ],
+)
+def test_package_link_subdirectory_fragment(url: str, expected: str | None) -> None:
+    assert Link(url).subdirectory_fragment == expected
+
+
 def test_package_link_hash(file_checksum: str) -> None:
     link = make_url(ext="whl", file_checksum=file_checksum)
     assert link.hashes == {"sha256": file_checksum}
