@@ -331,8 +331,9 @@ class Factory:
     ) -> None:
         entry_points: defaultdict[str, dict[str, str]] = defaultdict(dict)
 
-        if scripts := project.get("scripts"):
-            entry_points["console-scripts"] = scripts
+        if "scripts" in project:
+            if scripts := project["scripts"]:
+                entry_points["console-scripts"] = scripts
         elif scripts := tool_poetry.get("scripts"):
             for name, specification in scripts.items():
                 if isinstance(specification, str):
@@ -349,8 +350,8 @@ class Factory:
         if scripts := project.get("gui-scripts"):
             entry_points["gui-scripts"] = scripts
 
-        if other_scripts := project.get("entry-points"):
-            for group_name, scripts in sorted(other_scripts.items()):
+        if "entry-points" in project:
+            for group_name, scripts in sorted(project["entry-points"].items()):
                 if group_name in {"console-scripts", "gui-scripts"}:
                     raise ValueError(
                         f"Group '{group_name}' is reserved and cannot be used"
