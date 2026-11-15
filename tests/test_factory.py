@@ -756,6 +756,32 @@ def test_create_poetry_empty_readme(tmp_path: Path) -> None:
     assert not poetry.package.readmes
 
 
+def test_create_poetry_with_empty_project_scripts(tmp_path: Path) -> None:
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname="foo"\nversion="1"\ndescription = ""\n'
+        "scripts = {}\n\n"
+        '[tool.poetry.scripts]\nlegacy = "foo:main"\n',
+        encoding="utf-8",
+    )
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.entry_points == {}
+
+
+def test_create_poetry_with_empty_project_entry_points(tmp_path: Path) -> None:
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname="foo"\nversion="1"\ndescription = ""\n'
+        "entry-points = {}\n\n"
+        '[tool.poetry.plugins."foo"]\nbar = "foo:bar"\n',
+        encoding="utf-8",
+    )
+    poetry = Factory().create_poetry(tmp_path)
+
+    assert poetry.package.entry_points == {}
+
+
 def test_validate() -> None:
     complete = fixtures_dir / "complete.toml"
     with complete.open("rb") as f:
