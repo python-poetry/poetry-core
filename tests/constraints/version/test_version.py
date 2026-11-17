@@ -50,6 +50,15 @@ if TYPE_CHECKING:
         ("0.6c", Version.from_parts(0, 6, 0, pre=ReleaseTag("rc", 0)), "0.6rc0"),
         ("0.6pre", Version.from_parts(0, 6, 0, pre=ReleaseTag("preview", 0)), "0.6rc0"),
         ("1!2.3.4", Version.from_parts(2, 3, 4, epoch=1), "1!2.3.4"),
+        ("1.0ALPHA1", Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)), "1.0a1"),
+        ("1.0A1", Version.from_parts(1, 0, 0, pre=ReleaseTag("a", 1)), "1.0a1"),
+        ("1.0RC1", Version.from_parts(1, 0, 0, pre=ReleaseTag("rc", 1)), "1.0rc1"),
+        (
+            "1.0.POST2",
+            Version.from_parts(1, 0, 0, post=ReleaseTag("post", 2)),
+            "1.0.post2",
+        ),
+        ("1.0.DEV1", Version.from_parts(1, 0, 0, dev=ReleaseTag("dev", 1)), "1.0.dev1"),
     ],
 )
 def test_parse_valid(text: str, version: Version, normalized: str) -> None:

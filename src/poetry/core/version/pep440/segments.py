@@ -132,8 +132,10 @@ class ReleaseTag:
     number: int = dataclasses.field(default=0)
 
     def __post_init__(self) -> None:
+        # PEP 440 spelling is case-insensitive, and the parser keeps the input's case
+        phase = self.phase.lower()
         object.__setattr__(
-            self, "phase", RELEASE_PHASE_NORMALIZATIONS.get(self.phase, self.phase)
+            self, "phase", RELEASE_PHASE_NORMALIZATIONS.get(phase, phase)
         )
 
     def to_string(self) -> str:
