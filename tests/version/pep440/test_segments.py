@@ -128,6 +128,13 @@ def test_release_next(release: Release, expected: Release) -> None:
         (("c", 1), ReleaseTag("rc", 1)),
         (("r",), ReleaseTag("rev", 0)),
         (("r", 1), ReleaseTag("rev", 1)),
+        (("A", 1), ReleaseTag("alpha", 1)),
+        (("ALPHA", 1), ReleaseTag("alpha", 1)),
+        (("BETA", 1), ReleaseTag("beta", 1)),
+        (("RC", 1), ReleaseTag("rc", 1)),
+        (("PRE", 1), ReleaseTag("rc", 1)),
+        (("POST", 1), ReleaseTag("post", 1)),
+        (("DEV", 1), ReleaseTag("dev", 1)),
     ],
 )
 def test_release_tag_normalisation(
