@@ -1,3 +1,6 @@
+[project]
+dynamic = [ "dependencies", "requires-python", "readme" ]
+
 [tool.poetry]
 readme = ["README.rst", "README_WITH_ANOTHER_EXTENSION.md"]
 
