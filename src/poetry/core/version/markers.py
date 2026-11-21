@@ -386,6 +386,7 @@ class SingleMarker(SingleMarkerLike[BaseConstraint | VersionConstraint]):
         "python_version",
         "python_full_version",
         "platform_release",
+        "implementation_version",
     }
 
     def __init__(
