@@ -160,6 +160,52 @@ def test_parse_single_marker(
     assert str(m.constraint) == expected_constraint
 
 
+@pytest.mark.parametrize(
+    ("marker", "python_full_version", "expected"),
+    [
+        ('python_full_version ~= "3.8"', "3.7.9", False),
+        ('python_full_version ~= "3.8"', "3.8.0", True),
+        ('python_full_version ~= "3.8"', "3.9.1", True),
+        ('python_full_version ~= "3.8"', "4.0.0", False),
+        ('python_full_version ~= "3.8.0"', "3.8.5", True),
+        ('python_full_version ~= "3.8.0"', "3.9.1", False),
+        ('python_full_version ~= "3.8.2"', "3.8.1", False),
+        ('python_full_version ~= "3.8.2"', "3.8.3", True),
+    ],
+)
+def test_python_full_version_compatible_release_keeps_precision(
+    marker: str, python_full_version: str, expected: bool
+) -> None:
+    # "~= 3.8" means ">= 3.8, == 3.*" and must not be read as "~= 3.8.0"
+    m = parse_marker(marker)
+    environment = {
+        "python_full_version": python_full_version,
+        "python_version": ".".join(python_full_version.split(".")[:2]),
+    }
+
+    assert m.validate(environment) is expected
+
+
+@pytest.mark.parametrize(
+    "marker2",
+    ['python_version == "3.9"', 'python_version >= "3.9"', 'python_version > "3.8"'],
+)
+def test_python_version_markers_with_compatible_release_keep_semantics(
+    marker2: str,
+) -> None:
+    m1 = parse_marker('python_full_version ~= "3.9"')
+    m2 = parse_marker(marker2)
+    for python_full_version in ["3.8.9", "3.9.0", "3.9.7", "3.10.1", "3.12.0", "4.0.0"]:
+        environment = {
+            "python_full_version": python_full_version,
+            "python_version": ".".join(python_full_version.split(".")[:2]),
+        }
+        v1 = m1.validate(environment)
+        v2 = m2.validate(environment)
+        assert m1.union(m2).validate(environment) is (v1 or v2)
+        assert m1.intersect(m2).validate(environment) is (v1 and v2)
+
+
 def test_single_marker_normalisation() -> None:
     m1 = SingleMarker("python_version", ">=3.6")
     m2 = SingleMarker("python_version", ">= 3.6")

@@ -446,7 +446,12 @@ class SingleMarker(SingleMarkerLike[BaseConstraint | VersionConstraint]):
                     glue = " || "
 
                 constraint_string = glue.join(versions)
-            elif name == "python_full_version" and not swapped_name_value:
+            elif (
+                name == "python_full_version"
+                and not swapped_name_value
+                # the precision of a compatible release clause is significant
+                and self._operator != "~="
+            ):
                 # fix precision of python_full_version marker
                 precision = self._value.count(".") + 1
                 if precision < 3:
@@ -1415,7 +1420,8 @@ def _merge_python_version_single_markers(
         marker_string = str(merged_marker)
         precision = marker_string.count(".") + 1
         target_precision = 3
-        if precision < target_precision:
+        # the precision of a compatible release clause is significant
+        if precision < target_precision and merged_marker.operator != "~=":
             if merged_marker.operator in {"<", ">="}:
                 target_precision = 2
                 marker_string = marker_string.replace(
