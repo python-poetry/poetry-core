@@ -493,6 +493,13 @@ def test_tag(in_venv_build: bool, mocker: MockerFixture) -> None:
         ),
         # no specific tag available
         (["cp310-cp310-linux_x86_64"], "cp310-cp310-linux_x86_64"),
+        # no manylinux/musllinux tag available: the native linux tag must be
+        # preferred over the generic pure-python tags at the end of sys_tags(),
+        # so a wheel with native outputs is not advertised as universal
+        (
+            ["cp310-cp310-linux_x86_64", "cp310-none-any", "py3-none-any"],
+            "cp310-cp310-linux_x86_64",
+        ),
         # non-linux platforms are not affected
         (
             ["cp310-cp310-macosx_14_0_arm64", "cp310-cp310-macosx_13_0_arm64"],
