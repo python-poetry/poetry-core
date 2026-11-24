@@ -433,15 +433,33 @@ for t in packaging_tags.sys_tags():
             )
         return output.strip().splitlines()
 
+    @staticmethod
+    def _select_sys_tag(tags: list[str]) -> str:
+        """Select the most specific tag from the given sys_tags.
+
+        Since packaging 26.3, the native linux platform tag is listed before
+        the more specific manylinux/musllinux tags
+        (https://github.com/pypa/packaging/issues/160). Keep preferring the
+        more specific tag as before, so that wheels keep their previous
+        (PyPI-compatible) platform tag.
+        """
+        return next(
+            (tag for tag in tags if not tag.rpartition("-")[2].startswith("linux_")),
+            tags[0],
+        )
+
     @property
     def tag(self) -> str:
         if self._package.build_script:
             if self.executable != Path(sys.executable):
                 # poetry-core is not run in the build environment
                 # -> this is probably not a PEP 517 build but a poetry build
-                return self._get_sys_tags()[0]
-            sys_tag = next(packaging.tags.sys_tags())
-            tag = (sys_tag.interpreter, sys_tag.abi, sys_tag.platform)
+                return self._select_sys_tag(self._get_sys_tags())
+            sys_tags = [
+                f"{t.interpreter}-{t.abi}-{t.platform}"
+                for t in packaging.tags.sys_tags()
+            ]
+            return self._select_sys_tag(sys_tags)
         else:
             platform = "any"
             impl = "py2.py3" if self.supports_python2() else "py3"
