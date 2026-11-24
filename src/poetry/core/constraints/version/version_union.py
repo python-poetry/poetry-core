@@ -184,6 +184,9 @@ class VersionUnion(VersionConstraint):
         return VersionUnion.of(self, other)
 
     def difference(self, other: VersionConstraint) -> VersionConstraint:
+        if other.is_empty():
+            return self
+
         our_ranges = iter(self._ranges)
         their_ranges = iter(other.flatten())
         new_ranges: list[VersionConstraint] = []

@@ -157,3 +157,11 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
 )
 def test_str(version: str, expected: str) -> None:
     assert str(parse_constraint(version)) == expected
+
+
+def test_difference_with_empty_constraint() -> None:
+    union = parse_constraint("<1 || >=2")
+    empty = parse_constraint("<1,>=2")
+    assert empty.is_empty()
+
+    assert union.difference(empty) == union
