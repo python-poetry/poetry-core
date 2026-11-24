@@ -443,10 +443,11 @@ for t in packaging_tags.sys_tags():
         more specific tag as before, so that wheels keep their previous
         (PyPI-compatible) platform tag.
         """
-        return next(
-            (tag for tag in tags if not tag.rpartition("-")[2].startswith("linux_")),
-            tags[0],
-        )
+        for prefix in ("manylinux_", "musllinux_", "linux_"):
+            for tag in tags:
+                if tag.rpartition("-")[2].startswith(prefix):
+                    return tag
+        return tags[0]
 
     @property
     def tag(self) -> str:
