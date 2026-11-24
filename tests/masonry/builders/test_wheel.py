@@ -476,6 +476,44 @@ def test_tag(in_venv_build: bool, mocker: MockerFixture) -> None:
         get_sys_tags_spy.assert_called()
 
 
+@pytest.mark.parametrize(
+    ("tags", "expected"),
+    [
+        # packaging < 26.3: specific tags are listed before the native linux tag
+        (
+            ["cp310-cp310-manylinux_2_35_x86_64", "cp310-cp310-linux_x86_64"],
+            "cp310-cp310-manylinux_2_35_x86_64",
+        ),
+        # packaging >= 26.3: the native linux tag is listed first
+        # (https://github.com/pypa/packaging/issues/160), but the more specific
+        # tag must still be preferred so wheels stay uploadable to PyPI
+        (
+            ["cp310-cp310-linux_x86_64", "cp310-cp310-manylinux_2_35_x86_64"],
+            "cp310-cp310-manylinux_2_35_x86_64",
+        ),
+        # no specific tag available
+        (["cp310-cp310-linux_x86_64"], "cp310-cp310-linux_x86_64"),
+        # no manylinux/musllinux tag available: the native linux tag must be
+        # preferred over the generic pure-python tags at the end of sys_tags(),
+        # so a wheel with native outputs is not advertised as universal
+        (
+            ["cp310-cp310-linux_x86_64", "cp310-none-any", "py3-none-any"],
+            "cp310-cp310-linux_x86_64",
+        ),
+        # non-linux platforms are not affected
+        (
+            ["cp310-cp310-macosx_14_0_arm64", "cp310-cp310-macosx_13_0_arm64"],
+            "cp310-cp310-macosx_14_0_arm64",
+        ),
+    ],
+)
+def test_select_sys_tag(tags: list[str], expected: str) -> None:
+    root = fixtures_dir / "extended"
+    builder = WheelBuilder(Factory().create_poetry(root))
+
+    assert builder._select_sys_tag(tags) == expected
+
+
 def test_extended_editable_wheel_build() -> None:
     """Tests that an editable wheel made from a project with extensions includes
     the .pth, but does not include the built package itself.
