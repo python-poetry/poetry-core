@@ -188,75 +188,40 @@ class VersionUnion(VersionConstraint):
         their_ranges = iter(other.flatten())
         new_ranges: list[VersionConstraint] = []
 
-        state = {
-            "current": next(our_ranges, None),
-            "their_range": next(their_ranges, None),
-        }
+        our_current_range = next(our_ranges, None)
+        their_current_range = next(their_ranges, None)
 
-        def their_next_range() -> bool:
-            state["their_range"] = next(their_ranges, None)
-            if state["their_range"]:
-                return True
-
-            assert state["current"] is not None
-            new_ranges.append(state["current"])
-            our_current = next(our_ranges, None)
-            while our_current:
-                new_ranges.append(our_current)
-                our_current = next(our_ranges, None)
-
-            return False
-
-        def our_next_range(include_current: bool = True) -> bool:
-            if include_current:
-                assert state["current"] is not None
-                new_ranges.append(state["current"])
-
-            our_current = next(our_ranges, None)
-            if not our_current:
-                return False
-
-            state["current"] = our_current
-
-            return True
-
-        while True:
-            if state["their_range"] is None:
-                break
-
-            assert state["current"] is not None
-            if state["their_range"].is_strictly_lower(state["current"]):
-                if not their_next_range():
-                    break
-
+        while our_current_range is not None and their_current_range is not None:
+            if their_current_range.is_strictly_lower(our_current_range):
+                their_current_range = next(their_ranges, None)
                 continue
 
-            if state["their_range"].is_strictly_higher(state["current"]):
-                if not our_next_range():
-                    break
-
+            if their_current_range.is_strictly_higher(our_current_range):
+                new_ranges.append(our_current_range)
+                our_current_range = next(our_ranges, None)
                 continue
 
-            difference = state["current"].difference(state["their_range"])
+            difference = our_current_range.difference(their_current_range)
             if isinstance(difference, VersionUnion):
                 assert len(difference.ranges) == 2
                 new_ranges.append(difference.ranges[0])
-                state["current"] = difference.ranges[-1]
-
-                if not their_next_range():
-                    break
+                our_current_range = difference.ranges[-1]
+                their_current_range = next(their_ranges, None)
             elif difference.is_empty():
-                if not our_next_range(False):
-                    break
+                our_current_range = next(our_ranges, None)
             else:
                 assert isinstance(difference, VersionRangeConstraint)
-                state["current"] = difference
+                our_current_range = difference
 
-                if state["current"].allows_higher(state["their_range"]):
-                    if not their_next_range():
-                        break
-                elif not our_next_range():
-                    break
+                if our_current_range.allows_higher(their_current_range):
+                    their_current_range = next(their_ranges, None)
+                else:
+                    new_ranges.append(our_current_range)
+                    our_current_range = next(our_ranges, None)
+
+        if our_current_range is not None:
+            new_ranges.append(our_current_range)
+            new_ranges.extend(our_ranges)
 
         if not new_ranges:
             return EmptyConstraint()

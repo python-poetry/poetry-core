@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from poetry.core.constraints.version import EmptyConstraint
 from poetry.core.constraints.version import Version
 from poetry.core.constraints.version import VersionRange
 from poetry.core.constraints.version import VersionUnion
@@ -157,3 +158,22 @@ def test_excludes_single_wildcard_range(max: str, min: str, expected: bool) -> N
 )
 def test_str(version: str, expected: str) -> None:
     assert str(parse_constraint(version)) == expected
+
+
+def test_difference_with_empty_constraint() -> None:
+    union = parse_constraint("<1 || >=2")
+    empty = parse_constraint("<1,>=2")
+    assert empty.is_empty()
+
+    assert union.difference(empty) == union
+
+
+@pytest.mark.parametrize("other", ["<1,>=2", ">=2"])
+def test_difference_from_union_with_no_ranges(other: str) -> None:
+    assert VersionUnion().difference(parse_constraint(other)) == EmptyConstraint()
+
+
+def test_difference_keeps_remaining_ranges_after_split() -> None:
+    union = parse_constraint(">=1,<4 || >=5")
+
+    assert union.difference(Version.parse("2")) == parse_constraint(">=1,!=2,<4 || >=5")
