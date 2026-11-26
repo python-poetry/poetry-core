@@ -212,13 +212,19 @@ def test_validate_marker_with_value_on_the_left(
     assert parse_marker(marker_string).validate(environment) is expected
 
 
-@pytest.mark.parametrize("operator", ["~=", "==="])
-def test_parse_marker_with_value_on_the_left_rejects_non_symmetric_operators(
-    operator: str,
-) -> None:
-    # These operators have no mirrored form, so the swapped marker stays invalid.
+@pytest.mark.parametrize(
+    "marker_string",
+    [
+        # `~=` has no mirrored form, and `===` is not supported in either order.
+        '"3.8" ~= python_version',
+        '"3.8" === python_version',
+        # Ordering an extra is invalid in either order (`extra > "a"` is rejected too).
+        '"a" < extra',
+    ],
+)
+def test_parse_marker_with_value_on_the_left_stays_invalid(marker_string: str) -> None:
     with pytest.raises(InvalidMarkerError):
-        parse_marker(f'"3.8" {operator} python_version')
+        parse_marker(marker_string)
 
 
 @pytest.mark.parametrize("operator", ["==", "!="])
