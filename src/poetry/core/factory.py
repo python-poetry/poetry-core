@@ -723,6 +723,10 @@ class Factory:
 
         # Validate against schemas
         project = toml_data.get("project")
+        if project is not None and not isinstance(project, dict):
+            # The checks below require the sections to be tables.
+            result["errors"].append("project must be object")
+            return result
         if project is not None:
             project_validation_errors = [
                 e.replace("data", "project")
@@ -731,7 +735,14 @@ class Factory:
             result["errors"] += project_validation_errors
         # With PEP 621 [tool.poetry] is not mandatory anymore. We still create and
         # validate it so that default values (e.g. for package-mode) are set.
-        tool_poetry = toml_data.setdefault("tool", {}).setdefault("poetry", {})
+        tool = toml_data.setdefault("tool", {})
+        if not isinstance(tool, dict):
+            result["errors"].append("tool must be object")
+            return result
+        tool_poetry = tool.setdefault("poetry", {})
+        if not isinstance(tool_poetry, dict):
+            result["errors"].append("tool.poetry must be object")
+            return result
         tool_poetry_validation_errors = [
             e.replace("data.", "tool.poetry.")
             for e in validate_object(tool_poetry, "poetry-schema")
@@ -739,6 +750,9 @@ class Factory:
         result["errors"] += tool_poetry_validation_errors
 
         dependency_groups = toml_data.get("dependency-groups")
+        if dependency_groups is not None and not isinstance(dependency_groups, dict):
+            result["errors"].append("dependency-groups must be object")
+            return result
         if dependency_groups is not None:
             dependency_groups_validation_errors = [
                 e.replace("data", "dependency-groups")
@@ -802,9 +816,15 @@ class Factory:
                     )
 
         poetry_config = toml_data.get("tool", {}).get("poetry", {})
-        for group_name, group_config in poetry_config.get("group", {}).items():
+        poetry_groups = poetry_config.get("group", {})
+        if not isinstance(poetry_groups, dict):
+            poetry_groups = {}
+        for group_name, group_config in poetry_groups.items():
             normalized_group_name = canonicalize_name(group_name)
             original_names[normalized_group_name].add(group_name)
+            if not isinstance(group_config, dict):
+                # Reported by the schema validation.
+                continue
             if include_groups := group_config.get("include-groups", []):
                 group_includes.setdefault(normalized_group_name, []).extend(
                     canonicalize_name(name) for name in include_groups

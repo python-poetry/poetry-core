@@ -857,6 +857,76 @@ def test_validate_fails() -> None:
     assert Factory.validate(content) == {"errors": [expected], "warnings": []}
 
 
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        pytest.param(
+            {"project": "not a table"},
+            ["project must be object"],
+            id="project-not-a-table",
+        ),
+        pytest.param(
+            {"tool": "not a table"},
+            ["tool must be object"],
+            id="tool-not-a-table",
+        ),
+        pytest.param(
+            {"project": {"name": "foo", "version": "1.0"}, "tool": {"poetry": "nope"}},
+            ["tool.poetry must be object"],
+            id="tool-poetry-not-a-table",
+        ),
+        pytest.param(
+            {
+                "project": {"name": "foo", "version": "1.0"},
+                "tool": {"poetry": {}},
+                "dependency-groups": ["pytest"],
+            },
+            ["dependency-groups must be object"],
+            id="dependency-groups-not-a-table",
+        ),
+        pytest.param(
+            {
+                "project": {"name": "foo", "version": "1.0"},
+                "tool": {"poetry": {"group": "not a table"}},
+            },
+            ["tool.poetry.group must be object"],
+            id="poetry-group-not-a-table",
+        ),
+        pytest.param(
+            {
+                "project": {"name": "foo", "version": "1.0"},
+                "tool": {"poetry": {"group": {"dev": "not a table"}}},
+            },
+            ["tool.poetry.group.dev must be object"],
+            id="poetry-group-config-not-a-table",
+        ),
+    ],
+)
+def test_validate_fails_on_non_table_section(
+    content: dict[str, Any], expected: list[str]
+) -> None:
+    # sections that are not tables must be reported instead of raising an
+    # AttributeError while validating the rest of the configuration
+    assert Factory.validate(dict(content)) == {"errors": expected, "warnings": []}
+
+
+def test_create_poetry_fails_on_non_table_section(tmp_path: Path) -> None:
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        '[project]\nname = "foo"\nversion = "1.0"\n\n[tool]\npoetry = "nope"\n',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RuntimeError) as e:
+        Factory().create_poetry(tmp_path)
+
+    expected = """\
+The Poetry configuration is invalid:
+  - tool.poetry must be object
+"""
+    assert str(e.value) == expected
+
+
 def test_validate_without_strict_fails_only_non_strict() -> None:
     project_failing_strict_validation = (
         fixtures_dir / "project_failing_strict_validation" / "pyproject.toml"
