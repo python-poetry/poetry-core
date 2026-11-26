@@ -1678,6 +1678,45 @@ def test_parse_version_like_markers(marker: str, env: dict[str, str]) -> None:
 
 
 @pytest.mark.parametrize(
+    ("marker", "implementation_version", "expected"),
+    [
+        ('implementation_version >= "7.3.9"', "7.3.15", True),
+        ('implementation_version >= "7.3.9"', "7.3.9", True),
+        ('implementation_version >= "7.3.9"', "7.3.8", False),
+        ('implementation_version < "7.3.9"', "7.3.15", False),
+        ('implementation_version < "7.3.9"', "7.3.8", True),
+        ('implementation_version == "7.3.9"', "7.3.9", True),
+        ('implementation_version == "7.3.9"', "7.3.9.0", True),
+        ('implementation_version != "7.3.9"', "7.3.9", False),
+        ('implementation_version != "7.3.9"', "7.3.9.0", False),
+        ('implementation_version != "7.3.9"', "7.3.10", True),
+        ('implementation_version ~= "7.3"', "7.10.0", True),
+        ('implementation_version ~= "7.3"', "8.0.0", False),
+        ('implementation_version in "7.3.9 7.3.10"', "7.3.10", True),
+        ('implementation_version in "7.3.9 7.3.10"', "7.3.1", False),
+        ('implementation_version in "7.3 8.0"', "7.3.15", True),
+        ('implementation_version not in "7.3 8.0"', "7.3.15", False),
+        (
+            'implementation_name == "pypy" and implementation_version >= "7.3.9"',
+            "7.3.15",
+            True,
+        ),
+    ],
+)
+def test_implementation_version_marker_is_compared_as_version(
+    marker: str, implementation_version: str, expected: bool
+) -> None:
+    environment = {
+        "implementation_name": "pypy",
+        "implementation_version": implementation_version,
+    }
+    m = parse_marker(marker)
+
+    assert m.validate(environment) is expected
+    assert m.invert().validate(environment) is (not expected)
+
+
+@pytest.mark.parametrize(
     "marker, expected",
     [
         ('python_version >= "3.6"', 'python_version >= "3.6"'),
