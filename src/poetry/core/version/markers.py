@@ -1091,6 +1091,17 @@ def parse_marker(marker: str) -> BaseMarker:
     return markers
 
 
+# Operators of a comparison with the operands swapped (`"3.8" < python_version`).
+_SWAPPED_OPERATORS = {
+    "==": "==",
+    "!=": "!=",
+    "<": ">",
+    "<=": ">=",
+    ">": "<",
+    ">=": "<=",
+}
+
+
 def _compact_markers(
     tree_elements: Tree, tree_prefix: str = "", top_level: bool = True
 ) -> BaseMarker:
@@ -1122,6 +1133,12 @@ def _compact_markers(
             }
             if swapped_name_value:
                 name, value = value, name
+                # `"3.8" < python_version` means `python_version > "3.8"`. Only `in` and
+                # `not in` keep the swapped form, because they mean something else then.
+                if op in _SWAPPED_OPERATORS:
+                    op = _SWAPPED_OPERATORS[op]
+                    swapped_name_value = False
+                    stringed_value = False
 
             value = value[1:-1]
 

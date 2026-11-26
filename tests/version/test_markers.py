@@ -167,6 +167,66 @@ def test_single_marker_normalisation() -> None:
     assert hash(m1) == hash(m2)
 
 
+@pytest.mark.parametrize(
+    ("marker_string", "expected"),
+    [
+        ('"3.8" < python_version', 'python_version > "3.8"'),
+        ('"3.8" <= python_version', 'python_version >= "3.8"'),
+        ('"3.13" > python_version', 'python_version < "3.13"'),
+        ('"3.13" >= python_version', 'python_version <= "3.13"'),
+        ('"3.12" == python_version', 'python_version == "3.12"'),
+        ('"3.12" != python_version', 'python_version != "3.12"'),
+        ("'3.12.1' <= python_full_version", 'python_full_version >= "3.12.1"'),
+        ('"linux" == sys_platform', 'sys_platform == "linux"'),
+        ('"cpython" != implementation_name', 'implementation_name != "cpython"'),
+        ('"6.0" <= platform_release', 'platform_release >= "6.0"'),
+        ('"test" == extra', 'extra == "test"'),
+        (
+            '"3.8" < python_version and "linux" == sys_platform',
+            'python_version > "3.8" and sys_platform == "linux"',
+        ),
+    ],
+)
+def test_parse_marker_with_value_on_the_left(marker_string: str, expected: str) -> None:
+    # PEP 508 allows the quoted value on either side of a comparison.
+    marker = parse_marker(marker_string)
+
+    assert marker == parse_marker(expected)
+    assert str(marker) == expected
+
+
+@pytest.mark.parametrize(
+    ("marker_string", "environment", "expected"),
+    [
+        ('"3.8" < python_version', {"python_version": "3.12"}, True),
+        ('"3.8" < python_version', {"python_version": "3.8"}, False),
+        ('"3.13" > python_version', {"python_version": "3.12"}, True),
+        ('"3.13" > python_version', {"python_version": "3.13"}, False),
+        ('"linux" == sys_platform', {"sys_platform": "linux"}, True),
+        ('"linux" == sys_platform', {"sys_platform": "win32"}, False),
+    ],
+)
+def test_validate_marker_with_value_on_the_left(
+    marker_string: str, environment: dict[str, str], expected: bool
+) -> None:
+    assert parse_marker(marker_string).validate(environment) is expected
+
+
+@pytest.mark.parametrize(
+    "marker_string",
+    [
+        # `~=` has no mirrored form, and `===` is not supported in either order.
+        '"3.8" ~= python_version',
+        '"3.8" === python_version',
+        # Ordering an extra is invalid in either order (`extra > "a"` is rejected too).
+        '"a" < extra',
+    ],
+)
+def test_parse_marker_with_value_on_the_left_stays_invalid(marker_string: str) -> None:
+    with pytest.raises(InvalidMarkerError):
+        parse_marker(marker_string)
+
+
 @pytest.mark.parametrize("operator", ["==", "!="])
 def test_single_marker_with_spaces(operator: str) -> None:
     value = "#1 SMP Wed Jun 16 20:00:10 PDT 2021"
