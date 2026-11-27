@@ -20,6 +20,7 @@ from poetry.core.packages.utils.utils import contains_group_without_marker
 from poetry.core.packages.utils.utils import create_nested_marker
 from poetry.core.packages.utils.utils import normalize_python_version_markers
 from poetry.core.version.markers import parse_marker
+from poetry.core.version.requirements import InvalidRequirementError
 
 
 if TYPE_CHECKING:
@@ -442,7 +443,10 @@ class Dependency(PackageSpecification):
                 )
             elif is_file_uri:
                 # handle RFC 8089 references
-                path = url_to_path(req.url)
+                try:
+                    path = url_to_path(req.url)
+                except ValueError as e:
+                    raise InvalidRequirementError(str(e)) from e
                 dep = _make_file_or_dir_dep(
                     name=name,
                     path=path,

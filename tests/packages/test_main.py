@@ -7,9 +7,12 @@ import pytest
 
 from poetry.core.constraints.version import Version
 from poetry.core.packages.dependency import Dependency
+from poetry.core.version.requirements import InvalidRequirementError
 
 
 if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
     from poetry.core.packages.url_dependency import URLDependency
     from poetry.core.packages.vcs_dependency import VCSDependency
 
@@ -241,6 +244,25 @@ def test_dependency_from_pep_508_with_git_url_and_comment_and_extra() -> None:
     assert dep.source == "https://github.com/python-poetry/poetry.git"
     assert dep.reference == "b;ar;"
     assert dep.in_extras == ["foo;"]
+
+
+@pytest.mark.parametrize("platform", ["linux", "darwin"])
+@pytest.mark.parametrize(
+    "url",
+    [
+        r"file://C:\gitlab-runner\builds\project/src/PytorchNvCodec/",
+        "file://server/share/package",
+    ],
+)
+def test_dependency_from_pep_508_with_non_local_file_url(
+    mocker: MockerFixture, platform: str, url: str
+) -> None:
+    mocker.patch("poetry.core.packages.utils.utils.sys", platform=platform)
+
+    with pytest.raises(
+        InvalidRequirementError, match="non-local file URIs are not supported"
+    ):
+        Dependency.create_from_pep_508(f'package @ {url} ; extra == "dev"')
 
 
 def test_dependency_from_pep_508_with_url() -> None:
